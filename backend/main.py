@@ -1130,6 +1130,87 @@ async def detect_bpm_key(file: UploadFile = File(...)):
 # System Utilities
 # ──────────────────────────────────────────────────────────────────────────────
 
+@app.post("/mix_vocal_instrumental")
+async def mix_vocal_instrumental(
+    instrumental_url: str = Form(...),
+    vocal_file: UploadFile = File(...),
+):
+    """
+    Mix vocal track with instrumental.
+    Downloads instrumental, mixes with vocal, returns final track.
+    """
+    import requests
+    import librosa
+    import soundfile as sf
+    
+    try:
+        # Download instrumental
+        instrumental_full_url = f"{API}{instrumental_url}" if not instrumental_url.startswith("http") else instrumental_url
+        inst_response = requests.get(instrumental_full_url)
+        if inst_response.status_code != 200:
+            raise Exception(f"Failed to download instrumental: {instrumental_full_url}")
+        
+        # Save instrumental to temp file
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as inst_tmp:
+            inst_tmp.write(inst_response.content)
+            inst_path = inst_tmp.name
+        
+        # Save vocal to temp file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as vocal_tmp:
+            vocal_tmp.write(await vocal_file.read())
+            vocal_path = vocal_tmp.name
+        
+        # Load both audio files
+        vocal_y, vocal_sr = librosa.load(vocal_path, sr=None)
+        inst_y, inst_sr = librosa.load(inst_path, sr=None)
+        
+        # Match sample rates
+        if vocal_sr != inst_sr:
+            vocal_y = librosa.resample(vocal_y, orig_sr=vocal_sr, target_sr=inst_sr)
+        
+        # Match durations (trim or pad vocal to match instrumental)
+        if len(vocal_y) < len(inst_y):
+            # Pad vocal with silence
+            vocal_y = np.pad(vocal_y, (0, len(inst_y) - len(vocal_y)), mode='constant')
+        elif len(vocal_y) > len(inst_y):
+            # Trim vocal
+            vocal_y = vocal_y[:len(inst_y)]
+        
+        # Normalize volumes
+        vocal_y = librosa.util.normalize(vocal_y) * 0.7  # Vocal at 70%
+        inst_y = librosa.util.normalize(inst_y) * 0.5   # Instrumental at 50%
+        
+        # Mix
+        mixed = vocal_y + inst_y
+        mixed = librosa.util.normalize(mixed) * 0.9  # Prevent clipping
+        
+        # Save mixed audio
+        output_filename = f"vocal2bgm_{uuid.uuid4().hex[:8]}.wav"
+        output_path = os.path.join(TRACKS_DIR, output_filename)
+        sf.write(output_path, mixed, inst_sr)
+        
+        # Clean up temp files
+        try:
+            os.unlink(inst_path)
+            os.unlink(vocal_path)
+        except:
+            pass
+        
+        return {
+            "status": "ok",
+            "filename": output_filename,
+            "url": f"/tracks/{output_filename}",
+        }
+        
+    except Exception as e:
+        import traceback
+        return JSONResponse(
+            status_code=500,
+            content={"error": str(e), "traceback": traceback.format_exc()}
+        )
+
+
 @app.get("/hardware")
 def hardware_info():
     return hw

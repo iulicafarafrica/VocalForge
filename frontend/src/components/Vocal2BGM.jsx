@@ -51,17 +51,16 @@ export default function Vocal2BGM({ addLog, tracks, setTracks }) {
     fd.append("infer_steps", "8");
     fd.append("dit_model", model);
     fd.append("vocal_language", "en");
-    fd.append("task_type", "cover");  // FIXED: Use "cover" not "audio2audio"
-    fd.append("source_audio", vocalFile);
-    fd.append("audio_cover_strength", "0.2");  // FIXED: Lower strength for style transfer
-    fd.append("thinking", "true");  // Enable LM for better results
+    fd.append("task_type", "text2music");
+    fd.append("instrumental", "true");
+    fd.append("thinking", "true");
 
     const progressSteps = [
-      { pct: 15, label: "🎤 Analyzing vocal...", delay: 2000 },
+      { pct: 15, label: "🎤 Analyzing vocal BPM/Key...", delay: 2000 },
       { pct: 30, label: "🎼 Generating instrumental...", delay: 5000 },
-      { pct: 50, label: "🎹 Mixing tracks...", delay: 10000 },
-      { pct: 70, label: "🎛 Finalizing...", delay: 15000 },
-      { pct: 90, label: "✅ Complete!", delay: 20000 },
+      { pct: 50, label: "🎹 Matching tempo...", delay: 10000 },
+      { pct: 70, label: "🎛 Mixing vocal + instrumental...", delay: 15000 },
+      { pct: 90, label: "✅ Finalizing...", delay: 20000 },
     ];
 
     const timers = progressSteps.map(s =>
@@ -69,6 +68,7 @@ export default function Vocal2BGM({ addLog, tracks, setTracks }) {
     );
 
     try {
+      // Step 1: Generate instrumental
       const res = await fetch(`${API}/ace_generate`, {
         method: "POST",
         body: fd,
@@ -79,25 +79,43 @@ export default function Vocal2BGM({ addLog, tracks, setTracks }) {
       const data = await res.json();
       if (data.error) throw new Error(data.error);
 
+      setProgress(70);
+      setProgressLabel("🎛 Mixing vocal + instrumental...");
+
+      // Step 2: Mix vocal with instrumental
+      const mixFd = new FormData();
+      mixFd.append("instrumental_url", data.url);
+      mixFd.append("vocal_file", vocalFile);
+      
+      const mixRes = await fetch(`${API}/mix_vocal_instrumental`, {
+        method: "POST",
+        body: mixFd,
+      });
+      
+      const mixData = await mixRes.json();
+      if (mixData.error) throw new Error(mixData.error);
+
       const track = {
         id: Date.now(),
-        filename: data.filename,
-        url: `${API}${data.url}`,
+        filename: mixData.filename || data.filename,
+        url: `${API}${mixData.url || data.url}`,
         duration: data.duration_sec,
         created: new Date().toLocaleTimeString(),
         isAce: true,
         isVocal2BGM: true,
+        hasVocal: true,
         metadata: {
           vocal_file: vocalFile.name,
           prompt: prompt,
           model: model,
+          type: "vocal2bgm",
         },
       };
 
       setTracks(prev => [track, ...prev]);
       setResult(track);
       setProgress(100);
-      addLog(`[OK] Vocal2BGM: Generated ${data.filename} (${data.duration_sec}s)`);
+      addLog(`[OK] Vocal2BGM: Generated ${track.filename} (${data.duration_sec}s)`);
 
     } catch (err) {
       setError(err.message);
