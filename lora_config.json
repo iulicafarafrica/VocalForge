@@ -1,0 +1,10 @@
+{
+  "r": 64,
+  "alpha": 128,
+  "dropout": 0.1,
+  "target_modules": [
+    "transformer.audio_projector",
+    "transformer.condition_layer"
+  ],
+  "comment": "VRAM-friendly for RTX 3070 with FP16 + batch 1. Adjust r/alpha for stronger style capture."
+}

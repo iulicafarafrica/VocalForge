@@ -1,0 +1,165 @@
+# ======================
+# Python
+# ======================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+env/
+.env
+
+# ======================
+# Node.js
+# ======================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ======================
+# AI Models (downloadable)
+# ======================
+models/
+uvr_models/
+checkpoints/
+*.pth
+*.pth.*
+*.bin
+*.pt
+*.onnx
+*.safetensors
+*.ckpt
+*.pb
+*.h5
+*.mlmodel
+*.mlpackage
+
+# ======================
+# Generated/Output files
+# ======================
+output/
+outputs/
+temp/
+tmp/
+*.wav
+*.mp3
+*.flac
+*.ogg
+*.m4a
+*.video
+*.mp4
+*.avi
+*.mov
+*.gif
+*.log
+gradio_outputs/
+lora_outputs/
+
+# ======================
+# IDE / Editor
+# ======================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ======================
+# Jupyter Notebook
+# ======================
+.ipynb_checkpoints/
+
+# ======================
+# Ruff cache
+# ======================
+.ruff_cache/
+
+# ======================
+# Ace-step submodule (separate repo)
+# ======================
+ace-step/
+so-vits-svc/
+
+# ======================
+# Backend specific
+# ======================
+backend/models/
+backend/*/models/
+backend/output/
+backend/temp/
+backend/*.log
+
+# ======================
+# Environment variables (secrets)
+# ======================
+.env
+.env.local
+.env.*.local
+
+# ======================
+# Misc
+# ======================
+*.cache/
+.cache/
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+.mypy_cache/
+
+# ======================
+# Windows reserved names
+# ======================
+nul
+$null
+CON
+PRN
+AUX
+COM1
+COM2
+COM3
+COM4
+COM5
+COM6
+COM7
+COM8
+COM9
+LPT1
+LPT2
+LPT3
+LPT4
+LPT5
+LPT6
+LPT7
+LPT8
+LPT9
+
+# ======================
+# Backup folders
+# ======================
+backup ui/
+Backup/
+*.zip

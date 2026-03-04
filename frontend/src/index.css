@@ -1,0 +1,191 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: #0a0a1a;
+  color: #e0e0ff;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0d0d20;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2a4a;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a6a;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: #1e1e3a;
+  outline: none;
+  cursor: pointer;
+  will-change: transform;
+  touch-action: pan-y;
+  pointer-events: auto;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #00e5ff;
+  cursor: pointer;
+  box-shadow: 0 0 6px #00e5ff88;
+  will-change: transform;
+  pointer-events: auto !important;
+  touch-action: none;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  background: #1e1e3a;
+  border-radius: 2px;
+}
+
+/* Advanced slider - optimized for smooth dragging */
+input[type="range"].advanced-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #1e1e3a 0%, #2a2a4a 100%);
+  outline: none;
+  cursor: pointer;
+  will-change: transform;
+  touch-action: pan-y;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  pointer-events: auto;
+}
+input[type="range"].advanced-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00e5ff, #00b4d8);
+  cursor: grab;
+  box-shadow: 0 0 10px #00e5ff66, 0 2px 6px rgba(0,0,0,0.3);
+  border: 2px solid #00e5ff;
+  will-change: transform;
+  transform: translateZ(0);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  pointer-events: auto !important;
+  touch-action: none;
+}
+input[type="range"].advanced-slider::-webkit-slider-thumb:hover {
+  transform: translateZ(0) scale(1.1);
+  box-shadow: 0 0 16px #00e5ff88, 0 4px 10px rgba(0,0,0,0.4);
+}
+input[type="range"].advanced-slider::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: translateZ(0) scale(1.15);
+}
+input[type="range"].advanced-slider::-webkit-slider-runnable-track {
+  background: linear-gradient(90deg, #1e1e3a 0%, #2a2a4a 100%);
+  border-radius: 3px;
+  height: 6px;
+}
+
+/* Duration slider specific - gold/yellow theme */
+input[type="range"].duration-slider::-webkit-slider-thumb {
+  background: #ffd166;
+  box-shadow: 0 0 6px #ffd16688;
+}
+
+/* BPM slider specific - gold theme */
+input[type="range"].bpm-slider::-webkit-slider-thumb {
+  background: #ffd166;
+  box-shadow: 0 0 6px #ffd16688;
+}
+
+/* Guidance Scale slider - cyan theme */
+input[type="range"].guidance-slider::-webkit-slider-thumb {
+  background: #00e5ff;
+  box-shadow: 0 0 6px #00e5ff88;
+}
+
+/* Steps slider - green theme */
+input[type="range"].steps-slider::-webkit-slider-thumb {
+  background: #06d6a0;
+  box-shadow: 0 0 6px #06d6a088;
+}
+
+/* Source strength slider - purple theme */
+input[type="range"].strength-slider::-webkit-slider-thumb {
+  background: #9b2de0;
+  box-shadow: 0 0 6px #9b2de088;
+}
+
+input[type="checkbox"] {
+  accent-color: #00e5ff;
+  cursor: pointer;
+}
+
+select, input[type="text"], input[type="number"], textarea {
+  background: #0d0d25;
+  border: 1px solid #2a2a4a;
+  color: #e0e0ff;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+select:focus, input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+  border-color: #00e5ff;
+  box-shadow: 0 0 0 2px #00e5ff22;
+}
+
+audio {
+  filter: invert(0.85) hue-rotate(180deg);
+  border-radius: 6px;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px #00e5ff44; }
+  50% { box-shadow: 0 0 20px #00e5ff88; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes wave {
+  from { transform: scaleY(0.4); }
+  to   { transform: scaleY(1.2); }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease;
+}
+
+.glow-btn {
+  animation: pulse-glow 2s infinite;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}

@@ -1,0 +1,574 @@
+/**
+ * Repaint / Lego / Complete Tab
+ * ACE-Step Advanced Features - UI aligned with VocalForge theme
+ */
+
+import React, { useState, useRef } from 'react';
+
+const API_BASE = 'http://localhost:8000';
+
+const sectionStyle = {
+  background: 'linear-gradient(180deg, #0d0d22 0%, #0a0a1a 100%)',
+  border: '1px solid #1a1a3a',
+  borderRadius: 12,
+  padding: '20px 24px',
+  marginBottom: 20,
+};
+
+const labelStyle = {
+  display: 'block',
+  fontSize: 11,
+  fontWeight: 600,
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
+  color: '#6666aa',
+  marginBottom: 8,
+};
+
+const inputStyle = {
+  width: '100%',
+  background: '#0d0d25',
+  border: '1px solid #2a2a4a',
+  color: '#e0e0ff',
+  borderRadius: 8,
+  padding: '10px 12px',
+  fontSize: 14,
+  outline: 'none',
+  transition: 'border-color 0.2s, box-shadow 0.2s',
+};
+
+export default function RepaintLegoComplete() {
+  const [mode, setMode] = useState('repaint');
+  const [file, setFile] = useState(null);
+  const [prompt, setPrompt] = useState('');
+  const [guidanceScale, setGuidanceScale] = useState(9.0);
+  const [seed, setSeed] = useState(-1);
+  const [inferSteps, setInferSteps] = useState(12);
+  const [keyScale, setKeyScale] = useState('');
+  const [audioFormat, setAudioFormat] = useState('mp3');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+  const [progress, setProgress] = useState('');
+
+  const [startTime, setStartTime] = useState(0);
+  const [endTime, setEndTime] = useState(30);
+  const [lyrics, setLyrics] = useState('');
+
+  const [trackName, setTrackName] = useState('drums');
+  const trackOptions = ['drums', 'bass', 'guitar', 'piano', 'strings', 'synth', 'vocals'];
+
+  const [trackClasses, setTrackClasses] = useState(['drums', 'bass']);
+  const availableClasses = ['drums', 'bass', 'guitar', 'piano', 'strings', 'synth', 'vocals', 'brass', 'woodwinds'];
+
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setResult(null);
+      setError(null);
+    }
+  };
+
+  const toggleTrackClass = (cls) => {
+    setTrackClasses(prev =>
+      prev.includes(cls) ? prev.filter(c => c !== cls) : [...prev, cls]
+    );
+  };
+
+  const handleSubmit = async () => {
+    if (!file) {
+      setError('Please select an audio file');
+      return;
+    }
+    setIsProcessing(true);
+    setError(null);
+    setResult(null);
+    setProgress('Uploading file...');
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('prompt', prompt);
+    formData.append('guidance_scale', guidanceScale);
+    formData.append('seed', seed);
+    formData.append('infer_steps', inferSteps);
+    formData.append('key_scale', keyScale);
+    formData.append('audio_format', audioFormat);
+
+    if (mode === 'repaint') {
+      formData.append('start_time', startTime);
+      formData.append('end_time', endTime);
+      formData.append('lyrics', lyrics);
+    } else if (mode === 'lego') {
+      formData.append('track_name', trackName);
+    } else if (mode === 'complete') {
+      formData.append('track_classes', trackClasses.join(','));
+    }
+
+    try {
+      const endpoint = mode === 'repaint' ? '/acestep/repaint' : mode === 'lego' ? '/acestep/lego' : '/acestep/complete';
+      setProgress(`Processing ${mode}...`);
+
+      const response = await fetch(`${API_BASE}${endpoint}`, { method: 'POST', body: formData });
+      let data = {};
+      try { data = await response.json(); } catch (_) {}
+
+
+      if (!response.ok) {
+        const errMsg = typeof data.error === 'string' ? data.error : typeof data.detail === 'string' ? data.detail : typeof data.detail === 'object' ? JSON.stringify(data.detail) : JSON.stringify(data) || `HTTP ${response.status}`;
+        throw new Error(errMsg);
+      }
+      setResult(data);
+      setProgress('Done!');
+    } catch (err) {
+      setError(err.message);
+      setProgress('');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const modeConfig = {
+    repaint: {
+      label: 'Repaint',
+      icon: '🖌️',
+      color: '#9b5de5',
+      desc: 'Select a portion of the track (e.g. seconds 30–60) and regenerate it.\nUseful to fix a section that doesn\'t sound right without regenerating everything.\nYou can change lyrics, add a bridge, modify endings.\nTurbo and Base models only.',
+    },
+    lego: {
+      label: 'Lego',
+      icon: '🧱',
+      color: '#f9c74f',
+      desc: 'Add or regenerate specific instruments in a track.\nSelect which track (drums, bass, guitar, etc.) to modify.\nThe rest of the audio stays unchanged.\nTurbo and Base models only.',
+    },
+    complete: {
+      label: 'Complete',
+      icon: '🎼',
+      color: '#06d6a0',
+      desc: 'Auto-complete incomplete tracks with specified instruments.\nSelect which instruments should be added/generated.\nUseful for adding missing parts to a demo.\nTurbo and Base models only.',
+    },
+  };
+
+  const currentMode = modeConfig[mode];
+
+  return (
+    <div style={{ maxWidth: 720, margin: '0 auto' }}>
+      {/* Title */}
+      <div style={{ marginBottom: 28 }}>
+        <h2 style={{
+          fontSize: 22,
+          fontWeight: 800,
+          letterSpacing: 1,
+          background: 'linear-gradient(135deg, #e0e0ff, #00e5ff)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          marginBottom: 4,
+        }}>
+          {currentMode.icon} {currentMode.label}
+        </h2>
+        <p style={{ color: '#444466', fontSize: 13 }}>{currentMode.label} - ACE-Step Advanced</p>
+      </div>
+
+      {/* Mode selector */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+        {Object.entries(modeConfig).map(([key, cfg]) => (
+          <button
+            key={key}
+            onClick={() => setMode(key)}
+            style={{
+              flex: 1,
+              padding: '12px 16px',
+              borderRadius: 10,
+              border: `1px solid ${mode === key ? cfg.color : '#2a2a4a'}`,
+              background: mode === key ? `${cfg.color}22` : 'transparent',
+              color: mode === key ? cfg.color : '#6666aa',
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+          >
+            {cfg.icon} {cfg.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Mode description card */}
+      <div style={{ ...sectionStyle, borderLeft: `4px solid ${currentMode.color}` }}>
+        <p style={{ color: '#a0a0cc', fontSize: 14, lineHeight: 1.55, margin: 0, whiteSpace: 'pre-line' }}>
+          {currentMode.desc}
+        </p>
+      </div>
+
+      {/* File upload */}
+      <div style={sectionStyle}>
+        <span style={labelStyle}>Source audio</span>
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => fileInputRef.current?.click()}
+          onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
+          style={{
+            border: '2px dashed #2a2a4a',
+            borderRadius: 12,
+            padding: 28,
+            textAlign: 'center',
+            cursor: 'pointer',
+            transition: 'border-color 0.2s, background 0.2s',
+            background: file ? '#0d0d22' : 'transparent',
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.borderColor = currentMode.color;
+            e.currentTarget.style.background = '#0d0d22';
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.borderColor = '#2a2a4a';
+            e.currentTarget.style.background = file ? '#0d0d22' : 'transparent';
+          }}
+        >
+          {file ? (
+            <div>
+              <p style={{ color: '#e0e0ff', fontWeight: 600, marginBottom: 4 }}>{file.name}</p>
+              <p style={{ color: '#6666aa', fontSize: 12 }}>{(file.size / 1024 / 1024).toFixed(2)} MB · Click to change</p>
+            </div>
+          ) : (
+            <div>
+              <p style={{ color: '#6666aa', marginBottom: 4 }}>Click to select audio file</p>
+              <p style={{ color: '#444466', fontSize: 12 }}>WAV, MP3, FLAC</p>
+            </div>
+          )}
+        </div>
+        <input ref={fileInputRef} type="file" accept="audio/*" onChange={handleFileChange} style={{ display: 'none' }} />
+      </div>
+
+      {/* Mode-specific options */}
+      {mode === 'repaint' && (
+        <div style={sectionStyle}>
+          <span style={labelStyle}>Repaint region</span>
+          
+          {/* Start Time */}
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ ...labelStyle, marginBottom: 4 }}>Start time (seconds)</label>
+            <input
+              type="number"
+              min="0"
+              max="300"
+              step="0.1"
+              value={startTime}
+              onChange={(e) => setStartTime(parseFloat(e.target.value) || 0)}
+              style={inputStyle}
+            />
+          </div>
+
+          {/* End Time */}
+          <div style={{ marginBottom: 12 }}>
+            <label style={{ ...labelStyle, marginBottom: 4 }}>End time (seconds)</label>
+            <input
+              type="number"
+              min="0"
+              max="300"
+              step="0.1"
+              value={endTime}
+              onChange={(e) => setEndTime(parseFloat(e.target.value) || 0)}
+              style={inputStyle}
+            />
+          </div>
+
+          {/* Lyrics */}
+          <div>
+            <label style={labelStyle}>Lyrics (optional)</label>
+            <textarea
+              value={lyrics}
+              onChange={(e) => setLyrics(e.target.value)}
+              placeholder="Lyrics for the repainted section..."
+              style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* LEGO mode options */}
+      {mode === 'lego' && (
+        <div style={sectionStyle}>
+          <span style={labelStyle}>Track to generate</span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {trackOptions.map(track => (
+              <button
+                key={track}
+                onClick={() => setTrackName(track)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  border: `1px solid ${trackName === track ? '#f9c74f' : '#2a2a4a'}`,
+                  background: trackName === track ? '#f9c74f22' : 'transparent',
+                  color: trackName === track ? '#f9c74f' : '#6666aa',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                {track.charAt(0).toUpperCase() + track.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Complete mode options */}
+      {mode === 'complete' && (
+        <div style={sectionStyle}>
+          <span style={labelStyle}>Instruments to add</span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {availableClasses.map(cls => (
+              <button
+                key={cls}
+                onClick={() => toggleTrackClass(cls)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  border: `1px solid ${trackClasses.includes(cls) ? '#06d6a0' : '#2a2a4a'}`,
+                  background: trackClasses.includes(cls) ? '#06d6a022' : 'transparent',
+                  color: trackClasses.includes(cls) ? '#06d6a0' : '#6666aa',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                {cls.charAt(0).toUpperCase() + cls.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Common parameters */}
+      <div style={sectionStyle}>
+        <span style={labelStyle}>Generation parameters</span>
+        
+        {/* Prompt */}
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ ...labelStyle, marginBottom: 4 }}>Prompt</label>
+          <input
+            type="text"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Describe the style..."
+            style={inputStyle}
+          />
+        </div>
+
+        {/* guidance Scale */}
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ ...labelStyle, marginBottom: 4 }}>Guidance Scale (CFG)</label>
+          <input
+            type="number"
+            min="1"
+            max="20"
+            step="0.5"
+            value={guidanceScale}
+            onChange={(e) => setGuidanceScale(parseFloat(e.target.value) || 7)}
+            style={inputStyle}
+          />
+        </div>
+
+        {/* Inference Steps */}
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ ...labelStyle, marginBottom: 4 }}>Inference Steps (quality)</label>
+          <input
+            type="number"
+            min="4"
+            max="50"
+            step="1"
+            value={inferSteps}
+            onChange={(e) => setInferSteps(parseInt(e.target.value, 10) || 12)}
+            style={inputStyle}
+          />
+          <span style={{ color: '#6666aa', fontSize: 11, marginTop: 4, display: 'block' }}>
+            More steps = better quality, slower generation (default: 12, recommended: 8-20)
+          </span>
+        </div>
+
+        {/* Key Scale */}
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ ...labelStyle, marginBottom: 4 }}>Key Scale (musical key)</label>
+          <input
+            type="text"
+            value={keyScale}
+            onChange={(e) => setKeyScale(e.target.value)}
+            placeholder="e.g., C major, A minor, D# major..."
+            style={inputStyle}
+          />
+          <span style={{ color: '#6666aa', fontSize: 11, marginTop: 4, display: 'block' }}>
+            Musical key for the repainted section (leave empty for auto)
+          </span>
+        </div>
+
+        {/* Seed */}
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <span style={{ color: '#8888aa', fontSize: 12 }}>🎲 Seed (-1 = random)</span>
+            <span style={{ color: '#c77dff', fontSize: 13, fontFamily: 'monospace', fontWeight: 700 }}>{seed === -1 ? 'Random' : seed}</span>
+          </div>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            <input 
+              type="number" 
+              value={seed} 
+              onChange={(e) => setSeed(parseInt(e.target.value, 10) || -1)}
+              style={{ 
+                flex: 1,
+                background: '#080812', 
+                border: '1px solid #2a2a4a', 
+                color: '#e0e0ff', 
+                borderRadius: 8, 
+                padding: '8px 12px', 
+                fontSize: 12,
+              }} 
+            />
+            <button 
+              onClick={() => setSeed(-1)} 
+              style={{ 
+                background: '#0a0a1a', 
+                color: '#8888aa', 
+                border: '1px solid #2a2a4a', 
+                borderRadius: 8, 
+                padding: '8px 12px', 
+                fontSize: 11, 
+                cursor: 'pointer', 
+                fontWeight: 600 
+              }} 
+              title="Random seed"
+            >🎲 Random</button>
+            <button 
+              onClick={() => setSeed(Math.floor(Math.random() * 999999))} 
+              style={{ 
+                background: '#0a0a1a', 
+                color: '#6666aa', 
+                border: '1px solid #2a2a4a', 
+                borderRadius: 8, 
+                padding: '8px 10px', 
+                fontSize: 11, 
+                cursor: 'pointer' 
+              }} 
+              title="Random numeric"
+            >🔀</button>
+          </div>
+        </div>
+      </div>
+
+      {/* Messages */}
+      {error && (
+        <div style={{
+          ...sectionStyle,
+          borderColor: '#e63946',
+          background: 'rgba(230,57,70,0.08)',
+          marginBottom: 20,
+        }}>
+          <p style={{ color: '#e63946', fontSize: 14 }}>{error}</p>
+        </div>
+      )}
+
+      {progress && !error && (
+        <div style={{
+          ...sectionStyle,
+          borderColor: '#00e5ff',
+          background: 'rgba(0,229,255,0.06)',
+          marginBottom: 20,
+        }}>
+          <p style={{ color: '#00e5ff', fontSize: 14 }}>{progress}</p>
+        </div>
+      )}
+
+      {/* Submit */}
+      <button
+        type="button"
+        onClick={handleSubmit}
+        disabled={isProcessing || !file}
+        style={{
+          width: '100%',
+          padding: '14px 24px',
+          borderRadius: 12,
+          border: 'none',
+          background: isProcessing || !file
+            ? '#1a1a3a'
+            : `linear-gradient(135deg, ${currentMode.color}, #00e5ff)`,
+          color: isProcessing || !file ? '#444466' : '#080812',
+          fontWeight: 700,
+          fontSize: 15,
+          cursor: isProcessing || !file ? 'not-allowed' : 'pointer',
+          transition: 'opacity 0.2s',
+          marginBottom: 24,
+        }}
+      >
+        {isProcessing ? 'Processing…' : `Generate ${currentMode.label}`}
+      </button>
+
+      {/* Result */}
+      {result && (
+        <div style={{ ...sectionStyle, borderLeft: '4px solid #06d6a0' }}>
+          <span style={{ ...labelStyle, color: '#06d6a0' }}>Result</span>
+          <div style={{ color: '#a0a0cc', fontSize: 13, marginBottom: 16 }}>
+            <p style={{ marginBottom: 4 }}>Duration: {result.duration_sec}s</p>
+            <p style={{ marginBottom: 4 }}>Processing: {result.processing_time_sec}s</p>
+            {result.seed !== undefined && (
+              <p style={{ marginBottom: 4 }}>
+                🎲 Seed: <span style={{ color: '#c77dff', fontFamily: 'monospace', fontWeight: 700 }}>{result.seed}</span>
+                <button
+                  onClick={() => setSeed(result.seed)}
+                  style={{
+                    marginLeft: 8,
+                    background: '#1a1a3a',
+                    border: '1px solid #2a2a4a',
+                    color: '#8888aa',
+                    borderRadius: 4,
+                    padding: '2px 8px',
+                    fontSize: 11,
+                    cursor: 'pointer',
+                  }}
+                  title="Use this seed"
+                >
+                  Use
+                </button>
+              </p>
+            )}
+          </div>
+          {result.url && (
+            <div>
+              <audio controls src={`${API_BASE}${result.url}`} style={{ width: '100%', marginBottom: 12 }} />
+              <a
+                href={`${API_BASE}${result.url}`}
+                download
+                style={{
+                  display: 'inline-block',
+                  padding: '10px 20px',
+                  borderRadius: 8,
+                  background: '#06d6a0',
+                  color: '#080812',
+                  fontWeight: 600,
+                  fontSize: 13,
+                  textDecoration: 'none',
+                  transition: 'opacity 0.2s',
+                }}
+              >
+                Download audio
+              </a>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Note */}
+      <div style={{
+        ...sectionStyle,
+        borderColor: 'rgba(255,209,102,0.35)',
+        background: 'rgba(255,209,102,0.06)',
+        marginBottom: 0,
+      }}>
+        <p style={{ color: '#ffd166', fontSize: 13, margin: 0 }}>
+          ACE-Step API must be running on port 8001. Use <code style={{ background: '#1a1a3a', padding: '2px 6px', borderRadius: 4 }}>start_acestep.bat</code> to start it.
+        </p>
+      </div>
+    </div>
+  );
+}
