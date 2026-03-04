@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import QwenChat from "./QwenChat";
+import GroqChat from "./QwenChat";
 
 const API = "http://localhost:8000";
 
@@ -977,8 +977,8 @@ export default function AceStepTab({
         {/* LEFT */}
         <div>
 
-          {/* 🤖 Qwen AI Chat */}
-          <QwenChat
+          {/* 🤖 Groq AI Chat */}
+          <GroqChat
             onInsertLyrics={(lyrics) => {
               setLyrics(lyrics);
               addLog(`[OK] AI lyrics inserted`);

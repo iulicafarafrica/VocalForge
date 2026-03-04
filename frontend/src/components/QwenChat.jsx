@@ -1,14 +1,14 @@
 /**
- * QwenChat Component
+ * GroqChat Component
  * AI-powered chat assistant for generating lyrics, prompts, and genre suggestions
- * Uses Alibaba Qwen API via DashScope
+ * Uses Groq Cloud API with Llama 3.3 model
  */
 
 import { useState } from "react";
 
 const API = "http://localhost:8000";
 
-export default function QwenChat({ onInsertLyrics, onInsertPrompt }) {
+export default function GroqChat({ onInsertLyrics, onInsertPrompt }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [task, setTask] = useState("lyrics"); // lyrics, prompt, genre
@@ -74,7 +74,7 @@ export default function QwenChat({ onInsertLyrics, onInsertPrompt }) {
           <span style={{ fontSize: 20 }}>🤖</span>
           <div>
             <h3 style={{ color: "#00e5ff", margin: 0, fontSize: 14, fontWeight: 700 }}>AI Assistant</h3>
-            <p style={{ color: "#6666aa", margin: 0, fontSize: 10 }}>Powered by Qwen 2.5</p>
+            <p style={{ color: "#6666aa", margin: 0, fontSize: 10 }}>Powered by Groq Llama 3.3</p>
           </div>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -171,7 +171,7 @@ export default function QwenChat({ onInsertLyrics, onInsertPrompt }) {
                 letterSpacing: 0.5,
               }}>
                 <span>{msg.role === "user" ? "👤" : msg.role === "error" ? "❌" : "🤖"}</span>
-                <span>{msg.role === "user" ? "You" : msg.role === "error" ? "Error" : "Qwen AI"}</span>
+                <span>{msg.role === "user" ? "You" : msg.role === "error" ? "Error" : "Groq AI"}</span>
                 {msg.task && msg.role === "user" && (
                   <span style={{ 
                     background: "#2a2a4a", 
@@ -198,7 +198,7 @@ export default function QwenChat({ onInsertLyrics, onInsertPrompt }) {
             gap: 8,
           }}>
             <span style={{ animation: "spin 1s linear infinite", display: "inline-block" }}>⏳</span>
-            Qwen is thinking...
+            Groq is thinking...
           </div>
         )}
       </div>
