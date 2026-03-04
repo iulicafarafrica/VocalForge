@@ -7,14 +7,13 @@
 ## 🎬 Demo Video
 
 <div align="center">
-  <a href="https://www.youtube.com/watch?v=8XSwCM7bM1A" target="_blank">
-    <img src="https://img.youtube.com/vi/8XSwCM7bM1A/maxresdefault.jpg" alt="VocalForge Demo" width="640" style="border-radius: 12px; border: 2px solid #7209b7;" />
-  </a>
-  <br />
-  <p style="font-size: 14px; color: #666; margin-top: 10px;">
-    <strong>🎵 VocalForge v1.7 - AI Music Generation & Audio Processing</strong><br />
-    Click to watch on YouTube → <a href="https://www.youtube.com/watch?v=8XSwCM7bM1A">https://www.youtube.com/watch?v=8XSwCM7bM1A</a>
-  </p>
+
+[![VocalForge Demo Video](https://img.youtube.com/vi/8XSwCM7bM1A/hqdefault.jpg)](https://www.youtube.com/watch?v=8XSwCM7bM1A)
+
+**🎵 VocalForge v1.7 - AI Music Generation & Audio Processing**
+
+[Click to watch on YouTube →](https://www.youtube.com/watch?v=8XSwCM7bM1A)
+
 </div>
 
 ---
