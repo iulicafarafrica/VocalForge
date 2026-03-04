@@ -6,15 +6,11 @@
 
 ## 🎬 Demo Video
 
-<div align="center">
+### 🎵 VocalForge v1.7 - AI Music Generation & Audio Processing
 
-[![VocalForge Demo Video](https://img.youtube.com/vi/8XSwCM7bM1A/hqdefault.jpg)](https://www.youtube.com/watch?v=8XSwCM7bM1A)
+**Watch the demo on YouTube:**
 
-**🎵 VocalForge v1.7 - AI Music Generation & Audio Processing**
-
-[Click to watch on YouTube →](https://www.youtube.com/watch?v=8XSwCM7bM1A)
-
-</div>
+➡️ **[https://www.youtube.com/watch?v=8XSwCM7bM1A](https://www.youtube.com/watch?v=8XSwCM7bM1A)**
 
 ---
 
