@@ -650,12 +650,29 @@ export default function AceStepTab({
   const [tensorModel, setTensorModel] = useState("acestep-v15-turbo"); // default
 
   const TENSOR_MODELS = [
-    { id: "acestep-v15-turbo", name: "⚡ Turbo", desc: "8 steps, fast generation", color: "#06d6a0" },
-    { id: "acestep-v15-base", name: "🎯 Base", desc: "50 steps, high diversity", color: "#00e5ff" },
-    { id: "acestep-v15-sft", name: "🎵 SFT", desc: "50 steps, high quality", color: "#c77dff" },
+    { id: "acestep-v15-turbo", name: "⚡ Turbo", desc: "8 steps │ CFG: ❌ │ Fast", color: "#06d6a0", steps: 8, cfg: false, features: "Standard" },
+    { id: "acestep-v15-turbo-shift3", name: "⚡ Turbo Shift3", desc: "8 steps │ CFG: ❌ │ Alternative", color: "#06d6a0", steps: 8, cfg: false, features: "Standard" },
+    { id: "acestep-v15-base", name: "🎯 Base", desc: "50 steps │ CFG: ✅ │ All Features", color: "#00e5ff", steps: 50, cfg: true, features: "Lego, Complete, Extract" },
+    { id: "acestep-v15-sft", name: "🎵 SFT", desc: "50 steps │ CFG: ✅ │ High Quality", color: "#c77dff", steps: 50, cfg: true, features: "Standard" },
   ];
 
-  // ── Vocal Language Options (5 languages) ───────────────────────────────────
+  // Task type model compatibility
+  const taskTypeModelSupport = {
+    text2music: {
+      'acestep-v15-turbo': { supported: true, note: '✅ Fast (8 steps)' },
+      'acestep-v15-turbo-shift3': { supported: true, note: '✅ Fast (8 steps)' },
+      'acestep-v15-base': { supported: true, note: '✅ Full features + CFG (50 steps)' },
+      'acestep-v15-sft': { supported: true, note: '✅ High quality + CFG (50 steps)' },
+    },
+    audio2audio: {
+      'acestep-v15-turbo': { supported: true, note: '✅ Fast (8 steps)' },
+      'acestep-v15-turbo-shift3': { supported: true, note: '✅ Fast (8 steps)' },
+      'acestep-v15-base': { supported: true, note: '✅ Full features + CFG (50 steps)' },
+      'acestep-v15-sft': { supported: true, note: '✅ High quality + CFG (50 steps)' },
+    },
+  };
+
+  // ── Vocal Language Options ────────────────────────────────────────────────
   const VOCAL_LANGUAGES = [
     { code: "unknown", name: "🎵 Instrumental / Auto", native: "Auto-detect" },
     { code: "en", name: "English", native: "English" },
@@ -1111,51 +1128,60 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
               <span style={{ color: "#6666aa", fontSize: 11, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8, display: "block" }}>
                 🧠 DiT Model
               </span>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {TENSOR_MODELS.map(model => {
-                  const isSelected = tensorModel === model.id;
-                  return (
-                    <button
-                      key={model.id}
-                      onClick={() => setTensorModel(model.id)}
+              <select
+                value={tensorModel}
+                onChange={(e) => setTensorModel(e.target.value)}
+                style={{
+                  width: "100%",
+                  background: "#080812",
+                  border: "1px solid #2a2a4a",
+                  color: "#e0e0ff",
+                  borderRadius: 8,
+                  padding: "10px 12px",
+                  fontSize: 12,
+                  fontFamily: "monospace",
+                  cursor: "pointer",
+                }}
+              >
+                <option value="acestep-v15-turbo">⚡ turbo         │ 8 steps  │ CFG: ❌ │ Fast generation</option>
+                <option value="acestep-v15-turbo-shift3">⚡ turbo-shift3 │ 8 steps  │ CFG: ❌ │ Alternative variant</option>
+                <option value="acestep-v15-base">🎯 base          │ 50 steps │ CFG: ✅ │ All features (Lego, Complete, Extract)</option>
+                <option value="acestep-v15-sft">🎵 sft           │ 50 steps │ CFG: ✅ │ High quality generation</option>
+              </select>
+
+              {/* Model Compatibility for current task type */}
+              <div style={{
+                marginTop: 8,
+                padding: "8px 10px",
+                background: taskType === "text2music" ? "rgba(0,229,255,0.04)" : "rgba(114,9,183,0.04)",
+                borderRadius: 6,
+                border: `1px solid ${taskType === "text2music" ? "#00e5ff44" : "#7209b744"}`,
+              }}>
+                <span style={{ color: taskType === "text2music" ? "#00e5ff" : "#c77dff", fontSize: 10, fontWeight: 700, display: "block", marginBottom: 6 }}>
+                  🔍 Model Support: {taskType === "text2music" ? "✍️ Text → Music" : "🎵 Audio Cover"}
+                </span>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  {Object.entries(taskTypeModelSupport[taskType]).map(([modelId, { supported, note }]) => (
+                    <div
+                      key={modelId}
                       style={{
                         display: "flex",
-                        alignItems: "center",
                         justifyContent: "space-between",
-                        padding: "10px 12px",
-                        borderRadius: 8,
-                        fontSize: 12,
-                        fontWeight: 600,
-                        background: isSelected ? `${model.color}22` : "#0a0a1a",
-                        border: `1px solid ${isSelected ? model.color : "#2a2a4a"}`,
-                        color: isSelected ? model.color : "#6666aa",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                        boxShadow: isSelected ? `0 0 12px ${model.color}33` : "none",
+                        padding: "4px 8px",
+                        borderRadius: 4,
+                        background: supported ? "rgba(6,214,160,0.06)" : "rgba(230,57,70,0.06)",
+                        border: `1px solid ${supported ? "#06d6a033" : "#e6394633"}`,
+                        fontSize: 9,
+                        fontFamily: "monospace",
                       }}
                     >
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <span style={{ fontSize: 16 }}>{model.name.split(" ")[0]}</span>
-                        <span>{model.name.split(" ").slice(1).join(" ")}</span>
-                      </div>
-                      <span style={{ fontSize: 10, opacity: 0.8 }}>{model.desc}</span>
-                    </button>
-                  );
-                })}
-              </div>
-              <div style={{ 
-                marginTop: 8, 
-                padding: "8px 10px", 
-                background: "#080812", 
-                borderRadius: 6, 
-                border: "1px solid #1a1a2e",
-                color: "#444466",
-                fontSize: 10,
-                lineHeight: 1.6,
-              }}>
-                <div>💡 <strong style={{ color: "#6666aa" }}>Turbo:</strong> 8 pași, ~10s/generare (recomandat)</div>
-                <div>🎯 <strong style={{ color: "#6666aa" }}>Base:</strong> 50 pași, diversitate maximă</div>
-                <div>🎵 <strong style={{ color: "#6666aa" }}>SFT:</strong> 50 pași, calitate ridicată</div>
+                      <span style={{ color: supported ? "#06d6a0" : "#e63946", fontWeight: 600 }}>
+                        {modelId.replace("acestep-v15-", "")}
+                      </span>
+                      <span style={{ color: supported ? "#06d6a0" : "#e63946" }}>{note}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 

@@ -285,6 +285,9 @@ async def repaint_audio(
     infer_steps: int = Form(8),  # diffusion steps (8 optimal for turbo model)
     key_scale: str = Form(""),
     audio_format: str = Form("mp3"),
+    dit_model: str = Form("acestep-v15-turbo"),
+    instruction: str = Form(""),
+    audio_cover_strength: float = Form(1.0),
 ):
     """
     Repaint: Selective audio editing and regeneration.
@@ -333,6 +336,9 @@ async def repaint_audio(
                 "audio_format": audio_format,
                 "batch_size": 1,
                 "use_tiled_decode": True,
+                "model": dit_model,
+                "instruction": instruction or f"Repaint section from {start_time}s to {end_time}s: {prompt}",
+                "audio_cover_strength": audio_cover_strength,
             }
 
             print(f"[REPAINT {job_id[:8]}] Submitting task...")
@@ -422,7 +428,6 @@ async def repaint_audio(
 @router.post("/lego")
 async def lego_generation(
     file: UploadFile = File(...),
-    track_name: str = Form(...),
     prompt: str = Form(""),
     start_time: float = Form(0.0),
     end_time: float = Form(-1.0),
@@ -430,6 +435,8 @@ async def lego_generation(
     seed: int = Form(-1),
     infer_steps: int = Form(8),  # diffusion steps (8 optimal for turbo model)
     audio_format: str = Form("mp3"),
+    dit_model: str = Form("acestep-v15-turbo"),
+    instruction: str = Form(""),
 ):
     """
     Lego: Multi-track generation - add new layers to existing audio.
@@ -462,8 +469,7 @@ async def lego_generation(
             task_payload = {
                 "task_type": "lego",
                 "src_audio_path": src_path,
-                "track_name": track_name,
-                "prompt": prompt or f"Generate {track_name} track",
+                "prompt": prompt or instruction,
                 "repainting_start": start_time,
                 "repainting_end": end_time if end_time > 0 else -1.0,
                 "inference_steps": infer_steps,
@@ -473,6 +479,8 @@ async def lego_generation(
                 "audio_format": audio_format,
                 "batch_size": 1,
                 "use_tiled_decode": True,
+                "model": dit_model,
+                "instruction": instruction or f"Generate {prompt} track",
             }
 
             print(f"[LEGO {job_id[:8]}] Submitting task...")
@@ -561,12 +569,13 @@ async def lego_generation(
 @router.post("/complete")
 async def complete_track(
     file: UploadFile = File(...),
-    track_classes: str = Form(...),
     prompt: str = Form(""),
     guidance_scale: float = Form(9.0),
     seed: int = Form(-1),
     infer_steps: int = Form(8),  # diffusion steps (8 optimal for turbo model)
     audio_format: str = Form("mp3"),
+    dit_model: str = Form("acestep-v15-turbo"),
+    instruction: str = Form(""),
 ):
     """
     Complete: Auto-complete incomplete tracks with specified instruments.
@@ -576,14 +585,12 @@ async def complete_track(
     Example: Complete a vocal-only track by adding drums, bass, and guitar.
     """
     import httpx
-    
+
     job_id = uuid.uuid4().hex
     t_start = time.time()
-    
-    # Parse track classes
-    classes_list = [c.strip() for c in track_classes.split(",") if c.strip()]
-    print(f"[COMPLETE {job_id[:8]}] Adding: {', '.join(classes_list)}")
-    
+
+    print(f"[COMPLETE {job_id[:8]}] Instruction: '{instruction[:60] if instruction else prompt[:60] if prompt else 'auto'}'")
+
     src_path = None
     
     try:
@@ -600,8 +607,7 @@ async def complete_track(
             task_payload = {
                 "task_type": "complete",
                 "src_audio_path": src_path,
-                "track_classes": classes_list,
-                "prompt": prompt or f"Complete with {', '.join(classes_list)}",
+                "prompt": prompt or instruction,
                 "inference_steps": infer_steps,
                 "guidance_scale": guidance_scale,
                 "use_random_seed": seed < 0,
@@ -609,6 +615,8 @@ async def complete_track(
                 "audio_format": audio_format,
                 "batch_size": 1,
                 "use_tiled_decode": True,
+                "model": dit_model,
+                "instruction": instruction or f"Complete track with {prompt}",
             }
 
             print(f"[COMPLETE {job_id[:8]}] Submitting task...")
@@ -664,7 +672,7 @@ async def complete_track(
                 "processing_time_sec": t_sec,
                 "metadata": {
                     "input_file": file.filename,
-                    "track_classes": classes_list,
+                    "instruction": instruction or prompt,
                     "prompt": prompt,
                     "output_size_mb": out_size_mb,
                     "created_at": datetime.now().isoformat(),

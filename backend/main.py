@@ -2021,6 +2021,8 @@ async def ace_generate(
     source_audio: UploadFile = File(None),      # source audio for audio2audio/cover
     source_audio_strength: float = Form(0.5),   # 0=ignore source, 1=copy source
     negative_prompt: str = Form(""),            # alias for lm_negative_prompt
+    # DiT model selection
+    dit_model: str = Form("acestep-v15-turbo"), # acestep-v15-turbo or acestep-v15-turbo-shift3
     # Expert / advanced
     use_adg: bool = Form(False),
     cfg_interval_start: float = Form(0.0),
@@ -2065,19 +2067,8 @@ async def ace_generate(
     try:
         async with httpx.AsyncClient(timeout=300.0) as client:
             # Step 1: Submit generation task with correct ACE-Step schema
-            # Build prompt with vocal language hint if not instrumental
+            # Build prompt with metadata (BPM, key, time signature)
             full_prompt = prompt
-            if not instrumental and vocal_language and vocal_language != "unknown":
-                lang_map = {
-                    "en": "English vocals", "zh": "Chinese vocals", "ja": "Japanese vocals",
-                    "ko": "Korean vocals", "fr": "French vocals", "de": "German vocals",
-                    "es": "Spanish vocals", "it": "Italian vocals", "pt": "Portuguese vocals",
-                    "ru": "Russian vocals", "ro": "Romanian vocals", "ar": "Arabic vocals",
-                }
-                lang_hint = lang_map.get(vocal_language, f"{vocal_language} vocals")
-                full_prompt = f"{prompt}\n{lang_hint}" if prompt else lang_hint
-
-            # Build metadata string for BPM/key/time if provided
             meta_parts = []
             if bpm and bpm > 0:
                 meta_parts.append(f"BPM: {bpm}")
@@ -2086,7 +2077,7 @@ async def ace_generate(
             if time_signature:
                 meta_parts.append(f"Time: {time_signature}/4")
             if meta_parts:
-                full_prompt = full_prompt + "\n" + ", ".join(meta_parts)
+                full_prompt = full_prompt + "\n" + ", ".join(meta_parts) if full_prompt else ", ".join(meta_parts)
 
             # ── Optimizări pentru audio cover ──────────────────────────────────
             is_cover = task_type in ("audio2audio", "cover")
@@ -2094,7 +2085,7 @@ async def ace_generate(
             # Asigură-te că durata este pozitivă, altfel -1 pentru auto
             if effective_duration <= 0:
                 effective_duration = -1
-            print(f"[ACE {job_id[:8]}] Duration: {effective_duration}s | task_type={task_type}")
+            print(f"[ACE {job_id[:8]}] Duration: {effective_duration}s | task_type={task_type} | vocal_language={vocal_language}")
 
             task_payload = {
                 "prompt": full_prompt,
@@ -2109,6 +2100,9 @@ async def ace_generate(
                 "seed": actual_seed,
                 "audio_format": audio_format if audio_format in ("mp3", "flac", "wav") else "wav",
                 "task_type": task_type,
+                "model": dit_model,
+                # Vocal language as separate parameter (ACE-Step official API)
+                "vocal_language": vocal_language if not instrumental and vocal_language != "unknown" else "en",
                 # Advanced params
                 "infer_method": infer_method,
                 "shift": shift,

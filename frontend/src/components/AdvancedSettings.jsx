@@ -618,10 +618,10 @@ export default function AdvancedSettings({ settings, setSettings }) {
             }}
           >
             <option value="">Auto (default)</option>
-            <option value="acestep-v15-turbo">ACE-Step v1.5 Turbo (fast, 8 steps)</option>
-            <option value="acestep-v15-base">ACE-Step v1.5 Base (quality, 50 steps)</option>
-            <option value="acestep-v15-sft">ACE-Step v1.5 SFT (high quality)</option>
-            <option value="acestep-v15-turbo-rl">ACE-Step v1.5 Turbo RL (reinforcement)</option>
+            <option value="acestep-v15-turbo">⚡ turbo         │ 8 steps  │ CFG: ❌ │ Fast generation</option>
+            <option value="acestep-v15-turbo-shift3">⚡ turbo-shift3 │ 8 steps  │ CFG: ❌ │ Alternative variant</option>
+            <option value="acestep-v15-base">🎯 base          │ 50 steps │ CFG: ✅ │ All features (Lego, Complete, Extract)</option>
+            <option value="acestep-v15-sft">🎵 sft           │ 50 steps │ CFG: ✅ │ High quality generation</option>
           </select>
         </Row>
 

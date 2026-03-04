@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { BookOpen, Sliders, Sparkles, Layers, FolderOpen, Monitor, FileText, Music2, Paintbrush, Palette } from "lucide-react";
+import { BookOpen, Sliders, Sparkles, Layers, FolderOpen, Monitor, FileText, Music2 } from "lucide-react";
 import "./index.css";
 import ModelsTab from "./components/ModelsTab";
 import NotesTab from "./components/NotesTab";
@@ -8,9 +8,6 @@ import DemucsTab from "./components/DemucsTab";
 import AceStepTab from "./components/AceStepTab";
 import RepaintLegoComplete from "./components/RepaintLegoComplete";
 import ReadmeTab from "./components/ReadmeTab";
-import TextocoverV2 from "./components/TextocoverV2";
-import RepaintV2 from "./components/RepaintV2";
-import StyleTransferTab from "./components/StyleTransferTab";
 
 const API = "http://localhost:8000";
 
@@ -18,10 +15,7 @@ const TABS = [
   { id: "Readme",  Icon: BookOpen,   label: "ReadMe", color: "#00e5ff" },
   { id: "Demucs",  Icon: Sliders,    label: "Stem Separation", color: "#00e5ff" },
   { id: "ACEStep", Icon: Music2,     label: "ACE-Step", color: "#ff6b9d" },
-  { id: "ACEAdvanced", Icon: Layers, label: "Repaint", color: "#00b4d8" },
-  { id: "TextocoverV2", Icon: Music2, label: "TextocoverV2", color: "#ff6b9d" },
-  { id: "RepaintV2", Icon: Paintbrush, label: "RepaintV2", color: "#e040fb" },
-  { id: "StyleTransfer", Icon: Palette, label: "Style Transfer", color: "#f72585" },
+  { id: "ACEAdvanced", Icon: Layers, label: "Repaint/Lego/Complete", color: "#00b4d8" },
   { id: "Tracks",  Icon: FolderOpen, label: "Tracks", color: "#ffd166" },
   { id: "Models",  Icon: Monitor,    label: "Models", color: "#e63946" },
   { id: "Notes",   Icon: FileText,   label: "Notes", color: "#06d6a0" },
@@ -216,18 +210,6 @@ export default function App() {
 
         <div style={{ display: tab === "ACEAdvanced" ? "block" : "none" }}>
           <RepaintLegoComplete />
-        </div>
-
-        <div style={{ display: tab === "TextocoverV2" ? "block" : "none" }}>
-          <TextocoverV2 addLog={addLog} />
-        </div>
-
-        <div style={{ display: tab === "RepaintV2" ? "block" : "none" }}>
-          <RepaintV2 addLog={addLog} />
-        </div>
-
-        <div style={{ display: tab === "StyleTransfer" ? "block" : "none" }}>
-          <StyleTransferTab />
         </div>
 
         <div style={{ display: tab === "Tracks" ? "block" : "none" }}>

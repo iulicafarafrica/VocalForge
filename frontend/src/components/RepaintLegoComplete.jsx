@@ -41,11 +41,14 @@ export default function RepaintLegoComplete() {
   const [mode, setMode] = useState('repaint');
   const [file, setFile] = useState(null);
   const [prompt, setPrompt] = useState('');
+  const [instruction, setInstruction] = useState('');
   const [guidanceScale, setGuidanceScale] = useState(9.0);
   const [seed, setSeed] = useState(-1);
   const [inferSteps, setInferSteps] = useState(12);
   const [keyScale, setKeyScale] = useState('');
   const [audioFormat, setAudioFormat] = useState('mp3');
+  const [ditModel, setDitModel] = useState('acestep-v15-turbo');
+  const [audioCoverStrength, setAudioCoverStrength] = useState(1.0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
@@ -54,12 +57,6 @@ export default function RepaintLegoComplete() {
   const [startTime, setStartTime] = useState(0);
   const [endTime, setEndTime] = useState(30);
   const [lyrics, setLyrics] = useState('');
-
-  const [trackName, setTrackName] = useState('drums');
-  const trackOptions = ['drums', 'bass', 'guitar', 'piano', 'strings', 'synth', 'vocals'];
-
-  const [trackClasses, setTrackClasses] = useState(['drums', 'bass']);
-  const availableClasses = ['drums', 'bass', 'guitar', 'piano', 'strings', 'synth', 'vocals', 'brass', 'woodwinds'];
 
   const fileInputRef = useRef(null);
 
@@ -70,12 +67,6 @@ export default function RepaintLegoComplete() {
       setResult(null);
       setError(null);
     }
-  };
-
-  const toggleTrackClass = (cls) => {
-    setTrackClasses(prev =>
-      prev.includes(cls) ? prev.filter(c => c !== cls) : [...prev, cls]
-    );
   };
 
   const handleSubmit = async () => {
@@ -91,20 +82,23 @@ export default function RepaintLegoComplete() {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('prompt', prompt);
+    formData.append('instruction', instruction);
     formData.append('guidance_scale', guidanceScale);
     formData.append('seed', seed);
     formData.append('infer_steps', inferSteps);
     formData.append('key_scale', keyScale);
     formData.append('audio_format', audioFormat);
+    formData.append('dit_model', ditModel);
 
     if (mode === 'repaint') {
       formData.append('start_time', startTime);
       formData.append('end_time', endTime);
       formData.append('lyrics', lyrics);
+      formData.append('audio_cover_strength', audioCoverStrength);
     } else if (mode === 'lego') {
-      formData.append('track_name', trackName);
+      // instruction is already appended above
     } else if (mode === 'complete') {
-      formData.append('track_classes', trackClasses.join(','));
+      // instruction is already appended above
     }
 
     try {
@@ -135,19 +129,37 @@ export default function RepaintLegoComplete() {
       label: 'Repaint',
       icon: '🖌️',
       color: '#9b5de5',
-      desc: 'Select a portion of the track (e.g. seconds 30–60) and regenerate it.\nUseful to fix a section that doesn\'t sound right without regenerating everything.\nYou can change lyrics, add a bridge, modify endings.\nTurbo and Base models only.',
+      desc: 'Select a portion of the track (e.g. seconds 30–60) and regenerate it.\nUseful to fix a section that doesn\'t sound right without regenerating everything.\nYou can change lyrics, add a bridge, modify endings.\nAll models support Repaint.',
+      modelSupport: {
+        'acestep-v15-turbo': { supported: true, note: '✅ Fast (8 steps)' },
+        'acestep-v15-turbo-shift3': { supported: true, note: '✅ Fast (8 steps)' },
+        'acestep-v15-base': { supported: true, note: '✅ Full support + CFG (50 steps)' },
+        'acestep-v15-sft': { supported: true, note: '✅ High quality + CFG (50 steps)' },
+      },
     },
     lego: {
       label: 'Lego',
       icon: '🧱',
       color: '#f9c74f',
-      desc: 'Add or regenerate specific instruments in a track.\nSelect which track (drums, bass, guitar, etc.) to modify.\nThe rest of the audio stays unchanged.\nTurbo and Base models only.',
+      desc: 'Add or regenerate specific instruments in a track.\nUse the instruction field to describe what track/instrument to add.\nThe rest of the audio stays unchanged.\n⚠️ ONLY Base model supports Lego!',
+      modelSupport: {
+        'acestep-v15-turbo': { supported: false, note: '❌ Not supported' },
+        'acestep-v15-turbo-shift3': { supported: false, note: '❌ Not supported' },
+        'acestep-v15-base': { supported: true, note: '✅ ONLY Base model supports Lego' },
+        'acestep-v15-sft': { supported: false, note: '❌ Not supported' },
+      },
     },
     complete: {
       label: 'Complete',
       icon: '🎼',
       color: '#06d6a0',
-      desc: 'Auto-complete incomplete tracks with specified instruments.\nSelect which instruments should be added/generated.\nUseful for adding missing parts to a demo.\nTurbo and Base models only.',
+      desc: 'Auto-complete incomplete tracks with specified instruments.\nUse the instruction field to describe what instruments to add.\n⚠️ ONLY Base model supports Complete!',
+      modelSupport: {
+        'acestep-v15-turbo': { supported: false, note: '❌ Not supported' },
+        'acestep-v15-turbo-shift3': { supported: false, note: '❌ Not supported' },
+        'acestep-v15-base': { supported: true, note: '✅ ONLY Base model supports Complete' },
+        'acestep-v15-sft': { supported: false, note: '❌ Not supported' },
+      },
     },
   };
 
@@ -202,6 +214,38 @@ export default function RepaintLegoComplete() {
         </p>
       </div>
 
+      {/* Model Compatibility Card */}
+      <div style={{
+        ...sectionStyle,
+        borderColor: 'rgba(255,209,102,0.35)',
+        background: 'rgba(255,209,102,0.04)',
+        borderLeft: `4px solid #ffd166`,
+      }}>
+        <span style={{ ...labelStyle, color: '#ffd166', marginBottom: 10 }}>
+          🔍 Model Compatibility for {currentMode.label}
+        </span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontFamily: 'monospace', fontSize: 11 }}>
+          {Object.entries(currentMode.modelSupport).map(([modelId, { supported, note }]) => (
+            <div
+              key={modelId}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '6px 10px',
+                borderRadius: 6,
+                background: supported ? 'rgba(6,214,160,0.08)' : 'rgba(230,57,70,0.08)',
+                border: `1px solid ${supported ? '#06d6a044' : '#e6394644'}`,
+              }}
+            >
+              <span style={{ color: supported ? '#06d6a0' : '#e63946', fontWeight: 600 }}>
+                {modelId.replace('acestep-v15-', '')}
+              </span>
+              <span style={{ color: supported ? '#06d6a0' : '#e63946' }}>{note}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* File upload */}
       <div style={sectionStyle}>
         <span style={labelStyle}>Source audio</span>
@@ -247,7 +291,7 @@ export default function RepaintLegoComplete() {
       {mode === 'repaint' && (
         <div style={sectionStyle}>
           <span style={labelStyle}>Repaint region</span>
-          
+
           {/* Start Time */}
           <div style={{ marginBottom: 12 }}>
             <label style={{ ...labelStyle, marginBottom: 4 }}>Start time (seconds)</label>
@@ -276,6 +320,17 @@ export default function RepaintLegoComplete() {
             />
           </div>
 
+          {/* Instruction */}
+          <div style={{ marginBottom: 12 }}>
+            <label style={labelStyle}>Instruction (optional)</label>
+            <textarea
+              value={instruction}
+              onChange={(e) => setInstruction(e.target.value)}
+              placeholder="e.g., Change the melody, Add jazz drums, Make it more energetic..."
+              style={{ ...inputStyle, minHeight: 60, resize: 'vertical' }}
+            />
+          </div>
+
           {/* Lyrics */}
           <div>
             <label style={labelStyle}>Lyrics (optional)</label>
@@ -286,60 +341,59 @@ export default function RepaintLegoComplete() {
               style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }}
             />
           </div>
+
+          {/* Audio Cover Strength */}
+          <div style={{ marginTop: 12 }}>
+            <label style={labelStyle}>Audio Cover Strength: {audioCoverStrength.toFixed(1)}</label>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              value={audioCoverStrength}
+              onChange={(e) => setAudioCoverStrength(parseFloat(e.target.value))}
+              style={{ width: '100%' }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#6666aa', marginTop: '4px' }}>
+              <span>Creative (0.0)</span>
+              <span>Faithful (1.0)</span>
+            </div>
+            <span style={{ color: '#6666aa', fontSize: 11, marginTop: 4, display: 'block' }}>
+              How much to preserve from the original audio
+            </span>
+          </div>
         </div>
       )}
 
       {/* LEGO mode options */}
       {mode === 'lego' && (
         <div style={sectionStyle}>
-          <span style={labelStyle}>Track to generate</span>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {trackOptions.map(track => (
-              <button
-                key={track}
-                onClick={() => setTrackName(track)}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  border: `1px solid ${trackName === track ? '#f9c74f' : '#2a2a4a'}`,
-                  background: trackName === track ? '#f9c74f22' : 'transparent',
-                  color: trackName === track ? '#f9c74f' : '#6666aa',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                {track.charAt(0).toUpperCase() + track.slice(1)}
-              </button>
-            ))}
-          </div>
+          <span style={labelStyle}>Instruction for track generation</span>
+          <textarea
+            value={instruction}
+            onChange={(e) => setInstruction(e.target.value)}
+            placeholder="e.g., Add drums and bass to this track, Generate a guitar solo section..."
+            style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }}
+          />
+          <span style={{ color: '#6666aa', fontSize: 11, marginTop: 4, display: 'block' }}>
+            Describe what instrument or track element to add/generate
+          </span>
         </div>
       )}
 
       {/* Complete mode options */}
       {mode === 'complete' && (
         <div style={sectionStyle}>
-          <span style={labelStyle}>Instruments to add</span>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {availableClasses.map(cls => (
-              <button
-                key={cls}
-                onClick={() => toggleTrackClass(cls)}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  border: `1px solid ${trackClasses.includes(cls) ? '#06d6a0' : '#2a2a4a'}`,
-                  background: trackClasses.includes(cls) ? '#06d6a022' : 'transparent',
-                  color: trackClasses.includes(cls) ? '#06d6a0' : '#6666aa',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                {cls.charAt(0).toUpperCase() + cls.slice(1)}
-              </button>
-            ))}
-          </div>
+          <span style={labelStyle}>Instruction for completion</span>
+          <textarea
+            value={instruction}
+            onChange={(e) => setInstruction(e.target.value)}
+            placeholder="e.g., Complete this track with drums, bass, and guitar, Add missing instruments to make it a full song..."
+            style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }}
+          />
+          <span style={{ color: '#6666aa', fontSize: 11, marginTop: 4, display: 'block' }}>
+            Describe what instruments should be added to complete the track
+          </span>
         </div>
       )}
 
@@ -387,6 +441,47 @@ export default function RepaintLegoComplete() {
           />
           <span style={{ color: '#6666aa', fontSize: 11, marginTop: 4, display: 'block' }}>
             More steps = better quality, slower generation (default: 12, recommended: 8-20)
+          </span>
+        </div>
+
+        {/* DiT Model Selection */}
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ ...labelStyle, marginBottom: 4 }}>DiT Model</label>
+          <select
+            value={ditModel}
+            onChange={(e) => setDitModel(e.target.value)}
+            style={{ ...inputStyle, fontFamily: 'monospace', fontSize: 12 }}
+          >
+            <option value="acestep-v15-turbo">⚡ turbo         │ 8 steps  │ CFG: ❌ │ Fast generation</option>
+            <option value="acestep-v15-turbo-shift3">⚡ turbo-shift3 │ 8 steps  │ CFG: ❌ │ Alternative variant</option>
+            <option value="acestep-v15-base">🎯 base          │ 50 steps │ CFG: ✅ │ All features (Lego, Complete, Extract)</option>
+            <option value="acestep-v15-sft">🎵 sft           │ 50 steps │ CFG: ✅ │ High quality generation</option>
+          </select>
+          
+          {/* Model Compatibility Warning */}
+          {currentMode.modelSupport[ditModel] && !currentMode.modelSupport[ditModel].supported && (
+            <div style={{
+              marginTop: 8,
+              padding: '8px 12px',
+              background: 'rgba(230,57,70,0.1)',
+              border: '1px solid #e63946',
+              borderRadius: 6,
+              color: '#e63946',
+              fontSize: 11,
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}>
+              <span>⚠️</span>
+              <span>
+                {currentMode.modelSupport[ditModel].note} — Switch to Base model for {currentMode.label}!
+              </span>
+            </div>
+          )}
+          
+          <span style={{ color: '#6666aa', fontSize: 11, marginTop: 4, display: 'block' }}>
+            ⚡ Turbo: Fast (8 steps, no CFG) · 🎯 Base: All features · 🎵 SFT: High quality
           </span>
         </div>
 
