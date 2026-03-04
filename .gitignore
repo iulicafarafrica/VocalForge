@@ -163,3 +163,11 @@ LPT9
 backup ui/
 Backup/
 *.zip
+
+# ======================
+# Qwen/Minimax skills (config local)
+# ======================
+.qwen/skills/
+.minimax/skills/
+.tmp/
+ace-step-ui-ref
