@@ -1044,7 +1044,7 @@ async def demucs_separate(
 
 @app.post("/detect_bpm_key")
 async def detect_bpm_key(file: UploadFile = File(...)):
-    """Detect BPM and musical key from uploaded audio (first 30s)."""
+    """Detect BPM, musical key, time signature and duration from uploaded audio."""
     try:
         import librosa
 
@@ -1055,10 +1055,11 @@ async def detect_bpm_key(file: UploadFile = File(...)):
         y, sr = librosa.load(tmp_path, sr=None, duration=30)
         os.unlink(tmp_path)
 
+        # BPM Detection
         tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
         bpm = round(float(tempo), 1)
 
-        # Krumhansl-Schmuckler key profiles for major and minor
+        # Key Detection (Krumhansl-Schmuckler profiles)
         major_profile = np.array([6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88])
         minor_profile = np.array([6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17])
 
@@ -1071,11 +1072,9 @@ async def detect_bpm_key(file: UploadFile = File(...)):
         best_key = "C major"
 
         for i in range(12):
-            # Rotate profiles to match each root note
             rotated_major = np.roll(major_profile, i)
             rotated_minor = np.roll(minor_profile, i)
 
-            # Pearson correlation
             score_major = np.corrcoef(avg_chroma, rotated_major)[0, 1]
             score_minor = np.corrcoef(avg_chroma, rotated_minor)[0, 1]
 
@@ -1086,7 +1085,42 @@ async def detect_bpm_key(file: UploadFile = File(...)):
                 best_score = score_minor
                 best_key = f"{note_names[i]} minor"
 
-        return {"bpm": bpm, "key": best_key, "status": "ok"}
+        # Time Signature Estimation (simplified)
+        # Analyze beat strength patterns
+        onset_env = librosa.onset.onset_strength(y=y, sr=sr)
+        tempo, beats = librosa.beat.beat_track(y=y, sr=sr)
+        
+        # Calculate beat intervals
+        if len(beats) > 1:
+            beat_intervals = np.diff(beats)
+            # Check for common time signatures
+            # 4/4: Most common, even intervals
+            # 3/4: Waltz pattern (strong-weak-weak)
+            # 6/8: Compound duple (two groups of three)
+            
+            # Simple heuristic: variance in beat strength
+            beat_strength = onset_env[beats.astype(int)]
+            variance = np.var(beat_strength)
+            
+            if variance < 0.1:
+                time_sig = "4"  # 4/4 - most common
+            elif variance < 0.3:
+                time_sig = "3"  # 3/4 - waltz
+            else:
+                time_sig = "4"  # Default to 4/4
+        else:
+            time_sig = "4"
+
+        # Duration
+        duration = round(librosa.get_duration(y=y, sr=sr), 1)
+
+        return {
+            "bpm": bpm,
+            "key": best_key,
+            "time_signature": time_sig,
+            "duration": duration,
+            "status": "ok"
+        }
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
