@@ -30,6 +30,8 @@ function TrackRow({ track, onDelete, isSegment = false }) {
   const [duration, setDuration] = useState(track.duration || 0);
   const [volume, setVolume] = useState(1.0);
   const [muted, setMuted] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysis, setAnalysis] = useState(track.analysis || null);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -70,6 +72,51 @@ function TrackRow({ track, onDelete, isSegment = false }) {
   const handleMute = () => {
     setMuted(!muted);
     if (audioRef.current) audioRef.current.muted = !muted;
+  };
+
+  const handleAnalyze = async () => {
+    if (analyzing) return;
+    setAnalyzing(true);
+    
+    try {
+      const response = await fetch(`${API}/detect_bpm_key`, {
+        method: 'POST',
+        body: (() => {
+          const fd = new FormData();
+          fd.append('file', new File([], track.filename, { type: 'audio/wav' }));
+          return fd;
+        })(),
+        headers: {
+          // Need to fetch actual audio blob
+        }
+      });
+      
+      // Fetch actual audio file
+      const audioBlob = await fetch(track.url).then(r => r.blob());
+      const fd = new FormData();
+      fd.append('file', audioBlob, 'audio.wav');
+      
+      const result = await fetch(`${API}/detect_bpm_key`, {
+        method: 'POST',
+        body: fd
+      });
+      
+      const data = await result.json();
+      if (data.status === 'ok') {
+        setAnalysis(data);
+        // Save to track metadata
+        const updatedTracks = tracks.map(t => 
+          t.id === track.id 
+            ? { ...t, analysis: data, metadata: { ...t.metadata, bpm: data.bpm, key: data.key } }
+            : t
+        );
+        setTracks(updatedTracks);
+      }
+    } catch (err) {
+      console.error('Analysis failed:', err);
+    } finally {
+      setAnalyzing(false);
+    }
   };
 
   const meta = track.metadata || {};
@@ -118,6 +165,25 @@ function TrackRow({ track, onDelete, isSegment = false }) {
 
         {/* Controls */}
         <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+          {/* Analyze button */}
+          <button 
+            onClick={handleAnalyze} 
+            disabled={analyzing}
+            title="Analyze Audio (BPM, Key, Time Sig)"
+            style={{
+              background: analyzing ? "#444466" : analysis ? "#06d6a022" : "#1a1a2e",
+              color: analyzing ? "#8888aa" : analysis ? "#06d6a0" : "#6666aa",
+              border: `1px solid ${analyzing ? "#444466" : analysis ? "#06d6a044" : "#2a2a4a"}`,
+              borderRadius: 5,
+              padding: "3px 7px",
+              fontSize: 11,
+              cursor: analyzing ? "wait" : "pointer",
+              fontWeight: 600,
+            }}
+          >
+            {analyzing ? "⏳" : analysis ? "✅" : "🎛️"}
+          </button>
+          
           <button onClick={handleMute} title={muted ? "Unmute" : "Mute"} style={{
             background: muted ? "#e6394622" : "#1a1a2e", color: muted ? "#e63946" : "#6666aa",
             border: `1px solid ${muted ? "#e6394644" : "#2a2a4a"}`, borderRadius: 5,
@@ -164,8 +230,18 @@ function TrackRow({ track, onDelete, isSegment = false }) {
       </div>
 
       {/* Metadata (collapsible) */}
-      {(timing.total_sec || meta.output_size_mb) && (
+      {(timing.total_sec || meta.output_size_mb || analysis) && (
         <div style={{ marginTop: 6, display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {/* Audio Analysis Results */}
+          {analysis && (
+            <>
+              <span style={{ color: "#06d6a0", fontSize: 10, fontFamily: "monospace", fontWeight: 600 }}>🎛️ {analysis.bpm} BPM</span>
+              <span style={{ color: "#00e5ff", fontSize: 10, fontFamily: "monospace" }}>🎵 {analysis.key}</span>
+              <span style={{ color: "#ffd166", fontSize: 10, fontFamily: "monospace" }}>📏 {analysis.time_signature}/4</span>
+              <span style={{ color: "#c77dff", fontSize: 10, fontFamily: "monospace" }}>⏱ {analysis.duration}s</span>
+            </>
+          )}
+          
           {timing.total_sec && <span style={{ color: "#333355", fontSize: 10, fontFamily: "monospace" }}>⏱ {timing.total_sec}s total</span>}
           {timing.demucs_sec && <span style={{ color: "#333355", fontSize: 10, fontFamily: "monospace" }}>demucs:{timing.demucs_sec}s</span>}
           {timing.sovits_sec && <span style={{ color: "#333355", fontSize: 10, fontFamily: "monospace" }}>sovits:{timing.sovits_sec}s</span>}
