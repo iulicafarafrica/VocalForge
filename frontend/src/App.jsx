@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { BookOpen, Sliders, Sparkles, Layers, FolderOpen, Monitor, FileText, Music2 } from "lucide-react";
+import { BookOpen, Sliders, Sparkles, Layers, FolderOpen, Monitor, FileText, Music2, Mic2 } from "lucide-react";
 import "./index.css";
 import ModelsTab from "./components/ModelsTab";
 import NotesTab from "./components/NotesTab";
@@ -8,6 +8,7 @@ import DemucsTab from "./components/DemucsTab";
 import AceStepTab from "./components/AceStepTab";
 import RepaintLegoComplete from "./components/RepaintLegoComplete";
 import ReadmeTab from "./components/ReadmeTab";
+import Vocal2BGM from "./components/Vocal2BGM";
 
 const API = "http://localhost:8000";
 
@@ -15,6 +16,7 @@ const TABS = [
   { id: "Readme",  Icon: BookOpen,   label: "ReadMe", color: "#00e5ff" },
   { id: "Demucs",  Icon: Sliders,    label: "Stem Separation", color: "#00e5ff" },
   { id: "ACEStep", Icon: Music2,     label: "ACE-Step", color: "#ff6b9d" },
+  { id: "Vocal2BGM", Icon: Mic2,     label: "Vocal2BGM", color: "#c77dff" },
   { id: "ACEAdvanced", Icon: Layers, label: "Repaint/Lego/Complete", color: "#00b4d8" },
   { id: "Tracks",  Icon: FolderOpen, label: "Tracks", color: "#ffd166" },
   { id: "Models",  Icon: Monitor,    label: "Models", color: "#e63946" },
@@ -206,6 +208,10 @@ export default function App() {
             advancedSettings={advancedSettings}
             setAdvancedSettings={setAdvancedSettings}
           />
+        </div>
+
+        <div style={{ display: tab === "Vocal2BGM" ? "block" : "none" }}>
+          <Vocal2BGM addLog={addLog} tracks={tracks} setTracks={setTracks} />
         </div>
 
         <div style={{ display: tab === "ACEAdvanced" ? "block" : "none" }}>
