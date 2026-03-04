@@ -1,5 +1,5 @@
 @echo off
-title VocalForge Launcher
+title VocalForge Launcher (Multi-Pane)
 
 echo Curatare porturi...
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8000 " ^| findstr "LISTENING"') do taskkill /F /PID %%a >nul 2>&1
@@ -9,32 +9,21 @@ timeout /t 2 /nobreak >nul
 
 echo Pornire servicii in Windows Terminal...
 
-:: Create temporary batch files for each service
-echo @echo off > "%TEMP%\vocalforge_acestep.bat"
-echo cd /d D:\VocalForge\ace-step >> "%TEMP%\vocalforge_acestep.bat"
-echo call start_acestep.bat >> "%TEMP%\vocalforge_acestep.bat"
+:: Comanda WT explicata:
+:: 1. Deschide Frontend (fereastra mare din stanga)
+:: 2. Split vertical pentru ACE-Step (dreapta sus)
+:: 3. Split orizontal sub ACE-Step pentru Backend (dreapta jos)
 
-echo @echo off > "%TEMP%\vocalforge_backend.bat"
-echo cd /d D:\VocalForge >> "%TEMP%\vocalforge_backend.bat"
-echo call venv\Scripts\activate.bat >> "%TEMP%\vocalforge_backend.bat"
-echo set PYTHONPATH=. >> "%TEMP%\vocalforge_backend.bat"
-echo python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 >> "%TEMP%\vocalforge_backend.bat"
-
-echo @echo off > "%TEMP%\vocalforge_frontend.bat"
-echo cd /d D:\VocalForge\frontend >> "%TEMP%\vocalforge_frontend.bat"
-echo npm run dev >> "%TEMP%\vocalforge_frontend.bat"
-
-:: Open Windows Terminal with 3 tabs
-start "" wt -M ^
-  --tab "ACE-Step :8001" --tabColor "#1a6b3c" cmd /k "%TEMP%\vocalforge_acestep.bat" ^
-  --tab "Backend :8000" --tabColor "#1a3a6b" cmd /k "%TEMP%\vocalforge_backend.bat" ^
-  --tab "Frontend :3000" --tabColor "#6b1a6b" cmd /k "%TEMP%\vocalforge_frontend.bat"
+wt -w 0 new-tab -p "Command Prompt" --title "Frontend" cmd /k "cd /d D:\VocalForge\frontend && npm run dev" ; ^
+split-pane -v -p "Git Bash" --title "ACE-Step" C:\PROGRA~1\Git\usr\bin\bash.exe --login -i /d/VocalForge/start_acestep_env.sh ; ^
+split-pane -H -p "Command Prompt" --title "Backend" cmd /k "cd /d D:\VocalForge && call venv\Scripts\activate.bat && set PYTHONPATH=. && python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000"
 
 echo.
 echo Toate serviciile pornesc in Windows Terminal...
-echo ACE-Step:  http://localhost:8001
-echo Backend:   http://localhost:8000
-echo Frontend:  http://localhost:3000
+[cite_start]echo ACE-Step:  http://localhost:8001 [cite: 3]
+[cite_start]echo Backend:   http://localhost:8000 [cite: 3]
+[cite_start]echo Frontend:  http://localhost:3000 [cite: 3]
 echo.
-timeout /t 15 /nobreak >nul
+
+timeout /t 10 /nobreak >nul
 start http://localhost:3000
