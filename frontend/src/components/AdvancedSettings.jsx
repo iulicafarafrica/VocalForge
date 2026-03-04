@@ -1,14 +1,6 @@
 /**
  * AdvancedSettings Component for ACE-Step v1.5
- * Based on official ACE-Step v1.5 API documentation
- * @see https://github.com/ace-step/ACE-Step-1.5
- * 
- * Documentation Summary:
- * - DiT Models: acestep-v15-base (50 steps, CFG), acestep-v15-turbo (8 steps, no CFG)
- * - LM Models: 0.6B (6-8GB VRAM), 1.7B (12-16GB VRAM), 4B (24GB+ VRAM)
- * - Duration: 10s - 600s (10 minutes)
- * - Batch Size: 1 - 8 (max 8 songs simultaneously)
- * - Supported Languages: 50+ languages
+ * Simplified version with essential parameters only
  */
 
 export default function AdvancedSettings({ settings, setSettings }) {
@@ -247,54 +239,7 @@ export default function AdvancedSettings({ settings, setSettings }) {
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════
-          SECTION 2: Diffusion Parameters
-          Based on: inference_steps, guidance_scale, infer_method, shift
-      ═══════════════════════════════════════════════════════════════════ */}
-      <div style={S.card}>
-        <SectionHeader color="#06d6a0" icon="🔄" title="Diffusion Parameters" />
-
-        <Row enableKey="inferStepsEnabled" icon="🔢" label="Inference Steps" description="Diffusion sampling steps (4-50)">
-          <Slider value={settings.inferSteps || 8} min={4} max={50} step={1}
-            onChange={v => set("inferSteps", v)} color="#06d6a0" unit=" steps" />
-        </Row>
-
-        <Row enableKey="guidanceEnabled" icon="🎯" label="Guidance Scale (CFG)" description="Classifier-free guidance (1.0-20.0)">
-          <Slider value={settings.guidanceScale || 7.0} min={1} max={20} step={0.5}
-            onChange={v => set("guidanceScale", v)} color="#06d6a0" />
-        </Row>
-
-        <Row enableKey="inferMethodEnabled" icon="🔬" label="Inference Method" description="Diffusion solver type">
-          <select
-            value={settings.inferMethod || "ode"}
-            onChange={e => set("inferMethod", e.target.value)}
-            style={{
-              flex: 1,
-              background: "#080812",
-              border: "1px solid #06d6a044",
-              color: "#06d6a0",
-              borderRadius: 6,
-              padding: "8px 12px",
-              fontSize: 12,
-              fontFamily: "monospace",
-            }}
-          >
-            <option value="ode">ODE (Deterministic)</option>
-            <option value="sde">SDE (Stochastic)</option>
-          </select>
-        </Row>
-
-        <Row enableKey="shiftEnabled" icon="📊" label="Timestep Shift" description="Shift factor for base models (1.0-5.0)">
-          <Slider value={settings.shift || 3.0} min={1} max={5} step={0.1}
-            onChange={v => set("shift", v)} color="#06d6a0" />
-        </Row>
-
-        <div style={{ color: "#444466", fontSize: 10, marginTop: 8, padding: "8px 12px", background: "#080812", borderRadius: 6 }}>
-          💡 <strong>Tip:</strong> Turbo models work best with 8 steps. Base models need 12-20 steps with shift=3.0.
-        </div>
-      </div>
-
-      {/* ═══════════════════════════════════════════════════════════════════
-          SECTION 3: Seed & Random Control
+          SECTION 2: Seed & Random Control
           Based on: use_random_seed, seed
       ═══════════════════════════════════════════════════════════════════ */}
       <div style={S.card}>
@@ -317,7 +262,7 @@ export default function AdvancedSettings({ settings, setSettings }) {
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════
-          SECTION 4: Language Model (LM) Parameters
+          SECTION 3: Language Model (LM) Parameters
           Based on: lm_temperature, lm_cfg_scale, lm_top_k, lm_top_p, lm_negative_prompt
       ═══════════════════════════════════════════════════════════════════ */}
       <div style={S.card}>
@@ -361,85 +306,11 @@ export default function AdvancedSettings({ settings, setSettings }) {
             }}
           />
         </Row>
-
-        <div style={{ color: "#444466", fontSize: 10, marginTop: 8, padding: "8px 12px", background: "#080812", borderRadius: 6 }}>
-          💡 <strong>Default:</strong> LM negative prompt is "NO USER INPUT" - change to customize lyric generation.
-        </div>
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════
-          SECTION 5: Advanced Generation Control
-          Based on: use_adg, cfg_interval_start, cfg_interval_end, use_tiled_decode, thinking
-      ═══════════════════════════════════════════════════════════════════ */}
-      <div style={S.card}>
-        <SectionHeader color="#ff9f1c" icon="⚙" title="Advanced Generation Control" />
-
-        <Row enableKey="useAdgEnabled" icon="🎛" label="Use ADG" description="Adaptive Dynamic Guidance">
-          <Toggle on={settings.useAdg !== false} onChange={v => set("useAdg", v)} />
-        </Row>
-
-        <Row enableKey="cfgIntervalEnabled" icon="📏" label="CFG Interval" description="Apply CFG only in this range">
-          <div style={{ display: "flex", gap: 8, flex: 1 }}>
-            <input
-              type="number"
-              min={0}
-              max={1}
-              step={0.05}
-              value={settings.cfgIntervalStart ?? 0}
-              onChange={e => set("cfgIntervalStart", parseFloat(e.target.value))}
-              placeholder="Start"
-              style={{
-                flex: 1,
-                background: "#080812",
-                border: "1px solid #ff9f1c44",
-                color: "#ff9f1c",
-                borderRadius: 6,
-                padding: "8px 12px",
-                fontSize: 12,
-                fontFamily: "monospace",
-                textAlign: "center",
-              }}
-            />
-            <span style={{ color: "#ff9f1c", fontSize: 12 }}>→</span>
-            <input
-              type="number"
-              min={0}
-              max={1}
-              step={0.05}
-              value={settings.cfgIntervalEnd ?? 1}
-              onChange={e => set("cfgIntervalEnd", parseFloat(e.target.value))}
-              placeholder="End"
-              style={{
-                flex: 1,
-                background: "#080812",
-                border: "1px solid #ff9f1c44",
-                color: "#ff9f1c",
-                borderRadius: 6,
-                padding: "8px 12px",
-                fontSize: 12,
-                fontFamily: "monospace",
-                textAlign: "center",
-              }}
-            />
-          </div>
-        </Row>
-
-        <Row enableKey="tiledDecodeEnabled" icon="🔲" label="Tiled Decode" description="VRAM optimization for long audio">
-          <Toggle on={settings.useTiledDecode !== false} onChange={v => set("useTiledDecode", v)} />
-        </Row>
-
-        <Row enableKey="thinkingEnabled" icon="💭" label="Thinking Mode" description="Use 5Hz LM for audio codes (slower, better)">
-          <Toggle on={settings.thinking !== false} onChange={v => set("thinking", v)} />
-        </Row>
-
-        <div style={{ color: "#444466", fontSize: 10, marginTop: 8, padding: "8px 12px", background: "#080812", borderRadius: 6 }}>
-          💡 <strong>CFG Interval:</strong> [0, 1] range. Default [0, 1] applies CFG throughout. Narrow interval speeds up generation.
-        </div>
-      </div>
-
-      {/* ═══════════════════════════════════════════════════════════════════
-          SECTION 6: Audio Format & Output
-          Based on: audio_format, vocal_language, audio_cover_strength
+          SECTION 4: Audio Format & Output
+          Based on: audio_format, vocal_language
       ═══════════════════════════════════════════════════════════════════ */}
       <div style={S.card}>
         <SectionHeader color="#e63946" icon="🔊" title="Audio Format & Output" />
@@ -462,8 +333,6 @@ export default function AdvancedSettings({ settings, setSettings }) {
             <option value="mp3">MP3 (compressed, small)</option>
             <option value="wav">WAV (uncompressed)</option>
             <option value="flac">FLAC (lossless)</option>
-            <option value="opus">Opus (web optimized)</option>
-            <option value="aac">AAC (iTunes)</option>
           </select>
         </Row>
 
@@ -483,17 +352,10 @@ export default function AdvancedSettings({ settings, setSettings }) {
             }}
           >
             <option value="en">English</option>
-            <option value="zh">Chinese (中文)</option>
-            <option value="ja">Japanese (日本語)</option>
-            <option value="ko">Korean (한국어)</option>
-            <option value="fr">French (Français)</option>
-            <option value="de">German (Deutsch)</option>
-            <option value="es">Spanish (Español)</option>
-            <option value="it">Italian (Italiano)</option>
-            <option value="pt">Portuguese (Português)</option>
-            <option value="ru">Russian (Русский)</option>
             <option value="ro">Romanian (Română)</option>
+            <option value="es">Spanish (Español)</option>
             <option value="ar">Arabic (العربية)</option>
+            <option value="el">Greek (Ελληνικά)</option>
             <option value="unknown">Auto-detect</option>
           </select>
         </Row>
@@ -505,8 +367,8 @@ export default function AdvancedSettings({ settings, setSettings }) {
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════
-          SECTION 7: CoT (Chain-of-Thought) Control
-          Based on: use_cot_caption, use_cot_language, constrained_decoding
+          SECTION 5: Chain-of-Thought (CoT) Control
+          Based on: use_cot_caption, use_cot_language
       ═══════════════════════════════════════════════════════════════════ */}
       <div style={S.card}>
         <SectionHeader color="#7209b7" icon="🔗" title="Chain-of-Thought (CoT) Control" />
@@ -518,63 +380,11 @@ export default function AdvancedSettings({ settings, setSettings }) {
         <Row enableKey="cotLanguageEnabled" icon="🌐" label="CoT Language" description="Use LM for language detection">
           <Toggle on={settings.useCotLanguage !== false} onChange={v => set("useCotLanguage", v)} />
         </Row>
-
-        <Row enableKey="constrainedDecodingEnabled" icon="🔒" label="Constrained Decoding" description="Restrict LM output format">
-          <Toggle on={settings.constrainedDecoding !== false} onChange={v => set("constrainedDecoding", v)} />
-        </Row>
-
-        <div style={{ color: "#444466", fontSize: 10, marginTop: 8, padding: "8px 12px", background: "#080812", borderRadius: 6 }}>
-          💡 <strong>CoT:</strong> Chain-of-Thought enables the LM to reason about music structure before generating audio codes.
-        </div>
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════
-          SECTION 8: Task Type & Special Modes
-          Based on: task_type, sample_mode, analysis_only
-      ═══════════════════════════════════════════════════════════════════ */}
-      <div style={S.card}>
-        <SectionHeader color="#3a86ff" icon="🎯" title="Task Type & Special Modes" />
-
-        <Row enableKey="taskTypeEnabled" icon="📋" label="Task Type" description="Generation task type">
-          <select
-            value={settings.taskType || "text2music"}
-            onChange={e => set("taskType", e.target.value)}
-            style={{
-              flex: 1,
-              background: "#080812",
-              border: "1px solid #3a86ff44",
-              color: "#3a86ff",
-              borderRadius: 6,
-              padding: "8px 12px",
-              fontSize: 12,
-              fontFamily: "monospace",
-            }}
-          >
-            <option value="text2music">Text-to-Music (prompt → audio)</option>
-            <option value="audio2audio">Audio-to-Audio (style transfer)</option>
-            <option value="cover">Cover (voice conversion)</option>
-            <option value="repaint">Repaint (edit audio region)</option>
-            <option value="lego">Lego (add track layer)</option>
-            <option value="complete">Complete (finish incomplete track)</option>
-          </select>
-        </Row>
-
-        <Row enableKey="sampleModeEnabled" icon="🎲" label="Sample Mode" description="Auto-generate caption/lyrics from description">
-          <Toggle on={settings.sampleMode !== false} onChange={v => set("sampleMode", v)} />
-        </Row>
-
-        <Row enableKey="analysisOnlyEnabled" icon="🔍" label="Analysis Only" description="Only analyze, don't generate audio">
-          <Toggle on={settings.analysisOnly !== false} onChange={v => set("analysisOnly", v)} />
-        </Row>
-
-        <div style={{ color: "#444466", fontSize: 10, marginTop: 8, padding: "8px 12px", background: "#080812", borderRadius: 6 }}>
-          💡 <strong>Task Types:</strong> text2music (default), audio2audio/cover (needs source audio), repaint/lego/complete (advanced editing).
-        </div>
-      </div>
-
-      {/* ═══════════════════════════════════════════════════════════════════
-          SECTION 9: Batch & Performance
-          Based on: batch_size, use_format
+          SECTION 6: Batch & Performance
+          Based on: batch_size
       ═══════════════════════════════════════════════════════════════════ */}
       <div style={S.card}>
         <SectionHeader color="#8338ec" icon="📦" title="Batch & Performance" />
@@ -584,148 +394,8 @@ export default function AdvancedSettings({ settings, setSettings }) {
             onChange={v => set("batchSize", v)} color="#8338ec" />
         </Row>
 
-        <Row enableKey="useFormatEnabled" icon="✨" label="Use Format" description="Enhance input with format_sample()">
-          <Toggle on={settings.useFormat !== false} onChange={v => set("useFormat", v)} />
-        </Row>
-
         <div style={{ color: "#fb5607", fontSize: 10, marginTop: 8, padding: "8px 12px", background: "#080812", borderRadius: 6, border: "1px solid #fb560733" }}>
           ⚠️ <strong>Warning:</strong> Batch size &gt;1 requires significant VRAM. RTX 3070: batch=1 recommended.
-        </div>
-      </div>
-
-      {/* ═══════════════════════════════════════════════════════════════════
-          SECTION 10: Model & LoRA Selection
-          Based on: model, lm_model, lm_backend
-          Models: acestep-v15-base (50 steps), acestep-v15-turbo (8 steps)
-          LM Models: 0.6B (6-8GB), 1.7B (12-16GB), 4B (24GB+)
-      ═══════════════════════════════════════════════════════════════════ */}
-      <div style={S.card}>
-        <SectionHeader color="#ff006e" icon="🔧" title="Model & LoRA Selection" />
-
-        <Row enableKey="modelEnabled" icon="🎛" label="DiT Model" description="Select ACE-Step model variant">
-          <select
-            value={settings.model || ""}
-            onChange={e => set("model", e.target.value)}
-            style={{
-              flex: 1,
-              background: "#080812",
-              border: "1px solid #ff006e44",
-              color: "#ff006e",
-              borderRadius: 6,
-              padding: "8px 12px",
-              fontSize: 12,
-              fontFamily: "monospace",
-            }}
-          >
-            <option value="">Auto (default)</option>
-            <option value="acestep-v15-turbo">⚡ turbo         │ 8 steps  │ CFG: ❌ │ Fast generation</option>
-            <option value="acestep-v15-turbo-shift3">⚡ turbo-shift3 │ 8 steps  │ CFG: ❌ │ Alternative variant</option>
-            <option value="acestep-v15-base">🎯 base          │ 50 steps │ CFG: ✅ │ All features (Lego, Complete, Extract)</option>
-            <option value="acestep-v15-sft">🎵 sft           │ 50 steps │ CFG: ✅ │ High quality generation</option>
-          </select>
-        </Row>
-
-        <Row enableKey="lmModelEnabled" icon="🧠" label="LM Model" description="Language model for metadata">
-          <select
-            value={settings.lmModel || ""}
-            onChange={e => set("lmModel", e.target.value)}
-            style={{
-              flex: 1,
-              background: "#080812",
-              border: "1px solid #ff006e44",
-              color: "#ff006e",
-              borderRadius: 6,
-              padding: "8px 12px",
-              fontSize: 12,
-              fontFamily: "monospace",
-            }}
-          >
-            <option value="">Auto (default)</option>
-            <option value="acestep-5Hz-lm-0.6B">0.6B (6-8GB VRAM, faster)</option>
-            <option value="acestep-5Hz-lm-1.7B">1.7B (12-16GB VRAM, better)</option>
-            <option value="acestep-5Hz-lm-4B">4B (24GB+ VRAM, best)</option>
-          </select>
-        </Row>
-
-        <Row enableKey="lmBackendEnabled" icon="⚡" label="LM Backend" description="Language model runtime">
-          <select
-            value={settings.lmBackend || "vllm"}
-            onChange={e => set("lmBackend", e.target.value)}
-            style={{
-              flex: 1,
-              background: "#080812",
-              border: "1px solid #ff006e44",
-              color: "#ff006e",
-              borderRadius: 6,
-              padding: "8px 12px",
-              fontSize: 12,
-              fontFamily: "monospace",
-            }}
-          >
-            <option value="vllm">vLLM (optimized, 8GB+)</option>
-            <option value="pt">PyTorch (default, 6-8GB)</option>
-            <option value="mlx">MLX (Apple Silicon)</option>
-            <option value="int8">INT8 Quantized (≤6GB VRAM)</option>
-          </select>
-        </Row>
-
-        <div style={{ color: "#444466", fontSize: 10, marginTop: 8, padding: "8px 12px", background: "#080812", borderRadius: 6 }}>
-          💡 <strong>VRAM Guide:</strong> ≤6GB: DiT only (INT8), 6-8GB: 0.6B LM, 8-16GB: 1.7B LM, 24GB+: 4B LM
-        </div>
-      </div>
-
-      {/* ═══════════════════════════════════════════════════════════════════
-          SECTION 11: Duration & Output Control
-          Based on: audio_duration, latent_shift, latent_rescale
-          Duration: 10s - 600s (10 minutes max)
-      ═══════════════════════════════════════════════════════════════════ */}
-      <div style={S.card}>
-        <SectionHeader color="#00ddff" icon="⏱" title="Duration & Output Control" />
-
-        <Row enableKey="durationEnabled" icon="⏱" label="Duration" description="Audio length in seconds (10-600s)">
-          <Slider value={settings.duration || 60} min={10} max={600} step={5}
-            onChange={v => set("duration", v)} color="#00ddff" unit=" sec" />
-        </Row>
-
-        <Row enableKey="latentShiftEnabled" icon="📈" label="Latent Shift" description="Additive latent post-processing (-1 to 1)">
-          <Slider value={settings.latentShift ?? 0} min={-1} max={1} step={0.05}
-            onChange={v => set("latentShift", v)} color="#00ddff" />
-        </Row>
-
-        <Row enableKey="latentRescaleEnabled" icon="📐" label="Latent Rescale" description="Multiplicative latent post-processing (0.5-2.0)">
-          <Slider value={settings.latentRescale ?? 1} min={0.5} max={2} step={0.05}
-            onChange={v => set("latentRescale", v)} color="#00ddff" />
-        </Row>
-
-        <div style={{ color: "#444466", fontSize: 10, marginTop: 8, padding: "8px 12px", background: "#080812", borderRadius: 6 }}>
-          💡 <strong>Duration:</strong> Default 60s. Longer duration = more VRAM. Max 600s (10 minutes).
-        </div>
-      </div>
-
-      {/* ═══════════════════════════════════════════════════════════════════
-          SECTION 12: Repaint & Edit Control
-          Based on: repainting_start, repainting_end, cover_noise_strength
-      ═══════════════════════════════════════════════════════════════════ */}
-      <div style={S.card}>
-        <SectionHeader color="#ff6b6b" icon="✏" title="Repaint & Edit Control" />
-
-        <Row enableKey="repaintingStartEnabled" icon="🔙" label="Repaint Start" description="Repainting start position (seconds)">
-          <Slider value={settings.repaintingStart ?? 0} min={0} max={600} step={1}
-            onChange={v => set("repaintingStart", v)} color="#ff6b6b" unit=" sec" />
-        </Row>
-
-        <Row enableKey="repaintingEndEnabled" icon="🔚" label="Repaint End" description="Repainting end position (-1 = end of audio)">
-          <Slider value={settings.repaintingEnd ?? -1} min={-1} max={600} step={1}
-            onChange={v => set("repaintingEnd", v)} color="#ff6b6b" unit={settings.repaintingEnd === -1 ? " (end)" : " sec"} />
-        </Row>
-
-        <Row enableKey="coverNoiseStrengthEnabled" icon="📢" label="Cover Noise Strength" description="Noise strength for cover generation (0-1)">
-          <Slider value={settings.coverNoiseStrength ?? 0} min={0} max={1} step={0.05}
-            onChange={v => set("coverNoiseStrength", v)} color="#ff6b6b" />
-        </Row>
-
-        <div style={{ color: "#444466", fontSize: 10, marginTop: 8, padding: "8px 12px", background: "#080812", borderRadius: 6 }}>
-          💡 <strong>Repaint:</strong> Set start/end to edit specific audio region. End=-1 means end of audio.
         </div>
       </div>
 
