@@ -609,14 +609,12 @@ export default function AceStepTab({
   seed, setSeed,
   genreCat, setGenreCat,
   result, setResult,
-  advancedSettings, setAdvancedSettings,
 }) {
   const [aceOnline, setAceOnline] = useState(null);
   const [showPresets, setShowPresets] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [progressLabel, setProgressLabel] = useState("");
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [bpm, setBpm] = useState(0);
   const [keyScale, setKeyScale] = useState("");
   const [resultBpm, setResultBpm] = useState(null);
@@ -793,15 +791,15 @@ export default function AceStepTab({
     const fd = new FormData();
     fd.append("prompt", prompt);
     fd.append("lyrics", lyrics);
-    fd.append("duration", advancedSettings?.durationEnabled ? advancedSettings.duration : duration);
-    fd.append("guidance_scale", advancedSettings?.guidanceEnabled ? advancedSettings.guidanceScale : guidanceScale);
-    fd.append("seed", advancedSettings?.seedEnabled ? advancedSettings.seed : seed);
-    fd.append("infer_steps", advancedSettings?.inferStepsEnabled ? advancedSettings.inferSteps : inferSteps);
+    fd.append("duration", duration);
+    fd.append("guidance_scale", guidanceScale);
+    fd.append("seed", seed);
+    fd.append("infer_steps", inferSteps);
     fd.append("dit_model", tensorModel);  // DiT model selection
     fd.append("vocal_language", vocalLanguage);  // Vocal language
     fd.append("instrumental", lyrics.trim() === "" || vocalLanguage === "unknown");
-    
-    // BPM: always send if set in main UI (ignore Advanced Settings for BPM)
+
+    // BPM: always send if set in main UI
     if (bpm && bpm > 0) {
       fd.append("bpm", bpm);
     }
@@ -812,48 +810,29 @@ export default function AceStepTab({
 
     // New params
     fd.append("task_type", taskType);
-    if (advancedSettings?.negativePromptEnabled ? advancedSettings.negativePrompt : negativePrompt) {
-      fd.append("negative_prompt", advancedSettings?.negativePromptEnabled ? advancedSettings.negativePrompt : negativePrompt);
+    if (negativePrompt) {
+      fd.append("negative_prompt", negativePrompt);
     }
     if (taskType === "audio2audio" && sourceAudio) {
       fd.append("source_audio", sourceAudio);
       fd.append("source_audio_strength", sourceStrength);
     }
-    
+
     // Advanced ACE-Step parameters
-    if (advancedSettings?.lmCfgEnabled) {
-      fd.append("lm_cfg_scale", advancedSettings.lmCfgScale);
+    fd.append("lm_temperature", lmTemperature);
+
+    if (lmTopK) {
+      fd.append("lm_top_k", lmTopK);
     }
-    if (advancedSettings?.tempEnabled) {
-      fd.append("lm_temperature", advancedSettings.temperature);
-    } else if (taskType === "text2music") {
-      fd.append("lm_temperature", 1.0);
+    if (lmTopP) {
+      fd.append("lm_top_p", lmTopP);
     }
-    if (advancedSettings?.topkEnabled) {
-      fd.append("lm_top_k", advancedSettings.topK);
-    }
-    if (advancedSettings?.toppEnabled) {
-      fd.append("lm_top_p", advancedSettings.topP);
-    }
-    
+
     // Audio format
-    if (advancedSettings?.audioFormatEnabled) {
-      fd.append("audio_format", advancedSettings.audioFormat);
-    }
-    
+    fd.append("audio_format", audioFormat);
+
     // Tiled decode (always enabled by default for VRAM optimization)
-    fd.append("use_tiled_decode", advancedSettings?.tiledDecodeEnabled !== false);
-    
-    // Processing settings
-    if (advancedSettings?.fp16Enabled) {
-      fd.append("fp16", true);
-    }
-    if (advancedSettings?.segmentEnabled) {
-      fd.append("segment_length", advancedSettings.segmentLength);
-    }
-    if (advancedSettings?.batchEnabled) {
-      fd.append("batch_size", advancedSettings.batchSize);
-    }
+    fd.append("use_tiled_decode", true);
 
     // Fake progress animation
     const progressSteps = [
@@ -1898,529 +1877,6 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
 
         </div>
       </div>
-
-      {/* ── Advanced Settings (fostul tab Advanced) ── */}
-      {advancedSettings && setAdvancedSettings && (
-        <div style={{ marginTop: 16 }}>
-          {/* Toggle header */}
-          <button
-            onClick={() => setShowAdvanced(v => !v)}
-            style={{
-              width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
-              background: "linear-gradient(135deg, #0d0d22, #0a0a1a)", border: "1px solid #2a2a4a", borderRadius: showAdvanced ? "14px 14px 0 0" : 14,
-              padding: "14px 20px", cursor: "pointer", color: "#8888aa",
-              transition: "all 0.2s ease",
-            }}
-          >
-            <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 16 }}>⚙</span>
-              Advanced Settings
-            </span>
-            <span style={{ fontSize: 14, transition: "transform 0.2s", transform: showAdvanced ? "rotate(180deg)" : "none", opacity: 0.6 }}>▼</span>
-          </button>
-
-          {showAdvanced && (
-            <div style={{ 
-              background: "linear-gradient(180deg, #0a0a1a 0%, #080812 100%)", 
-              border: "1px solid #2a2a4a", 
-              borderTop: "none", 
-              borderRadius: "0 0 14px 14px", 
-              padding: 20 
-            }}>
-              {/* Helper */}
-              <div style={{ 
-                color: "#6666aa", 
-                fontSize: 11, 
-                marginBottom: 16, 
-                padding: "10px 14px", 
-                background: "linear-gradient(135deg, #0d0d22, #0a0a1a)", 
-                borderRadius: 10, 
-                border: "1px solid #1a1a2e",
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-              }}>
-                <span style={{ fontSize: 14 }}>ℹ</span>
-                <span>All settings are <strong style={{ color: "#ffd166" }}>disabled by default</strong>. Enable each parameter to customize generation.</span>
-              </div>
-
-              {/* Row helper component rendered inline */}
-              {(() => {
-                const set = (key, val) => setAdvancedSettings(p => ({ ...p, [key]: val }));
-                const toggle = (key) => setAdvancedSettings(p => ({ ...p, [key]: !p[key] }));
-
-                const Toggle = ({ on, onChange }) => (
-                  <div 
-                    onClick={() => onChange(!on)} 
-                    style={{
-                      width: 44, 
-                      height: 24, 
-                      borderRadius: 12, 
-                      background: on ? "linear-gradient(135deg, #00e5ff, #00b4d8)" : "#1a1a2e",
-                      position: "relative", 
-                      cursor: "pointer", 
-                      border: `1px solid ${on ? "#00e5ff" : "#2a2a4a"}`,
-                      transition: "all 0.25s ease", 
-                      flexShrink: 0,
-                      boxShadow: on ? "0 0 12px #00e5ff44" : "none",
-                    }}
-                  >
-                    <div style={{ 
-                      position: "absolute", 
-                      top: 3, 
-                      left: on ? 22 : 3, 
-                      width: 16, 
-                      height: 16, 
-                      borderRadius: "50%", 
-                      background: on ? "#000" : "#555", 
-                      transition: "left 0.25s ease",
-                      boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
-                    }} />
-                  </div>
-                );
-
-                const Slider = ({ value, min, max, step, onChange, color = "#00e5ff", disabled, unit = "" }) => (
-                  <div 
-                    style={{ 
-                      display: "flex", 
-                      alignItems: "center", 
-                      gap: 8, 
-                      flex: 1,
-                    }}
-                    onClick={e => e.stopPropagation()}
-                  >
-                    <input 
-                      type="range" 
-                      min={min} 
-                      max={max} 
-                      step={step} 
-                      value={value}
-                      onChange={e => onChange(Number(e.target.value))}
-                      style={{ 
-                        flex: 1, 
-                        opacity: disabled ? 0.35 : 1,
-                        cursor: disabled ? "not-allowed" : "pointer",
-                        accentColor: color,
-                        height: 6,
-                      }} 
-                    />
-                    <input 
-                      type="number" 
-                      min={min} 
-                      max={max} 
-                      step={step}
-                      value={value}
-                      onChange={e => {
-                        const val = Number(e.target.value);
-                        if (!isNaN(val) && val >= min && val <= max) {
-                          onChange(val);
-                        }
-                      }}
-                      style={{ 
-                        width: 60, 
-                        background: "#080812", 
-                        border: `1px solid ${color}44`, 
-                        color: color, 
-                        borderRadius: 6, 
-                        padding: "4px 8px", 
-                        fontSize: 12,
-                        fontFamily: "monospace",
-                        textAlign: "center",
-                        opacity: disabled ? 0.35 : 1,
-                      }} 
-                    />
-                    {unit && (
-                      <span style={{ 
-                        color: disabled ? "#444466" : color, 
-                        fontSize: 11, 
-                        minWidth: 20,
-                      }}>
-                        {unit}
-                      </span>
-                    )}
-                  </div>
-                );
-
-                const Row = ({ enableKey, icon, label, children, description }) => (
-                  <div style={{
-                    display: "flex", 
-                    alignItems: "center", 
-                    gap: 14, 
-                    marginBottom: 8,
-                    padding: "12px 14px", 
-                    background: advancedSettings[enableKey] 
-                      ? "linear-gradient(135deg, #0d0d22, #0a0a1a)" 
-                      : "#080812", 
-                    borderRadius: 10, 
-                    border: `1px solid ${advancedSettings[enableKey] ? "#00e5ff33" : "#1a1a2e"}`,
-                    opacity: advancedSettings[enableKey] ? 1 : 0.6,
-                    transition: "all 0.2s ease",
-                  }}>
-                    {/* Clickable label area - separate from slider */}
-                    <div 
-                      style={{ 
-                        display: "flex", 
-                        alignItems: "center", 
-                        gap: 10, 
-                        cursor: "pointer",
-                        minWidth: 200,
-                        flexShrink: 0,
-                        userSelect: "none",
-                      }}
-                      onClick={() => toggle(enableKey)}
-                    >
-                      <div style={{
-                        width: 20,
-                        height: 20,
-                        borderRadius: 6,
-                        border: `2px solid ${advancedSettings[enableKey] ? "#00e5ff" : "#2a2a4a"}`,
-                        background: advancedSettings[enableKey] ? "#00e5ff" : "transparent",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        transition: "all 0.2s ease",
-                        cursor: "pointer",
-                        flexShrink: 0,
-                      }}>
-                        {advancedSettings[enableKey] && (
-                          <span style={{ color: "#000", fontSize: 12, fontWeight: 900 }}>✓</span>
-                        )}
-                      </div>
-                      <span style={{ fontSize: 18, flexShrink: 0 }}>{icon}</span>
-                      <div style={{ display: "flex", flexDirection: "column" }}>
-                        <span style={{ 
-                          color: advancedSettings[enableKey] ? "#e0e0ff" : "#6666aa", 
-                          fontSize: 12, 
-                          fontWeight: 600,
-                          transition: "color 0.2s ease",
-                        }}>{label}</span>
-                        {description && (
-                          <span style={{ color: "#444466", fontSize: 10 }}>{description}</span>
-                        )}
-                      </div>
-                    </div>
-                    {/* Slider area - isolated from click events */}
-                    <div 
-                      style={{ 
-                        flex: 1,
-                        pointerEvents: advancedSettings[enableKey] ? "auto" : "none",
-                      }}
-                    >
-                      {children}
-                    </div>
-                  </div>
-                );
-
-                return (
-                  <div>
-                    {/* Generation Parameters Section */}
-                    <div style={{
-                      color: "#ffd166",
-                      fontSize: 11,
-                      fontWeight: 700,
-                      letterSpacing: 1.5,
-                      textTransform: "uppercase",
-                      marginBottom: 10,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                    }}>
-                      <span style={{
-                        background: "#ffd16622",
-                        padding: "4px 10px",
-                        borderRadius: 6,
-                        border: "1px solid #ffd16633"
-                      }}>🎵 Generation Parameters</span>
-                    </div>
-
-                    <div style={{
-                      background: "#0d0d15",
-                      borderRadius: 12,
-                      padding: 12,
-                      marginBottom: 16,
-                      border: "1px solid #1a1a2e",
-                    }}>
-                      <Row enableKey="durationEnabled" icon="⏱" label="Duration" description="Audio length in seconds">
-                        <Slider value={advancedSettings.duration || 60} min={5} max={240} step={5}
-                          onChange={v => set("duration", v)} disabled={!advancedSettings.durationEnabled} unit=" sec" color="#ffd166" />
-                      </Row>
-                      <Row enableKey="bpmEnabled" icon="🎶" label="BPM" description="Beats per minute">
-                        <Slider value={advancedSettings.bpm || 120} min={40} max={200} step={1}
-                          onChange={v => set("bpm", v)} disabled={!advancedSettings.bpmEnabled} unit=" BPM" color="#ffd166" />
-                      </Row>
-                      <Row enableKey="keyScaleEnabled" icon="🎼" label="Key Scale" description="Musical key">
-                        <input
-                          type="text"
-                          value={advancedSettings.keyScale || ""}
-                          onChange={e => set("keyScale", e.target.value)}
-                          placeholder="e.g. C major, A minor"
-                          disabled={!advancedSettings.keyScaleEnabled}
-                          style={{
-                            flex: 1,
-                            background: "#080812",
-                            border: `1px solid ${advancedSettings.keyScaleEnabled ? "#ffd16644" : "#1a1a2e"}`,
-                            color: advancedSettings.keyScaleEnabled ? "#ffd166" : "#444466",
-                            borderRadius: 6,
-                            padding: "8px 12px",
-                            fontSize: 12,
-                            fontFamily: "monospace",
-                            opacity: advancedSettings.keyScaleEnabled ? 1 : 0.5,
-                          }}
-                        />
-                      </Row>
-                      <Row enableKey="negativePromptEnabled" icon="🚫" label="Negative Prompt" description="What to avoid">
-                        <input
-                          type="text"
-                          value={advancedSettings.negativePrompt || ""}
-                          onChange={e => set("negativePrompt", e.target.value)}
-                          placeholder="low quality, noise, distortion"
-                          disabled={!advancedSettings.negativePromptEnabled}
-                          style={{
-                            flex: 1,
-                            background: "#080812",
-                            border: `1px solid ${advancedSettings.negativePromptEnabled ? "#ffd16644" : "#1a1a2e"}`,
-                            color: advancedSettings.negativePromptEnabled ? "#ffd166" : "#444466",
-                            borderRadius: 6,
-                            padding: "8px 12px",
-                            fontSize: 12,
-                            fontFamily: "monospace",
-                            opacity: advancedSettings.negativePromptEnabled ? 1 : 0.5,
-                          }}
-                        />
-                      </Row>
-                    </div>
-
-                    {/* ACE-Step AI Section */}
-                    <div style={{
-                      color: "#06d6a0",
-                      fontSize: 11,
-                      fontWeight: 700,
-                      letterSpacing: 1.5,
-                      textTransform: "uppercase",
-                      marginBottom: 10,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                    }}>
-                      <span style={{
-                        background: "#06d6a022",
-                        padding: "4px 10px",
-                        borderRadius: 6,
-                        border: "1px solid #06d6a033"
-                      }}>🤖 ACE-Step AI</span>
-                    </div>
-
-                    <div style={{
-                      background: "#0d0d15",
-                      borderRadius: 12,
-                      padding: 12,
-                      marginBottom: 16,
-                      border: "1px solid #1a1a2e",
-                    }}>
-                      <Row enableKey="guidanceEnabled" icon="🎯" label="Guidance Scale (CFG)" description="How closely to follow prompt">
-                        <Slider value={advancedSettings.guidanceScale || 9.0} min={1} max={20} step={0.5}
-                          onChange={v => set("guidanceScale", v)} disabled={!advancedSettings.guidanceEnabled} color="#06d6a0" />
-                      </Row>
-                      <Row enableKey="inferStepsEnabled" icon="🔄" label="Inference Steps" description="Diffusion steps">
-                        <Slider value={advancedSettings.inferSteps || 12} min={5} max={50} step={1}
-                          onChange={v => set("inferSteps", v)} disabled={!advancedSettings.inferStepsEnabled} color="#06d6a0" />
-                      </Row>
-                      <Row enableKey="seedEnabled" icon="🎲" label="Seed" description="Random seed (-1 = random)">
-                        <Slider value={advancedSettings.seed || -1} min={-1} max={2147483647} step={1}
-                          onChange={v => set("seed", v)} disabled={!advancedSettings.seedEnabled} color="#06d6a0" />
-                      </Row>
-                      <Row enableKey="lmCfgEnabled" icon="📐" label="LM CFG Scale" description="Language model guidance">
-                        <Slider value={advancedSettings.lmCfgScale || 2.2} min={1} max={5} step={0.1}
-                          onChange={v => set("lmCfgScale", v)} disabled={!advancedSettings.lmCfgEnabled} color="#06d6a0" />
-                      </Row>
-                      <Row enableKey="tempEnabled" icon="🌡" label="Temperature" description="Creativity level">
-                        <Slider
-                          value={advancedSettings.temperature || 0.8}
-                          min={0} max={2} step={0.01}
-                          onChange={v => set("temperature", v)}
-                          color="#06d6a0"
-                          disabled={!advancedSettings.tempEnabled}
-                          unit=""
-                        />
-                      </Row>
-                      <Row enableKey="topkEnabled" icon="🔝" label="Top-K" description="Token selection">
-                        <Slider
-                          value={advancedSettings.topK || 0}
-                          min={0} max={100} step={1}
-                          onChange={v => set("topK", v)}
-                          color="#06d6a0"
-                          disabled={!advancedSettings.topkEnabled}
-                          unit=""
-                        />
-                      </Row>
-                      <Row enableKey="toppEnabled" icon="📊" label="Top-P" description="Nucleus sampling">
-                        <Slider
-                          value={advancedSettings.topP || 0.92}
-                          min={0} max={1} step={0.01}
-                          onChange={v => set("topP", v)}
-                          color="#06d6a0"
-                          disabled={!advancedSettings.toppEnabled}
-                          unit=""
-                        />
-                      </Row>
-                    </div>
-
-                    {/* Audio Format Section */}
-                    <div style={{
-                      color: "#00e5ff",
-                      fontSize: 11,
-                      fontWeight: 700,
-                      letterSpacing: 1.5,
-                      textTransform: "uppercase",
-                      marginBottom: 10,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                    }}>
-                      <span style={{
-                        background: "#00e5ff22",
-                        padding: "4px 10px",
-                        borderRadius: 6,
-                        border: "1px solid #00e5ff33"
-                      }}>🔊 Audio Format</span>
-                    </div>
-
-                    <div style={{
-                      background: "#0d0d15",
-                      borderRadius: 12,
-                      padding: 12,
-                      marginBottom: 16,
-                      border: "1px solid #1a1a2e",
-                    }}>
-                      <Row enableKey="audioFormatEnabled" icon="📀" label="Output Format" description="Audio file format">
-                        <select
-                          value={advancedSettings.audioFormat || "mp3"}
-                          onChange={e => set("audioFormat", e.target.value)}
-                          disabled={!advancedSettings.audioFormatEnabled}
-                          style={{
-                            flex: 1,
-                            background: "#080812",
-                            border: `1px solid ${advancedSettings.audioFormatEnabled ? "#00e5ff44" : "#1a1a2e"}`,
-                            color: advancedSettings.audioFormatEnabled ? "#00e5ff" : "#444466",
-                            borderRadius: 6,
-                            padding: "8px 12px",
-                            fontSize: 12,
-                            fontFamily: "monospace",
-                            cursor: advancedSettings.audioFormatEnabled ? "pointer" : "not-allowed",
-                            opacity: advancedSettings.audioFormatEnabled ? 1 : 0.5,
-                          }}
-                        >
-                          <option value="mp3">MP3 (compressed)</option>
-                          <option value="wav">WAV (uncompressed)</option>
-                          <option value="flac">FLAC (lossless)</option>
-                        </select>
-                      </Row>
-                      <Row enableKey="tiledDecodeEnabled" icon="🔲" label="Tiled Decode" description="VRAM optimization">
-                        <Toggle on={advancedSettings.useTiledDecode !== false} onChange={v => set("useTiledDecode", v)} />
-                      </Row>
-                    </div>
-
-                    {/* Processing Section */}
-                    <div style={{
-                      color: "#c77dff",
-                      fontSize: 11,
-                      fontWeight: 700,
-                      letterSpacing: 1.5,
-                      textTransform: "uppercase",
-                      marginBottom: 10,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                    }}>
-                      <span style={{
-                        background: "#c77dff22",
-                        padding: "4px 10px",
-                        borderRadius: 6,
-                        border: "1px solid #c77dff33"
-                      }}>⚙ Processing</span>
-                    </div>
-
-                    <div style={{
-                      background: "#0d0d15",
-                      borderRadius: 12,
-                      padding: 12,
-                      marginBottom: 16,
-                      border: "1px solid #1a1a2e",
-                    }}>
-                      <Row enableKey="fp16Enabled" icon="⚡" label="FP16 Mixed Precision" description="Faster inference">
-                        <Toggle on={advancedSettings.fp16} onChange={v => set("fp16", v)} />
-                      </Row>
-                      <Row enableKey="segmentEnabled" icon="📏" label="Segment Length" description="Audio chunks">
-                        <Slider value={advancedSettings.segmentLength || 2048} min={0} max={8192} step={256}
-                          onChange={v => set("segmentLength", v)} disabled={!advancedSettings.segmentEnabled} unit=" samples" color="#c77dff" />
-                      </Row>
-                      <Row enableKey="batchEnabled" icon="📦" label="Batch Size" description="Parallel processing">
-                        <Slider value={advancedSettings.batchSize || 1} min={1} max={4} step={1}
-                          onChange={v => set("batchSize", v)} disabled={!advancedSettings.batchEnabled} color="#c77dff" />
-                      </Row>
-                    </div>
-
-                    {/* LoRA Training */}
-                    <div style={{ 
-                      color: "#c77dff", 
-                      fontSize: 11, 
-                      fontWeight: 700, 
-                      letterSpacing: 1.5, 
-                      textTransform: "uppercase", 
-                      marginBottom: 10,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                    }}>
-                      <span style={{ 
-                        background: "#c77dff22", 
-                        padding: "4px 10px", 
-                        borderRadius: 6, 
-                        border: "1px solid #c77dff33" 
-                      }}>🔧 LoRA Training</span>
-                    </div>
-                    
-                    <div style={{ 
-                      background: "#0d0d15", 
-                      borderRadius: 12, 
-                      padding: 14, 
-                      border: "1px solid #1a1a2e",
-                    }}>
-                      <div style={{ color: "#6666aa", fontSize: 11, marginBottom: 10 }}>RTX 3070 optimized training command for ACE-Step v1.5:</div>
-                      <pre style={{
-                        background: "#050510", 
-                        borderRadius: 10, 
-                        padding: 14,
-                        color: "#00e5ff", 
-                        fontSize: 11, 
-                        fontFamily: "monospace",
-                        overflowX: "auto", 
-                        whiteSpace: "pre-wrap", 
-                        border: "1px solid #1a1a2e", 
-                        lineHeight: 1.8,
-                        margin: 0,
-                      }}>
-{`python trainer.py \\
-  --data_dir ./dataset_audio \\
-  --base_model_checkpoint ./ACE-Step-v1.5 \\
-  --lora_config_path ./lora_config.json \\
-  --output_dir ./loras \\
-  --max_epochs 300 \\
-  --batch_size 1 \\
-  --precision fp16 \\
-  --save_every_n_epochs 100`}
-                      </pre>
-                      <div style={{ color: "#444466", fontSize: 10, marginTop: 10 }}>
-                        lora_config.json: r=64, alpha=128, dropout=0.1, target_modules: transformer.audio_projector
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
-            </div>
-          )}
-        </div>
-      )}
 
     </div>
   );
