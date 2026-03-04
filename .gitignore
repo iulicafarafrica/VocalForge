@@ -171,3 +171,4 @@ Backup/
 .minimax/skills/
 .tmp/
 ace-step-ui-ref
+.pip_cache/  
