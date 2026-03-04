@@ -1137,7 +1137,7 @@ async def mix_vocal_instrumental(
 ):
     """
     Mix vocal track with instrumental.
-    Downloads instrumental, mixes with vocal, returns final track.
+    First separates clean vocal from upload (if needed), then mixes with generated instrumental.
     """
     import requests
     import librosa
@@ -1160,6 +1160,19 @@ async def mix_vocal_instrumental(
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as vocal_tmp:
             vocal_tmp.write(await vocal_file.read())
             vocal_path = vocal_tmp.name
+        
+        # Try to separate clean vocal (in case upload has background music)
+        try:
+            print(f"[Vocal2BGM] Separating clean vocal from {vocal_path}")
+            clean_vocal_path, _ = separate_vocals(vocal_path, os.path.dirname(vocal_path), model="auto")
+            if clean_vocal_path and os.path.exists(clean_vocal_path):
+                print(f"[Vocal2BGM] Clean vocal separated: {clean_vocal_path}")
+                vocal_path = clean_vocal_path  # Use clean vocal
+            else:
+                print(f"[Vocal2BGM] Using original vocal (separation failed)")
+        except Exception as sep_err:
+            print(f"[Vocal2BGM] Vocal separation failed ({sep_err}), using original vocal")
+            # Continue with original vocal
         
         # Load both audio files
         vocal_y, vocal_sr = librosa.load(vocal_path, sr=None)
@@ -1194,6 +1207,9 @@ async def mix_vocal_instrumental(
         try:
             os.unlink(inst_path)
             os.unlink(vocal_path)
+            # Also clean separated vocal if it was created
+            if 'clean_vocal_path' in locals() and clean_vocal_path != vocal_path:
+                os.unlink(clean_vocal_path)
         except:
             pass
         
