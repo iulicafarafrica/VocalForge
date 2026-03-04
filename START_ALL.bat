@@ -14,24 +14,36 @@ timeout /t 2 /nobreak >nul
 echo [OK] Porturi curatate
 echo.
 
-echo [2/3] Pornire servicii in ferestre separate...
+echo [2/3] Verificare Windows Terminal...
+where wt >nul 2>&1
+if %ERRORLEVEL% EQU 0 (
+    echo [OK] Windows Terminal detectat
+    set USE_WT=1
+) else (
+    echo [WARN] Windows Terminal nu e instalat, se folosesc ferestre CMD
+    set USE_WT=0
+)
 echo.
 
-:: ACE-Step API Server (Port 8001)
-echo [ACE-Step] Starting API server on port 8001...
-start "ACE-Step :8001" cmd /k "cd /d D:\VocalForge\ace-step && call start_acestep.bat"
+echo [3/3] Pornire servicii...
+echo.
 
-timeout /t 3 /nobreak >nul
-
-:: Backend (Port 8000)
-echo [Backend] Starting FastAPI on port 8000...
-start "Backend :8000" cmd /k "cd /d D:\VocalForge && call venv\Scripts\activate.bat && set PYTHONPATH=. && python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000"
-
-timeout /t 3 /nobreak >nul
-
-:: Frontend (Port 3000)
-echo [Frontend] Starting React dev server on port 3000...
-start "Frontend :3000" cmd /k "cd /d D:\VocalForge\frontend && npm run dev"
+if "%USE_WT%"=="1" (
+    :: Windows Terminal version (preferred)
+    echo [START] Deschidere Windows Terminal cu 3 tab-uri...
+    start "" wt --maximized ^
+      new-tab --title "ACE-Step :8001" --tabColor "#1a6b3c" cmd /k "cd /d D:\VocalForge\ace-step && call start_acestep.bat" ^
+      ; new-tab --title "Backend :8000" --tabColor "#1a3a6b" cmd /k "cd /d D:\VocalForge && call venv\Scripts\activate.bat && set PYTHONPATH=. && python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000" ^
+      ; new-tab --title "Frontend :3000" --tabColor "#6b1a6b" cmd /k "cd /d D:\VocalForge\frontend && npm run dev"
+) else (
+    :: Fallback to separate CMD windows
+    echo [START] Deschidere ferestre CMD separate...
+    start "ACE-Step :8001" cmd /k "cd /d D:\VocalForge\ace-step && call start_acestep.bat"
+    timeout /t 2 /nobreak >nul
+    start "Backend :8000" cmd /k "cd /d D:\VocalForge && call venv\Scripts\activate.bat && set PYTHONPATH=. && python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000"
+    timeout /t 2 /nobreak >nul
+    start "Frontend :3000" cmd /k "cd /d D:\VocalForge\frontend && npm run dev"
+)
 
 echo.
 echo ================================================
