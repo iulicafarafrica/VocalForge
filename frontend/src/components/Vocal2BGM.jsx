@@ -16,6 +16,7 @@ export default function Vocal2BGM({ addLog, tracks, setTracks }) {
   const [model, setModel] = useState("acestep-v15-turbo");
   const [generating, setGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [progressLabel, setProgressLabel] = useState("");
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
@@ -336,7 +337,7 @@ export default function Vocal2BGM({ addLog, tracks, setTracks }) {
           marginBottom: 16,
         }}
       >
-        {generating ? `⏳ Generating... (${progress}%)` : "🎼 Generate Full Song"}
+        {generating ? `⏳ ${progressLabel || "Generating..."} (${progress}%)` : "🎼 Generate Full Song"}
       </button>
 
       {/* Progress */}
