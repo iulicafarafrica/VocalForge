@@ -51,9 +51,10 @@ export default function Vocal2BGM({ addLog, tracks, setTracks }) {
     fd.append("infer_steps", "8");
     fd.append("dit_model", model);
     fd.append("vocal_language", "en");
-    fd.append("task_type", "audio2audio");
+    fd.append("task_type", "cover");  // FIXED: Use "cover" not "audio2audio"
     fd.append("source_audio", vocalFile);
-    fd.append("source_audio_strength", "0.7");
+    fd.append("audio_cover_strength", "0.2");  // FIXED: Lower strength for style transfer
+    fd.append("thinking", "true");  // Enable LM for better results
 
     const progressSteps = [
       { pct: 15, label: "🎤 Analyzing vocal...", delay: 2000 },
