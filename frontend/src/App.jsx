@@ -33,10 +33,36 @@ export default function App() {
   const [aceLyrics, setAceLyrics] = useState("");
   const [aceDuration, setAceDuration] = useState(30);
   const [aceGuidanceScale, setAceGuidanceScale] = useState(7.0);
-  const [aceInferSteps, setAceInferSteps] = useState(8);  // 8 steps optimal for turbo model
+  const [aceInferSteps, setAceInferSteps] = useState(27);  // 27 steps optimal for turbo model
   const [aceSeed, setAceSeed] = useState(-1);
   const [aceGenreCat, setAceGenreCat] = useState("Hip-Hop");
   const [aceResult, setAceResult] = useState(null);
+
+  const [advancedSettings, setAdvancedSettings] = useState({
+    // Generation Parameters
+    durationEnabled: false, duration: 60,
+    bpmEnabled: false, bpm: 120,
+    keyScaleEnabled: false, keyScale: "",
+    negativePromptEnabled: false, negativePrompt: "",
+    
+    // ACE-Step AI Generation
+    guidanceEnabled: false, guidanceScale: 9.0,
+    inferStepsEnabled: false, inferSteps: 12,
+    seedEnabled: false, seed: -1,
+    lmCfgEnabled: false, lmCfgScale: 2.2,
+    tempEnabled: false, temperature: 0.8,
+    topkEnabled: false, topK: 0,
+    toppEnabled: false, topP: 0.92,
+    
+    // Audio Format
+    audioFormatEnabled: false, audioFormat: "mp3",
+    tiledDecodeEnabled: true, useTiledDecode: true,  // Always on for VRAM optimization
+    
+    // Processing
+    fp16Enabled: true, fp16: true,  // Activat implicit pentru RTX 3070
+    segmentEnabled: false, segmentLength: 2048,  // Optimizat pentru 8GB VRAM
+    batchEnabled: false, batchSize: 1,  // Stabilitate VRAM
+  });
 
   const addLog = useCallback((msg) => {
     setLogs(prev => [...prev.slice(-499), msg]);
@@ -177,6 +203,8 @@ export default function App() {
             seed={aceSeed}                   setSeed={setAceSeed}
             genreCat={aceGenreCat}           setGenreCat={setAceGenreCat}
             result={aceResult}               setResult={setAceResult}
+            advancedSettings={advancedSettings}
+            setAdvancedSettings={setAdvancedSettings}
           />
         </div>
 
