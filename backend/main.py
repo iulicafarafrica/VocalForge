@@ -2392,11 +2392,11 @@ async def gemini_chat(
         )
     
     try:
-        import google.generativeai as genai
+        from google import genai
+        from google.genai import types
         
         # Configure Gemini
-        genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel("gemini-2.0-flash")
+        client = genai.Client(api_key=GEMINI_API_KEY)
         
         # System prompts for different tasks
         system_prompts = {
@@ -2429,8 +2429,11 @@ Format: Clear, organized list.""",
         system_prompt = system_prompts.get(task, "Help with music creation.")
         full_prompt = f"{system_prompt}\n\nUser request: {message}"
         
-        # Generate response
-        response = model.generate_content(full_prompt)
+        # Generate response using new SDK
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=full_prompt
+        )
         
         return {
             "status": "ok",
@@ -2440,6 +2443,8 @@ Format: Clear, organized list.""",
         
     except Exception as e:
         import traceback
+        print(f"Gemini API Error: {e}")
+        print(traceback.format_exc())
         return JSONResponse(
             status_code=500,
             content={"error": str(e), "traceback": traceback.format_exc()}
