@@ -727,7 +727,8 @@ export default function AceStepTab({
 
   const applyGenrePreset = (preset) => {
     if (!preset) return;
-    setTaskType("text2music");
+    // Don't switch task type - respect current mode
+    // setTaskType("text2music"); // REMOVED - was forcing switch to text2music
     const caption = preset.caption || preset.prompt || "";
     const neg = preset.lm_negative_prompt ?? preset.negatives ?? "";
     const bpmVal = preset.bpm != null ? Number(preset.bpm) : 0;
