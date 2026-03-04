@@ -1824,6 +1824,111 @@ async def lyrics_cover(
 
 ACE_STEP_API = "http://localhost:8001"
 
+# Qwen AI API configuration (DashScope)
+QWEN_API_KEY = os.getenv("QWEN_API_KEY", "")
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Qwen AI Chat — Lyrics & Prompt Generation
+# ──────────────────────────────────────────────────────────────────────────────
+
+@app.post("/qwen_chat")
+async def qwen_chat(
+    message: str = Form(...),
+    task: str = Form("lyrics"),  # lyrics, prompt, genre
+):
+    """
+    Chat with Qwen AI for lyrics and music generation assistance.
+    
+    Tasks:
+    - lyrics: Generate song lyrics with verse/chorus structure
+    - prompt: Generate ACE-Step music prompts
+    - genre: Suggest music genres and styles
+    """
+    if not QWEN_API_KEY:
+        return JSONResponse(
+            status_code=503,
+            content={"error": "Qwen API key not configured. Set QWEN_API_KEY in .env file"}
+        )
+    
+    try:
+        import requests
+        
+        # System prompts for different tasks
+        system_prompts = {
+            "lyrics": """You are a professional songwriter. Write song lyrics based on the user's request.
+Structure: Include [Verse 1], [Chorus], [Verse 2], [Bridge], [Chorus] sections.
+Style: Match the mood and genre requested.
+Language: Write in the language requested or default to English.
+Keep it concise and singable.""",
+            
+            "prompt": """You are a music producer specializing in ACE-Step AI music generation.
+Write detailed prompts for music generation including:
+- Genre and subgenre
+- Mood and atmosphere
+- Instruments (specific: 808 bass, trap hi-hats, etc.)
+- Tempo/BPM suggestions
+- Key/tonality
+- Production style references
+Format: Write as a single descriptive paragraph.""",
+            
+            "genre": """You are a music expert. Suggest music genres and styles based on user preferences.
+Include:
+- Genre and subgenre names
+- Typical BPM range
+- Common key signatures
+- Characteristic instruments
+- Similar artists or reference tracks
+Format: Clear, organized list.""",
+        }
+        
+        system_prompt = system_prompts.get(task, "Help with music creation.")
+        user_message = f"{system_prompt}\n\nUser request: {message}"
+        
+        # Call Qwen API via DashScope
+        headers = {
+            "Authorization": f"Bearer {QWEN_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "model": "qwen-plus",
+            "messages": [
+                {"role": "system", "content": "You are a helpful music creation assistant."},
+                {"role": "user", "content": user_message}
+            ],
+            "temperature": 0.7,
+            "max_tokens": 1000
+        }
+        
+        response = requests.post(
+            "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation",
+            headers=headers,
+            json=payload,
+            timeout=30
+        )
+        
+        if response.status_code != 200:
+            raise Exception(f"Qwen API error: {response.status_code} - {response.text[:200]}")
+        
+        result = response.json()
+        ai_response = result.get("output", {}).get("text", "No response generated")
+        
+        return {
+            "status": "ok",
+            "response": ai_response,
+            "task": task,
+        }
+        
+    except Exception as e:
+        import traceback
+        print(f"Qwen API Error: {e}")
+        print(traceback.format_exc())
+        return JSONResponse(
+            status_code=500,
+            content={"error": str(e), "traceback": traceback.format_exc()}
+        )
+
+
 @app.get("/ace_health")
 async def ace_health():
     """Check if ACE-Step API server is running."""
