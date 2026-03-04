@@ -7,17 +7,31 @@ for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8001 " ^| findstr "LISTENIN
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":3000 " ^| findstr "LISTENING"') do taskkill /F /PID %%a >nul 2>&1
 timeout /t 2 /nobreak >nul
 
-echo Pornire ACE-Step...
-start "ACE-Step :8001" C:\PROGRA~1\Git\usr\bin\bash.exe --login -i /d/VocalForge/start_acestep_env.sh
+echo Pornire servicii in Windows Terminal...
 
-echo Pornire Backend...
-start "Backend :8000" cmd /k "cd /d D:\VocalForge && call venv\Scripts\activate.bat && set PYTHONPATH=. && python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000"
+:: Create temporary batch files for each service
+echo @echo off > "%TEMP%\vocalforge_acestep.bat"
+echo cd /d D:\VocalForge\ace-step >> "%TEMP%\vocalforge_acestep.bat"
+echo call start_acestep.bat >> "%TEMP%\vocalforge_acestep.bat"
 
-echo Pornire Frontend...
-start "Frontend :3000" cmd /k "cd /d D:\VocalForge\frontend && npm run dev"
+echo @echo off > "%TEMP%\vocalforge_backend.bat"
+echo cd /d D:\VocalForge >> "%TEMP%\vocalforge_backend.bat"
+echo call venv\Scripts\activate.bat >> "%TEMP%\vocalforge_backend.bat"
+echo set PYTHONPATH=. >> "%TEMP%\vocalforge_backend.bat"
+echo python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 >> "%TEMP%\vocalforge_backend.bat"
+
+echo @echo off > "%TEMP%\vocalforge_frontend.bat"
+echo cd /d D:\VocalForge\frontend >> "%TEMP%\vocalforge_frontend.bat"
+echo npm run dev >> "%TEMP%\vocalforge_frontend.bat"
+
+:: Open Windows Terminal with 3 tabs
+start "" wt -M ^
+  --tab "ACE-Step :8001" --tabColor "#1a6b3c" cmd /k "%TEMP%\vocalforge_acestep.bat" ^
+  --tab "Backend :8000" --tabColor "#1a3a6b" cmd /k "%TEMP%\vocalforge_backend.bat" ^
+  --tab "Frontend :3000" --tabColor "#6b1a6b" cmd /k "%TEMP%\vocalforge_frontend.bat"
 
 echo.
-echo Toate serviciile pornesc...
+echo Toate serviciile pornesc in Windows Terminal...
 echo ACE-Step:  http://localhost:8001
 echo Backend:   http://localhost:8000
 echo Frontend:  http://localhost:3000
