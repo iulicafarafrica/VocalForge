@@ -2396,11 +2396,11 @@ async def gemini_chat(
         )
     
     try:
-        from google import genai
-        from google.genai import types
+        # Use the new google-genai SDK
+        from google.genai import Client
         
         # Configure Gemini
-        client = genai.Client(api_key=GEMINI_API_KEY)
+        client = Client(api_key=GEMINI_API_KEY)
         
         # System prompts for different tasks
         system_prompts = {
