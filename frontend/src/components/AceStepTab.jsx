@@ -635,14 +635,19 @@ export default function AceStepTab({
 
   // ── Extra generation params ────────────────────────────────────────────────
   const [negativePrompt, setNegativePrompt] = useState("");
-  const [lmTemperature, setLmTemperature] = useState(0.8);
+  const [lmTemperature, setLmTemperature] = useState(0.85);
+  const [lmCfgScale, setLmCfgScale] = useState(2.5);
   const [lmTopK, setLmTopK] = useState(0);
-  const [lmTopP, setLmTopP] = useState(0.92);
+  const [lmTopP, setLmTopP] = useState(0.9);
   const [instrumental, setInstrumental] = useState(false);
   const [vocalLanguage, setVocalLanguage] = useState("en");
   const [audioFormat, setAudioFormat] = useState("mp3");
   const [inferMethod, setInferMethod] = useState("ode");
   const [shift, setShift] = useState(3.0);
+  const [useTiledDecode, setUseTiledDecode] = useState(true);
+  const [batchSize, setBatchSize] = useState(1);
+  const [thinking, setThinking] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // ── Tensor Model Selection ────────────────────────────────────────────────
   const [tensorModel, setTensorModel] = useState("acestep-v15-turbo"); // default
@@ -820,19 +825,25 @@ export default function AceStepTab({
 
     // Advanced ACE-Step parameters
     fd.append("lm_temperature", lmTemperature);
-
-    if (lmTopK) {
+    fd.append("lm_cfg_scale", lmCfgScale);
+    if (lmTopK > 0) {
       fd.append("lm_top_k", lmTopK);
     }
-    if (lmTopP) {
+    if (lmTopP < 1.0) {
       fd.append("lm_top_p", lmTopP);
     }
+    fd.append("thinking", thinking);
+    fd.append("infer_method", inferMethod);
+    if (tensorModel.includes("base") || tensorModel.includes("sft")) {
+      fd.append("shift", shift);
+    }
+    fd.append("batch_size", batchSize);
 
     // Audio format
     fd.append("audio_format", audioFormat);
 
     // Tiled decode (always enabled by default for VRAM optimization)
-    fd.append("use_tiled_decode", true);
+    fd.append("use_tiled_decode", useTiledDecode);
 
     // Fake progress animation
     const progressSteps = [
@@ -1876,6 +1887,171 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
           )}
 
         </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          Advanced Settings Panel
+          Based on ACE-Step v1.5 API documentation
+      ═══════════════════════════════════════════════════════════════════ */}
+      <div style={{ marginTop: 20 }}>
+        <button
+          onClick={() => setShowAdvanced(v => !v)}
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            background: "linear-gradient(135deg, #0d0d22, #0a0a1a)",
+            border: "1px solid #2a2a4a",
+            borderRadius: showAdvanced ? "12px 12px 0 0" : 12,
+            padding: "14px 18px",
+            cursor: "pointer",
+            color: "#8888aa",
+            transition: "all 0.2s",
+          }}
+        >
+          <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 10 }}>
+            <span>⚙️</span> Advanced Settings
+          </span>
+          <span style={{ fontSize: 14, transition: "transform 0.2s", transform: showAdvanced ? "rotate(180deg)" : "none" }}>▼</span>
+        </button>
+
+        {showAdvanced && (
+          <div style={{
+            background: "linear-gradient(180deg, #0a0a1a, #080812)",
+            border: "1px solid #2a2a4a",
+            borderTop: "none",
+            borderRadius: "0 0 12px 12px",
+            padding: 20,
+          }}>
+            {/* LM Parameters */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ color: "#00e5ff", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>
+                🧠 Language Model Parameters
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>LM Temperature: {lmTemperature.toFixed(2)}</label>
+                  <input
+                    type="range" min="0.5" max="2.0" step="0.01"
+                    value={lmTemperature}
+                    onChange={e => setLmTemperature(parseFloat(e.target.value))}
+                    style={{ width: "100%" }}
+                  />
+                </div>
+                <div>
+                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>LM CFG Scale: {lmCfgScale.toFixed(1)}</label>
+                  <input
+                    type="range" min="1.0" max="5.0" step="0.1"
+                    value={lmCfgScale}
+                    onChange={e => setLmCfgScale(parseFloat(e.target.value))}
+                    style={{ width: "100%" }}
+                  />
+                </div>
+                <div>
+                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>Top-K: {lmTopK}</label>
+                  <input
+                    type="number" min="0" max="100"
+                    value={lmTopK}
+                    onChange={e => setLmTopK(parseInt(e.target.value) || 0)}
+                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 6, padding: "8px 12px", fontSize: 12 }}
+                  />
+                </div>
+                <div>
+                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>Top-P: {lmTopP.toFixed(2)}</label>
+                  <input
+                    type="range" min="0.8" max="1.0" step="0.01"
+                    value={lmTopP}
+                    onChange={e => setLmTopP(parseFloat(e.target.value))}
+                    style={{ width: "100%" }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Generation Control */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ color: "#06d6a0", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>
+                ⚙ Generation Control
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                <div>
+                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>Infer Method</label>
+                  <select
+                    value={inferMethod}
+                    onChange={e => setInferMethod(e.target.value)}
+                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 6, padding: "8px 12px", fontSize: 12 }}
+                  >
+                    <option value="ode">ODE (Fast)</option>
+                    <option value="sde">SDE (Stochastic)</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>Timestep Shift: {shift.toFixed(1)}</label>
+                  <input
+                    type="range" min="1.0" max="5.0" step="0.1"
+                    value={shift}
+                    onChange={e => setShift(parseFloat(e.target.value))}
+                    style={{ width: "100%" }}
+                    disabled={!tensorModel.includes("base") && !tensorModel.includes("sft")}
+                  />
+                </div>
+                <div>
+                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>Batch Size: {batchSize}</label>
+                  <input
+                    type="number" min="1" max="8"
+                    value={batchSize}
+                    onChange={e => setBatchSize(parseInt(e.target.value) || 1)}
+                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 6, padding: "8px 12px", fontSize: 12 }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Audio & VRAM */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ color: "#c77dff", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>
+                🔊 Audio & VRAM
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>Output Format</label>
+                  <select
+                    value={audioFormat}
+                    onChange={e => setAudioFormat(e.target.value)}
+                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 6, padding: "8px 12px", fontSize: 12 }}
+                  >
+                    <option value="mp3">MP3 (Compressed)</option>
+                    <option value="wav">WAV (Uncompressed)</option>
+                    <option value="flac">FLAC (Lossless)</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: "flex", alignItems: "center", gap: 8, color: "#6666aa", fontSize: 11, cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={useTiledDecode}
+                      onChange={e => setUseTiledDecode(e.target.checked)}
+                    />
+                    Tiled Decode (VRAM optimization)
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Thinking Mode */}
+            <div>
+              <label style={{ display: "flex", alignItems: "center", gap: 10, color: "#ffd166", fontSize: 12, cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={thinking}
+                  onChange={e => setThinking(e.target.checked)}
+                />
+                💭 Thinking Mode (Use 5Hz LM for audio codes - slower but better quality)
+              </label>
+            </div>
+          </div>
+        )}
       </div>
 
     </div>
