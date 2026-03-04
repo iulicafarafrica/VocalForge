@@ -5,7 +5,16 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3000,
-    strictPort: true,   // fail instead of silently switching to 3001
-    open: false,        // browser opened by START_ALL.bat instead
-  }
+    strictPort: true,
+    open: false,
+    hmr: {
+      host: 'localhost',
+      port: 3000,
+    },
+    watch: {
+      usePolling: true,
+      interval: 100,
+      followSymlinks: false,
+    },
+  },
 })
