@@ -2170,9 +2170,7 @@ async def ace_generate(
             if neg:
                 task_payload["lm_negative_prompt"] = neg
 
-            # Audio2audio: save source audio in system temp (ACE-Step validates paths must be in tempdir)
-            # IMPORTANT: Nu tăiem sursa! ACE-Step folosește audio_duration pentru a controla durata output-ului.
-            # Sursa e folosită doar ca referință de stil/timbru, nu determină durata.
+            # Audio2audio/cover: save source audio in system temp
             if task_type in ("audio2audio", "cover") and source_audio and source_audio.filename:
                 src_bytes = await source_audio.read()
                 import tempfile as _tmpmod
@@ -2180,7 +2178,6 @@ async def ace_generate(
                 fd, src_path = _tmpmod.mkstemp(prefix="ace_src_", suffix=suffix)
                 os.close(fd)
 
-                # Salvează raw bytes direct, fără tăiere — durata e controlată de audio_duration
                 try:
                     import torchaudio as _torchaudio
                     fd2, raw_path = _tmpmod.mkstemp(prefix="ace_raw_", suffix=os.path.splitext(source_audio.filename)[1] or ".wav")
@@ -2188,26 +2185,31 @@ async def ace_generate(
                     try:
                         with open(raw_path, "wb") as f_raw:
                             f_raw.write(src_bytes)
-                        # Convertim la WAV fără tăiere
                         _wav, _sr = _torchaudio.load(raw_path)
                         src_duration_s = _wav.shape[-1] / _sr
                         _torchaudio.save(src_path, _wav, _sr)
-                        print(f"[ACE {job_id[:8]}] Source audio: {source_audio.filename} ({src_duration_s:.1f}s) → saved as WAV")
+                        print(f"[ACE {job_id[:8]}] Source audio: {source_audio.filename} ({src_duration_s:.1f}s)")
                     finally:
                         try:
                             os.unlink(raw_path)
                         except Exception:
                             pass
                 except Exception as _conv_err:
-                    print(f"[ACE {job_id[:8]}] WARNING: torchaudio convert failed ({_conv_err}), saving raw bytes")
+                    print(f"[ACE {job_id[:8]}] WARNING: torchaudio convert failed ({_conv_err})")
                     with open(src_path, "wb") as f_src:
                         f_src.write(src_bytes)
 
-                task_payload["src_audio_path"] = src_path
-                task_payload["audio_cover_strength"] = source_audio_strength  # ACE-Step field name
-                # audio_duration controlează durata output-ului (setată de utilizator)
+                task_payload["audio_cover_strength"] = source_audio_strength
                 task_payload["audio_duration"] = effective_duration
-                print(f"[ACE {job_id[:8]}] Audio2audio: source={source_audio.filename} ({len(src_bytes)//1024}KB) | output_duration={effective_duration}s | strength={source_audio_strength}")
+                
+                # Vocal2BGM (cover): use reference_audio_path to preserve vocal
+                # Audio2audio: use src_audio_path for style transfer
+                if task_type == "cover":
+                    task_payload["reference_audio_path"] = src_path  # Preserve vocal
+                    print(f"[ACE {job_id[:8]}] Vocal2BGM: reference={source_audio.filename}")
+                else:
+                    task_payload["src_audio_path"] = src_path
+                    print(f"[ACE {job_id[:8]}] Audio2audio: source={source_audio.filename}")
 
             print(f"[ACE {job_id[:8]}] Submitting task to /release_task...")
             r = await client.post(f"{ACE_STEP_API}/release_task", json=task_payload)
