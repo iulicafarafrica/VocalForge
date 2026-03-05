@@ -171,7 +171,21 @@ const features = [
 
 const changelog = [
   {
-    ver: "v1.7.2", date: "February 2026", type: "current",
+    ver: "v1.8", date: "March 2026", type: "current",
+    changes: [
+      { type: "new", text: "✂️ Separate Tab — Upload full song, auto-separate vocals + instrumental with Demucs, one-click 'Use Vocals in Convert'" },
+      { type: "new", text: "🎚️ Mix Tab — Mix converted vocal with instrumental, independent volume control, real-time preview, export final mix" },
+      { type: "new", text: "💾 Presets Tab — Save all RVC settings (model, pitch, emotion, index rate, formant), apply with one click, import/export presets" },
+      { type: "fix", text: "RVC working directory issues — fixed config path loading" },
+      { type: "fix", text: "Unicode encoding errors — replaced Unicode characters for Windows compatibility" },
+      { type: "fix", text: "RVC argument parsing conflicts — fixed parse_args([]) to ignore uvicorn arguments" },
+      { type: "imp", text: "Added RVC Voice API on port 8002 — dedicated service for voice conversion" },
+      { type: "imp", text: "Enhanced core/modules/rvc_model.py — better device detection and error handling" },
+      { type: "imp", text: "Updated START_ALL.bat — now launches 4 services (Frontend, Backend, ACE-Step, RVC)" },
+    ],
+  },
+  {
+    ver: "v1.7.2", date: "February 2026", type: "old",
     changes: [
       { type: "new", text: "Presets by genre (full): single section with JSON genres (Rock, Reggae, Jazz, Drum & Bass) + built-in (Hip-Hop, Romanian, House, Dembow). Each subgenre applies caption, negative prompt, BPM, key, instrumental." },
       { type: "new", text: "BPM and negative prompt added for every built-in subgenre (Hip-Hop, Romanian, House, Dembow) for consistent full presets." },
@@ -313,7 +327,7 @@ export default function ReadmeTab() {
       <div style={s.hero}>
         <div style={s.heroTitle}>VocalForge</div>
         <div style={s.heroSub}>AI Audio Studio — Documentatie & Features</div>
-        <div style={s.version}>v1.7.2 · Beta Ready · Windows 10 · CUDA</div>
+        <div style={s.version}>v1.8 · Beta Ready · Windows 10 · CUDA</div>
         <div style={{ marginTop: 20, display: "flex", justifyContent: "center", gap: 28, flexWrap: "wrap" }}>
           {[
             { Icon: Sliders,   label: "Stem Separation", color: "#00e5ff" },
@@ -494,7 +508,7 @@ export default function ReadmeTab() {
         textAlign: "center", padding: "24px", borderTop: "1px solid #1a1a3a",
         color: "#333355", fontSize: 12, fontFamily: "monospace",
       }}>
-        VocalForge v1.7.2 · AI Audio Studio · FastAPI + React + ACE-Step + so-vits-svc + Demucs
+        VocalForge v1.8 · AI Audio Studio · FastAPI + React + ACE-Step + RVC + Demucs
       </div>
     </div>
   );
