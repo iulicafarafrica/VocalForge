@@ -1,9 +1,9 @@
-# 🎵 VocalForge v1.7
+# 🎵 VocalForge v1.8
 
 > **AI-Powered Music Production Studio** — Transform your voice, generate music, and create professional tracks with cutting-edge AI.
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.7-blue?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8-blue?style=for-the-badge" alt="Version">
   <img src="https://img.shields.io/badge/Status-Beta-yellow?style=for-the-badge" alt="Status">
   <img src="https://img.shields.io/badge/Python-3.10%2B-green?style=for-the-badge&logo=python" alt="Python">
   <img src="https://img.shields.io/badge/GPU-NVIDIA%20CUDA-orange?style=for-the-badge&logo=nvidia" alt="GPU">
@@ -24,108 +24,16 @@
 
 ---
 
-## 📋 Roadmap
-
-### 🔜 Coming Soon (v1.8)
-
-| Feature | Priority | Status | Description |
-|---------|----------|--------|-------------|
-| **✂️ Separate Tab** | 🔥 High | In Development | Upload full song → Demucs auto-separates vocals + instrumental → One-click "Use Vocals in Convert" |
-| **🎚️ Mix Tab** | 🔥 High | In Development | Mix converted vocal with instrumental → Independent volume control for vocal and instrumental |
-| **💾 Presets Tab** | ⭐ Medium | In Development | Save all settings (model, pitch, emotion, index rate, formant, auto-tune) → Apply with one click → Delete unwanted |
-
-#### Feature Details
-
-**✂️ Separate Tab**
-- Upload any full song (MP3, WAV, FLAC)
-- Demucs automatically separates: Vocals + Instrumental
-- Button: "Use Vocals in Convert" → sends vocals directly to RVC tab
-- Optional: Download individual stems
-
-**🎚️ Mix Tab**
-- Load converted vocal from RVC
-- Load instrumental (from Separate tab or upload)
-- Independent volume sliders: Vocal Volume / Instrumental Volume
-- Real-time preview before export
-- Export final mix (MP3, WAV)
-
-**💾 Presets Tab**
-- Save complete configuration:
-  - RVC Model
-  - Pitch Shift (±12 semitones)
-  - Emotion (Happy, Sad, Angry, Calm, Fearful)
-  - Index Rate
-  - Formant Preservation
-  - Auto-Tune settings
-- Name your preset (e.g., "Kanye Sad", "Florin Happy", "Justin Pop")
-- Apply preset with single click
-- Delete or export presets
-- Import presets from community
-
----
-
-### 💡 Future Ideas
-
-- [ ] Batch Processing — Convert multiple vocals at once
-- [ ] Real-time Preview — Hear conversion before render
-- [ ] Model Sharing — Share custom RVC models
-- [ ] Cloud Storage — Save tracks to cloud
-- [ ] VST Plugin — Use VocalForge in DAWs
-- [ ] Mobile App — iOS/Android companion
-
----
-
 ## 📖 Table of Contents
 
-- [Changelog](#-changelog)
 - [Features](#-features)
 - [Quick Start](#-quick-start)
 - [Installation](#-installation)
 - [Usage Guide](#-usage-guide)
 - [API Reference](#-api-reference)
 - [Hardware Requirements](#-hardware-requirements)
+- [Changelog](#-changelog)
 - [Troubleshooting](#-troubleshooting)
-
----
-
-## 📝 Changelog
-
-### v1.7 — Current Release
-
-#### ✅ Added
-- **RVC Voice Conversion** — Complete AI voice transformation
-  - Custom .pth model support
-  - Pitch shifting (±12 semitones)
-  - Emotion control (5 emotions)
-  - Formant preservation
-  - 4 pre-loaded models
-- **Windows Terminal** — Required for multi-tab startup
-- **Enhanced RVC UI** — Improved conversion interface
-
-#### ❌ Removed
-- **Vocal2BGM** — Feature deprecated
-- **Pitch Correction Tab** — Replaced by RVC
-
-#### 🐛 Fixed
-- Unicode encoding errors (Windows compatibility)
-- RVC config path issues
-- RVC argument parsing conflicts
-- RVC array bounds safety
-
-#### 🔧 Technical
-- Added `backend/app.py` (RVC API, port 8002)
-- Added `core/modules/rvc_model.py`
-- Updated `START_ALL.bat` (4 services)
-- Improved error handling
-
----
-
-### v1.6 — Previous Release
-
-- ACE-Step integration
-- Stem separation (Demucs)
-- Repaint/Lego/Complete
-- Genre presets (50+)
 
 ---
 
@@ -451,6 +359,73 @@ python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
 
 ---
 
+## 📝 Changelog
+
+### v1.8 — Current Release (March 2026)
+
+#### 🎯 New Tabs (Workflow Enhancement)
+
+**✂️ Separate Tab**
+- Upload full song → auto-separate with Demucs
+- Vocals + Instrumental separation
+- One-click "Use Vocals in Convert" button
+- Download individual stems
+
+**🎚️ Mix Tab**
+- Mix converted vocal with instrumental
+- Independent volume control (Vocal / Instrumental)
+- Real-time preview
+- Export final mix (MP3, WAV)
+
+**💾 Presets Tab**
+- Save all RVC settings with custom name
+  - Model, Pitch (±12 semitones), Emotion (5 types)
+  - Index Rate, Formant Preservation, Auto-Tune
+- Apply preset with single click
+- Delete or export presets
+- Import community presets
+
+#### 🐛 Fixed
+- RVC working directory issues
+- Unicode encoding errors (Windows compatibility)
+- Config path loading errors
+- Argument parsing conflicts
+
+#### 🔧 Technical
+- Added RVC Voice API (port 8002)
+- Enhanced `core/modules/rvc_model.py`
+- Updated `START_ALL.bat` (4 services)
+- Improved error handling and logging
+
+---
+
+### v1.7 — Previous Release
+
+#### ✅ Added
+- **RVC Voice Conversion** — Complete AI voice transformation
+  - Custom .pth model support
+  - Pitch shifting (±12 semitones)
+  - Emotion control (5 emotions)
+  - Formant preservation
+  - 4 pre-loaded models
+- **Windows Terminal** — Required for multi-tab startup
+- **Enhanced RVC UI** — Improved conversion interface
+
+#### ❌ Removed
+- **Vocal2BGM** — Feature deprecated
+- **Pitch Correction Tab** — Replaced by RVC
+
+---
+
+### v1.6 — Initial Release
+
+- ACE-Step integration
+- Stem separation (Demucs)
+- Repaint/Lego/Complete
+- Genre presets (50+)
+
+---
+
 ## 🐛 Troubleshooting
 
 ### Backend won't start
@@ -580,7 +555,7 @@ MIT License — See [LICENSE](LICENSE) file for details.
 ---
 
 <p align="center">
-  <strong>VocalForge v1.7</strong> — Made with ❤️ for music creators
+  <strong>VocalForge v1.8</strong> — Made with ❤️ for music creators
   <br>
   <sub>Last Updated: March 2026</sub>
 </p>
