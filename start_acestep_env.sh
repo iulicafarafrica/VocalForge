@@ -1,11 +1,32 @@
 #!/bin/bash
 cd /d/VocalForge/ace-step
 
-# Lazy Loading - models load on-demand (saves VRAM!)
-export ACESTEP_NO_INIT=1
+# =============================================================================
+# MERGED MODEL CONFIGURATION - Best of Turbo + SFT in ONE model!
+# =============================================================================
+# Model: acestep_v1.5_merge_sft_turbo_ta_0.4.safetensors
+# - Turbo speed (8 steps) + SFT quality
+# - Single model (~5-6 GB VRAM)
+# - No lazy loading needed
+# =============================================================================
 
-# Model configuration (used when lazy loading kicks in)
-export ACESTEP_CONFIG_PATH=acestep-v15-turbo
+export ACESTEP_NO_INIT=0
+
+# LLM ENABLED for lyrics
+export ACESTEP_INIT_LLM=true
+export ACESTEP_LM_MODEL_PATH=acestep-5Hz-lm-0.6B
+
+# MERGED MODEL - replaces standard turbo
+export ACESTEP_CONFIG_PATH=acestep-v15-merge
+
+# VAE optimization for 8GB VRAM
+export ACESTEP_VAE_ON_CPU=1
+export ACESTEP_VAE_DECODE_CHUNK_SIZE=256
+export ACESTEP_OFFLOAD_TO_CPU=true
+export ACESTEP_OFFLOAD_DIT_TO_CPU=false
+export ACESTEP_OFFLOAD_DIT_TO_CPU=false
+
+# Model configuration
 export ACESTEP_LM_MODEL_PATH=acestep-5Hz-lm-0.6B
 export ACESTEP_DEVICE=cuda
 export ACESTEP_LM_BACKEND=pt
@@ -30,10 +51,16 @@ echo "  OFFLOAD_TO_CPU: $ACESTEP_OFFLOAD_TO_CPU"
 echo "  VAE_ON_CPU: $ACESTEP_VAE_ON_CPU"
 echo "==================================="
 echo ""
-echo "Available models (loaded on-demand):"
-echo "  - acestep-v15-turbo (8 steps, fast)"
-echo "  - acestep-v15-base (50 steps, all features)"
-echo "  - acestep-v15-sft (50 steps, high quality)"
+echo "Models (loaded on first request):"
+echo "  1. acestep-v15-turbo (8 steps, fast)"
+echo "  2. acestep-v15-base (50 steps, all features)"
+echo "  3. acestep-v15-sft (50 steps, high quality)"
+echo ""
+echo "VRAM Usage: ~2-4 GB at startup"
+echo "              +4-6 GB per model when loaded"
+echo ""
+echo "Models load automatically when requested"
+echo "via /v1/init endpoint"
 echo ""
 
 /c/Users/gigid/.local/bin/uv.exe run acestep-api --host 0.0.0.0 --port 8001

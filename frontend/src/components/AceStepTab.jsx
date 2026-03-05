@@ -668,6 +668,7 @@ export default function AceStepTab({
   }, [tensorModel, addLog]);
 
   const TENSOR_MODELS = [
+    { id: "acestep-v15-merge", name: "🎯 Merge SFT+Turbo", desc: "8 steps │ Best of both worlds", color: "#06d6a0", steps: 8, cfg: false, features: "Turbo speed + SFT quality" },
     { id: "acestep-v15-turbo", name: "⚡ Turbo", desc: "8 steps │ CFG: ❌ │ Fast", color: "#06d6a0", steps: 8, cfg: false, features: "Standard" },
     { id: "acestep-v15-turbo-shift3", name: "⚡ Turbo Shift3", desc: "8 steps │ CFG: ❌ │ Alternative", color: "#06d6a0", steps: 8, cfg: false, features: "Standard" },
     { id: "acestep-v15-base", name: "🎯 Base", desc: "50 steps │ CFG: ✅ │ All Features", color: "#00e5ff", steps: 50, cfg: true, features: "Lego, Complete, Extract" },

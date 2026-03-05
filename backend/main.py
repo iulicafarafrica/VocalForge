@@ -2201,10 +2201,56 @@ async def ace_generate(
     t_start = time.time()
     use_random = seed < 0
     actual_seed = seed if seed >= 0 else random.randint(0, 2**31)
-    print(f"[ACE {job_id[:8]}] Generating: prompt='{prompt[:60]}' | duration={duration}s | steps={infer_steps}")
+    print(f"[ACE {job_id[:8]}] Generating: prompt='{prompt[:60]}' | duration={duration}s | steps={infer_steps} | model={dit_model}")
 
     try:
         async with httpx.AsyncClient(timeout=300.0) as client:
+            # Step 0: Ensure requested model is loaded (lazy loading support)
+            # Call /v1/init to load model on-demand if not already loaded
+            model_init_needed = False
+            try:
+                # First check if model is already loaded via /v1/models
+                models_response = await client.get(f"{ACE_STEP_API}/v1/models", timeout=10.0)
+                if models_response.status_code == 200:
+                    models_data = models_response.json()
+                    loaded_models = models_data.get("data", {}).get("models", [])
+                    model_loaded = any(
+                        m.get("name") == dit_model and m.get("is_loaded", False) 
+                        for m in loaded_models
+                    )
+                    if not model_loaded:
+                        model_init_needed = True
+                        print(f"[ACE {job_id[:8]}] Model {dit_model} not loaded, initializing...")
+                    else:
+                        print(f"[ACE {job_id[:8]}] Model {dit_model} already loaded")
+                else:
+                    model_init_needed = True
+                    
+            except Exception as check_err:
+                # If check fails, assume init needed
+                model_init_needed = True
+                print(f"[ACE {job_id[:8]}] Model check skipped: {check_err}")
+            
+            # Initialize model if needed
+            if model_init_needed:
+                try:
+                    init_response = await client.post(
+                        f"{ACE_STEP_API}/v1/init",
+                        json={"model": dit_model, "init_llm": False},
+                        timeout=180.0  # Model loading can take 2-3 minutes
+                    )
+                    if init_response.status_code == 200:
+                        init_data = init_response.json()
+                        loaded_model = init_data.get("data", {}).get("loaded_model", dit_model)
+                        print(f"[ACE {job_id[:8]}] ✅ Model loaded: {loaded_model}")
+                        
+                        # Wait a moment for model to fully initialize
+                        await asyncio.sleep(2)
+                    else:
+                        print(f"[ACE {job_id[:8]}] ⚠️ Model init returned status {init_response.status_code}")
+                except Exception as init_err:
+                    print(f"[ACE {job_id[:8]}] ⚠️ Model init error (may already be loaded): {init_err}")
+            
             # Step 1: Submit generation task with correct ACE-Step schema
             # Build prompt with metadata (BPM, key, time signature)
             full_prompt = prompt
