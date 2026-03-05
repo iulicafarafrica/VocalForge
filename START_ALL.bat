@@ -20,9 +20,9 @@ split-pane -H -p "Command Prompt" --title "Backend" cmd /k "cd /d D:\VocalForge 
 
 echo.
 echo Toate serviciile pornesc in Windows Terminal...
-[cite_start]echo ACE-Step:  http://localhost:8001 [cite: 3]
-[cite_start]echo Backend:   http://localhost:8000 [cite: 3]
-[cite_start]echo Frontend:  http://localhost:3000 [cite: 3]
+echo ACE-Step:  http://localhost:8001
+echo Backend:   http://localhost:8000
+echo Frontend:  http://localhost:3000
 echo.
 
 timeout /t 10 /nobreak >nul
