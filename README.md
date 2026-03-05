@@ -89,12 +89,15 @@ START_ALL.bat
 
 ### Access Application
 
-| Service | URL | Port |
-|---------|-----|------|
-| **Frontend UI** | http://localhost:3000 | 3000 |
-| **Backend API** | http://localhost:8000 | 8000 |
-| **ACE-Step API** | http://localhost:8001 | 8001 |
-| **API Docs** | http://localhost:8000/docs | 8000 |
+| Service | URL | Port | Description |
+|---------|-----|------|-------------|
+| **Frontend UI** | http://localhost:3000 | 3000 | React web interface |
+| **Backend API** | http://localhost:8000 | 8000 | FastAPI server (Demucs, RVC) |
+| **RVC Voice API** | http://localhost:8002 | 8002 | Voice conversion service |
+| **ACE-Step API** | http://localhost:8001 | 8001 | Music generation service |
+| **API Docs** | http://localhost:8000/docs | 8000 | Interactive API documentation |
+
+> 💡 **Tip:** All 4 services must be running for full functionality. Use `START_ALL.bat` to launch everything at once.
 
 ---
 
@@ -164,7 +167,24 @@ cd ..
 
 > 📝 **Note:** ACE-Step requires ~10GB for models (downloaded on first run)
 
-#### 5. Verify Installation
+#### 5. Install RVC Voice Conversion
+
+RVC is included in the project, but requires additional setup:
+
+```bash
+# RVC models are stored separately
+# Download RVC models (.pth files) from:
+# - https://weights.gg/models
+# - https://huggingface.co/IAHispano/Applio
+# - https://huggingface.co/Rei/RVC-Models
+
+# Place models in:
+D:\VocalForge\RVCWebUI\assets\weights\
+```
+
+> 💡 **Tip:** Pre-loaded models include: Bad Bunny, Florin Salam, Justin Bieber, Kanye West
+
+#### 6. Verify Installation
 
 ```bash
 python -c "import torch; print(f'PyTorch: {torch.__version__}')"
@@ -287,6 +307,19 @@ python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
 | `/health` | GET | Health check |
 
 **Interactive Docs:** http://localhost:8000/docs
+
+---
+
+### RVC Voice API (Port 8002)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | RVC service status |
+| `/convert_voice/` | POST | Convert voice using RVC model |
+| `/models` | GET | List available RVC models |
+| `/unload` | GET | Unload RVC model and free VRAM |
+
+**Interactive Docs:** http://localhost:8002/docs
 
 ---
 
