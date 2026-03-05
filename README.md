@@ -21,6 +21,10 @@
 
 ![VocalForge v1.7 Interface](https://i.imgur.com/ADoAyiO.png)
 
+<p align="center">
+  <img src="https://i.imgur.com/ADoAyiO.png" alt="VocalForge v1.7 Interface" width="600"/>
+</p>
+
 ---
 
 ## 🚀 Installation (Windows)
