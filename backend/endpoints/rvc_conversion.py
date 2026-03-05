@@ -13,6 +13,8 @@ from fastapi.responses import JSONResponse
 
 # Import RVC wrapper
 from core.modules.rvc_model import RVCModel, convert_voice
+import subprocess
+import json
 
 router = APIRouter(prefix="/rvc", tags=["RVC Voice Conversion"])
 
@@ -32,6 +34,233 @@ def get_rvc_instance():
         # Change back to original directory
         os.chdir(_ORIGINAL_CWD)
     return _rvc_instance
+
+
+# ── Vocal Separation ──────────────────────────────────────────────────────────
+@router.post("/separate")
+async def separate_vocals(
+    audio_file: UploadFile = File(..., description="Full song (vocals + instrumental)"),
+    model: str = Form("htdemucs", description="Demucs model: htdemucs, htdemucs_ft"),
+):
+    """
+    Separate vocals from instrumental using Demucs.
+    Returns URLs for vocal track and instrumental track.
+    """
+    tmp_files = []
+    try:
+        from main import OUTPUT_DIR
+        suffix = os.path.splitext(audio_file.filename)[1] or ".wav"
+        fd, input_path = tempfile.mkstemp(prefix="sep_input_", suffix=suffix)
+        os.close(fd)
+        tmp_files.append(input_path)
+
+        with open(input_path, "wb") as f:
+            f.write(await audio_file.read())
+
+        job_id = uuid.uuid4().hex
+        out_dir = os.path.join(OUTPUT_DIR, f"sep_{job_id}")
+        os.makedirs(out_dir, exist_ok=True)
+
+        print(f"[RVC API] Separating vocals with Demucs ({model})...")
+
+        result = subprocess.run([
+            "python", "-m", "demucs",
+            "--two-stems", "vocals",
+            "-n", model,
+            "-o", out_dir,
+            input_path
+        ], capture_output=True, text=True, timeout=300)
+
+        if result.returncode != 0:
+            raise RuntimeError(f"Demucs failed: {result.stderr[:500]}")
+
+        # Find output files
+        vocals_path = None
+        instrumental_path = None
+        for root, dirs, files in os.walk(out_dir):
+            for fname in files:
+                fpath = os.path.join(root, fname)
+                if "vocals" in fname.lower():
+                    vocals_path = fpath
+                elif "no_vocals" in fname.lower() or "instrumental" in fname.lower():
+                    instrumental_path = fpath
+
+        if not vocals_path:
+            raise RuntimeError("Demucs did not produce vocal output")
+
+        # Convert to mp3
+        def to_mp3(wav_path, label):
+            mp3_name = f"{job_id}_{label}.mp3"
+            mp3_path = os.path.join(OUTPUT_DIR, mp3_name)
+            subprocess.run([
+                "ffmpeg", "-y", "-i", wav_path,
+                "-codec:a", "libmp3lame", "-qscale:a", "2", mp3_path
+            ], check=True, capture_output=True)
+            return mp3_name, mp3_path
+
+        vocals_filename, _ = to_mp3(vocals_path, "vocals")
+        instrumental_filename = None
+        if instrumental_path:
+            instrumental_filename, _ = to_mp3(instrumental_path, "instrumental")
+
+        return JSONResponse({
+            "status": "ok",
+            "job_id": job_id,
+            "vocals_url": f"/audio/{vocals_filename}",
+            "vocals_filename": vocals_filename,
+            "instrumental_url": f"/audio/{instrumental_filename}" if instrumental_filename else None,
+            "instrumental_filename": instrumental_filename,
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JSONResponse({"status": "error", "error": str(e)}, status_code=500)
+    finally:
+        for f in tmp_files:
+            try: os.remove(f)
+            except: pass
+
+
+# ── Mix Vocals + Instrumental ─────────────────────────────────────────────────
+@router.post("/mix")
+async def mix_vocals_instrumental(
+    vocals_file: UploadFile = File(..., description="Converted vocals"),
+    instrumental_file: UploadFile = File(..., description="Instrumental track"),
+    vocals_volume: float = Form(1.0, description="Vocals volume multiplier (0.5-2.0)"),
+    instrumental_volume: float = Form(1.0, description="Instrumental volume multiplier (0.5-2.0)"),
+):
+    """
+    Mix converted vocals back over instrumental track.
+    """
+    tmp_files = []
+    try:
+        from main import OUTPUT_DIR
+
+        fd1, voc_path = tempfile.mkstemp(prefix="mix_voc_", suffix=".wav")
+        os.close(fd1)
+        tmp_files.append(voc_path)
+        with open(voc_path, "wb") as f:
+            f.write(await vocals_file.read())
+
+        fd2, inst_path = tempfile.mkstemp(prefix="mix_inst_", suffix=".wav")
+        os.close(fd2)
+        tmp_files.append(inst_path)
+        with open(inst_path, "wb") as f:
+            f.write(await instrumental_file.read())
+
+        # Load both tracks
+        vocals, sr_v = librosa.load(voc_path, sr=None, mono=True)
+        instrumental, sr_i = librosa.load(inst_path, sr=None, mono=True)
+
+        # Resample instrumental to match vocals sr
+        if sr_i != sr_v:
+            instrumental = librosa.resample(instrumental, orig_sr=sr_i, target_sr=sr_v)
+
+        # Match lengths
+        target_len = max(len(vocals), len(instrumental))
+        vocals = np.pad(vocals, (0, max(0, target_len - len(vocals))))
+        instrumental = np.pad(instrumental, (0, max(0, target_len - len(instrumental))))
+
+        # Mix with volume control
+        mixed = (vocals * vocals_volume) + (instrumental * instrumental_volume)
+
+        # Normalize to prevent clipping
+        max_val = np.abs(mixed).max()
+        if max_val > 0.95:
+            mixed = mixed * (0.95 / max_val)
+
+        # Save as mp3
+        job_id = uuid.uuid4().hex
+        tmp_wav = os.path.join(OUTPUT_DIR, f"{job_id}_mixed_tmp.wav")
+        out_filename = f"{job_id}_mixed_final.mp3"
+        out_path = os.path.join(OUTPUT_DIR, out_filename)
+
+        sf.write(tmp_wav, mixed, sr_v)
+        subprocess.run([
+            "ffmpeg", "-y", "-i", tmp_wav,
+            "-codec:a", "libmp3lame", "-qscale:a", "2", out_path
+        ], check=True, capture_output=True)
+        os.remove(tmp_wav)
+
+        duration = round(len(mixed) / sr_v, 2)
+        size_mb = round(os.path.getsize(out_path) / 1024 / 1024, 2)
+
+        return JSONResponse({
+            "status": "ok",
+            "filename": out_filename,
+            "url": f"/audio/{out_filename}",
+            "duration_sec": duration,
+            "size_mb": size_mb,
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JSONResponse({"status": "error", "error": str(e)}, status_code=500)
+    finally:
+        for f in tmp_files:
+            try: os.remove(f)
+            except: pass
+
+
+# ── Presets ───────────────────────────────────────────────────────────────────
+PRESETS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "presets_rvc.json")
+
+def load_presets():
+    if os.path.exists(PRESETS_FILE):
+        with open(PRESETS_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+def save_presets(presets):
+    with open(PRESETS_FILE, "w") as f:
+        json.dump(presets, f, indent=2)
+
+@router.get("/presets")
+async def get_presets():
+    return JSONResponse({"status": "ok", "presets": load_presets()})
+
+@router.post("/presets/save")
+async def save_preset(
+    name: str = Form(..., description="Preset name"),
+    model_name: str = Form(""),
+    pitch_shift: float = Form(0),
+    emotion: str = Form("neutral"),
+    f0_method: str = Form("rmvpe"),
+    index_rate: float = Form(0.75),
+    filter_radius: int = Form(3),
+    rms_mix_rate: float = Form(0.25),
+    protect: float = Form(0.33),
+    dry_wet: float = Form(1.0),
+    formant_shift: float = Form(0.0),
+    auto_tune: bool = Form(False),
+):
+    presets = load_presets()
+    presets[name] = {
+        "model_name": model_name,
+        "pitch_shift": pitch_shift,
+        "emotion": emotion,
+        "f0_method": f0_method,
+        "index_rate": index_rate,
+        "filter_radius": filter_radius,
+        "rms_mix_rate": rms_mix_rate,
+        "protect": protect,
+        "dry_wet": dry_wet,
+        "formant_shift": formant_shift,
+        "auto_tune": auto_tune,
+    }
+    save_presets(presets)
+    return JSONResponse({"status": "ok", "message": f"Preset '{name}' saved", "presets": presets})
+
+@router.delete("/presets/{name}")
+async def delete_preset(name: str):
+    presets = load_presets()
+    if name in presets:
+        del presets[name]
+        save_presets(presets)
+        return JSONResponse({"status": "ok", "message": f"Preset '{name}' deleted"})
+    return JSONResponse({"status": "error", "error": "Preset not found"}, status_code=404)
 
 
 @router.post("/convert")

@@ -20,15 +20,36 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
   const [formantShift, setFormantShift] = useState(0.0);
   const [autoTune, setAutoTune] = useState(false);
   const [converting, setConverting] = useState(false);
+
+  // Vocal separator state
+  const [fullSongFile, setFullSongFile] = useState(null);
+  const [separating, setSeparating] = useState(false);
+  const [separatedVocals, setSeparatedVocals] = useState(null);
+  const [separatedInstrumental, setSeparatedInstrumental] = useState(null);
+
+  // Mix state
+  const [mixing, setMixing] = useState(false);
+  const [mixResult, setMixResult] = useState(null);
+  const [vocalsVolume, setVocalsVolume] = useState(1.0);
+  const [instrumentalVolume, setInstrumentalVolume] = useState(1.0);
+
+  // Presets state
+  const [presets, setPresets] = useState({});
+  const [presetName, setPresetName] = useState("");
+  const [showPresets, setShowPresets] = useState(false);
+
+  // Active tab
+  const [activeTab, setActiveTab] = useState("convert");
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
   const fileInputRef = useRef(null);
 
-  // Load available models on mount
+  // Load available models and presets on mount
   useEffect(() => {
     loadModels();
+    loadPresets();
   }, []);
 
   const loadModels = async () => {
@@ -45,6 +66,103 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
     } catch (err) {
       console.error("Failed to load RVC models:", err);
       addLog(`[ERR] RVC: Nu s-au putut încărca modelele`);
+    }
+  };
+
+  const loadPresets = async () => {
+    try {
+      const res = await fetch(`${API}/rvc/presets`);
+      const data = await res.json();
+      if (data.status === "ok") setPresets(data.presets || {});
+    } catch (err) { console.error("Failed to load presets:", err); }
+  };
+
+  const savePreset = async () => {
+    if (!presetName.trim()) return;
+    const fd = new FormData();
+    fd.append("name", presetName);
+    fd.append("model_name", selectedModel);
+    fd.append("pitch_shift", pitchShift.toString());
+    fd.append("emotion", emotion);
+    fd.append("f0_method", f0Method);
+    fd.append("index_rate", indexRate.toString());
+    fd.append("filter_radius", "3");
+    fd.append("rms_mix_rate", "0.25");
+    fd.append("protect", "0.33");
+    fd.append("dry_wet", dryWet.toString());
+    fd.append("formant_shift", formantShift.toString());
+    fd.append("auto_tune", autoTune.toString());
+    const res = await fetch(`${API}/rvc/presets/save`, { method: "POST", body: fd });
+    const data = await res.json();
+    if (data.status === "ok") { setPresets(data.presets); setPresetName(""); addLog(`💾 Preset salvat: ${presetName}`); }
+  };
+
+  const loadPreset = (name) => {
+    const p = presets[name];
+    if (!p) return;
+    if (p.model_name) setSelectedModel(p.model_name);
+    setPitchShift(p.pitch_shift ?? 0);
+    setEmotion(p.emotion ?? "neutral");
+    setF0Method(p.f0_method ?? "rmvpe");
+    setIndexRate(p.index_rate ?? 0.75);
+    setDryWet(p.dry_wet ?? 1.0);
+    setFormantShift(p.formant_shift ?? 0.0);
+    setAutoTune(p.auto_tune ?? false);
+    addLog(`✅ Preset încărcat: ${name}`);
+  };
+
+  const deletePreset = async (name) => {
+    await fetch(`${API}/rvc/presets/${encodeURIComponent(name)}`, { method: "DELETE" });
+    loadPresets();
+  };
+
+  const handleSeparate = async () => {
+    if (!fullSongFile) return;
+    setSeparating(true);
+    setSeparatedVocals(null);
+    setSeparatedInstrumental(null);
+    addLog(`🎵 Separare vocale: ${fullSongFile.name}`);
+    const fd = new FormData();
+    fd.append("audio_file", fullSongFile);
+    fd.append("model", "htdemucs");
+    try {
+      const res = await fetch(`${API}/rvc/separate`, { method: "POST", body: fd });
+      const data = await res.json();
+      if (data.status !== "ok") throw new Error(data.error);
+      setSeparatedVocals({ url: `${API}${data.vocals_url}`, filename: data.vocals_filename });
+      if (data.instrumental_url) setSeparatedInstrumental({ url: `${API}${data.instrumental_url}`, filename: data.instrumental_filename });
+      addLog(`✅ Separare completă: ${data.vocals_filename}`);
+    } catch (err) {
+      addLog(`[ERR] Separare: ${err.message}`);
+    } finally {
+      setSeparating(false);
+    }
+  };
+
+  const handleMix = async () => {
+    if (!result || !separatedInstrumental) return;
+    setMixing(true);
+    addLog(`🎚 Mixare voce + instrumental...`);
+    try {
+      // Fetch both files as blobs
+      const [vocBlob, instBlob] = await Promise.all([
+        fetch(`${API}${result.url}`).then(r => r.blob()),
+        fetch(separatedInstrumental.url).then(r => r.blob()),
+      ]);
+      const fd = new FormData();
+      fd.append("vocals_file", vocBlob, "vocals.mp3");
+      fd.append("instrumental_file", instBlob, "instrumental.mp3");
+      fd.append("vocals_volume", vocalsVolume.toString());
+      fd.append("instrumental_volume", instrumentalVolume.toString());
+      const res = await fetch(`${API}/rvc/mix`, { method: "POST", body: fd });
+      const data = await res.json();
+      if (data.status !== "ok") throw new Error(data.error);
+      setMixResult({ url: `${API}${data.url}`, filename: data.filename, duration: data.duration_sec, size: data.size_mb });
+      addLog(`✅ Mix final: ${data.filename} (${data.duration_sec}s)`);
+    } catch (err) {
+      addLog(`[ERR] Mix: ${err.message}`);
+    } finally {
+      setMixing(false);
     }
   };
 
@@ -185,20 +303,23 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
   return (
     <div style={{ maxWidth: 900, margin: "0 auto" }} className="fade-in">
       {/* Header */}
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: 16 }}>
         <h2 style={{
-          fontSize: 24,
-          fontWeight: 800,
+          fontSize: 24, fontWeight: 800,
           background: "linear-gradient(135deg, #ff6b9d, #ff8fab)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          marginBottom: 4,
-        }}>
-          🎤 RVC Voice Conversion
-        </h2>
-        <p style={{ color: "#444466", fontSize: 13 }}>
-          Convert vocals using trained RVC voice models
-        </p>
+          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 12,
+        }}>🎤 RVC Voice Conversion</h2>
+
+        {/* Tabs */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+          {[["convert","🎤 Convert"],["separate","✂️ Separate"],["mix","🎚 Mix"],["presets","💾 Presets"]].map(([id, label]) => (
+            <button key={id} onClick={() => setActiveTab(id)} style={{
+              padding: "8px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600,
+              background: activeTab === id ? "linear-gradient(135deg,#ff6b9d,#ff8fab)" : "#1a1a2e",
+              color: activeTab === id ? "#fff" : "#6666aa",
+            }}>{label}</button>
+          ))}
+        </div>
       </div>
 
       {/* Upload Vocal */}
@@ -512,6 +633,162 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
         </div>
       )}
 
+      {/* ── SEPARATE TAB ── */}
+      {activeTab === "separate" && (
+        <div>
+          <div style={S.card}>
+            <span style={S.label}>🎵 Upload Piesă Completă</span>
+            <div onClick={() => { const i = document.createElement("input"); i.type="file"; i.accept="audio/*"; i.onchange=e=>{setFullSongFile(e.target.files[0]);}; i.click(); }}
+              style={{ border: fullSongFile ? "2px solid #ff6b9d" : "2px dashed #2a2a4a", borderRadius: 12, padding: 24, textAlign: "center", cursor: "pointer", background: fullSongFile ? "#ff6b9d11" : "transparent" }}>
+              {fullSongFile ? (
+                <div><div style={{fontSize:28,marginBottom:6}}>🎵</div><div style={{color:"#ff6b9d",fontWeight:600}}>{fullSongFile.name}</div></div>
+              ) : (
+                <div><div style={{fontSize:28,marginBottom:6}}>📁</div><div style={{color:"#6666aa"}}>Click pentru a uploada piesa</div></div>
+              )}
+            </div>
+            <button onClick={handleSeparate} disabled={!fullSongFile || separating}
+              style={{...S.btn, width:"100%", marginTop:12, opacity: (!fullSongFile||separating)?0.5:1}}>
+              {separating ? "⏳ Se separă... (poate dura 1-2 min)" : "✂️ Separă Voce + Instrumental"}
+            </button>
+          </div>
+          {separatedVocals && (
+            <div style={S.card}>
+              <span style={{...S.label, color:"#ff6b9d"}}>✅ Separare Completă!</span>
+              <div style={{marginBottom:10}}>
+                <div style={{color:"#6666aa",fontSize:11,marginBottom:4}}>🎤 VOCALE</div>
+                <audio controls src={separatedVocals.url} style={{width:"100%",marginBottom:6}}/>
+                <a href={separatedVocals.url} download={separatedVocals.filename} style={{color:"#ff6b9d",fontSize:12}}>⬇ Download vocale</a>
+              </div>
+              {separatedInstrumental && (
+                <div>
+                  <div style={{color:"#6666aa",fontSize:11,marginBottom:4}}>🎹 INSTRUMENTAL</div>
+                  <audio controls src={separatedInstrumental.url} style={{width:"100%",marginBottom:6}}/>
+                  <a href={separatedInstrumental.url} download={separatedInstrumental.filename} style={{color:"#ff6b9d",fontSize:12}}>⬇ Download instrumental</a>
+                </div>
+              )}
+              <button onClick={() => { setActiveTab("convert"); setVocalFile(null); addLog("💡 Mergi la Convert și uploadează vocalele separate!"); }}
+                style={{...S.btn, width:"100%", marginTop:12}}>
+                🎤 Folosește vocalele în Convert →
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── MIX TAB ── */}
+      {activeTab === "mix" && (
+        <div>
+          <div style={S.card}>
+            <span style={S.label}>🎚 Mix Voce Convertită + Instrumental</span>
+            {!result ? (
+              <div style={{color:"#ff6b9d",fontSize:13,padding:12,background:"#ff6b9d11",borderRadius:8}}>
+                ⚠️ Mai întâi convertește o voce în tab-ul Convert, apoi revino aici.
+              </div>
+            ) : !separatedInstrumental ? (
+              <div style={{color:"#ff6b9d",fontSize:13,padding:12,background:"#ff6b9d11",borderRadius:8}}>
+                ⚠️ Mai întâi separă o piesă în tab-ul Separate pentru a obține instrumentalul.
+              </div>
+            ) : (
+              <div>
+                <div style={{color:"#a0a0cc",fontSize:13,marginBottom:12}}>
+                  <div>🎤 Voce: <strong>{result.filename}</strong></div>
+                  <div>🎹 Instrumental: <strong>{separatedInstrumental.filename}</strong></div>
+                </div>
+                <div style={S.grid}>
+                  <div>
+                    <span style={{color:"#6666aa",fontSize:11,display:"block",marginBottom:6}}>🎤 Volum Voce ({Math.round(vocalsVolume*100)}%)</span>
+                    <input type="range" min="0.1" max="2" step="0.05" value={vocalsVolume} onChange={e=>setVocalsVolume(parseFloat(e.target.value))} style={{width:"100%"}}/>
+                  </div>
+                  <div>
+                    <span style={{color:"#6666aa",fontSize:11,display:"block",marginBottom:6}}>🎹 Volum Instrumental ({Math.round(instrumentalVolume*100)}%)</span>
+                    <input type="range" min="0.1" max="2" step="0.05" value={instrumentalVolume} onChange={e=>setInstrumentalVolume(parseFloat(e.target.value))} style={{width:"100%"}}/>
+                  </div>
+                </div>
+                <button onClick={handleMix} disabled={mixing}
+                  style={{...S.btn, width:"100%", marginTop:12, opacity:mixing?0.5:1}}>
+                  {mixing ? "⏳ Se mixează..." : "🎚 Creează Mix Final"}
+                </button>
+              </div>
+            )}
+          </div>
+          {mixResult && (
+            <div style={{...S.card, borderLeft:"4px solid #ff6b9d"}}>
+              <span style={{...S.label,color:"#ff6b9d"}}>✅ Mix Final Gata!</span>
+              <div style={{color:"#a0a0cc",fontSize:13,marginBottom:10}}>
+                <div>🎵 {mixResult.filename}</div>
+                <div>⏱ {mixResult.duration}s · 📦 {mixResult.size} MB</div>
+              </div>
+              <audio controls src={mixResult.url} style={{width:"100%",marginBottom:10}}/>
+              <a href={mixResult.url} download={mixResult.filename}
+                style={{display:"block",textAlign:"center",background:"#ff6b9d22",color:"#ff6b9d",border:"1px solid #ff6b9d44",padding:10,borderRadius:8,textDecoration:"none",fontWeight:700}}>
+                ⬇ Download Mix Final
+              </a>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── PRESETS TAB ── */}
+      {activeTab === "presets" && (
+        <div>
+          <div style={S.card}>
+            <span style={S.label}>💾 Salvează Setările Curente ca Preset</span>
+            <div style={{display:"flex",gap:8}}>
+              <input
+                value={presetName}
+                onChange={e=>setPresetName(e.target.value)}
+                placeholder='Ex: "Kanye Sad -3" sau "Bad Bunny High Pitch"'
+                style={{...S.input, flex:1}}
+              />
+              <button onClick={savePreset} disabled={!presetName.trim()}
+                style={{...S.btn, padding:"10px 16px", opacity:!presetName.trim()?0.5:1}}>
+                💾 Salvează
+              </button>
+            </div>
+            <div style={{color:"#444466",fontSize:11,marginTop:6}}>
+              Salvează modelul selectat + toate setările din tab-ul Convert
+            </div>
+          </div>
+
+          <div style={S.card}>
+            <span style={S.label}>📂 Preseturi Salvate</span>
+            {Object.keys(presets).length === 0 ? (
+              <div style={{color:"#444466",fontSize:13,padding:12,textAlign:"center"}}>
+                Nu ai niciun preset salvat încă.
+              </div>
+            ) : (
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                {Object.entries(presets).map(([name, p]) => (
+                  <div key={name} style={{background:"#0d0d22",border:"1px solid #2a2a4a",borderRadius:8,padding:12,display:"flex",alignItems:"center",gap:8}}>
+                    <div style={{flex:1}}>
+                      <div style={{color:"#e0e0ff",fontWeight:600,marginBottom:4}}>💾 {name}</div>
+                      <div style={{color:"#444466",fontSize:11}}>
+                        {p.model_name && `Model: ${p.model_name.replace('.pth','')} · `}
+                        Pitch: {p.pitch_shift > 0 ? '+' : ''}{p.pitch_shift} · 
+                        {p.emotion !== 'neutral' ? ` ${p.emotion} · ` : ' '}
+                        Index: {Math.round(p.index_rate*100)}%
+                        {p.auto_tune ? ' · 🎯 AutoTune' : ''}
+                      </div>
+                    </div>
+                    <button onClick={() => { loadPreset(name); setActiveTab("convert"); }}
+                      style={{background:"#ff6b9d22",color:"#ff6b9d",border:"1px solid #ff6b9d44",borderRadius:6,padding:"6px 12px",cursor:"pointer",fontSize:12,fontWeight:600}}>
+                      ▶ Aplică
+                    </button>
+                    <button onClick={() => deletePreset(name)}
+                      style={{background:"#e6394622",color:"#e63946",border:"1px solid #e6394644",borderRadius:6,padding:"6px 10px",cursor:"pointer",fontSize:12}}>
+                      🗑
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── CONVERT TAB visibility ── */}
+      <div style={{display: activeTab === "convert" ? "block" : "none"}}>
+
       {/* Info */}
       <div style={{
         ...S.card,
@@ -524,6 +801,7 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
           and advanced F0 extraction methods. Models (.pth files) should be placed in the RVCWebUI weights folder.
         </p>
       </div>
+      </div> {/* end convert tab */}
     </div>
   );
 }
