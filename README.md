@@ -45,11 +45,14 @@ The following features are currently under active development:
 | **Python** | 3.10 or 3.11 | https://www.python.org/downloads/ |
 | **Node.js** | 18+ | https://nodejs.org/ |
 | **Git** | Latest | https://git-scm.com/downloads |
+| **Windows Terminal** | Latest | https://aka.ms/terminal (Microsoft Store) |
 | **CUDA** (optional) | 11.8 or 12.1 | https://developer.nvidia.com/cuda-downloads |
 
 > ⚠️ **Important for Python installation:**
 > - Check ✅ **"Add Python to PATH"** during installation
 > - Verify installation: Open CMD and type `python --version`
+
+> 💡 **Windows Terminal is required** for running multiple services simultaneously with colored tabs.
 
 ---
 
