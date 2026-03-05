@@ -26,14 +26,81 @@
 
 ## 📖 Table of Contents
 
+- [Changelog](#-changelog)
 - [Features](#-features)
 - [Quick Start](#-quick-start)
 - [Installation](#-installation)
 - [Usage Guide](#-usage-guide)
 - [API Reference](#-api-reference)
 - [Hardware Requirements](#-hardware-requirements)
-- [Changelog](#-changelog)
 - [Troubleshooting](#-troubleshooting)
+
+---
+
+## 📝 Changelog
+
+### v1.8 — Current Release (March 2026)
+
+#### 🎯 New Tabs (Workflow Enhancement)
+
+**✂️ Separate Tab**
+- Upload full song → auto-separate with Demucs
+- Vocals + Instrumental separation
+- One-click "Use Vocals in Convert" button
+- Download individual stems
+
+**🎚️ Mix Tab**
+- Mix converted vocal with instrumental
+- Independent volume control (Vocal / Instrumental)
+- Real-time preview
+- Export final mix (MP3, WAV)
+
+**💾 Presets Tab**
+- Save all RVC settings with custom name
+  - Model, Pitch (±12 semitones), Emotion (5 types)
+  - Index Rate, Formant Preservation, Auto-Tune
+- Apply preset with single click
+- Delete or export presets
+- Import community presets
+
+#### 🐛 Fixed
+- RVC working directory issues
+- Unicode encoding errors (Windows compatibility)
+- Config path loading errors
+- Argument parsing conflicts
+
+#### 🔧 Technical
+- Added RVC Voice API (port 8002)
+- Enhanced `core/modules/rvc_model.py`
+- Updated `START_ALL.bat` (4 services)
+- Improved error handling and logging
+
+---
+
+### v1.7 — Previous Release
+
+#### ✅ Added
+- **RVC Voice Conversion** — Complete AI voice transformation
+  - Custom .pth model support
+  - Pitch shifting (±12 semitones)
+  - Emotion control (5 emotions)
+  - Formant preservation
+  - 4 pre-loaded models
+- **Windows Terminal** — Required for multi-tab startup
+- **Enhanced RVC UI** — Improved conversion interface
+
+#### ❌ Removed
+- **Vocal2BGM** — Feature deprecated
+- **Pitch Correction Tab** — Replaced by RVC
+
+---
+
+### v1.6 — Initial Release
+
+- ACE-Step integration
+- Stem separation (Demucs)
+- Repaint/Lego/Complete
+- Genre presets (50+)
 
 ---
 
@@ -356,73 +423,6 @@ python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
 | **CPU Only** | ~10-15 min | ~1 min | ~2 min |
 
 > 💡 **Tip:** Use Turbo model for faster generation on lower-end GPUs.
-
----
-
-## 📝 Changelog
-
-### v1.8 — Current Release (March 2026)
-
-#### 🎯 New Tabs (Workflow Enhancement)
-
-**✂️ Separate Tab**
-- Upload full song → auto-separate with Demucs
-- Vocals + Instrumental separation
-- One-click "Use Vocals in Convert" button
-- Download individual stems
-
-**🎚️ Mix Tab**
-- Mix converted vocal with instrumental
-- Independent volume control (Vocal / Instrumental)
-- Real-time preview
-- Export final mix (MP3, WAV)
-
-**💾 Presets Tab**
-- Save all RVC settings with custom name
-  - Model, Pitch (±12 semitones), Emotion (5 types)
-  - Index Rate, Formant Preservation, Auto-Tune
-- Apply preset with single click
-- Delete or export presets
-- Import community presets
-
-#### 🐛 Fixed
-- RVC working directory issues
-- Unicode encoding errors (Windows compatibility)
-- Config path loading errors
-- Argument parsing conflicts
-
-#### 🔧 Technical
-- Added RVC Voice API (port 8002)
-- Enhanced `core/modules/rvc_model.py`
-- Updated `START_ALL.bat` (4 services)
-- Improved error handling and logging
-
----
-
-### v1.7 — Previous Release
-
-#### ✅ Added
-- **RVC Voice Conversion** — Complete AI voice transformation
-  - Custom .pth model support
-  - Pitch shifting (±12 semitones)
-  - Emotion control (5 emotions)
-  - Formant preservation
-  - 4 pre-loaded models
-- **Windows Terminal** — Required for multi-tab startup
-- **Enhanced RVC UI** — Improved conversion interface
-
-#### ❌ Removed
-- **Vocal2BGM** — Feature deprecated
-- **Pitch Correction Tab** — Replaced by RVC
-
----
-
-### v1.6 — Initial Release
-
-- ACE-Step integration
-- Stem separation (Demucs)
-- Repaint/Lego/Complete
-- Genre presets (50+)
 
 ---
 
