@@ -177,4 +177,11 @@ ace-step-ui-ref
 # Qwen local config (keep locally, not on GitHub)
 # ======================
 QWEN.md
-QWEN_START.bat  
+QWEN_START.bat
+
+# ======================
+# Local text files (not for GitHub)
+# ======================
+proiect.txt
+proiect nou.txt
+*.txt  
