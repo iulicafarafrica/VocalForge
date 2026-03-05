@@ -2,6 +2,13 @@
 
 ## Modular AI Audio Framework — Auto-Adaptive, Stable, Beta Ready
 
+**VocalForge** is a complete AI music production application featuring:
+- 🎤 **Vocal Pitch Correction** (Auto-Tune style)
+- 🎵 **ACE-Step Music Generation** (Text-to-Music, Audio Cover)
+- 🎼 **Vocal2BGM** (Transform vocal to full song)
+- 🎚️ **Stem Separation** (Demucs)
+- 🎹 **Repaint/Lego/Complete** (Audio editing)
+
 ---
 
 ## 🎬 Demo Video
@@ -14,125 +21,350 @@
 
 ---
 
-## ✅ Current Status (READY FOR TESTING)
-
-| Feature | Status |
-|---|---|
-| AudioEngine modular orchestrator | ✅ |
-| Auto-adaptive hardware detection | ✅ |
-| Light / Full / High-End modes | ✅ |
-| 10-second preview system | ✅ |
-| Harmony basic (pitch layering) | ✅ |
-| Mastering basic (normalize + limiter) | ✅ |
-| AMP FP16 safe execution | ✅ |
-| Chunk processing for long tracks | ✅ |
-| Safe execution (try/catch per module) | ✅ |
-| Timeout protection per module | ✅ |
-| Automatic GPU memory cleanup | ✅ |
-| Input audio validation | ✅ |
-| Adaptive logging (minimal / full) | ✅ |
-| Metadata history tracking | ✅ |
-| Profiling (runtime + VRAM) | ✅ |
-| FastAPI backend with all endpoints | ✅ |
-| React UI — 7 tabs | ✅ |
-| Genre / Subgenre system (6 genres, 24 subgenres) | ✅ |
-| Auto-prompt generation | ✅ |
-| LoRA upload / select / delete | ✅ |
-| BPM & Key detection | ✅ |
-| Notes tab with local persistence | ✅ |
-| Models tab with GPU management | ✅ |
-
----
-
-## 🎵 ACE-Step v1.5 Integration (NEW!)
-
-**Complete AI music generation from text — beats SUNO in quality!**
-
-### Features:
-- ✅ **Text-to-Music** - Generate complete songs from text prompts
-- ✅ **Audio Cover** - Full cover conversion with source audio upload
-- ✅ **Repaint** - Edit specific sections of audio (time range selection)
-- ✅ **Lego** - Add instruments to existing tracks (Drums, Bass, Guitar, Piano, Strings, Synth)
-- ✅ **Complete** - Continue/extend existing audio
-- ✅ **Auto BPM & Key Detection** - From uploaded source audio
-- ✅ **Copy BPM/Key** - One-click copy to generation settings
-- ✅ **Genre Presets** - Hip-Hop, Românesc (Romanian), House, Dembow, Other
-- ✅ **Seed Library** - Save and reuse generation seeds
-- ✅ **Preset Manager** - Save/load custom generation presets
-- ✅ **LoRA Style Support** - Add custom styles to generation
-- ✅ **Negative Prompt** - Exclude unwanted elements
-- ✅ **Vocal Language** - English 🇬🇧 / Română 🇷🇴
-- ✅ **Diffusion Steps** - 8 (Turbo) / 12 (Fast) / 20 (Balanced) / 40 (Quality)
-- ✅ **Guidance Scale (CFG)** - 3 / 5 / 7 / 9 / 10
-- ✅ **Source Strength** - Control similarity to source audio (0 = ignore, 1 = copy)
-- ✅ **Advanced Settings** - Integrated in main UI (temperature, top_k, top_p)
-
-### Quick Start:
-1. Run `start_acestep.bat` in a separate terminal
-2. Wait for model download (~10GB first time)
-3. In VocalForge, go to ACE-Step tab
-4. Enter a music prompt (e.g., "hip hop trap beat, 808 bass, dark atmosphere")
-5. Click "Generate with ACE-Step"
-
-### Example Prompts:
-- `pop music, upbeat, catchy chorus, modern production, radio-friendly`
-- `hip hop trap beat, 808 bass, dark atmospheric`
-- `romantic Romanian ballad, piano, emotional`
-- `house music, four-on-the-floor kick, deep bass, synthesizer`
-- `manele românești, acordeon, sintetizator oriental, ritm balbanic`
-
----
-
-## 🧠 Auto-Adaptive Pipeline
-
-Hardware detected at runtime:
-- GPU availability + VRAM
-- CPU core count
-
-**Light Mode** (CPU or < 4GB VRAM)
-- Modules: Morph + Harmony
-- Segment: 1024, Batch: 1, Logging: Minimal
-- Preview 10s optimized
-
-**Full Mode** (4–8 GB VRAM — RTX 3070)
-- Modules: Morph + Harmony + Mastering
-- Segment: 2048, Batch: 1, Logging: Full
-
-**High-End Mode** (8+ GB VRAM)
-- All modules + profiling
-- Segment: 4096+, Batch: 2–4
-
----
-
 ## 🚀 Installation (Windows)
 
-### Step 1: Install prerequisites
-- Python 3.10+: https://www.python.org/ (check "Add to PATH")
-- Node.js 18+: https://nodejs.org/
+### Prerequisites
 
-### Step 2: Run setup
-```
-Double-click: setup.bat
-```
-This installs PyTorch (CUDA 12.1), Python deps, and npm packages.
+| Software | Version | Download |
+|---|---|---|
+| **Python** | 3.10 or 3.11 | https://www.python.org/downloads/ |
+| **Node.js** | 18+ | https://nodejs.org/ |
+| **Git** | Latest | https://git-scm.com/downloads |
+| **CUDA** (optional) | 11.8 or 12.1 | https://developer.nvidia.com/cuda-downloads |
 
-### Step 3: Start
-```
-Terminal 1: start_backend.bat  →  http://localhost:8000
-Terminal 2: start_frontend.bat →  http://localhost:3000
+> ⚠️ **Important for Python installation:**
+> - Check ✅ **"Add Python to PATH"** during installation
+> - Verify installation: Open CMD and type `python --version`
+
+---
+
+### Step 1: Clone Repository
+
+```bash
+git clone https://github.com/iulicafarafrica/VocalForge.git
+cd VocalForge
 ```
 
 ---
 
-## 🎮 Usage
+### Step 2: Install Python Dependencies
 
-1. Open `http://localhost:3000`
-2. Upload audio → BPM & Key auto-detected
-3. Select Genre / Subgenre → prompt auto-generated
-4. Choose Voice style, Gender, Pitch shift
-5. (Optional) Select LoRA adapter
-6. Click **Generate Cover**
-7. Listen, download, or delete in My Covers panel
+**Option A: Automatic (Recommended)**
+```bash
+# Double-click or run:
+setup.bat
+```
+
+**Option B: Manual Installation**
+
+```bash
+# 1. Create virtual environment
+python -m venv venv
+
+# 2. Activate virtual environment
+venv\Scripts\activate
+
+# 3. Install PyTorch with CUDA support (for NVIDIA GPU)
+# For CUDA 12.1 (RTX 3070, 4070, etc.)
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# For CUDA 11.8 (older GPUs)
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+# For CPU only (no GPU)
+# pip install torch torchvision torchaudio
+
+# 4. Install other Python dependencies
+pip install -r requirements.txt
+```
+
+**requirements.txt contents:**
+```
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.9
+python-dotenv>=1.0.0
+httpx>=0.24.0
+librosa>=0.10.0
+soundfile>=0.12.0
+pydub>=0.25.0
+numpy>=1.24.0
+```
+
+---
+
+### Step 3: Install Frontend Dependencies
+
+```bash
+cd frontend
+npm install
+cd ..
+```
+
+**package.json dependencies:**
+```json
+{
+  "dependencies": {
+    "lucide-react": "^0.574.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.0",
+    "vite": "^5.0.0"
+  }
+}
+```
+
+---
+
+### Step 4: Install ACE-Step (Music Generation)
+
+ACE-Step is a separate service for AI music generation. It runs on port 8001.
+
+```bash
+# Navigate to ace-step directory (if you have it)
+cd ace-step
+
+# Install ACE-Step dependencies using uv
+pip install uv
+uv sync
+
+# Or use the provided batch file
+cd ..
+fix_acestep_deps.bat
+```
+
+> 📝 **Note:** ACE-Step requires ~10GB disk space for models (downloaded on first run)
+
+---
+
+### Step 5: Verify Installation
+
+```bash
+# Check Python packages
+python -c "import torch; print(f'PyTorch: {torch.__version__}')"
+python -c "import librosa; print(f'Librosa: {librosa.__version__}')"
+python -c "import fastapi; print(f'FastAPI: {fastapi.__version__}')"
+
+# Check Node.js
+npm --version
+
+# Check GPU (if available)
+python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
+```
+
+---
+
+## ▶️ Running VocalForge
+
+VocalForge uses **3 separate services** that run simultaneously:
+
+| Service | Port | Description |
+|---|---|---|
+| **Backend API** | 8000 | FastAPI server (Demucs, Pitch Correction, Vocal2BGM) |
+| **ACE-Step API** | 8001 | Music generation service |
+| **Frontend UI** | 3000 | React web interface |
+
+---
+
+### Option A: Start All Services (Recommended)
+
+**Using Windows Terminal (tabs):**
+```bash
+START_ALL.bat
+```
+
+**Manual (3 separate terminals):**
+
+**Terminal 1 - Backend API:**
+```bash
+start_backend.bat
+# Access: http://localhost:8000
+# API Docs: http://localhost:8000/docs
+```
+
+**Terminal 2 - ACE-Step API:**
+```bash
+start_acestep.bat
+# Access: http://localhost:8001
+# API Docs: http://localhost:8001/docs
+```
+
+**Terminal 3 - Frontend UI:**
+```bash
+start_frontend.bat
+# Access: http://localhost:3000
+```
+
+---
+
+### Option B: Development Mode
+
+**Backend (with auto-reload):**
+```bash
+cd backend
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+**Frontend (with hot-reload):**
+```bash
+cd frontend
+npm run dev
+```
+
+---
+
+### Stopping Services
+
+**Graceful shutdown:**
+- Press `Ctrl+C` in each terminal
+- Or close the terminal windows
+
+**Force kill all Python processes:**
+```bash
+taskkill /F /IM python.exe
+```
+
+---
+
+## 🎵 Features & Usage
+
+### 1. Vocal Pitch Correction (Auto-Tune)
+
+**Purpose:** Correct vocal pitch to a musical scale
+
+1. Go to **Pitch Correction** tab
+2. Upload vocal file (WAV, MP3, FLAC)
+3. Select target scale (e.g., C Major, A Minor)
+4. Choose correction strength:
+   - **Natural (30%)** - Subtle polish
+   - **Pop (70%)** - Radio ready
+   - **Hyperpop (100%)** - Full T-Pain effect
+   - **Rap (50%)** - Light correction
+5. Enable "Preserve Formant" to keep vocal timbre natural
+6. Click **Apply Pitch Correction**
+7. Compare original vs corrected (A/B testing)
+8. Download corrected audio
+
+**API Endpoint:** `POST /vocal_correct`
+
+---
+
+### 2. ACE-Step Music Generation
+
+**Purpose:** Generate complete songs from text prompts
+
+1. Go to **ACE-Step** tab
+2. Enter a music prompt:
+   - `pop music, upbeat, catchy chorus, modern production`
+   - `hip hop trap beat, 808 bass, dark atmospheric`
+   - `romantic Romanian ballad, piano, emotional`
+   - `manele românești, acordeon, sintetizator oriental`
+3. Select genre preset (Hip-Hop, Românesc, House, Dembow)
+4. Choose duration (30-240 seconds)
+5. Select model:
+   - **Turbo** - 8 steps, fast generation
+   - **Base** - 50 steps, all features
+   - **SFT** - 50 steps, high quality
+6. Click **Generate**
+7. Wait for generation (1-5 minutes depending on settings)
+8. Download or add to tracks
+
+**API Endpoint:** `POST /ace_generate`
+
+---
+
+### 3. Vocal2BGM (Vocal to Full Song)
+
+**Purpose:** Transform acapella vocal into complete song
+
+1. Go to **Vocal2BGM** tab
+2. Upload acapella vocal file
+3. System auto-detects BPM and Key
+4. Describe instrumental style (or use preset)
+5. Adjust vocal/instrumental volume balance
+6. Click **Generate Full Song**
+7. AI generates matching instrumental
+8. Vocal and instrumental are mixed with beat alignment
+9. Download final mix
+
+**API Endpoint:** `POST /mix_vocal_instrumental`
+
+---
+
+### 4. Stem Separation (Demucs)
+
+**Purpose:** Separate audio into stems (vocals, drums, bass, other)
+
+1. Go to **Stem Separation** tab
+2. Upload audio file
+3. Select separation model:
+   - **htdemucs** - Balanced quality/speed
+   - **htdemucs_ft** - High quality
+   - **htdemucs_6s** - 6 stems (includes guitar, piano)
+4. Click **Separate Stems**
+5. Download individual stems
+
+**API Endpoint:** `POST /demucs_separate`
+
+---
+
+### 5. Repaint/Lego/Complete (Audio Editing)
+
+**Repaint:** Edit specific section of audio
+- Select time range (start/end)
+- Enter new prompt for that section
+- Generate modified version
+
+**Lego:** Add instruments to existing track
+- Upload audio
+- Select instrument to add (Drums, Bass, Guitar, Piano, Strings)
+- Generate enhanced version
+
+**Complete:** Extend/continue audio
+- Upload audio
+- Specify extension duration
+- Generate continuation
+
+**API Endpoints:** `POST /acestep/repaint`, `POST /acestep/lego`, `POST /acestep/complete`
+
+---
+
+## 📊 API Reference
+
+### Main Backend (Port 8000)
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/vocal_correct` | POST | Apply pitch correction to vocal |
+| `/pitch_scales` | GET | List available musical scales |
+| `/mix_vocal_instrumental` | POST | Mix vocal with instrumental |
+| `/detect_bpm_key` | POST | Detect BPM and key from audio |
+| `/demucs_separate` | POST | Separate audio into stems |
+| `/ace_generate` | POST | Generate music with ACE-Step |
+| `/acestep/repaint` | POST | Edit audio section |
+| `/acestep/lego` | POST | Add instrument to track |
+| `/acestep/complete` | POST | Extend audio |
+| `/hardware` | GET | Hardware/GPU info |
+| `/vram_usage` | GET | Current VRAM usage |
+| `/clear_cache` | GET | Clear GPU memory cache |
+| `/health` | GET | Health check |
+
+**Interactive API Docs:** http://localhost:8000/docs
+
+---
+
+### ACE-Step API (Port 8001)
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/health` | GET | ACE-Step server status |
+| `/release_task` | POST | Submit generation task |
+| `/query_result` | POST | Query task result |
+| `/v1/audio` | GET | Download generated audio |
+
+**Interactive API Docs:** http://localhost:8001/docs
 
 ---
 
@@ -140,81 +372,40 @@ Terminal 2: start_frontend.bat →  http://localhost:3000
 
 ```
 VocalForge/
- ├── core/
- │    ├── engine.py              ← AudioEngine main
- │    ├── base_module.py         ← Module interface
- │    └── modules/
- │         ├── morph_module.py   ← Pitch/gender morph (placeholder)
- │         ├── harmony_module.py ← Pitch layering (functional)
- │         └── mastering_module.py ← Normalize + limiter (functional)
- │
- ├── demo/
- │    └── demo_auto_adaptive.py  ← Test pipeline locally
- │
  ├── backend/
- │    ├── main.py                ← FastAPI server
- │    ├── models/
- │    │    ├── HQ_SVC/           ← Put HQ-SVC models here
- │    │    └── LoRA/             ← LoRA files stored here
- │    ├── temp/                  ← Temp audio files
- │    └── output/                ← Generated covers
+ │    ├── main.py                      # FastAPI server
+ │    ├── vocal_pitch_correction.py    # Pitch correction endpoint
+ │    ├── endpoints/
+ │    │   ├── acestep_advanced.py      # Repaint/Lego/Complete
+ │    │   └── acestep_config.py        # ACE-Step configuration
+ │    ├── temp/                        # Temporary files
+ │    └── output/                      # Generated audio
  │
  ├── frontend/
  │    ├── src/
- │    │    ├── App.jsx           ← Complete React UI
- │    │    └── main.jsx
- │    ├── package.json
- │    └── vite.config.js
+ │    │   ├── App.jsx                  # Main React app
+ │    │   ├── components/
+ │    │   │   ├── PitchCorrection.jsx  # Pitch correction UI
+ │    │   │   ├── Vocal2BGM.jsx        # Vocal2BGM UI
+ │    │   │   ├── AceStepTab.jsx       # ACE-Step UI
+ │    │   │   └── ...
+ │    │   └── main.jsx
+ │    └── package.json
  │
- ├── requirements.txt
- ├── setup.bat                   ← One-click install
- ├── start_backend.bat
- ├── start_frontend.bat
- └── start_demo.bat
+ ├── core/
+ │    ├── engine.py                    # Audio engine
+ │    └── modules/                     # Audio processing modules
+ │
+ ├── ace-step/                          # ACE-Step submodule (separate repo)
+ │
+ ├── setup.bat                          # One-click setup
+ ├── START_ALL.bat                      # Start all services
+ ├── start_backend.bat                  # Start backend only
+ ├── start_frontend.bat                 # Start frontend only
+ ├── start_acestep.bat                  # Start ACE-Step only
+ ├── requirements.txt                   # Python dependencies
+ └── README.md                          # This file
 ```
-
----
-
-## 🔗 API Endpoints
-
-| Endpoint | Method | Description |
-|---|---|---|
-| /detect_bpm_key | POST | BPM + Key from audio |
-| /process_cover | POST | Full-length cover generation |
-| /preview | POST | 10-second preview |
-| /upload_lora | POST | Upload LoRA file |
-| /list_lora | GET | List available LoRAs |
-| /delete_lora/{id} | DELETE | Delete a LoRA |
-| /hardware | GET | Hardware info |
-| /vram_usage | GET | Current VRAM usage |
-| /clear_cache | GET | Clear GPU cache |
-| /unload_model | GET | Unload models |
-| /reload_models | GET | Reload models |
-| /health | GET | Health check |
-
-Interactive docs: http://localhost:8000/docs
-
----
-
-## 🗺 Roadmap — Next Steps
-
-**Very High Priority**
-- Implement real MorphModule (vectorized pitch + formant shifting)
-- Integrate HQ-SVC for real voice conversion
-- BPM conversion in Audio Cover mode (ACE-Step backend)
-- Mixed precision FP16 full integration
-
-**High Priority**
-- Noise reduction / denoising module
-- Multi-instrument layer support (flute, piano, guitar)
-- Real-time waveform visualization
-- Track history and versioning
-
-**Medium Priority**
-- Preset system (save voice + genre + LoRA combinations)
-- Auto-style transfer between genres
-- Multi-format export (WAV / MP3 / AIFF)
-- DAW integration (stem export)
 
 ---
 
@@ -222,11 +413,128 @@ Interactive docs: http://localhost:8000/docs
 
 | Component | Minimum | Recommended |
 |---|---|---|
-| GPU | 4GB VRAM (CPU fallback) | RTX 3070 (8GB) |
-| RAM | 8GB | 32GB |
-| Storage | 2GB | 10GB+ (for models) |
-| OS | Windows 10 | Windows 11 |
+| **GPU** | 4GB VRAM (CPU fallback) | RTX 3070 (8GB) or better |
+| **RAM** | 8GB | 16-32GB |
+| **Storage** | 10GB free | 20GB+ SSD |
+| **OS** | Windows 10 | Windows 11 |
+
+### Performance Estimates
+
+| GPU | ACE-Step Generation (60s) | Pitch Correction |
+|---|---|---|
+| RTX 4090 (24GB) | ~30 seconds | Real-time |
+| RTX 3070 (8GB) | ~1-2 minutes | ~10 seconds |
+| RTX 2060 (6GB) | ~3-4 minutes | ~20 seconds |
+| CPU only | ~10-15 minutes | ~1 minute |
 
 ---
 
-*VocalForge v1.7 — Beta Ready*
+## 🐛 Troubleshooting
+
+### Backend won't start
+```bash
+# Check if port 8000 is in use
+netstat -ano | findstr :8000
+
+# Kill process on port 8000
+taskkill /PID <PID> /F
+
+# Restart backend
+start_backend.bat
+```
+
+### ACE-Step not responding
+```bash
+# Check if ACE-Step is running
+curl http://localhost:8001/health
+
+# Restart ACE-Step
+taskkill /F /IM python.exe
+start_acestep.bat
+```
+
+### Frontend shows blank page
+```bash
+# Clear browser cache
+# Or run:
+cd frontend
+npm run build
+```
+
+### CUDA out of memory
+```bash
+# Reduce batch size in settings
+# Use Turbo model instead of Base/SFT
+# Close other GPU applications
+```
+
+### Pitch correction produces artifacts
+- Lower correction strength (try 50% instead of 100%)
+- Enable "Preserve Formant" option
+- Use higher quality input (WAV instead of MP3)
+
+---
+
+## 📝 Environment Variables
+
+Create `.env` file in project root:
+
+```env
+# ACE-Step Configuration
+ACE_STEP_API=http://localhost:8001
+ACESTEP_API_KEY=
+
+# Audio Output
+OUTPUT_FORMAT=mp3
+OUTPUT_DIR=output
+
+# GPU Settings
+CUDA_VISIBLE_DEVICES=0
+PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512
+```
+
+---
+
+## 🔧 Development
+
+### Running Tests
+```bash
+cd backend
+pytest
+```
+
+### Building Frontend for Production
+```bash
+cd frontend
+npm run build
+```
+
+### Code Style
+```bash
+# Python (if ruff installed)
+ruff check backend/
+
+# JavaScript
+cd frontend
+npm run lint
+```
+
+---
+
+## 📄 License
+
+MIT License - See LICENSE file for details
+
+---
+
+## 🙏 Acknowledgments
+
+- **ACE-Step** - https://github.com/ace-step/ACE-Step
+- **Demucs** - https://github.com/facebookresearch/demucs
+- **Librosa** - https://librosa.org/
+- **FastAPI** - https://fastapi.tiangolo.com/
+- **React** - https://react.dev/
+
+---
+
+*VocalForge v1.7 — Beta Ready · Last Updated: March 2026*
