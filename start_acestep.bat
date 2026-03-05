@@ -5,7 +5,7 @@ echo.
 echo  ============================================
 echo   ACE-Step v1.5 - Music Generation API
 echo   Port: 8001
-echo   Models: Lazy Loading (on-demand)
+echo   Default Model: acestep-v15-turbo (8 steps)
 echo  ============================================
 echo.
 
@@ -20,17 +20,17 @@ for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8001 " ^| findstr "LISTENIN
 :: Enable Lazy Loading - models load on-demand (saves VRAM!)
 set ACESTEP_NO_INIT=1
 
+:: Set default model
+set ACESTEP_CONFIG_PATH=acestep-v15-turbo
+
 echo  Starting ACE-Step API server with LAZY LOADING...
 echo.
-echo  Available models (loaded on-demand):
-echo    - acestep-v15-turbo (8 steps, fast)
-echo    - acestep-v15-base (50 steps, all features)
-echo    - acestep-v15-sft (50 steps, high quality)
+echo  Default Model: acestep-v15-turbo (8 steps, fast)
 echo.
 echo  Benefits:
 echo    - Lower VRAM usage at startup
-echo    - Models load only when requested
-echo    - Can switch between models dynamically
+echo    - Model loads on first request via /v1/init
+echo    - Switch models dynamically via API
 echo.
 echo  API: http://localhost:8001
 echo  Docs: http://localhost:8001/docs

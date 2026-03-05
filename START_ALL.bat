@@ -24,10 +24,7 @@ echo ACE-Step:  http://localhost:8001 (Lazy Loading)
 echo Backend:   http://localhost:8000
 echo Frontend:  http://localhost:3000
 echo.
-echo Modele ACE-Step disponibile (incarcare dinamica):
-echo   - acestep-v15-turbo (8 steps, rapid)
-echo   - acestep-v15-base (50 steps, toate feature-urile)
-echo   - acestep-v15-sft (50 steps, calitate inalta)
+echo Default ACE-Step Model: acestep-v15-turbo (8 steps, rapid)
 echo.
 
 timeout /t 10 /nobreak >nul

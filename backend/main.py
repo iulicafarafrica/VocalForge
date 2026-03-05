@@ -1257,6 +1257,68 @@ def clear_cache():
     return {"status": "ok", "message": "GPU cache cleared"}
 
 
+@app.get("/clean_temp_files")
+async def clean_temp_files():
+    """Clean temporary output files from ACE-Step and backend."""
+    import shutil
+    import asyncio
+    
+    temp_folders = [
+        r"D:\VocalForge\ace-step\.cache\acestep\tmp\api_audio",
+        r"D:\VocalForge\backend\output",
+    ]
+    
+    results = []
+    total_cleaned = 0
+    
+    for folder_path in temp_folders:
+        try:
+            if os.path.exists(folder_path):
+                # Count files before cleaning
+                file_count = 0
+                total_size = 0
+                for root, dirs, files in os.walk(folder_path):
+                    for f in files:
+                        file_count += 1
+                        fp = os.path.join(root, f)
+                        try:
+                            total_size += os.path.getsize(fp)
+                        except:
+                            pass
+                
+                # Clean the folder contents but keep the folder itself
+                for item in os.listdir(folder_path):
+                    item_path = os.path.join(folder_path, item)
+                    try:
+                        if os.path.isfile(item_path):
+                            os.remove(item_path)
+                            total_cleaned += 1
+                        elif os.path.isdir(item_path):
+                            shutil.rmtree(item_path)
+                            total_cleaned += 1
+                    except Exception as e:
+                        results.append({"folder": folder_path, "status": "error", "message": str(e)})
+                        continue
+                
+                results.append({
+                    "folder": folder_path,
+                    "status": "cleaned",
+                    "files_removed": file_count,
+                    "size_freed_mb": round(total_size / (1024 * 1024), 2)
+                })
+            else:
+                results.append({"folder": folder_path, "status": "not_found"})
+        except Exception as e:
+            results.append({"folder": folder_path, "status": "error", "message": str(e)})
+    
+    return {
+        "status": "ok",
+        "message": f"Cleaned {total_cleaned} temp files",
+        "results": results,
+        "total_cleaned": total_cleaned
+    }
+
+
 @app.get("/unload_models")
 def unload_all_models():
     for svc in _svc_cache.values():
@@ -2174,6 +2236,11 @@ async def ace_generate(
     # Vocal options
     vocal_language: str = Form("en"),
     instrumental: bool = Form(False),
+    # Thinking mode (5Hz LM for audio codes)
+    thinking: bool = Form(False),
+    # VRAM & Performance
+    batch_size: int = Form(1),                # 1=save VRAM, 2+=faster but more VRAM
+    use_tiled_decode: bool = Form(True),      # VAE decode optimization
 ):
     """
     Generate music with ACE-Step v1.5.
@@ -2213,11 +2280,16 @@ async def ace_generate(
                 models_response = await client.get(f"{ACE_STEP_API}/v1/models", timeout=10.0)
                 if models_response.status_code == 200:
                     models_data = models_response.json()
-                    loaded_models = models_data.get("data", {}).get("models", [])
-                    model_loaded = any(
-                        m.get("name") == dit_model and m.get("is_loaded", False) 
-                        for m in loaded_models
-                    )
+                    # Handle both wrapped {code, data} and direct responses
+                    data_payload = models_data.get("data", models_data) if isinstance(models_data, dict) else models_data
+                    loaded_models = data_payload.get("models", []) if isinstance(data_payload, dict) else data_payload
+                    if isinstance(loaded_models, list):
+                        model_loaded = any(
+                            m.get("name") == dit_model and m.get("is_loaded", False)
+                            for m in loaded_models
+                        )
+                    else:
+                        model_loaded = False
                     if not model_loaded:
                         model_init_needed = True
                         print(f"[ACE {job_id[:8]}] Model {dit_model} not loaded, initializing...")
@@ -2225,7 +2297,7 @@ async def ace_generate(
                         print(f"[ACE {job_id[:8]}] Model {dit_model} already loaded")
                 else:
                     model_init_needed = True
-                    
+
             except Exception as check_err:
                 # If check fails, assume init needed
                 model_init_needed = True
@@ -2303,14 +2375,13 @@ async def ace_generate(
                 "use_cot_caption": use_cot_caption,
                 "use_cot_language": use_cot_language,
                 "allow_lm_batch": allow_lm_batch,
+                # Thinking mode (5Hz LM for audio code generation)
+                "thinking": thinking,
                 # ── Optimizări VRAM (RTX 3070 8GB) ───────────────────────────
-                # batch_size=1: nu genera 2 variante simultan (default ACE-Step=2)
-                "batch_size": 1,
-                # use_tiled_decode=True MEREU: RTX 3070 are ~1.3GB VRAM liber după diffusion
-                # → tiled decode previne OOM/hang la VAE decode pentru orice durată
-                # ACESTEP_VAE_ON_CPU=1 în .env face decode pe CPU oricum, deci tiled_decode
-                # e un fallback de siguranță suplimentar
-                "use_tiled_decode": True,
+                # batch_size: from user (default 1 to save VRAM)
+                "batch_size": batch_size,
+                # use_tiled_decode: from user (VRAM optimization for VAE decode)
+                "use_tiled_decode": use_tiled_decode,
             }
             # Negative prompt: use lm_negative_prompt or alias negative_prompt
             neg = (lm_negative_prompt or negative_prompt or "").strip()

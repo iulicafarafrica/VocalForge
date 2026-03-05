@@ -2,12 +2,10 @@
 cd /d/VocalForge/ace-step
 
 # =============================================================================
-# MERGED MODEL CONFIGURATION - Best of Turbo + SFT in ONE model!
+# DEFAULT MODEL: acestep-v15-turbo (8 steps, fast)
 # =============================================================================
-# Model: acestep_v1.5_merge_sft_turbo_ta_0.4.safetensors
-# - Turbo speed (8 steps) + SFT quality
-# - Single model (~5-6 GB VRAM)
-# - No lazy loading needed
+# Optimized for RTX 3070 8GB VRAM
+# Fast generation with turbo model
 # =============================================================================
 
 export ACESTEP_NO_INIT=0
@@ -16,8 +14,8 @@ export ACESTEP_NO_INIT=0
 export ACESTEP_INIT_LLM=true
 export ACESTEP_LM_MODEL_PATH=acestep-5Hz-lm-0.6B
 
-# MERGED MODEL - replaces standard turbo
-export ACESTEP_CONFIG_PATH=acestep-v15-merge
+# DEFAULT MODEL - Turbo (8 steps, fast)
+export ACESTEP_CONFIG_PATH=acestep-v15-turbo
 
 # VAE optimization for 8GB VRAM
 export ACESTEP_VAE_ON_CPU=1
@@ -51,15 +49,12 @@ echo "  OFFLOAD_TO_CPU: $ACESTEP_OFFLOAD_TO_CPU"
 echo "  VAE_ON_CPU: $ACESTEP_VAE_ON_CPU"
 echo "==================================="
 echo ""
-echo "Models (loaded on first request):"
-echo "  1. acestep-v15-turbo (8 steps, fast)"
-echo "  2. acestep-v15-base (50 steps, all features)"
-echo "  3. acestep-v15-sft (50 steps, high quality)"
+echo "Default Model: acestep-v15-turbo (8 steps, fast)"
 echo ""
 echo "VRAM Usage: ~2-4 GB at startup"
-echo "              +4-6 GB per model when loaded"
+echo "              +4-6 GB when model loads"
 echo ""
-echo "Models load automatically when requested"
+echo "Model loads automatically on first request"
 echo "via /v1/init endpoint"
 echo ""
 

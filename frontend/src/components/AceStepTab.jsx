@@ -640,7 +640,7 @@ export default function AceStepTab({
   const [lmTopK, setLmTopK] = useState(0);
   const [lmTopP, setLmTopP] = useState(0.9);
   const [instrumental, setInstrumental] = useState(false);
-  const [vocalLanguage, setVocalLanguage] = useState("en");
+  const [vocalLanguage, setVocalLanguage] = useState("ro");
   const [audioFormat, setAudioFormat] = useState("mp3");
   const [inferMethod, setInferMethod] = useState("ode");
   const [shift, setShift] = useState(3.0);
@@ -651,6 +651,10 @@ export default function AceStepTab({
 
   // ── Tensor Model Selection ────────────────────────────────────────────────
   const [tensorModel, setTensorModel] = useState("acestep-v15-turbo"); // default
+
+  // ── Clean Temp Files ──────────────────────────────────────────────────────
+  const [cleaningTemp, setCleaningTemp] = useState(false);
+  const [cleanResult, setCleanResult] = useState(null);
 
   // Log model changes to console AND app logs
   useEffect(() => {
@@ -694,8 +698,8 @@ export default function AceStepTab({
   // ── Vocal Language Options ────────────────────────────────────────────────
   const VOCAL_LANGUAGES = [
     { code: "unknown", name: "🎵 Instrumental / Auto", native: "Auto-detect" },
-    { code: "en", name: "English", native: "English" },
     { code: "ro", name: "Romanian", native: "Română" },
+    { code: "en", name: "English", native: "English" },
     { code: "es", name: "Spanish", native: "Español" },
     { code: "ar", name: "Arabic", native: "العربية" },
     { code: "el", name: "Greek", native: "Ελληνικά" },
@@ -933,6 +937,39 @@ export default function AceStepTab({
       setProgress(0);
     } finally {
       setTimeout(() => { setProcessing(false); setProgress(0); setProgressLabel(""); }, 2000);
+    }
+  };
+
+  const handleCleanTemp = async () => {
+    if (!confirm("Clean all temporary output files?\n\nThis will delete:\n• D:\\VocalForge\\ace-step\\.cache\\acestep\\tmp\\api_audio\n• D:\\VocalForge\\backend\\output\n\nContinue?")) {
+      return;
+    }
+
+    setCleaningTemp(true);
+    setCleanResult(null);
+
+    try {
+      const res = await fetch(`${API}/clean_temp_files`);
+      const data = await res.json();
+      
+      if (data.status === "ok") {
+        setCleanResult(data);
+        addLog(`🧹 Cleaned ${data.total_cleaned} temp files`);
+        if (data.results) {
+          data.results.forEach(r => {
+            if (r.status === "cleaned") {
+              addLog(`  ✓ ${r.folder}: ${r.files_removed} files (${r.size_freed_mb} MB)`);
+            }
+          });
+        }
+      } else {
+        throw new Error(data.message || "Unknown error");
+      }
+    } catch (err) {
+      addLog(`[ERR] Clean temp failed: ${err.message}`);
+      setCleanResult({ status: "error", message: err.message });
+    } finally {
+      setCleaningTemp(false);
     }
   };
 
@@ -2083,6 +2120,55 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                 />
                 💭 Thinking Mode (Use 5Hz LM for audio codes - slower but better quality)
               </label>
+            </div>
+
+            {/* Clean Temp Files */}
+            <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid #2a2a4a" }}>
+              <div style={{ color: "#e63946", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>
+                🧹 Cleanup
+              </div>
+              <button
+                onClick={handleCleanTemp}
+                disabled={cleaningTemp}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  background: cleaningTemp ? "#1a1a2e" : "linear-gradient(135deg, #e6394622, #e6394644)",
+                  border: "1px solid #e6394666",
+                  color: cleaningTemp ? "#666688" : "#e63946",
+                  borderRadius: 8,
+                  padding: "12px 16px",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: cleaningTemp ? "not-allowed" : "pointer",
+                  opacity: cleaningTemp ? 0.6 : 1,
+                }}
+              >
+                {cleaningTemp ? "⏳ Cleaning..." : "🧹 Clean Temp Files"}
+              </button>
+              {cleanResult && (
+                <div style={{
+                  marginTop: 10,
+                  padding: 10,
+                  background: cleanResult.status === "ok" ? "#06d6a011" : "#e6394611",
+                  border: `1px solid ${cleanResult.status === "ok" ? "#06d6a044" : "#e6394644"}`,
+                  borderRadius: 6,
+                  fontSize: 11,
+                  color: cleanResult.status === "ok" ? "#06d6a0" : "#e63946",
+                }}>
+                  {cleanResult.message}
+                  {cleanResult.results && cleanResult.results.map((r, i) => (
+                    <div key={i} style={{ marginTop: 4, fontFamily: "monospace" }}>
+                      {r.status === "cleaned" && `✓ ${r.folder.split('\\').pop()}: ${r.files_removed} files (${r.size_freed_mb} MB)`}
+                      {r.status === "not_found" && `⚠ ${r.folder.split('\\').pop()}: not found`}
+                      {r.status === "error" && `✗ ${r.folder.split('\\').pop()}: ${r.message}`}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
