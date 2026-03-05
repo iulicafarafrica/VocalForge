@@ -10,6 +10,20 @@
 
 ---
 
+## 🎬 Demo Video
+
+### 🎵 VocalForge v1.7 - AI Music Generation & Audio Processing
+
+**Watch the demo on YouTube:**
+
+➡️ **[https://www.youtube.com/watch?v=8XSwCM7bM1A](https://www.youtube.com/watch?v=8XSwCM7bM1A)**
+
+<p align="center">
+  <img src="Project.png" alt="VocalForge v1.7 Interface" width="600"/>
+</p>
+
+---
+
 ## 🚧 Work in Progress (WIP)
 
 The following features are currently under active development:
@@ -51,20 +65,6 @@ The following features are currently under active development:
 - Added `core/modules/rvc_model.py` - RVC model wrapper
 - Updated `START_ALL.bat` - Now launches 4 services (Frontend, Backend, ACE-Step, RVC)
 - Updated `.gitignore` - Added RVCWebUI to ignored folders
-
----
-
-## 🎬 Demo Video
-
-### 🎵 VocalForge v1.7 - AI Music Generation & Audio Processing
-
-**Watch the demo on YouTube:**
-
-➡️ **[https://www.youtube.com/watch?v=8XSwCM7bM1A](https://www.youtube.com/watch?v=8XSwCM7bM1A)**
-
-<p align="center">
-  <img src="Project.png" alt="VocalForge v1.7 Interface" width="600"/>
-</p>
 
 ---
 
