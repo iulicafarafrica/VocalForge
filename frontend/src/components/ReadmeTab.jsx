@@ -1,7 +1,7 @@
 import {
   Sliders, Sparkles, Mic2, FolderOpen, Monitor, FileText,
   CheckCircle, Wrench, Zap, Trash2, ChevronRight, Server, Globe,
-  Cpu, HardDrive, Package, BookOpen
+  Cpu, HardDrive, Package, BookOpen, Download, Terminal, Play
 } from "lucide-react";
 
 const s = {
@@ -373,6 +373,118 @@ export default function ReadmeTab() {
         ))}
       </div>
 
+      {/* Quick Start */}
+      <div style={s.sectionTitle}>
+        <ChevronRight size={14} color="#06d6a0" />
+        🚀 Quick Start
+      </div>
+      <div style={{
+        background: "linear-gradient(135deg, #0d0d22 0%, #12122a 100%)",
+        border: "1px solid #1a1a3a", borderRadius: 16, padding: "24px 28px", marginBottom: 32,
+      }}>
+        <div style={{ fontSize: 13, color: "#aaaacc", lineHeight: 1.8, fontFamily: "monospace" }}>
+          <div style={{ color: "#6666aa", marginBottom: 12 }}>// One-Click Launch</div>
+          <div><span style={{ color: "#e63946" }}>git clone</span> <span style={{ color: "#06d6a0" }}>https://github.com/iulicafarafrica/VocalForge.git</span></div>
+          <div><span style={{ color: "#e63946" }}>cd</span> VocalForge</div>
+          <div style={{ marginTop: 12, color: "#6666aa" }}>// Install everything</div>
+          <div><span style={{ color: "#ffd166" }}>setup.bat</span></div>
+          <div style={{ marginTop: 12, color: "#6666aa" }}>// Start all services</div>
+          <div><span style={{ color: "#00e5ff" }}>START_ALL.bat</span></div>
+        </div>
+        <div style={{ marginTop: 20, padding: "16px 20px", background: "#06d6a011", border: "1px solid #06d6a033", borderRadius: 10 }}>
+          <div style={{ fontSize: 12, color: "#06d6a0", fontWeight: 700, marginBottom: 8 }}>📌 Access Application</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, fontSize: 12 }}>
+            <div><span style={{ color: "#6666aa" }}>Frontend:</span> <span style={{ color: "#00e5ff", fontFamily: "monospace" }}>localhost:3000</span></div>
+            <div><span style={{ color: "#6666aa" }}>Backend:</span> <span style={{ color: "#00e5ff", fontFamily: "monospace" }}>localhost:8000</span></div>
+            <div><span style={{ color: "#6666aa" }}>RVC API:</span> <span style={{ color: "#00e5ff", fontFamily: "monospace" }}>localhost:8002</span></div>
+            <div><span style={{ color: "#6666aa" }}>ACE-Step:</span> <span style={{ color: "#00e5ff", fontFamily: "monospace" }}>localhost:8001</span></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Installation */}
+      <div style={s.sectionTitle}>
+        <ChevronRight size={14} color="#ffd166" />
+        📦 Installation
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 20, marginBottom: 32 }}>
+        {[
+          {
+            icon: <Terminal size={20} color="#00e5ff" />,
+            title: "Prerequisites",
+            items: [
+              "Python 3.10 or 3.11",
+              "Node.js 18+",
+              "Git Latest",
+              "Windows Terminal (Microsoft Store)",
+              "CUDA 11.8/12.1 (optional)",
+            ],
+          },
+          {
+            icon: <Download size={20} color="#06d6a0" />,
+            title: "Step 1: Clone",
+            items: [
+              "git clone https://github.com/iulicafarafrica/VocalForge.git",
+              "cd VocalForge",
+            ],
+          },
+          {
+            icon: <Package size={20} color="#ffd166" />,
+            title: "Step 2: Install Python",
+            items: [
+              "python -m venv venv",
+              "venv\\Scripts\\activate",
+              "pip install torch --index-url https://download.pytorch.org/whl/cu121",
+              "pip install -r requirements.txt",
+            ],
+          },
+          {
+            icon: <Terminal size={20} color="#7209b7" />,
+            title: "Step 3: Install Node",
+            items: [
+              "cd frontend",
+              "npm install",
+              "cd ..",
+            ],
+          },
+          {
+            icon: <Terminal size={20} color="#e63946" />,
+            title: "Step 4: Install ACE-Step",
+            items: [
+              "cd ace-step",
+              "uv sync",
+              "cd ..",
+            ],
+          },
+          {
+            icon: <Terminal size={20} color="#00e5ff" />,
+            title: "Step 5: Install RVC Models",
+            items: [
+              "Download .pth models from:",
+              "weights.gg/models",
+              "huggingface.co/IAHispano/Applio",
+              "Place in: RVCWebUI/assets/weights/",
+            ],
+          },
+        ].map((step, i) => (
+          <div key={i} style={s.card}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+              {step.icon}
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#e0e0ff" }}>{step.title}</div>
+            </div>
+            {step.items.map((item, j) => (
+              <div key={j} style={{
+                fontSize: 11, color: "#6666aa", padding: "3px 0",
+                fontFamily: item.includes("git") || item.includes("cd") || item.includes("pip") || item.includes("npm") || item.includes("uv") ? "monospace" : "inherit",
+                borderBottom: "1px solid #0d0d1a",
+              }}>
+                {item}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+
       {/* Two column: Changelog + API */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 32 }}>
 
@@ -453,6 +565,130 @@ export default function ReadmeTab() {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* Hardware Requirements */}
+      <div style={s.sectionTitle}>
+        <ChevronRight size={14} color="#e63946" />
+        💻 Hardware Requirements
+      </div>
+      <div style={{ marginBottom: 32 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
+          <div style={s.card}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#ffd166", marginBottom: 12 }}>⚠️ Minimum</div>
+            {[
+              { label: "GPU", val: "GTX 1060 (4GB)" },
+              { label: "RAM", val: "8GB" },
+              { label: "Storage", val: "10GB HDD" },
+              { label: "OS", val: "Windows 10" },
+            ].map((s, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid #0d0d1a", fontSize: 12 }}>
+                <span style={{ color: "#6666aa" }}>{s.label}</span>
+                <span style={{ color: "#aaaacc", fontFamily: "monospace" }}>{s.val}</span>
+              </div>
+            ))}
+          </div>
+          <div style={s.card}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#06d6a0", marginBottom: 12 }}>✅ Recommended</div>
+            {[
+              { label: "GPU", val: "RTX 3070 (8GB)" },
+              { label: "RAM", val: "16-32GB" },
+              { label: "Storage", val: "20GB+ SSD" },
+              { label: "OS", val: "Windows 11" },
+            ].map((s, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid #0d0d1a", fontSize: 12 }}>
+                <span style={{ color: "#6666aa" }}>{s.label}</span>
+                <span style={{ color: "#06d6a0", fontFamily: "monospace" }}>{s.val}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div style={{ background: "#0d0d22", border: "1px solid #1a1a3a", borderRadius: 12, padding: "16px 20px" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#00e5ff", marginBottom: 12 }}>⏱ Performance Benchmarks</div>
+          {[
+            { gpu: "RTX 4090 (24GB)", ace: "~30 sec", rvc: "Real-time", demucs: "~10 sec" },
+            { gpu: "RTX 3070 (8GB)", ace: "~1-2 min", rvc: "~10 sec", demucs: "~20 sec" },
+            { gpu: "RTX 2060 (6GB)", ace: "~3-4 min", rvc: "~20 sec", demucs: "~30 sec" },
+            { gpu: "CPU Only", ace: "~10-15 min", rvc: "~1 min", demucs: "~2 min" },
+          ].map((b, i) => (
+            <div key={i} style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 12, padding: "8px 0", borderBottom: i < 3 ? "1px solid #0d0d1a" : "none", fontSize: 11 }}>
+              <span style={{ color: "#e0e0ff", fontWeight: 600 }}>{b.gpu}</span>
+              <span style={{ color: "#6666aa" }}>ACE: {b.ace}</span>
+              <span style={{ color: "#6666aa" }}>RVC: {b.rvc}</span>
+              <span style={{ color: "#6666aa" }}>Demucs: {b.demucs}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Troubleshooting */}
+      <div style={s.sectionTitle}>
+        <ChevronRight size={14} color="#ffd166" />
+        🐛 Troubleshooting
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 16, marginBottom: 32 }}>
+        {[
+          {
+            title: "Backend won't start",
+            solution: [
+              "netstat -ano | findstr :8000",
+              "taskkill /PID <PID> /F",
+              "start_backend.bat",
+            ],
+          },
+          {
+            title: "RVC models not showing",
+            solution: [
+              "Check: RVCWebUI/assets/weights/",
+              "Ensure .pth files present",
+              "Restart RVC service",
+            ],
+          },
+          {
+            title: "ACE-Step not responding",
+            solution: [
+              "curl http://localhost:8001/health",
+              "taskkill /F /IM python.exe",
+              "start_acestep.bat",
+            ],
+          },
+          {
+            title: "CUDA Out of Memory",
+            solution: [
+              "Reduce batch size in settings",
+              "Use Turbo model (8 steps)",
+              "Close other GPU applications",
+            ],
+          },
+          {
+            title: "Pitch artifacts",
+            solution: [
+              "Lower strength (50% vs 100%)",
+              "Enable Preserve Formant",
+              "Use WAV instead of MP3",
+            ],
+          },
+          {
+            title: "Frontend blank page",
+            solution: [
+              "cd frontend && npm run build",
+              "Clear browser cache",
+              "Ctrl+Shift+Delete",
+            ],
+          },
+        ].map((t, i) => (
+          <div key={i} style={s.card}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#ffd166", marginBottom: 10 }}>{t.title}</div>
+            {t.solution.map((s, j) => (
+              <div key={j} style={{
+                fontSize: 11, color: "#6666aa", padding: "3px 0",
+                fontFamily: "monospace", borderBottom: "1px solid #0d0d1a",
+              }}>
+                {s}
+              </div>
+            ))}
+          </div>
+        ))}
       </div>
 
       {/* System Requirements */}
