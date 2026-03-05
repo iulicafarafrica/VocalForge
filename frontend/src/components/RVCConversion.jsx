@@ -696,10 +696,6 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
                   <a href={separatedInstrumental.url} download={separatedInstrumental.filename} style={{color:"#ff6b9d",fontSize:12}}>⬇ Download instrumental</a>
                 </div>
               )}
-              <button onClick={() => { setActiveTab("convert"); setVocalFile(null); addLog("💡 Mergi la Convert și uploadează vocalele separate!"); }}
-                style={{...S.btn, width:"100%", marginTop:12}}>
-                🎤 Folosește vocalele în Convert →
-              </button>
             </div>
           )}
         </div>
