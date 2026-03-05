@@ -1,168 +1,152 @@
 # 🎵 VocalForge v1.7
 
-## Modular AI Audio Framework — Auto-Adaptive, Stable, Beta Ready
-
-**VocalForge** is a complete AI music production application featuring:
-- 🎤 **RVC Voice Conversion** (AI voice transformation)
-- 🎵 **ACE-Step Music Generation** (Text-to-Music, Audio Cover)
-- 🎚️ **Stem Separation** (Demucs)
-- 🎹 **Repaint/Lego/Complete** (Audio editing)
-
----
-
-## 🎬 Demo Video
-
-### 🎵 VocalForge v1.7 - AI Music Generation & Audio Processing
-
-**Watch the demo on YouTube:**
-
-➡️ **[https://www.youtube.com/watch?v=8XSwCM7bM1A](https://www.youtube.com/watch?v=8XSwCM7bM1A)**
+> **AI-Powered Music Production Studio** — Transform your voice, generate music, and create professional tracks with cutting-edge AI.
 
 <p align="center">
-  <img src="Project.png" alt="VocalForge v1.7 Interface" width="600"/>
+  <img src="https://img.shields.io/badge/Version-1.7-blue?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/Status-Beta-yellow?style=for-the-badge" alt="Status">
+  <img src="https://img.shields.io/badge/Python-3.10%2B-green?style=for-the-badge&logo=python" alt="Python">
+  <img src="https://img.shields.io/badge/GPU-NVIDIA%20CUDA-orange?style=for-the-badge&logo=nvidia" alt="GPU">
+  <img src="https://img.shields.io/badge/License-MIT-red?style=for-the-badge" alt="License">
 </p>
 
 ---
 
-## 🚧 Work in Progress (WIP)
+## 🎬 Quick Preview
 
-The following features are currently under active development:
+### See VocalForge in Action
 
-| Feature | Status | Notes |
-|---|---|---|
-| **Vocal Pitch Correction** | 🚧 Beta | Auto-tune style pitch correction with scale matching. Basic functionality works, fine-tuning in progress. |
+**📺 Watch Demo:** [YouTube](https://www.youtube.com/watch?v=8XSwCM7bM1A)
 
-> 💡 These features are functional but may produce inconsistent results. Feedback and testing are welcome!
-
----
-
-## 📋 TODO - Planned Features
-
-### 🔜 Coming Soon
-
-| Feature | Priority | Description |
-|---|---|---|
-| **Vocal Separator** | 🔥 High | Upload full song and auto-separate vocals before RVC (Demucs already integrated!) |
-| **Auto Final Mix** | 🔥 High | After RVC conversion, automatically mix converted vocal back with original instrumental |
-| **Export Presets** | ⭐ Medium | Save favorite settings as presets (e.g., "Preset Kanye Sad", "Preset Florin Happy") |
-
-### 💡 Future Ideas
-
-- **Batch Processing** - Convert multiple vocals in one go
-- **Real-time Preview** - Hear conversion before final render
-- **Model Sharing** - Share custom RVC models with community
-- **Cloud Storage** - Save tracks and presets to cloud
+<p align="center">
+  <img src="Project.png" alt="VocalForge Interface" width="600"/>
+</p>
 
 ---
 
-## 📝 Changelog (Latest Updates)
+## 📖 Table of Contents
 
-### v1.7 - Recent Changes
-
-#### ✅ Added
-- **RVC Voice Conversion** - Complete AI voice transformation feature
-  - Support for custom RVC models (.pth files)
-  - Pitch shifting and emotion control
-  - Formant preservation
-  - 4 pre-loaded models (Bad Bunny, Florin Salam, Justin Bieber, Kanye West)
-- **Windows Terminal requirement** - Now required for multi-tab startup with colored tabs
-- **Enhanced RVC UI** - Improved conversion interface with more options
-
-#### ❌ Removed
-- **Vocal2BGM** - Feature removed (transform vocal to full song)
-- **Pitch Correction tab** - Deprecated in favor of RVC Voice Conversion
-
-#### 🐛 Fixed
-- **Unicode encoding errors** - Replaced Unicode characters (✓, ✗) with ASCII (OK, ERR) for Windows compatibility
-- **RVC config path issues** - Fixed working directory changes for proper config loading
-- **RVC argument parsing** - Fixed `parse_args([])` to ignore uvicorn command line arguments
-- **RVC array bounds** - Added safety checks for `to_return_protect` arrays
-
-#### 🔧 Technical Updates
-- Added `backend/app.py` - Dedicated RVC API endpoint (port 8002)
-- Added `backend/endpoints/rvc_conversion.py` - RVC conversion endpoint
-- Added `core/modules/rvc_model.py` - RVC model wrapper
-- Updated `START_ALL.bat` - Now launches 4 services (Frontend, Backend, ACE-Step, RVC)
-- Updated `.gitignore` - Added RVCWebUI to ignored folders
+- [Features](#-features)
+- [Quick Start](#-quick-start)
+- [Installation](#-installation)
+- [Usage Guide](#-usage-guide)
+- [API Reference](#-api-reference)
+- [Hardware Requirements](#-hardware-requirements)
+- [Roadmap](#-roadmap)
+- [Changelog](#-changelog)
+- [Troubleshooting](#-troubleshooting)
 
 ---
 
-## 🚀 Installation (Windows)
+## ✨ Features
+
+### 🎤 RVC Voice Conversion
+Transform your voice into any other voice using AI models.
+- **Custom Models** — Load .pth voice models
+- **Pitch Control** — Adjust pitch shifting (±12 semitones)
+- **Emotion Engine** — Happy, Sad, Angry, Calm, Fearful
+- **Formant Preservation** — Keep natural vocal timbre
+- **Pre-loaded Models** — Bad Bunny, Florin Salam, Justin Bieber, Kanye West
+
+### 🎵 ACE-Step Music Generation
+Generate complete songs from text descriptions.
+- **Text-to-Music** — Describe your song, AI creates it
+- **Audio Cover** — Generate instrumental from reference audio
+- **50+ Genre Presets** — Hip-Hop, Pop, EDM, Manele, Reggaeton
+- **Multiple Models** — Turbo (8 steps), Base/SFT (50 steps)
+- **Advanced Editing** — Repaint, Lego, Complete
+
+### 🎚️ Stem Separation
+Extract individual instruments from any song.
+- **Demucs Integration** — Industry-leading separation
+- **4 Stems** — Vocals, Drums, Bass, Other
+- **6 Stems Mode** — Plus Guitar, Piano
+- **Multiple Models** — htdemucs, htdemucs_ft, htdemucs_6s
+
+### 🎹 Audio Editing
+Professional audio manipulation tools.
+- **Repaint** — Edit specific sections
+- **Lego** — Add instruments to tracks
+- **Complete** — Extend/continue audio
+
+---
+
+## 🚀 Quick Start
+
+### One-Click Launch
+
+```bash
+# Clone repository
+git clone https://github.com/iulicafarafrica/VocalForge.git
+cd VocalForge
+
+# Install everything
+setup.bat
+
+# Start all services
+START_ALL.bat
+```
+
+### Access Application
+
+| Service | URL | Port |
+|---------|-----|------|
+| **Frontend UI** | http://localhost:3000 | 3000 |
+| **Backend API** | http://localhost:8000 | 8000 |
+| **ACE-Step API** | http://localhost:8001 | 8001 |
+| **API Docs** | http://localhost:8000/docs | 8000 |
+
+---
+
+## 📦 Installation
 
 ### Prerequisites
 
-| Software | Version | Download |
-|---|---|---|
-| **Python** | 3.10 or 3.11 | https://www.python.org/downloads/ |
-| **Node.js** | 18+ | https://nodejs.org/ |
-| **Git** | Latest | https://git-scm.com/downloads |
-| **Windows Terminal** | Latest | https://aka.ms/terminal (Microsoft Store) |
-| **CUDA** (optional) | 11.8 or 12.1 | https://developer.nvidia.com/cuda-downloads |
+| Software | Version | Required | Download |
+|----------|---------|----------|----------|
+| **Python** | 3.10 - 3.11 | ✅ Yes | [Download](https://www.python.org/downloads/) |
+| **Node.js** | 18+ | ✅ Yes | [Download](https://nodejs.org/) |
+| **Git** | Latest | ✅ Yes | [Download](https://git-scm.com/downloads) |
+| **Windows Terminal** | Latest | ✅ Yes | [Download](https://aka.ms/terminal) |
+| **NVIDIA GPU** | 4GB+ VRAM | ⚠️ Optional | - |
+| **CUDA** | 11.8 / 12.1 | ⚠️ Optional | [Download](https://developer.nvidia.com/cuda-downloads) |
 
-> ⚠️ **Important for Python installation:**
-> - Check ✅ **"Add Python to PATH"** during installation
-> - Verify installation: Open CMD and type `python --version`
-
-> 💡 **Windows Terminal is required** for running multiple services simultaneously with colored tabs.
+> ⚠️ **Important:** Check "Add Python to PATH" during installation!
 
 ---
 
-### Step 1: Clone Repository
+### Step-by-Step Installation
+
+#### 1. Clone Repository
 
 ```bash
 git clone https://github.com/iulicafarafrica/VocalForge.git
 cd VocalForge
 ```
 
----
+#### 2. Install Python Dependencies
 
-### Step 2: Install Python Dependencies
-
-**Option A: Automatic (Recommended)**
+**Automatic (Recommended):**
 ```bash
-# Double-click or run:
 setup.bat
 ```
 
-**Option B: Manual Installation**
-
+**Manual:**
 ```bash
-# 1. Create virtual environment
+# Create virtual environment
 python -m venv venv
 
-# 2. Activate virtual environment
+# Activate
 venv\Scripts\activate
 
-# 3. Install PyTorch with CUDA support (for NVIDIA GPU)
-# For CUDA 12.1 (RTX 3070, 4070, etc.)
+# Install PyTorch (CUDA 12.1 for RTX 3070/4070)
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
-# For CUDA 11.8 (older GPUs)
-# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-
-# For CPU only (no GPU)
-# pip install torch torchvision torchaudio
-
-# 4. Install other Python dependencies
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-**requirements.txt contents:**
-```
-fastapi>=0.110.0
-uvicorn[standard]>=0.27.0
-python-multipart>=0.0.9
-python-dotenv>=1.0.0
-httpx>=0.24.0
-librosa>=0.10.0
-soundfile>=0.12.0
-pydub>=0.25.0
-numpy>=1.24.0
-```
-
----
-
-### Step 3: Install Frontend Dependencies
+#### 3. Install Frontend Dependencies
 
 ```bash
 cd frontend
@@ -170,227 +154,127 @@ npm install
 cd ..
 ```
 
-**package.json dependencies:**
-```json
-{
-  "dependencies": {
-    "lucide-react": "^0.574.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^4.2.0",
-    "vite": "^5.0.0"
-  }
-}
-```
-
----
-
-### Step 4: Install ACE-Step (Music Generation)
-
-ACE-Step is a separate service for AI music generation. It runs on port 8001.
+#### 4. Install ACE-Step
 
 ```bash
-# Navigate to ace-step directory (if you have it)
 cd ace-step
-
-# Install ACE-Step dependencies using uv
-pip install uv
 uv sync
-
-# Or use the provided batch file
 cd ..
-fix_acestep_deps.bat
 ```
 
-> 📝 **Note:** ACE-Step requires ~10GB disk space for models (downloaded on first run)
+> 📝 **Note:** ACE-Step requires ~10GB for models (downloaded on first run)
 
----
-
-### Step 5: Verify Installation
+#### 5. Verify Installation
 
 ```bash
-# Check Python packages
 python -c "import torch; print(f'PyTorch: {torch.__version__}')"
 python -c "import librosa; print(f'Librosa: {librosa.__version__}')"
-python -c "import fastapi; print(f'FastAPI: {fastapi.__version__}')"
-
-# Check Node.js
-npm --version
-
-# Check GPU (if available)
 python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
 ```
 
 ---
 
-## ▶️ Running VocalForge
+## 🎯 Usage Guide
 
-VocalForge uses **3 separate services** that run simultaneously:
+### 1. RVC Voice Conversion
 
-| Service | Port | Description |
-|---|---|---|
-| **Backend API** | 8000 | FastAPI server (Demucs, RVC Voice Conversion) |
-| **ACE-Step API** | 8001 | Music generation service |
-| **Frontend UI** | 3000 | React web interface |
+**Best for:** Voice transformation, character voices, covers
 
----
-
-### Option A: Start All Services (Recommended)
-
-**Using Windows Terminal (tabs):**
-```bash
-START_ALL.bat
-```
-
-**Manual (3 separate terminals):**
-
-**Terminal 1 - Backend API:**
-```bash
-start_backend.bat
-# Access: http://localhost:8000
-# API Docs: http://localhost:8000/docs
-```
-
-**Terminal 2 - ACE-Step API:**
-```bash
-start_acestep.bat
-# Access: http://localhost:8001
-# API Docs: http://localhost:8001/docs
-```
-
-**Terminal 3 - Frontend UI:**
-```bash
-start_frontend.bat
-# Access: http://localhost:3000
-```
-
----
-
-### Option B: Development Mode
-
-**Backend (with auto-reload):**
-```bash
-cd backend
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
-
-**Frontend (with hot-reload):**
-```bash
-cd frontend
-npm run dev
-```
-
----
-
-### Stopping Services
-
-**Graceful shutdown:**
-- Press `Ctrl+C` in each terminal
-- Or close the terminal windows
-
-**Force kill all Python processes:**
-```bash
-taskkill /F /IM python.exe
-```
-
----
-
-## 🎵 Features & Usage
-
-### 1. Vocal Pitch Correction (Auto-Tune)
-
-**Purpose:** Correct vocal pitch to a musical scale
-
-1. Go to **Pitch Correction** tab
+1. Go to **RVC Voice Conversion** tab
 2. Upload vocal file (WAV, MP3, FLAC)
-3. Select target scale (e.g., C Major, A Minor)
-4. Choose correction strength:
-   - **Natural (30%)** - Subtle polish
-   - **Pop (70%)** - Radio ready
-   - **Hyperpop (100%)** - Full T-Pain effect
-   - **Rap (50%)** - Light correction
-5. Enable "Preserve Formant" to keep vocal timbre natural
-6. Click **Apply Pitch Correction**
-7. Compare original vs corrected (A/B testing)
-8. Download corrected audio
+3. Select voice model from dropdown
+4. Adjust settings:
+   - **Pitch Shift** — ±12 semitones
+   - **Emotion** — Happy, Sad, Angry, Calm, Fearful
+   - **F0 Method** — rmvpe (recommended), harvest, pm
+5. Click **Convert**
+6. Download converted audio
 
-**API Endpoint:** `POST /vocal_correct`
+**Pro Tips:**
+- Use clean a cappella vocals (no background music)
+- For male→female: +5 to +10 semitones
+- For female→male: -5 to -10 semitones
+- Enable "Preserve Formant" for natural sound
 
 ---
 
 ### 2. ACE-Step Music Generation
 
-**Purpose:** Generate complete songs from text prompts
+**Best for:** Creating beats, full songs, instrumentals
 
 1. Go to **ACE-Step** tab
-2. Enter a music prompt:
-   - `pop music, upbeat, catchy chorus, modern production`
-   - `hip hop trap beat, 808 bass, dark atmospheric`
-   - `romantic Romanian ballad, piano, emotional`
-   - `manele românești, acordeon, sintetizator oriental`
-3. Select genre preset (Hip-Hop, Românesc, House, Dembow)
+2. Enter prompt (be specific):
+   ```
+   ✅ Good: "upbeat pop song with catchy chorus, modern production, female vocals"
+   ✅ Good: "dark trap beat, 808 bass, hi-hats, atmospheric pads"
+   ✅ Good: "romantic Romanian ballad, piano, strings, emotional"
+   ```
+3. Select genre preset
 4. Choose duration (30-240 seconds)
 5. Select model:
-   - **Turbo** - 8 steps, fast generation
-   - **Base** - 50 steps, all features
-   - **SFT** - 50 steps, high quality
+   - **Turbo** — 8 steps, ~1 min, good quality
+   - **Base** — 50 steps, ~3 min, all features
+   - **SFT** — 50 steps, ~3 min, highest quality
 6. Click **Generate**
-7. Wait for generation (1-5 minutes depending on settings)
+7. Wait for completion
 8. Download or add to tracks
 
-**API Endpoint:** `POST /ace_generate`
+**Pro Tips:**
+- Use Turbo for quick sketches
+- Use SFT for final productions
+- Include instruments in prompt for better results
+- Reference audio improves style matching
 
 ---
 
-### 3. Stem Separation (Demucs)
+### 3. Stem Separation
 
-**Purpose:** Separate audio into stems (vocals, drums, bass, other)
+**Best for:** Remixes, karaoke, sampling, acapella extraction
 
 1. Go to **Stem Separation** tab
-2. Upload audio file
-3. Select separation model:
-   - **htdemucs** - Balanced quality/speed
-   - **htdemucs_ft** - High quality
-   - **htdemucs_6s** - 6 stems (includes guitar, piano)
+2. Upload full song
+3. Select model:
+   - **htdemucs** — Fast, good quality
+   - **htdemucs_ft** — Slower, better quality
+   - **htdemucs_6s** — 6 stems (includes guitar, piano)
 4. Click **Separate Stems**
 5. Download individual stems
 
-**API Endpoint:** `POST /demucs_separate`
+**Pro Tips:**
+- Use WAV for best quality
+- htdemucs_6s for detailed separation
+- Extract vocals for acapella
+- Remove vocals for karaoke
 
 ---
 
-### 5. Repaint/Lego/Complete (Audio Editing)
+### 4. Repaint / Lego / Complete
 
-**Repaint:** Edit specific section of audio
-- Select time range (start/end)
-- Enter new prompt for that section
-- Generate modified version
+**Repaint** — Edit specific section:
+1. Select time range (start/end)
+2. Enter new prompt for that section
+3. Generate modified version
 
-**Lego:** Add instruments to existing track
-- Upload audio
-- Select instrument to add (Drums, Bass, Guitar, Piano, Strings)
-- Generate enhanced version
+**Lego** — Add instruments:
+1. Upload existing track
+2. Select instrument (Drums, Bass, Guitar, Piano, Strings)
+3. Generate enhanced version
 
-**Complete:** Extend/continue audio
-- Upload audio
-- Specify extension duration
-- Generate continuation
-
-**API Endpoints:** `POST /acestep/repaint`, `POST /acestep/lego`, `POST /acestep/complete`
+**Complete** — Extend audio:
+1. Upload audio
+2. Specify extension duration
+3. Generate continuation
 
 ---
 
-## 📊 API Reference
+## 🔌 API Reference
 
 ### Main Backend (Port 8000)
 
 | Endpoint | Method | Description |
-|---|---|---|
-| `/vocal_correct` | POST | Apply pitch correction to vocal |
-| `/pitch_scales` | GET | List available musical scales |
-| `/mix_vocal_instrumental` | POST | Mix vocal with instrumental |
+|----------|--------|-------------|
+| `/rvc/convert` | POST | Convert voice using RVC model |
+| `/rvc/models` | GET | List available RVC models |
 | `/detect_bpm_key` | POST | Detect BPM and key from audio |
 | `/demucs_separate` | POST | Separate audio into stems |
 | `/ace_generate` | POST | Generate music with ACE-Step |
@@ -402,189 +286,247 @@ taskkill /F /IM python.exe
 | `/clear_cache` | GET | Clear GPU memory cache |
 | `/health` | GET | Health check |
 
-**Interactive API Docs:** http://localhost:8000/docs
+**Interactive Docs:** http://localhost:8000/docs
 
 ---
 
 ### ACE-Step API (Port 8001)
 
 | Endpoint | Method | Description |
-|---|---|---|
-| `/health` | GET | ACE-Step server status |
+|----------|--------|-------------|
+| `/health` | GET | Server status |
 | `/release_task` | POST | Submit generation task |
 | `/query_result` | POST | Query task result |
 | `/v1/audio` | GET | Download generated audio |
 
-**Interactive API Docs:** http://localhost:8001/docs
+**Interactive Docs:** http://localhost:8001/docs
 
 ---
 
-## 📁 Project Structure
+## 💻 Hardware Requirements
 
-```
-VocalForge/
- ├── backend/
- │    ├── main.py                      # FastAPI server
- │    ├── vocal_pitch_correction.py    # Pitch correction endpoint
- │    ├── endpoints/
- │    │   ├── acestep_advanced.py      # Repaint/Lego/Complete
- │    │   └── acestep_config.py        # ACE-Step configuration
- │    ├── temp/                        # Temporary files
- │    └── output/                      # Generated audio
- │
- ├── frontend/
- │    ├── src/
- │    │   ├── App.jsx                  # Main React app
- │    │   ├── components/
- │    │   │   ├── RVCConversion.jsx    # RVC Voice Conversion UI
- │    │   │   ├── AceStepTab.jsx       # ACE-Step UI
- │    │   │   └── ...
- │    │   └── main.jsx
- │    └── package.json
- │
- ├── core/
- │    ├── engine.py                    # Audio engine
- │    └── modules/                     # Audio processing modules
- │
- ├── ace-step/                          # ACE-Step submodule (separate repo)
- │
- ├── setup.bat                          # One-click setup
- ├── START_ALL.bat                      # Start all services
- ├── start_backend.bat                  # Start backend only
- ├── start_frontend.bat                 # Start frontend only
- ├── start_acestep.bat                  # Start ACE-Step only
- ├── requirements.txt                   # Python dependencies
- └── README.md                          # This file
-```
-
----
-
-## ⚙️ Hardware Requirements
+### Minimum vs Recommended
 
 | Component | Minimum | Recommended |
-|---|---|---|
-| **GPU** | 4GB VRAM (CPU fallback) | RTX 3070 (8GB) or better |
+|-----------|---------|-------------|
+| **GPU** | GTX 1060 (4GB) | RTX 3070 (8GB) or better |
 | **RAM** | 8GB | 16-32GB |
-| **Storage** | 10GB free | 20GB+ SSD |
+| **Storage** | 10GB HDD | 20GB+ SSD |
 | **OS** | Windows 10 | Windows 11 |
 
-### Performance Estimates
+### Performance Benchmarks
 
-| GPU | ACE-Step Generation (60s) | Pitch Correction |
-|---|---|---|
-| RTX 4090 (24GB) | ~30 seconds | Real-time |
-| RTX 3070 (8GB) | ~1-2 minutes | ~10 seconds |
-| RTX 2060 (6GB) | ~3-4 minutes | ~20 seconds |
-| CPU only | ~10-15 minutes | ~1 minute |
+| GPU | ACE-Step (60s) | RVC Conversion | Stem Separation |
+|-----|----------------|----------------|-----------------|
+| **RTX 4090 (24GB)** | ~30 sec | Real-time | ~10 sec |
+| **RTX 3070 (8GB)** | ~1-2 min | ~10 sec | ~20 sec |
+| **RTX 2060 (6GB)** | ~3-4 min | ~20 sec | ~30 sec |
+| **CPU Only** | ~10-15 min | ~1 min | ~2 min |
+
+> 💡 **Tip:** Use Turbo model for faster generation on lower-end GPUs.
+
+---
+
+## 📋 Roadmap
+
+### 🔜 Coming Soon (v1.8)
+
+| Feature | Priority | Status |
+|---------|----------|--------|
+| **Vocal Separator** | 🔥 High | In Development |
+| **Auto Final Mix** | 🔥 High | Planned |
+| **Export Presets** | ⭐ Medium | Planned |
+
+**Vocal Separator:** Upload full song → auto-separate vocals → RVC conversion → remix with instrumental
+
+**Auto Final Mix:** After RVC conversion, automatically mix converted vocal with original instrumental
+
+**Export Presets:** Save favorite settings (e.g., "Preset Kanye Sad", "Preset Florin Happy")
+
+---
+
+### 💡 Future Ideas
+
+- [ ] Batch Processing — Convert multiple vocals at once
+- [ ] Real-time Preview — Hear conversion before render
+- [ ] Model Sharing — Share custom RVC models
+- [ ] Cloud Storage — Save tracks to cloud
+- [ ] VST Plugin — Use VocalForge in DAWs
+- [ ] Mobile App — iOS/Android companion
+
+---
+
+## 📝 Changelog
+
+### v1.7 — Current Release
+
+#### ✅ Added
+- **RVC Voice Conversion** — Complete AI voice transformation
+  - Custom .pth model support
+  - Pitch shifting (±12 semitones)
+  - Emotion control (5 emotions)
+  - Formant preservation
+  - 4 pre-loaded models
+- **Windows Terminal** — Required for multi-tab startup
+- **Enhanced RVC UI** — Improved conversion interface
+
+#### ❌ Removed
+- **Vocal2BGM** — Feature deprecated
+- **Pitch Correction Tab** — Replaced by RVC
+
+#### 🐛 Fixed
+- Unicode encoding errors (Windows compatibility)
+- RVC config path issues
+- RVC argument parsing conflicts
+- RVC array bounds safety
+
+#### 🔧 Technical
+- Added `backend/app.py` (RVC API, port 8002)
+- Added `core/modules/rvc_model.py`
+- Updated `START_ALL.bat` (4 services)
+- Improved error handling
+
+---
+
+### v1.6 — Previous Release
+
+- ACE-Step integration
+- Stem separation (Demucs)
+- Repaint/Lego/Complete
+- Genre presets (50+)
 
 ---
 
 ## 🐛 Troubleshooting
 
 ### Backend won't start
+
 ```bash
 # Check if port 8000 is in use
 netstat -ano | findstr :8000
 
-# Kill process on port 8000
+# Kill process
 taskkill /PID <PID> /F
 
-# Restart backend
+# Restart
 start_backend.bat
 ```
 
+### RVC models not showing
+
+1. Check folder: `D:\VocalForge\RVCWebUI\assets\weights\`
+2. Ensure .pth files are present
+3. Restart RVC service
+
 ### ACE-Step not responding
+
 ```bash
-# Check if ACE-Step is running
+# Check status
 curl http://localhost:8001/health
 
-# Restart ACE-Step
+# Restart
 taskkill /F /IM python.exe
 start_acestep.bat
 ```
 
-### Frontend shows blank page
+### CUDA Out of Memory
+
+- Reduce batch size in settings
+- Use Turbo model (8 steps)
+- Close other GPU applications
+- Lower audio quality settings
+
+### Pitch correction artifacts
+
+- Lower correction strength (50% vs 100%)
+- Enable "Preserve Formant"
+- Use WAV instead of MP3
+- Check input audio quality
+
+### Frontend blank page
+
 ```bash
-# Clear browser cache
-# Or run:
 cd frontend
 npm run build
-```
-
-### CUDA out of memory
-```bash
-# Reduce batch size in settings
-# Use Turbo model instead of Base/SFT
-# Close other GPU applications
-```
-
-### Pitch correction produces artifacts
-- Lower correction strength (try 50% instead of 100%)
-- Enable "Preserve Formant" option
-- Use higher quality input (WAV instead of MP3)
-
----
-
-## 📝 Environment Variables
-
-Create `.env` file in project root:
-
-```env
-# ACE-Step Configuration
-ACE_STEP_API=http://localhost:8001
-ACESTEP_API_KEY=
-
-# Audio Output
-OUTPUT_FORMAT=mp3
-OUTPUT_DIR=output
-
-# GPU Settings
-CUDA_VISIBLE_DEVICES=0
-PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512
+# Clear browser cache (Ctrl+Shift+Delete)
 ```
 
 ---
 
-## 🔧 Development
+## 📂 Project Structure
 
-### Running Tests
-```bash
-cd backend
-pytest
+```
+VocalForge/
+├── backend/
+│   ├── main.py                    # FastAPI server (port 8000)
+│   ├── app.py                     # RVC API (port 8002)
+│   ├── endpoints/
+│   │   ├── rvc_conversion.py      # RVC endpoint
+│   │   └── acestep_advanced.py    # Repaint/Lego/Complete
+│   ├── output/                    # Generated audio
+│   └── temp/                      # Temporary files
+│
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx                # Main React app
+│   │   └── components/
+│   │       ├── RVCConversion.jsx  # RVC UI
+│   │       ├── AceStepTab.jsx     # ACE-Step UI
+│   │       └── ...
+│   └── package.json
+│
+├── core/
+│   ├── modules/
+│   │   ├── rvc_model.py           # RVC wrapper
+│   │   └── ...
+│   └── engine.py
+│
+├── RVCWebUI/                      # RVC submodule
+├── ace-step/                      # ACE-Step submodule
+├── START_ALL.bat                  # Launch all services
+├── setup.bat                      # One-click install
+└── requirements.txt               # Python dependencies
 ```
 
-### Building Frontend for Production
-```bash
-cd frontend
-npm run build
-```
+---
 
-### Code Style
-```bash
-# Python (if ruff installed)
-ruff check backend/
+## 🤝 Contributing
 
-# JavaScript
-cd frontend
-npm run lint
-```
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open Pull Request
 
 ---
 
 ## 📄 License
 
-MIT License - See LICENSE file for details
+MIT License — See [LICENSE](LICENSE) file for details.
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **ACE-Step** - https://github.com/ace-step/ACE-Step
-- **Demucs** - https://github.com/facebookresearch/demucs
-- **Librosa** - https://librosa.org/
-- **FastAPI** - https://fastapi.tiangolo.com/
-- **React** - https://react.dev/
+- **[ACE-Step](https://github.com/ace-step/ACE-Step)** — Music generation
+- **[RVC-WebUI](https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI)** — Voice conversion
+- **[Demucs](https://github.com/facebookresearch/demucs)** — Stem separation
+- **[Librosa](https://librosa.org/)** — Audio analysis
+- **[FastAPI](https://fastapi.tiangolo.com/)** — Backend framework
+- **[React](https://react.dev/)** — Frontend framework
 
 ---
 
-*VocalForge v1.7 — Beta Ready · Last Updated: March 2026*
+## 📞 Support
+
+- **Issues:** [GitHub Issues](https://github.com/iulicafarafrica/VocalForge/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/iulicafarafrica/VocalForge/discussions)
+- **Demo:** [YouTube](https://www.youtube.com/watch?v=8XSwCM7bM1A)
+
+---
+
+<p align="center">
+  <strong>VocalForge v1.7</strong> — Made with ❤️ for music creators
+  <br>
+  <sub>Last Updated: March 2026</sub>
+</p>
