@@ -167,8 +167,8 @@ Backup/
 # ======================
 # Qwen/Minimax skills (config local)
 # ======================
-.qwen/skills/
-.minimax/skills/
+.qwen/
+.minimax/
 .tmp/
 ace-step-ui-ref
 .pip_cache/
