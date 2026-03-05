@@ -16,6 +16,9 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
   const [emotion, setEmotion] = useState("neutral");
   const [f0Method, setF0Method] = useState("rmvpe");
   const [indexRate, setIndexRate] = useState(0.75);
+  const [dryWet, setDryWet] = useState(1.0);
+  const [formantShift, setFormantShift] = useState(0.0);
+  const [autoTune, setAutoTune] = useState(false);
   const [converting, setConverting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState(null);
@@ -86,6 +89,9 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
     fd.append("rms_mix_rate", "0.25");
     fd.append("protect", "0.33");
     fd.append("output_format", "mp3");
+    fd.append("dry_wet", dryWet.toString());
+    fd.append("formant_shift", formantShift.toString());
+    fd.append("auto_tune", autoTune.toString());
 
     const progressTimer = setInterval(() => {
       setProgress(prev => Math.min(prev + 10, 90));
@@ -347,6 +353,63 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
               {Math.round(indexRate * 100)}% retrieval
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* New Features: Dry/Wet, Formant, AutoTune */}
+      <div style={S.card}>
+        <span style={S.label}>✨ Funcții Avansate</span>
+        <div style={S.grid}>
+          <div>
+            <span style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>
+              💧 Dry/Wet Mix ({Math.round(dryWet * 100)}% converted)
+            </span>
+            <input
+              type="range" min="0" max="1" step="0.05"
+              value={dryWet}
+              onChange={(e) => setDryWet(parseFloat(e.target.value))}
+              style={{ width: "100%" }}
+            />
+            <div style={{ color: "#444466", fontSize: 10, marginTop: 4, display: "flex", justifyContent: "space-between" }}>
+              <span>0% = Original</span><span>100% = Converted</span>
+            </div>
+          </div>
+          <div>
+            <span style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>
+              🎵 Formant Shift ({formantShift > 0 ? "+" : ""}{formantShift} semitones)
+            </span>
+            <input
+              type="range" min="-6" max="6" step="0.5"
+              value={formantShift}
+              onChange={(e) => setFormantShift(parseFloat(e.target.value))}
+              style={{ width: "100%" }}
+            />
+            <div style={{ color: "#444466", fontSize: 10, marginTop: 4, display: "flex", justifyContent: "space-between" }}>
+              <span>-6 (bas)</span><span>+6 (înalt)</span>
+            </div>
+          </div>
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+            <div
+              onClick={() => setAutoTune(!autoTune)}
+              style={{
+                width: 40, height: 22, borderRadius: 11,
+                background: autoTune ? "#ff6b9d" : "#2a2a4a",
+                position: "relative", transition: "background 0.2s", cursor: "pointer",
+              }}
+            >
+              <div style={{
+                width: 18, height: 18, borderRadius: "50%", background: "#fff",
+                position: "absolute", top: 2,
+                left: autoTune ? 20 : 2,
+                transition: "left 0.2s",
+              }} />
+            </div>
+            <span style={{ color: "#a0a0cc", fontSize: 13 }}>
+              🎯 Auto-Tune — corectează automat notele false după conversie
+            </span>
+          </label>
         </div>
       </div>
 

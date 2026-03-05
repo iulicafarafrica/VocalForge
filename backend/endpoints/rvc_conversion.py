@@ -46,6 +46,9 @@ async def rvc_convert(
     rms_mix_rate: float = Form(0.25, description="Mix ratio original/converted"),
     protect: float = Form(0.33, description="Protection for voiceless consonants"),
     output_format: str = Form("mp3", description="Output format: wav, mp3, flac"),
+    dry_wet: float = Form(1.0, description="Dry/Wet mix: 0.0=original, 1.0=converted"),
+    formant_shift: float = Form(0.0, description="Formant shift in semitones (-6 to +6)"),
+    auto_tune: bool = Form(False, description="Apply auto-tune pitch correction"),
 ):
     """
     Convert voice using RVC model.
@@ -103,6 +106,9 @@ async def rvc_convert(
             filter_radius=filter_radius,
             rms_mix_rate=rms_mix_rate,
             protect=protect,
+            dry_wet=dry_wet,
+            formant_shift=formant_shift,
+            auto_tune=auto_tune,
         )
         
         # Save output
@@ -143,6 +149,9 @@ async def rvc_convert(
             "emotion": emotion,
             "f0_method": f0_method,
             "index_rate": index_rate,
+            "dry_wet": dry_wet,
+            "formant_shift": formant_shift,
+            "auto_tune": auto_tune,
         })
         
     except Exception as e:

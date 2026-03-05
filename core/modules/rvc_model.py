@@ -10,6 +10,7 @@ import numpy as np
 import soundfile as sf
 import librosa
 from io import BytesIO
+import tempfile
 
 # Add RVCWebUI to path
 RVC_DIR = r"D:\VocalForge\RVCWebUI"
@@ -126,6 +127,9 @@ class RVCModel:
         protect=0.33,
         f0_method="rmvpe",
         index_rate=0.75,
+        dry_wet=1.0,
+        formant_shift=0.0,
+        auto_tune=False,
         **kwargs
     ):
         """
@@ -140,6 +144,9 @@ class RVCModel:
             protect: Protection level for voiceless consonants
             f0_method: F0 extraction method ("pm", "harvest", "crepe", "rmvpe")
             index_rate: Retrieval index usage ratio (0-1)
+            dry_wet: Mix ratio 0.0=original only, 1.0=converted only
+            formant_shift: Formant shift in semitones (-6 to +6)
+            auto_tune: Apply basic auto-tune pitch correction
             
         Returns:
             Converted audio (numpy array)
@@ -155,9 +162,9 @@ class RVCModel:
         # Handle file path or audio array
         if isinstance(audio, str):
             input_path = audio
+            original_audio_for_mix, _ = librosa.load(audio, sr=None, mono=True)
         else:
-            # Save audio to temp file
-            import tempfile
+            original_audio_for_mix = audio.copy().astype(np.float32)
             fd, input_path = tempfile.mkstemp(suffix=".wav")
             os.close(fd)
             sf.write(input_path, audio, sr)
@@ -209,7 +216,93 @@ class RVCModel:
             if max_val > 0.95:
                 audio_data = audio_data * (0.95 / max_val)
                 print(f"[RVC] Normalized audio (peak was {max_val:.3f})")
+
+            # ── Spectral Denoiser (reduce RVC artifacts/noise) ────────
+            # Uses spectral subtraction: estimate noise floor from silent
+            # regions and subtract it from the full signal
+            try:
+                D = librosa.stft(audio_data, n_fft=2048, hop_length=512)
+                magnitude = np.abs(D)
+                phase = np.angle(D)
+
+                # Estimate noise floor from quietest 10% of frames
+                frame_energy = magnitude.mean(axis=0)
+                noise_threshold = np.percentile(frame_energy, 10)
+                noise_frames = magnitude[:, frame_energy <= noise_threshold]
+                if noise_frames.shape[1] > 0:
+                    noise_profile = noise_frames.mean(axis=1, keepdims=True)
+                    # Spectral subtraction with over-subtraction factor
+                    alpha = 2.0  # over-subtraction factor
+                    magnitude_denoised = np.maximum(
+                        magnitude - alpha * noise_profile,
+                        0.1 * magnitude  # keep at least 10% to avoid musical noise
+                    )
+                    D_denoised = magnitude_denoised * np.exp(1j * phase)
+                    audio_data = librosa.istft(D_denoised, hop_length=512, length=len(audio_data))
+                    audio_data = audio_data.astype(np.float32)
+                    # Re-normalize after denoising
+                    max_val2 = np.abs(audio_data).max()
+                    if max_val2 > 0:
+                        audio_data = audio_data * (0.95 / max_val2)
+                    print(f"[RVC] Spectral denoising applied")
+            except Exception as dn_err:
+                print(f"[RVC] Denoiser skipped: {dn_err}")
             
+            # ── Formant Shift ─────────────────────────────────────────
+            if formant_shift != 0.0:
+                shift_factor = 2 ** (formant_shift / 12.0)
+                audio_len = len(audio_data)
+                audio_stretched = librosa.effects.time_stretch(audio_data, rate=shift_factor)
+                # Resample back to original length to preserve timing
+                audio_data = librosa.resample(audio_stretched, orig_sr=int(tgt_sr * shift_factor), target_sr=tgt_sr)
+                # Trim or pad to original length
+                if len(audio_data) > audio_len:
+                    audio_data = audio_data[:audio_len]
+                else:
+                    audio_data = np.pad(audio_data, (0, audio_len - len(audio_data)))
+                print(f"[RVC] Formant shift: {formant_shift:+.1f} semitones")
+
+            # ── Auto-Tune (basic pitch snap) ──────────────────────────
+            if auto_tune:
+                try:
+                    f0_at, voiced_flag, _ = librosa.pyin(
+                        audio_data, fmin=librosa.note_to_hz("C2"),
+                        fmax=librosa.note_to_hz("C7"), sr=tgt_sr
+                    )
+                    if f0_at is not None and np.any(voiced_flag):
+                        # Snap each voiced frame to nearest semitone
+                        f0_midi = librosa.hz_to_midi(np.where(voiced_flag, f0_at, np.nan))
+                        f0_snapped = librosa.midi_to_hz(np.round(f0_midi))
+                        shift_cents = np.nanmean(
+                            1200 * np.log2(np.where(voiced_flag, f0_snapped / (f0_at + 1e-9), 1.0))
+                        )
+                        if not np.isnan(shift_cents) and abs(shift_cents) > 1:
+                            shift_semitones = shift_cents / 100.0
+                            audio_data = librosa.effects.pitch_shift(
+                                audio_data, sr=tgt_sr, n_steps=shift_semitones
+                            )
+                            print(f"[RVC] Auto-tune: {shift_semitones:+.2f} semitones correction")
+                except Exception as at_err:
+                    print(f"[RVC] Auto-tune skipped: {at_err}")
+
+            # ── Dry/Wet Mix ───────────────────────────────────────────
+            if dry_wet < 1.0:
+                # Resample original to match converted sr and length
+                orig_resampled = librosa.resample(
+                    original_audio_for_mix.astype(np.float32), orig_sr=sr, target_sr=tgt_sr
+                )
+                target_len = len(audio_data)
+                if len(orig_resampled) > target_len:
+                    orig_resampled = orig_resampled[:target_len]
+                else:
+                    orig_resampled = np.pad(orig_resampled, (0, target_len - len(orig_resampled)))
+                audio_data = dry_wet * audio_data + (1.0 - dry_wet) * orig_resampled
+                # Re-normalize after mix
+                max_val2 = np.abs(audio_data).max()
+                if max_val2 > 0.95:
+                    audio_data = audio_data * (0.95 / max_val2)
+                print(f"[RVC] Dry/Wet mix: {int(dry_wet*100)}% converted / {int((1-dry_wet)*100)}% original")
+
             print(f"[RVC] Conversion complete: {len(audio_data)} samples @ {tgt_sr}Hz")
             
             return audio_data, tgt_sr
