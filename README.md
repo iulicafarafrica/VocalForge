@@ -3,11 +3,24 @@
 ## Modular AI Audio Framework — Auto-Adaptive, Stable, Beta Ready
 
 **VocalForge** is a complete AI music production application featuring:
-- 🎤 **Vocal Pitch Correction** (Auto-Tune style)
+- 🎤 **Vocal Pitch Correction** (Auto-Tune style) `🚧 Work in Progress`
 - 🎵 **ACE-Step Music Generation** (Text-to-Music, Audio Cover)
-- 🎼 **Vocal2BGM** (Transform vocal to full song)
+- 🎼 **Vocal2BGM** (Transform vocal to full song) `🚧 Work in Progress`
 - 🎚️ **Stem Separation** (Demucs)
 - 🎹 **Repaint/Lego/Complete** (Audio editing)
+
+---
+
+## 🚧 Work in Progress (WIP)
+
+The following features are currently under active development:
+
+| Feature | Status | Notes |
+|---|---|---|
+| **Vocal Pitch Correction** | 🚧 Beta | Auto-tune style pitch correction with scale matching. Basic functionality works, fine-tuning in progress. |
+| **Vocal2BGM** | 🚧 Beta | Transform acapella vocals into full songs with AI-generated instrumental. Beat alignment and mixing being optimized. |
+
+> 💡 These features are functional but may produce inconsistent results. Feedback and testing are welcome!
 
 ---
 
