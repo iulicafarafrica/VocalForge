@@ -55,7 +55,7 @@ export default function RepaintLegoComplete() {
     const modelName = ditModel.replace('acestep-v15-', '').toUpperCase();
     const steps = ditModel.includes('turbo') ? '8' : '50';
     console.log(`[Repaint/Lego/Complete] Model: ${modelName} | Inference Steps: ${steps}`);
-  }, [ditModel]);
+  }, [ditModel, mode]);
   
   const [audioCoverStrength, setAudioCoverStrength] = useState(1.0);
   const [isProcessing, setIsProcessing] = useState(false);

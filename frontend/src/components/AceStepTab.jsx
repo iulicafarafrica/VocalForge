@@ -652,13 +652,20 @@ export default function AceStepTab({
   // ── Tensor Model Selection ────────────────────────────────────────────────
   const [tensorModel, setTensorModel] = useState("acestep-v15-turbo"); // default
 
-  // Log model changes to console for debugging
+  // Log model changes to console AND app logs
   useEffect(() => {
     const modelInfo = TENSOR_MODELS.find(m => m.id === tensorModel);
+    const modelName = modelInfo?.name || 'Unknown';
+    const steps = modelInfo?.steps || 'N/A';
+    const cfg = modelInfo?.cfg ? '✅' : '❌';
+    
     console.log(`[ACE-Step] DIT Model changed to: ${tensorModel}`);
-    console.log(`[ACE-Step] Model: ${modelInfo?.name || 'Unknown'} | Steps: ${modelInfo?.steps || 'N/A'} | CFG: ${modelInfo?.cfg ? '✅' : '❌'}`);
+    console.log(`[ACE-Step] Model: ${modelName} | Steps: ${steps} | CFG: ${cfg}`);
     console.log(`[ACE-Step] Features: ${modelInfo?.features || 'Standard'}`);
-  }, [tensorModel]);
+    
+    // Also show in app Logs Panel
+    addLog(`🔄 Model switched: ${modelName} (${steps} steps, CFG: ${cfg})`);
+  }, [tensorModel, addLog]);
 
   const TENSOR_MODELS = [
     { id: "acestep-v15-turbo", name: "⚡ Turbo", desc: "8 steps │ CFG: ❌ │ Fast", color: "#06d6a0", steps: 8, cfg: false, features: "Standard" },
@@ -800,16 +807,22 @@ export default function AceStepTab({
     setProgressLabel("Submitting to ACE-Step...");
     setResult(null);
     
-    // Log generation parameters to console
+    // Log generation parameters to console AND app logs
     const modelInfo = TENSOR_MODELS.find(m => m.id === tensorModel);
+    const modelName = modelInfo?.name || 'Unknown';
+    const steps = modelInfo?.steps || 'N/A';
+    
     console.log(`[ACE-Step] === GENERATION START ===`);
-    console.log(`[ACE-Step] Model: ${tensorModel} (${modelInfo?.name || 'Unknown'})`);
-    console.log(`[ACE-Step] Steps: ${modelInfo?.steps || 'N/A'} | CFG: ${guidanceScale} | Duration: ${duration}s`);
+    console.log(`[ACE-Step] Model: ${tensorModel} (${modelName})`);
+    console.log(`[ACE-Step] Steps: ${steps} | CFG: ${guidanceScale} | Duration: ${duration}s`);
     console.log(`[ACE-Step] Task Type: ${taskType} | Prompt: "${prompt.slice(0, 50)}..."`);
-    console.log(`[ACE-Step] Language: ${vocalLanguage} | Instrumental: ${lyrics.trim() === "" || vocalLanguage === "unknown"}`);
-    if (bpm > 0) console.log(`[ACE-Step] BPM: ${bpm}`);
-    if (keyScale) console.log(`[ACE-Step] Key: ${keyScale}`);
     console.log(`[ACE-Step] =========================`);
+    
+    // Also show in app Logs Panel
+    addLog(`🎵 Model: ${modelName} (${steps} steps)`);
+    addLog(`🎛 CFG: ${guidanceScale} | Duration: ${duration}s | Lang: ${vocalLanguage}`);
+    if (bpm > 0) addLog(`🥁 BPM: ${bpm}`);
+    if (keyScale) addLog(`🎹 Key: ${keyScale}`);
     
     addLog(`[OK] ACE-Step: generating ${duration}s | "${prompt.slice(0, 50)}..."`);
 

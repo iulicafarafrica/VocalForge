@@ -22,14 +22,16 @@ export default function Vocal2BGM({ addLog, tracks, setTracks }) {
 
   const fileInputRef = useRef(null);
 
-  // Log model changes to console
+  // Log model changes to console AND app logs
   useEffect(() => {
     console.log(`[Vocal2BGM] DIT Model selected: ${model}`);
     const modelName = model.replace("acestep-v15-", "").toUpperCase();
-    console.log(`[Vocal2BGM] Model type: ${modelName}`);
     const steps = model.includes("turbo") ? "8" : "50";
-    console.log(`[Vocal2BGM] Inference steps: ${steps}`);
-  }, [model]);
+    console.log(`[Vocal2BGM] Model type: ${modelName} | Steps: ${steps}`);
+    
+    // Also show in app Logs Panel
+    addLog(`🎵 Vocal2BGM Model: ${modelName} (${steps} steps)`);
+  }, [model, addLog]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
