@@ -829,38 +829,17 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
                 <div><div style={{fontSize:28,marginBottom:6}}>📁</div><div style={{color:"#6666aa"}}>Click pentru a uploada piesa</div></div>
               )}
             </div>
-            
-            {/* Model Selector */}
             <div style={{ marginTop: 16 }}>
               <span style={{ ...S.label, display: "block", marginBottom: 8 }}>🏆 Model Separare</span>
-              <select
-                value={separateModel}
-                onChange={(e) => setSeparateModel(e.target.value)}
-                style={{
-                  width: "100%",
-                  background: "#080812",
-                  border: "1px solid #2a2a4a",
-                  color: "#e0e0ff",
-                  borderRadius: 8,
-                  padding: "10px 12px",
-                  fontSize: 13,
-                  outline: "none",
-                  fontFamily: "inherit",
-                }}
-              >
+              <select value={separateModel} onChange={(e) => setSeparateModel(e.target.value)} style={{...S.input, fontFamily: "monospace"}}>
                 <option value="bs_roformer">🏆 BS-RoFormer (SDR 12.97) - Cea mai bună calitate</option>
-                <option value="htdemucs">⚡ htdemucs - Rapid (bună calitate)</option>
-                <option value="htdemucs_ft">🎯 htdemucs_ft - Mai bun (mai lent)</option>
-                <option value="htdemucs_6s">🎸 htdemucs_6s - 6 stems (guitar, piano)</option>
+                <option value="htdemucs">⚡ htdemucs - Rapid</option>
+                <option value="htdemucs_ft">🎯 htdemucs_ft - Mai bun</option>
+                <option value="htdemucs_6s">🎸 htdemucs_6s - 6 stems</option>
               </select>
-              <div style={{ color: "#6666aa", fontSize: 11, marginTop: 6 }}>
-                💡 BS-RoFormer oferă cea mai bună separare voce/instrumental (SDR 12.97)
-              </div>
             </div>
-            
-            <button onClick={handleSeparate} disabled={!fullSongFile || separating}
-              style={{...S.btn, width:"100%", marginTop:12, opacity: (!fullSongFile||separating)?0.5:1}}>
-              {separating ? "⏳ Se separă... (poate dura 1-2 min)" : "✂️ Separă Voce + Instrumental"}
+            <button onClick={handleSeparate} disabled={!fullSongFile || separating} style={{...S.btn, width:"100%", marginTop:12}}>
+              {separating ? "⏳ Se separă..." : "✂️ Separă Voce + Instrumental"}
             </button>
           </div>
           {separatedVocals && (
@@ -869,13 +848,13 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
               <div style={{marginBottom:10}}>
                 <div style={{color:"#6666aa",fontSize:11,marginBottom:4}}>🎤 VOCALE</div>
                 <audio controls src={separatedVocals.url} style={{width:"100%",marginBottom:6}}/>
-                <a href={separatedVocals.url} download={separatedVocals.filename} style={{color:"#ff6b9d",fontSize:12}}>⬇ Download vocale</a>
+                <a href={separatedVocals.url} download={separatedVocals.filename} style={{color:"#ff6b9d",fontSize:12}}>⬇ Download</a>
               </div>
               {separatedInstrumental && (
                 <div>
                   <div style={{color:"#6666aa",fontSize:11,marginBottom:4}}>🎹 INSTRUMENTAL</div>
                   <audio controls src={separatedInstrumental.url} style={{width:"100%",marginBottom:6}}/>
-                  <a href={separatedInstrumental.url} download={separatedInstrumental.filename} style={{color:"#ff6b9d",fontSize:12}}>⬇ Download instrumental</a>
+                  <a href={separatedInstrumental.url} download={separatedInstrumental.filename} style={{color:"#ff6b9d",fontSize:12}}>⬇ Download</a>
                 </div>
               )}
             </div>
@@ -887,15 +866,11 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
       {activeTab === "mix" && (
         <div>
           <div style={S.card}>
-            <span style={S.label}>🎚 Mix Voce Convertită + Instrumental</span>
+            <span style={S.label}>🎚 Mix Voce + Instrumental</span>
             {!result ? (
-              <div style={{color:"#ff6b9d",fontSize:13,padding:12,background:"#ff6b9d11",borderRadius:8}}>
-                ⚠️ Mai întâi convertește o voce în tab-ul Convert, apoi revino aici.
-              </div>
+              <div style={{color:"#ff6b9d",fontSize:13,padding:12,background:"#ff6b9d11",borderRadius:8}}>⚠️ Converetește o voce în Convert tab</div>
             ) : !separatedInstrumental ? (
-              <div style={{color:"#ff6b9d",fontSize:13,padding:12,background:"#ff6b9d11",borderRadius:8}}>
-                ⚠️ Mai întâi separă o piesă în tab-ul Separate pentru a obține instrumentalul.
-              </div>
+              <div style={{color:"#ff6b9d",fontSize:13,padding:12,background:"#ff6b9d11",borderRadius:8}}>⚠️ Separă o piesă în Separate tab</div>
             ) : (
               <div>
                 <div style={{color:"#a0a0cc",fontSize:13,marginBottom:12}}>
@@ -912,25 +887,17 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
                     <input type="range" min="0.1" max="2" step="0.05" value={instrumentalVolume} onChange={e=>setInstrumentalVolume(parseFloat(e.target.value))} style={{width:"100%"}}/>
                   </div>
                 </div>
-                <button onClick={handleMix} disabled={mixing}
-                  style={{...S.btn, width:"100%", marginTop:12, opacity:mixing?0.5:1}}>
+                <button onClick={handleMix} disabled={mixing} style={{...S.btn, width:"100%", marginTop:12}}>
                   {mixing ? "⏳ Se mixează..." : "🎚 Creează Mix Final"}
                 </button>
               </div>
             )}
           </div>
           {mixResult && (
-            <div style={{...S.card, borderLeft: "4px solid #06d6a0"}}>
+            <div style={{...S.card, borderLeft:"4px solid #06d6a0"}}>
               <span style={{...S.label, color:"#06d6a0"}}>✅ Mix Final!</span>
-              <div style={{color:"#a0a0cc",fontSize:13,marginBottom:12}}>
-                <div>🎵 <strong>{mixResult.filename}</strong></div>
-                <div>⏱ Duration: {mixResult.duration}s · 💾 {mixResult.size} MB</div>
-              </div>
-              <audio controls src={mixResult.url} style={{width:"100%",marginBottom:12}}/>
-              <div style={{display:"flex",gap:8}}>
-                <a href={mixResult.url} download={mixResult.filename} style={{flex:1,textAlign:"center",background:"#06d6a022",color:"#06d6a0",border:"1px solid #06d6a044",padding:"10px",borderRadius:8,fontSize:13,fontWeight:700,textDecoration:"none"}}>⬇ Download</a>
-                <button onClick={()=>setMixResult(null)} style={{background:"#e6394622",color:"#e63946",border:"1px solid #e6394644",padding:"10px 16px",borderRadius:8,fontSize:13,cursor:"pointer"}}>✕ Close</button>
-              </div>
+              <audio controls src={mixResult.url} style={{width:"100%",margin: "12px 0"}}/>
+              <a href={mixResult.url} download={mixResult.filename} style={{color:"#06d6a0",fontSize:12}}>⬇ Download</a>
             </div>
           )}
         </div>
@@ -940,13 +907,10 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
       {activeTab === "presets" && (
         <div>
           <div style={S.card}>
-            <span style={S.label}>💾 Salvează Preset Nou</span>
+            <span style={S.label}>💾 Salvează Preset</span>
             <div style={{display:"grid",gridTemplateColumns:"1fr auto",gap:8,marginBottom:12}}>
-              <input type="text" placeholder="Nume preset (ex: 'Kanye Sad')" value={presetName} onChange={(e)=>setPresetName(e.target.value)} style={S.input}/>
-              <button onClick={savePreset} disabled={!presetName.trim()} style={{...S.btn,padding:"10px 20px"}}>💾 Salvează</button>
-            </div>
-            <div style={{color:"#6666aa",fontSize:11}}>
-              Curent: <strong>{selectedModel}</strong> · Pitch: <strong>{pitchShift}</strong> · Emotion: <strong>{emotion}</strong> · Index: <strong>{Math.round(indexRate*100)}%</strong>
+              <input type="text" placeholder="Nume preset" value={presetName} onChange={(e)=>setPresetName(e.target.value)} style={S.input}/>
+              <button onClick={savePreset} disabled={!presetName.trim()} style={{...S.btn}}>💾 Salvează</button>
             </div>
           </div>
           {Object.keys(presets).length > 0 && (
@@ -955,8 +919,8 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
               {Object.entries(presets).map(([name,p]) => (
                 <div key={name} style={{padding:"10px 0",borderBottom:"1px solid #0d0d1a",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                   <div>
-                    <div style={{color:"#e0e0ff",fontWeight:700,marginBottom:2}}>{name}</div>
-                    <div style={{color:"#6666aa",fontSize:11}}>{p.model_name} · Pitch: {p.pitch_shift} · {p.emotion}</div>
+                    <div style={{color:"#e0e0ff",fontWeight:700}}>{name}</div>
+                    <div style={{color:"#6666aa",fontSize:11}}>{p.model_name} · Pitch: {p.pitch_shift}</div>
                   </div>
                   <div style={{display:"flex",gap:6}}>
                     <button onClick={()=>loadPreset(name)} style={{background:"#06d6a022",color:"#06d6a0",border:"1px solid #06d6a044",padding:"6px 12px",borderRadius:6,fontSize:11,cursor:"pointer"}}>📥 Load</button>
