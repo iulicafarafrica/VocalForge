@@ -23,6 +23,7 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
 
   // Vocal separator state
   const [fullSongFile, setFullSongFile] = useState(null);
+  const [separateModel, setSeparateModel] = useState("bs_roformer");
   const [separating, setSeparating] = useState(false);
   const [separatedVocals, setSeparatedVocals] = useState(null);
   const [separatedInstrumental, setSeparatedInstrumental] = useState(null);
@@ -121,10 +122,10 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
     setSeparating(true);
     setSeparatedVocals(null);
     setSeparatedInstrumental(null);
-    addLog(`🎵 Separare vocale: ${fullSongFile.name}`);
+    addLog(`🎵 Separare vocale: ${fullSongFile.name} (${separateModel})`);
     const fd = new FormData();
     fd.append("audio_file", fullSongFile);
-    fd.append("model", "htdemucs");
+    fd.append("model", separateModel);
     try {
       const res = await fetch(`${API}/rvc/separate`, { method: "POST", body: fd });
       const data = await res.json();
@@ -646,6 +647,35 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
                 <div><div style={{fontSize:28,marginBottom:6}}>📁</div><div style={{color:"#6666aa"}}>Click pentru a uploada piesa</div></div>
               )}
             </div>
+            
+            {/* Model Selector */}
+            <div style={{ marginTop: 16 }}>
+              <span style={{ ...S.label, display: "block", marginBottom: 8 }}>🏆 Model Separare</span>
+              <select
+                value={separateModel}
+                onChange={(e) => setSeparateModel(e.target.value)}
+                style={{
+                  width: "100%",
+                  background: "#080812",
+                  border: "1px solid #2a2a4a",
+                  color: "#e0e0ff",
+                  borderRadius: 8,
+                  padding: "10px 12px",
+                  fontSize: 13,
+                  outline: "none",
+                  fontFamily: "inherit",
+                }}
+              >
+                <option value="bs_roformer">🏆 BS-RoFormer (SDR 12.97) - Cea mai bună calitate</option>
+                <option value="htdemucs">⚡ htdemucs - Rapid (bună calitate)</option>
+                <option value="htdemucs_ft">🎯 htdemucs_ft - Mai bun (mai lent)</option>
+                <option value="htdemucs_6s">🎸 htdemucs_6s - 6 stems (guitar, piano)</option>
+              </select>
+              <div style={{ color: "#6666aa", fontSize: 11, marginTop: 6 }}>
+                💡 BS-RoFormer oferă cea mai bună separare voce/instrumental (SDR 12.97)
+              </div>
+            </div>
+            
             <button onClick={handleSeparate} disabled={!fullSongFile || separating}
               style={{...S.btn, width:"100%", marginTop:12, opacity: (!fullSongFile||separating)?0.5:1}}>
               {separating ? "⏳ Se separă... (poate dura 1-2 min)" : "✂️ Separă Voce + Instrumental"}
