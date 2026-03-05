@@ -39,7 +39,7 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
   const [showPresets, setShowPresets] = useState(false);
 
   // Active tab
-  const [activeTab, setActiveTab] = useState("convert");
+  const [activeTab, setActiveTab] = useState("separate");
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
@@ -312,7 +312,7 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
 
         {/* Tabs */}
         <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-          {[["convert","🎤 Convert"],["separate","✂️ Separate"],["mix","🎚 Mix"],["presets","💾 Presets"]].map(([id, label]) => (
+          {[["separate","✂️ Separate"],["convert","🎤 Convert"],["mix","🎚 Mix"],["presets","💾 Presets"]].map(([id, label]) => (
             <button key={id} onClick={() => setActiveTab(id)} style={{
               padding: "8px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600,
               background: activeTab === id ? "linear-gradient(135deg,#ff6b9d,#ff8fab)" : "#1a1a2e",
