@@ -36,6 +36,25 @@ The following features are currently under active development:
 
 ---
 
+## 📋 TODO - Planned Features
+
+### 🔜 Coming Soon
+
+| Feature | Priority | Description |
+|---|---|---|
+| **Vocal Separator** | 🔥 High | Upload full song and auto-separate vocals before RVC (Demucs already integrated!) |
+| **Auto Final Mix** | 🔥 High | After RVC conversion, automatically mix converted vocal back with original instrumental |
+| **Export Presets** | ⭐ Medium | Save favorite settings as presets (e.g., "Preset Kanye Sad", "Preset Florin Happy") |
+
+### 💡 Future Ideas
+
+- **Batch Processing** - Convert multiple vocals in one go
+- **Real-time Preview** - Hear conversion before final render
+- **Model Sharing** - Share custom RVC models with community
+- **Cloud Storage** - Save tracks and presets to cloud
+
+---
+
 ## 📝 Changelog (Latest Updates)
 
 ### v1.7 - Recent Changes
