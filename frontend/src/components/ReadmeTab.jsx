@@ -96,12 +96,12 @@ const features = [
     Icon: Sliders, color: "#00e5ff", bg: "#00e5ff15",
     title: "Stem Separation", sub: "Demucs + BS-RoFormer",
     items: [
-      "BS-RoFormer SDR 12.97 — cea mai buna calitate vocale/instrumental",
-      "htdemucs / htdemucs_ft / htdemucs_6s — 4 sau 6 stems",
-      "Moduri: Vocals Only, Instrumental Only, All Stems",
-      "Auto-detect model optim in functie de VRAM disponibil",
-      "Chunking adaptiv pentru GPU-uri cu VRAM mic (3s/5.8s/11s chunks)",
-      "Fallback automat BS-RoFormer → htdemucs daca audio-separator lipseste",
+      "BS-RoFormer SDR 12.97 — best vocal/instrumental quality",
+      "htdemucs / htdemucs_ft / htdemucs_6s — 4 or 6 stems",
+      "Modes: Vocals Only, Instrumental Only, All Stems",
+      "Auto-detect optimal model based on available VRAM",
+      "Adaptive chunking for low VRAM GPUs (3s/5.8s/11s chunks)",
+      "Auto fallback BS-RoFormer → htdemucs if audio-separator missing",
     ],
   },
   {
@@ -248,65 +248,65 @@ const changelog = [
 ];
 
 const apis = [
-  { method: "POST", color: "#06d6a0", path: "/ace_generate", desc: "Generare muzica ACE-Step" },
-  { method: "GET",  color: "#00e5ff", path: "/ace_health",   desc: "Status ACE-Step server" },
+  { method: "POST", color: "#06d6a0", path: "/ace_generate", desc: "ACE-Step music generation" },
+  { method: "GET",  color: "#00e5ff", path: "/ace_health",   desc: "ACE-Step server status" },
   { method: "POST", color: "#06d6a0", path: "/process_cover", desc: "Full voice cover" },
-  { method: "POST", color: "#06d6a0", path: "/preview",       desc: "Preview 10s rapid" },
-  { method: "POST", color: "#06d6a0", path: "/demucs_separate", desc: "Separare stems" },
+  { method: "POST", color: "#06d6a0", path: "/preview",       desc: "10s rapid preview" },
+  { method: "POST", color: "#06d6a0", path: "/demucs_separate", desc: "Separate stems" },
   { method: "POST", color: "#06d6a0", path: "/karaoke",       desc: "Karaoke (remove vocals)" },
   { method: "POST", color: "#06d6a0", path: "/lyrics_cover",  desc: "TTS + SVC cover" },
-  { method: "GET",  color: "#00e5ff", path: "/list_models",   desc: "Lista modele SVC" },
+  { method: "GET",  color: "#00e5ff", path: "/list_models",   desc: "List SVC models" },
   { method: "POST", color: "#06d6a0", path: "/upload_model",  desc: "Upload model .pth" },
-  { method: "DEL",  color: "#e63946", path: "/delete_model/{id}", desc: "Sterge model" },
-  { method: "GET",  color: "#00e5ff", path: "/hardware",      desc: "Info hardware" },
-  { method: "GET",  color: "#00e5ff", path: "/vram_usage",    desc: "VRAM curent" },
-  { method: "GET",  color: "#00e5ff", path: "/clear_cache",   desc: "Elibereaza VRAM" },
+  { method: "DEL",  color: "#e63946", path: "/delete_model/{id}", desc: "Delete model" },
+  { method: "GET",  color: "#00e5ff", path: "/hardware",      desc: "Hardware info" },
+  { method: "GET",  color: "#00e5ff", path: "/vram_usage",    desc: "Current VRAM" },
+  { method: "GET",  color: "#00e5ff", path: "/clear_cache",   desc: "Clear GPU cache" },
   { method: "GET",  color: "#00e5ff", path: "/unload_models", desc: "Unload all models" },
   { method: "GET",  color: "#00e5ff", path: "/job/{id}/progress", desc: "SSE progress stream" },
-  { method: "GET",  color: "#00e5ff", path: "/job/{id}/status",   desc: "Status job polling" },
-  { method: "GET",  color: "#00e5ff", path: "/tracks/{file}", desc: "Descarca fisier audio" },
+  { method: "GET",  color: "#00e5ff", path: "/job/{id}/status",   desc: "Job status polling" },
+  { method: "GET",  color: "#00e5ff", path: "/tracks/{file}", desc: "Download audio file" },
 ];
 
 const todos = [
   {
     icon: "🎨", color: "#7209b7", bg: "#7209b720",
     title: "Style Transfer Module",
-    desc: "Input Reference Track pentru stil, Slider Style Intensity (0-100%), Preview instant pe segment selectat, Aplicare per segment sau pe toate segmentele simultan, Export cover cu stil transfer aplicat",
+    desc: "Input Reference Track for style, Style Intensity slider (0-100%), Instant preview on selected segment, Apply per segment or all segments simultaneously, Export cover with style transfer applied",
   },
   {
     icon: "💡", color: "#00e5ff", bg: "#00e5ff20",
     title: "Segment Suggestion Module",
-    desc: "AI sugerează segmente noi (pre-chorus, breakdown, build-up) pe baza structurii și genului, Buton Apply Suggestion pentru adăugarea segmentului generat, Vizualizare pe waveform combinat cu highlight pentru segmentul sugerat",
+    desc: "AI suggests new segments (pre-chorus, breakdown, build-up) based on structure and genre, Apply Suggestion button to add generated segment, Visualization on combined waveform with highlight for suggested segment",
   },
   {
     icon: "🎶", color: "#06d6a0", bg: "#06d6a020",
     title: "Harmony / Layer Generator",
-    desc: "Generare automată de armonii și instrumente per segment: Backing vocals, Synth layers, Bassline. Sliders Harmonic Complexity și Layer Intensity. Preview instant pe segment. Export individual per layer sau combinat în WAV.",
+    desc: "Auto-generate harmonies and instruments per segment: Backing vocals, Synth layers, Bassline. Sliders Harmonic Complexity and Layer Intensity. Instant preview on segment. Export individual per layer or combined to WAV.",
   },
   {
     icon: "🔄", color: "#ffd166", bg: "#ffd16620",
     title: "Auto Remix Module",
-    desc: "Generare variante alternative ale piesei: BPM diferit, Key diferit, Instrumentație variată. Fiecare variantă salvată ca version pentru comparare. Preview instant și export WAV/JSON. Slider Remix Intensity.",
+    desc: "Generate alternative track versions: Different BPM, Different Key, Varied instrumentation. Each version saved as version for comparison. Instant preview and WAV/JSON export. Remix Intensity slider.",
   },
   {
     icon: "🎛️", color: "#ff6b9d", bg: "#ff6b9d20",
     title: "Dashboard Workflow Integration",
-    desc: "Selector rapid pentru combinarea modulului Style Transfer cu Harmony Generator pe același segment. Dashboard vizual integrat cu waveform combinat + highlight pentru segmente noi, style transfer și armonii.",
+    desc: "Quick selector to combine Style Transfer module with Harmony Generator on same segment. Integrated visual dashboard with combined waveform + highlight for new segments, style transfer and harmonies.",
   },
   {
     icon: "🔊", color: "#e63946", bg: "#e6394620",
     title: "RVC Voice Conversion",
-    desc: "Conversie vocală cu RVC - transformă vocea ta în alte voci folosind modele pre-antrenate. Suportă pitch shifting, emoții și formant preservation.",
+    desc: "RVC voice conversion - transform your voice into other voices using pre-trained models. Supports pitch shifting, emotions and formant preservation.",
   },
   {
     icon: "🎵", color: "#9b2de0", bg: "#9b2de020",
     title: "Audio Understanding",
-    desc: "Extrage automat BPM, Key, Time Signature din audio uploadat folosind ACE-Step audio analysis. Auto-populate în generation settings.",
+    desc: "Auto-extract BPM, Key, Time Signature from uploaded audio using ACE-Step audio analysis. Auto-populate in generation settings.",
   },
   {
     icon: "🔧", color: "#444466", bg: "#44446620",
     title: "LoRA Management (Backend)",
-    desc: "Implementare endpoint-uri backend pentru /upload_lora, /list_lora, /delete_lora pentru management complet LoRA files.",
+    desc: "Implement backend endpoints for /upload_lora, /list_lora, /delete_lora for complete LoRA files management.",
   },
 ];
 
@@ -326,7 +326,7 @@ export default function ReadmeTab() {
       {/* Hero */}
       <div style={s.hero}>
         <div style={s.heroTitle}>VocalForge</div>
-        <div style={s.heroSub}>AI Audio Studio — Documentatie & Features</div>
+        <div style={s.heroSub}>AI Audio Studio — Documentation & Features</div>
         <div style={s.version}>v1.8 · Beta Ready · Windows 10 · CUDA</div>
         <div style={{ marginTop: 20, display: "flex", justifyContent: "center", gap: 28, flexWrap: "wrap" }}>
           {[
@@ -547,16 +547,16 @@ export default function ReadmeTab() {
           {/* File locations */}
           <div style={{ ...s.sectionTitle, marginTop: 24 }}>
             <ChevronRight size={14} color="#06d6a0" />
-            Locatii Fisiere
+            File Locations
           </div>
           <div style={{ background: "#0d0d22", border: "1px solid #1a1a3a", borderRadius: 12, padding: "16px 20px" }}>
             {[
-              { label: "Audio generat",  path: "backend/output/",       color: "#06d6a0" },
-              { label: "Modele SVC",     path: "backend/models/",       color: "#ffd166" },
-              { label: "Modele UVR",     path: "backend/uvr_models/",   color: "#00e5ff" },
+              { label: "Generated audio",  path: "backend/output/",       color: "#06d6a0" },
+              { label: "SVC models",     path: "backend/models/",       color: "#ffd166" },
+              { label: "UVR models",     path: "backend/uvr_models/",   color: "#00e5ff" },
               { label: "ACE-Step cache", path: "ace-step/.cache/",      color: "#7209b7" },
               { label: "Temp files",     path: "backend/temp/",         color: "#444466" },
-              { label: "Backup proiect", path: "D:/VocalForge_backup/", color: "#a8dadc" },
+              { label: "Project backup", path: "D:/VocalForge_backup/", color: "#a8dadc" },
             ].map((f, i) => (
               <div key={i} style={s.shortcutRow}>
                 <span style={{ color: "#aaaacc", fontSize: 13 }}>{f.label}</span>
@@ -694,14 +694,14 @@ export default function ReadmeTab() {
       {/* System Requirements */}
       <div style={s.sectionTitle}>
         <ChevronRight size={14} color="#e63946" />
-        Cerinte Sistem & Porturi
+        System Requirements & Ports
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16, marginBottom: 32 }}>
         {[
-          { Icon: Server,    color: "#00e5ff", title: "Backend",              items: ["Python 3.10+", "FastAPI + Uvicorn", "Port: 8000", "CUDA recomandat"] },
+          { Icon: Server,    color: "#00e5ff", title: "Backend",              items: ["Python 3.10+", "FastAPI + Uvicorn", "Port: 8000", "CUDA recommended"] },
           { Icon: Sparkles,  color: "#7209b7", title: "ACE-Step",             items: ["Python 3.10+", "PyTorch 2.x", "Port: 8001", "Min 6GB VRAM"] },
-          { Icon: Globe,     color: "#06d6a0", title: "Frontend",             items: ["Node.js 18+", "React + Vite", "Port: 5173", "Orice browser modern"] },
-          { Icon: Cpu,       color: "#ffd166", title: "Hardware Recomandat",  items: ["GPU: RTX 3060+ (8GB+)", "RAM: 16GB+", "Storage: 20GB+", "Windows 10/11"] },
+          { Icon: Globe,     color: "#06d6a0", title: "Frontend",             items: ["Node.js 18+", "React + Vite", "Port: 5173", "Any modern browser"] },
+          { Icon: Cpu,       color: "#ffd166", title: "Hardware Recommended", items: ["GPU: RTX 3060+ (8GB+)", "RAM: 16GB+", "Storage: 20GB+", "Windows 10/11"] },
         ].map(({ Icon, color, title, items }) => (
           <div key={title} style={s.card}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
@@ -720,7 +720,7 @@ export default function ReadmeTab() {
       {/* TODO - Roadmap */}
       <div style={s.sectionTitle}>
         <ChevronRight size={14} color="#ff6b9d" />
-        TODO - Roadmap Viitoare
+        TODO - Future Roadmap
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))", gap: 16, marginBottom: 32 }}>
         {todos.map((todo, i) => (
