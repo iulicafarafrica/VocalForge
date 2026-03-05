@@ -191,6 +191,10 @@ app.mount("/tracks", StaticFiles(directory=OUTPUT_DIR), name="tracks")
 # Include ACE-Step Advanced router
 app.include_router(acestep_advanced_router)
 
+# Include Vocal Pitch Correction router
+from vocal_pitch_correction import router as pitch_correction_router
+app.include_router(pitch_correction_router)
+
 @app.on_event("startup")
 async def startup_event():
     loop = asyncio.get_running_loop()
