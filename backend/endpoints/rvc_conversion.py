@@ -63,8 +63,10 @@ async def separate_vocals(
 
         print(f"[RVC API] Separating vocals with Demucs ({model})...")
 
+        # Use sys.executable to ensure we use the correct Python (with venv)
+        import sys
         result = subprocess.run([
-            "python", "-m", "demucs",
+            sys.executable, "-m", "demucs",
             "--two-stems", "vocals",
             "-n", model,
             "-o", out_dir,
