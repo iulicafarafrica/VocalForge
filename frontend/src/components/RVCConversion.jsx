@@ -85,7 +85,7 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
     fd.append("filter_radius", "3");
     fd.append("rms_mix_rate", "0.25");
     fd.append("protect", "0.33");
-    fd.append("output_format", "wav");
+    fd.append("output_format", "mp3");
 
     const progressTimer = setInterval(() => {
       setProgress(prev => Math.min(prev + 10, 90));
@@ -411,10 +411,10 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
               {result.emotion && result.emotion !== "neutral" && ` (${result.emotion})`}
             </div>
           </div>
-          <audio controls src={result.url} style={{ width: "100%", marginBottom: 12 }} />
+          <audio controls src={`${API}${result.url}`} style={{ width: "100%", marginBottom: 12 }} />
           <div style={{ display: "flex", gap: 8 }}>
             <a
-              href={result.url}
+              href={`${API}${result.url}`}
               download={result.filename}
               style={{
                 flex: 1,

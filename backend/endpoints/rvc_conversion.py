@@ -107,7 +107,7 @@ async def rvc_convert(
         
         # Save output
         job_id = uuid.uuid4().hex
-        output_format = output_format if output_format in ("mp3", "wav", "flac") else "wav"
+        output_format = "mp3"  # Force MP3 output
         
         from main import OUTPUT_DIR
         out_filename = f"{job_id}_rvc_converted.{output_format}"
@@ -134,7 +134,7 @@ async def rvc_convert(
         return JSONResponse({
             "status": "ok",
             "filename": out_filename,
-            "url": f"/tracks/{out_filename}",
+            "url": f"/audio/{out_filename}",
             "duration_sec": out_duration,
             "size_mb": round(size_mb, 2),
             "sample_rate": out_sr,

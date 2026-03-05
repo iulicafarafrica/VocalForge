@@ -192,6 +192,21 @@ app.add_middleware(
 
 app.mount("/tracks", StaticFiles(directory=OUTPUT_DIR), name="tracks")
 
+from fastapi.responses import FileResponse
+
+@app.get("/audio/{filename}")
+async def serve_audio(filename: str):
+    file_path = os.path.join(OUTPUT_DIR, filename)
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+    ext = filename.rsplit(".", 1)[-1].lower()
+    media_types = {"mp3": "audio/mpeg", "wav": "audio/wav", "flac": "audio/flac"}
+    media_type = media_types.get(ext, "audio/mpeg")
+    return FileResponse(file_path, media_type=media_type, headers={
+        "Accept-Ranges": "bytes",
+        "Cache-Control": "no-cache",
+    })
+
 # Include ACE-Step Advanced router
 app.include_router(acestep_advanced_router)
 

@@ -83,7 +83,7 @@ export default function VoiceConverter({ addLog, tracks, setTracks }) {
     form.append("target_gender", gender);
     form.append("emotion", emotion);
     form.append("f0_method", f0Method);
-    form.append("output_format", "wav");
+    form.append("output_format", "mp3");
 
     const progressTimer = setInterval(() => {
       setProgress(prev => Math.min(prev + 10, 90));
@@ -369,10 +369,10 @@ export default function VoiceConverter({ addLog, tracks, setTracks }) {
             <div>⏱ {result.duration_sec}s | 📦 {result.size_mb} MB</div>
             <div>🎚 Pitch: {result.pitch_shift > 0 ? "+" : ""}{result.pitch_shift}</div>
           </div>
-          <audio controls src={result.url} style={{ width: "100%", marginBottom: 12 }} />
+          <audio controls src={`${API}${result.url}`} style={{ width: "100%", marginBottom: 12 }} />
           <div style={{ display: "flex", gap: 8 }}>
             <a
-              href={result.url}
+              href={`${API}${result.url}`}
               download={result.filename}
               style={{
                 flex: 1,

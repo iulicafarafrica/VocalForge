@@ -203,6 +203,13 @@ class RVCModel:
                 print(f"[RVC] Resampled: {tgt_sr}Hz -> {TARGET_SR}Hz")
                 tgt_sr = TARGET_SR
             
+            # Normalize audio to prevent clipping/distortion
+            audio_data = audio_data.astype(np.float32)
+            max_val = np.abs(audio_data).max()
+            if max_val > 0.95:
+                audio_data = audio_data * (0.95 / max_val)
+                print(f"[RVC] Normalized audio (peak was {max_val:.3f})")
+            
             print(f"[RVC] Conversion complete: {len(audio_data)} samples @ {tgt_sr}Hz")
             
             return audio_data, tgt_sr
