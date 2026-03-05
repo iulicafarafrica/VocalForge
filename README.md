@@ -22,6 +22,38 @@ The following features are currently under active development:
 
 ---
 
+## 📝 Changelog (Latest Updates)
+
+### v1.7 - Recent Changes
+
+#### ✅ Added
+- **RVC Voice Conversion** - Complete AI voice transformation feature
+  - Support for custom RVC models (.pth files)
+  - Pitch shifting and emotion control
+  - Formant preservation
+  - 4 pre-loaded models (Bad Bunny, Florin Salam, Justin Bieber, Kanye West)
+- **Windows Terminal requirement** - Now required for multi-tab startup with colored tabs
+- **Enhanced RVC UI** - Improved conversion interface with more options
+
+#### ❌ Removed
+- **Vocal2BGM** - Feature removed (transform vocal to full song)
+- **Pitch Correction tab** - Deprecated in favor of RVC Voice Conversion
+
+#### 🐛 Fixed
+- **Unicode encoding errors** - Replaced Unicode characters (✓, ✗) with ASCII (OK, ERR) for Windows compatibility
+- **RVC config path issues** - Fixed working directory changes for proper config loading
+- **RVC argument parsing** - Fixed `parse_args([])` to ignore uvicorn command line arguments
+- **RVC array bounds** - Added safety checks for `to_return_protect` arrays
+
+#### 🔧 Technical Updates
+- Added `backend/app.py` - Dedicated RVC API endpoint (port 8002)
+- Added `backend/endpoints/rvc_conversion.py` - RVC conversion endpoint
+- Added `core/modules/rvc_model.py` - RVC model wrapper
+- Updated `START_ALL.bat` - Now launches 4 services (Frontend, Backend, ACE-Step, RVC)
+- Updated `.gitignore` - Added RVCWebUI to ignored folders
+
+---
+
 ## 🎬 Demo Video
 
 ### 🎵 VocalForge v1.7 - AI Music Generation & Audio Processing
