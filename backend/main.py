@@ -29,6 +29,7 @@ import subprocess
 import torch
 import numpy as np
 import soundfile as sf
+import librosa
 import uvicorn
 from datetime import datetime
 from dotenv import load_dotenv
@@ -44,6 +45,28 @@ if BACKEND_DIR not in sys.path:
 # Fix Windows asyncio ConnectionResetError (WinError 10054)
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+print("[STARTUP] Loading heavy libraries...")
+try:
+    import demucs
+    print("[STARTUP] OK - Demucs loaded")
+except ImportError as e:
+    print(f"[STARTUP] ERR - Demucs not available: {e}")
+
+try:
+    import audio_separator
+    print("[STARTUP] OK - Audio Separator loaded")
+except ImportError as e:
+    print(f"[STARTUP] ERR - Audio Separator not available: {e}")
+
+try:
+    import edge_tts
+    print("[STARTUP] OK - Edge TTS loaded")
+except ImportError as e:
+    print(f"[STARTUP] ERR - Edge TTS not available: {e}")
+
+print(f"[STARTUP] OK - Librosa loaded (v{librosa.__version__})")
+print("[STARTUP] All heavy libraries loaded at startup (lazy loading disabled)")
 
 # ── Ensure FFmpeg is in PATH (WinGet install location) ───────────────────────
 _FFMPEG_WINGET = (
@@ -78,28 +101,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger("vocalforge")
 
-# ── Lazy import pentru librării grele ────────────────────────────────────────
-# Acestea se încarcă doar când sunt necesare pentru a reduce timpul de startup
-_LAZY_IMPORTS = {
-    "librosa": None,
-    "demucs": None,
-    "audio_separator": None,
-    "edge_tts": None,
-}
-
-def _lazy_import(name: str):
-    """Import lazy al librăriilor grele."""
-    if name not in _LAZY_IMPORTS or _LAZY_IMPORTS[name] is not None:
-        return _LAZY_IMPORTS.get(name)
-    
-    try:
-        module = __import__(name)
-        _LAZY_IMPORTS[name] = module
-        logger.info(f"Lazy loaded: {name}")
-        return module
-    except ImportError:
-        logger.warning(f"Failed to lazy load: {name}")
-        return None
+# ── Lazy loading disabled ─────────────────────────────────────────────────────
+# All heavy libraries (librosa, demucs, audio_separator, edge_tts) are now
+# loaded at startup for faster runtime performance.
 
 def _convert_to_mp3(wav_path: str, mp3_path: str = None, bitrate: str = MP3_BITRATE) -> str:
     """
@@ -191,9 +195,9 @@ app.mount("/tracks", StaticFiles(directory=OUTPUT_DIR), name="tracks")
 # Include ACE-Step Advanced router
 app.include_router(acestep_advanced_router)
 
-# Include Vocal Pitch Correction router
-from vocal_pitch_correction import router as pitch_correction_router
-app.include_router(pitch_correction_router)
+# Include RVC Voice Conversion router
+from endpoints.rvc_conversion import router as rvc_conversion_router
+app.include_router(rvc_conversion_router)
 
 @app.on_event("startup")
 async def startup_event():
@@ -1181,11 +1185,38 @@ async def mix_vocal_instrumental(
         # Load both audio files
         vocal_y, vocal_sr = librosa.load(vocal_path, sr=None)
         inst_y, inst_sr = librosa.load(inst_path, sr=None)
-        
+
         # Match sample rates
         if vocal_sr != inst_sr:
             vocal_y = librosa.resample(vocal_y, orig_sr=vocal_sr, target_sr=inst_sr)
+
+        # ──────────────────────────────────────────────────────────────────────
+        # Beat Alignment: Detect BPM of both tracks and align them
+        # ──────────────────────────────────────────────────────────────────────
+        print("[Vocal2BGM] Analyzing BPM for beat alignment...")
         
+        try:
+            # Detect BPM of vocal
+            vocal_tempo, vocal_beats = librosa.beat.beat_track(y=vocal_y, sr=inst_sr)
+            vocal_bpm = float(vocal_tempo) if hasattr(vocal_tempo, '__iter__') else float(vocal_tempo)
+            
+            # Detect BPM of instrumental
+            inst_tempo, inst_beats = librosa.beat.beat_track(y=inst_y, sr=inst_sr)
+            inst_bpm = float(inst_tempo) if hasattr(inst_tempo, '__iter__') else float(inst_tempo)
+            
+            print(f"[Vocal2BGM] Vocal BPM: {vocal_bpm:.1f}, Instrumental BPM: {inst_bpm:.1f}")
+            
+            # If BPM difference is significant, time-stretch instrumental to match vocal
+            bpm_ratio = vocal_bpm / inst_bpm if inst_bpm > 0 else 1.0
+            
+            if abs(bpm_ratio - 1.0) > 0.05:  # More than 5% difference
+                print(f"[Vocal2BGM] Time-stretching instrumental by {bpm_ratio:.2f}x to match vocal...")
+                # Time-stretch instrumental to match vocal tempo
+                inst_y = librosa.effects.time_stretch(inst_y, rate=bpm_ratio)
+                print(f"[Vocal2BGM] Instrumental stretched: {len(inst_y)} samples")
+        except Exception as e:
+            print(f"[Vocal2BGM] Beat alignment skipped: {e}")
+
         # Match durations (trim or pad vocal to match instrumental)
         if len(vocal_y) < len(inst_y):
             # Pad vocal with silence
@@ -1193,11 +1224,11 @@ async def mix_vocal_instrumental(
         elif len(vocal_y) > len(inst_y):
             # Trim vocal
             vocal_y = vocal_y[:len(inst_y)]
-        
+
         # Normalize volumes
         vocal_y = librosa.util.normalize(vocal_y) * 0.7  # Vocal at 70%
         inst_y = librosa.util.normalize(inst_y) * 0.5   # Instrumental at 50%
-        
+
         # Mix
         mixed = vocal_y + inst_y
         mixed = librosa.util.normalize(mixed) * 0.9  # Prevent clipping
