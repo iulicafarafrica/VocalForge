@@ -196,6 +196,13 @@ class RVCModel:
             if audio_data is None:
                 raise RuntimeError("Conversion failed - audio output is None. Check hubert model and logs.")
             
+            # Resample to 44100Hz for browser compatibility
+            TARGET_SR = 44100
+            if tgt_sr != TARGET_SR:
+                audio_data = librosa.resample(audio_data.astype(np.float32), orig_sr=tgt_sr, target_sr=TARGET_SR)
+                print(f"[RVC] Resampled: {tgt_sr}Hz -> {TARGET_SR}Hz")
+                tgt_sr = TARGET_SR
+            
             print(f"[RVC] Conversion complete: {len(audio_data)} samples @ {tgt_sr}Hz")
             
             return audio_data, tgt_sr
