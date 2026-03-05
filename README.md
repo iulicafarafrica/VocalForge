@@ -364,17 +364,39 @@ python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
 
 ### 🔜 Coming Soon (v1.8)
 
-| Feature | Priority | Status |
-|---------|----------|--------|
-| **Vocal Separator** | 🔥 High | In Development |
-| **Auto Final Mix** | 🔥 High | Planned |
-| **Export Presets** | ⭐ Medium | Planned |
+| Feature | Priority | Status | Description |
+|---------|----------|--------|-------------|
+| **✂️ Separate Tab** | 🔥 High | In Development | Upload full song → Demucs auto-separates vocals + instrumental → One-click "Use Vocals in Convert" |
+| **🎚️ Mix Tab** | 🔥 High | In Development | Mix converted vocal with instrumental → Independent volume control for vocal and instrumental |
+| **💾 Presets Tab** | ⭐ Medium | In Development | Save all settings (model, pitch, emotion, index rate, formant, auto-tune) → Apply with one click → Delete unwanted |
 
-**Vocal Separator:** Upload full song → auto-separate vocals → RVC conversion → remix with instrumental
+#### Feature Details
 
-**Auto Final Mix:** After RVC conversion, automatically mix converted vocal with original instrumental
+**✂️ Separate Tab**
+- Upload any full song (MP3, WAV, FLAC)
+- Demucs automatically separates: Vocals + Instrumental
+- Button: "Use Vocals in Convert" → sends vocals directly to RVC tab
+- Optional: Download individual stems
 
-**Export Presets:** Save favorite settings (e.g., "Preset Kanye Sad", "Preset Florin Happy")
+**🎚️ Mix Tab**
+- Load converted vocal from RVC
+- Load instrumental (from Separate tab or upload)
+- Independent volume sliders: Vocal Volume / Instrumental Volume
+- Real-time preview before export
+- Export final mix (MP3, WAV)
+
+**💾 Presets Tab**
+- Save complete configuration:
+  - RVC Model
+  - Pitch Shift (±12 semitones)
+  - Emotion (Happy, Sad, Angry, Calm, Fearful)
+  - Index Rate
+  - Formant Preservation
+  - Auto-Tune settings
+- Name your preset (e.g., "Kanye Sad", "Florin Happy", "Justin Pop")
+- Apply preset with single click
+- Delete or export presets
+- Import presets from community
 
 ---
 
