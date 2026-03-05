@@ -19,6 +19,8 @@
 
 ➡️ **[https://www.youtube.com/watch?v=8XSwCM7bM1A](https://www.youtube.com/watch?v=8XSwCM7bM1A)**
 
+![VocalForge v1.7 Interface](https://imgur.com/ADoAyiO.png)
+
 ---
 
 ## 🚀 Installation (Windows)
