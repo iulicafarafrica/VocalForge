@@ -171,4 +171,10 @@ Backup/
 .minimax/skills/
 .tmp/
 ace-step-ui-ref
-.pip_cache/  
+.pip_cache/
+
+# ======================
+# Qwen local config (keep locally, not on GitHub)
+# ======================
+QWEN.md
+QWEN_START.bat  
