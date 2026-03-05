@@ -3,7 +3,7 @@
  * ACE-Step Advanced Features - UI aligned with VocalForge theme
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 const API_BASE = 'http://localhost:8000';
 
@@ -48,6 +48,15 @@ export default function RepaintLegoComplete() {
   const [keyScale, setKeyScale] = useState('');
   const [audioFormat, setAudioFormat] = useState('mp3');
   const [ditModel, setDitModel] = useState('acestep-v15-turbo');
+  
+  // Log model changes to console
+  useEffect(() => {
+    console.log(`[Repaint/Lego/Complete] DIT Model changed to: ${ditModel}`);
+    const modelName = ditModel.replace('acestep-v15-', '').toUpperCase();
+    const steps = ditModel.includes('turbo') ? '8' : '50';
+    console.log(`[Repaint/Lego/Complete] Model: ${modelName} | Inference Steps: ${steps}`);
+  }, [ditModel]);
+  
   const [audioCoverStrength, setAudioCoverStrength] = useState(1.0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState(null);
@@ -78,6 +87,15 @@ export default function RepaintLegoComplete() {
     setError(null);
     setResult(null);
     setProgress('Uploading file...');
+    
+    // Log generation parameters
+    const modelName = ditModel.replace('acestep-v15-', '').toUpperCase();
+    const steps = ditModel.includes('turbo') ? '8' : '50';
+    console.log(`[Repaint/Lego/Complete] === ${mode.toUpperCase()} START ===`);
+    console.log(`[Repaint/Lego/Complete] Model: ${ditModel} (${modelName}) | Steps: ${steps}`);
+    console.log(`[Repaint/Lego/Complete] Mode: ${mode.toUpperCase()} | Prompt: "${prompt.slice(0, 50)}..."`);
+    console.log(`[Repaint/Lego/Complete] Instruction: "${instruction.slice(0, 50)}..."`);
+    console.log(`[Repaint/Lego/Complete] ===============================`);
 
     const formData = new FormData();
     formData.append('file', file);

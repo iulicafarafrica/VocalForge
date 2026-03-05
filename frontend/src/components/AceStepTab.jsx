@@ -652,6 +652,14 @@ export default function AceStepTab({
   // ── Tensor Model Selection ────────────────────────────────────────────────
   const [tensorModel, setTensorModel] = useState("acestep-v15-turbo"); // default
 
+  // Log model changes to console for debugging
+  useEffect(() => {
+    const modelInfo = TENSOR_MODELS.find(m => m.id === tensorModel);
+    console.log(`[ACE-Step] DIT Model changed to: ${tensorModel}`);
+    console.log(`[ACE-Step] Model: ${modelInfo?.name || 'Unknown'} | Steps: ${modelInfo?.steps || 'N/A'} | CFG: ${modelInfo?.cfg ? '✅' : '❌'}`);
+    console.log(`[ACE-Step] Features: ${modelInfo?.features || 'Standard'}`);
+  }, [tensorModel]);
+
   const TENSOR_MODELS = [
     { id: "acestep-v15-turbo", name: "⚡ Turbo", desc: "8 steps │ CFG: ❌ │ Fast", color: "#06d6a0", steps: 8, cfg: false, features: "Standard" },
     { id: "acestep-v15-turbo-shift3", name: "⚡ Turbo Shift3", desc: "8 steps │ CFG: ❌ │ Alternative", color: "#06d6a0", steps: 8, cfg: false, features: "Standard" },
@@ -791,6 +799,18 @@ export default function AceStepTab({
     setProgress(5);
     setProgressLabel("Submitting to ACE-Step...");
     setResult(null);
+    
+    // Log generation parameters to console
+    const modelInfo = TENSOR_MODELS.find(m => m.id === tensorModel);
+    console.log(`[ACE-Step] === GENERATION START ===`);
+    console.log(`[ACE-Step] Model: ${tensorModel} (${modelInfo?.name || 'Unknown'})`);
+    console.log(`[ACE-Step] Steps: ${modelInfo?.steps || 'N/A'} | CFG: ${guidanceScale} | Duration: ${duration}s`);
+    console.log(`[ACE-Step] Task Type: ${taskType} | Prompt: "${prompt.slice(0, 50)}..."`);
+    console.log(`[ACE-Step] Language: ${vocalLanguage} | Instrumental: ${lyrics.trim() === "" || vocalLanguage === "unknown"}`);
+    if (bpm > 0) console.log(`[ACE-Step] BPM: ${bpm}`);
+    if (keyScale) console.log(`[ACE-Step] Key: ${keyScale}`);
+    console.log(`[ACE-Step] =========================`);
+    
     addLog(`[OK] ACE-Step: generating ${duration}s | "${prompt.slice(0, 50)}..."`);
 
     const fd = new FormData();
