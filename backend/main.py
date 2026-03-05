@@ -1138,130 +1138,6 @@ async def detect_bpm_key(file: UploadFile = File(...)):
 # System Utilities
 # ──────────────────────────────────────────────────────────────────────────────
 
-@app.post("/mix_vocal_instrumental")
-async def mix_vocal_instrumental(
-    instrumental_url: str = Form(...),
-    vocal_file: UploadFile = File(...),
-):
-    """
-    Mix vocal track with instrumental.
-    First separates clean vocal from upload (if needed), then mixes with generated instrumental.
-    """
-    import requests
-    import librosa
-    import soundfile as sf
-    
-    try:
-        # Download instrumental
-        instrumental_full_url = f"{API}{instrumental_url}" if not instrumental_url.startswith("http") else instrumental_url
-        inst_response = requests.get(instrumental_full_url)
-        if inst_response.status_code != 200:
-            raise Exception(f"Failed to download instrumental: {instrumental_full_url}")
-        
-        # Save instrumental to temp file
-        import tempfile
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as inst_tmp:
-            inst_tmp.write(inst_response.content)
-            inst_path = inst_tmp.name
-        
-        # Save vocal to temp file
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as vocal_tmp:
-            vocal_tmp.write(await vocal_file.read())
-            vocal_path = vocal_tmp.name
-        
-        # Try to separate clean vocal (in case upload has background music)
-        try:
-            print(f"[Vocal2BGM] Separating clean vocal from {vocal_path}")
-            clean_vocal_path, _ = separate_vocals(vocal_path, os.path.dirname(vocal_path), model="auto")
-            if clean_vocal_path and os.path.exists(clean_vocal_path):
-                print(f"[Vocal2BGM] Clean vocal separated: {clean_vocal_path}")
-                vocal_path = clean_vocal_path  # Use clean vocal
-            else:
-                print(f"[Vocal2BGM] Using original vocal (separation failed)")
-        except Exception as sep_err:
-            print(f"[Vocal2BGM] Vocal separation failed ({sep_err}), using original vocal")
-            # Continue with original vocal
-        
-        # Load both audio files
-        vocal_y, vocal_sr = librosa.load(vocal_path, sr=None)
-        inst_y, inst_sr = librosa.load(inst_path, sr=None)
-
-        # Match sample rates
-        if vocal_sr != inst_sr:
-            vocal_y = librosa.resample(vocal_y, orig_sr=vocal_sr, target_sr=inst_sr)
-
-        # ──────────────────────────────────────────────────────────────────────
-        # Beat Alignment: Detect BPM of both tracks and align them
-        # ──────────────────────────────────────────────────────────────────────
-        print("[Vocal2BGM] Analyzing BPM for beat alignment...")
-        
-        try:
-            # Detect BPM of vocal
-            vocal_tempo, vocal_beats = librosa.beat.beat_track(y=vocal_y, sr=inst_sr)
-            vocal_bpm = float(vocal_tempo) if hasattr(vocal_tempo, '__iter__') else float(vocal_tempo)
-            
-            # Detect BPM of instrumental
-            inst_tempo, inst_beats = librosa.beat.beat_track(y=inst_y, sr=inst_sr)
-            inst_bpm = float(inst_tempo) if hasattr(inst_tempo, '__iter__') else float(inst_tempo)
-            
-            print(f"[Vocal2BGM] Vocal BPM: {vocal_bpm:.1f}, Instrumental BPM: {inst_bpm:.1f}")
-            
-            # If BPM difference is significant, time-stretch instrumental to match vocal
-            bpm_ratio = vocal_bpm / inst_bpm if inst_bpm > 0 else 1.0
-            
-            if abs(bpm_ratio - 1.0) > 0.05:  # More than 5% difference
-                print(f"[Vocal2BGM] Time-stretching instrumental by {bpm_ratio:.2f}x to match vocal...")
-                # Time-stretch instrumental to match vocal tempo
-                inst_y = librosa.effects.time_stretch(inst_y, rate=bpm_ratio)
-                print(f"[Vocal2BGM] Instrumental stretched: {len(inst_y)} samples")
-        except Exception as e:
-            print(f"[Vocal2BGM] Beat alignment skipped: {e}")
-
-        # Match durations (trim or pad vocal to match instrumental)
-        if len(vocal_y) < len(inst_y):
-            # Pad vocal with silence
-            vocal_y = np.pad(vocal_y, (0, len(inst_y) - len(vocal_y)), mode='constant')
-        elif len(vocal_y) > len(inst_y):
-            # Trim vocal
-            vocal_y = vocal_y[:len(inst_y)]
-
-        # Normalize volumes
-        vocal_y = librosa.util.normalize(vocal_y) * 0.7  # Vocal at 70%
-        inst_y = librosa.util.normalize(inst_y) * 0.5   # Instrumental at 50%
-
-        # Mix
-        mixed = vocal_y + inst_y
-        mixed = librosa.util.normalize(mixed) * 0.9  # Prevent clipping
-        
-        # Save mixed audio
-        output_filename = f"vocal2bgm_{uuid.uuid4().hex[:8]}.wav"
-        output_path = os.path.join(TRACKS_DIR, output_filename)
-        sf.write(output_path, mixed, inst_sr)
-        
-        # Clean up temp files
-        try:
-            os.unlink(inst_path)
-            os.unlink(vocal_path)
-            # Also clean separated vocal if it was created
-            if 'clean_vocal_path' in locals() and clean_vocal_path != vocal_path:
-                os.unlink(clean_vocal_path)
-        except:
-            pass
-        
-        return {
-            "status": "ok",
-            "filename": output_filename,
-            "url": f"/tracks/{output_filename}",
-        }
-        
-    except Exception as e:
-        import traceback
-        return JSONResponse(
-            status_code=500,
-            content={"error": str(e), "traceback": traceback.format_exc()}
-        )
-
-
 @app.get("/hardware")
 def hardware_info():
     return hw
@@ -2450,12 +2326,12 @@ async def ace_generate(
 
                 task_payload["audio_cover_strength"] = source_audio_strength
                 task_payload["audio_duration"] = effective_duration
-                
-                # Vocal2BGM (cover): use reference_audio_path to preserve vocal
+
+                # Audio cover: use reference_audio_path to preserve vocal
                 # Audio2audio: use src_audio_path for style transfer
                 if task_type == "cover":
                     task_payload["reference_audio_path"] = src_path  # Preserve vocal
-                    print(f"[ACE {job_id[:8]}] Vocal2BGM: reference={source_audio.filename}")
+                    print(f"[ACE {job_id[:8]}] Audio cover: reference={source_audio.filename}")
                 else:
                     task_payload["src_audio_path"] = src_path
                     print(f"[ACE {job_id[:8]}] Audio2audio: source={source_audio.filename}")

@@ -3,9 +3,8 @@
 ## Modular AI Audio Framework — Auto-Adaptive, Stable, Beta Ready
 
 **VocalForge** is a complete AI music production application featuring:
-- 🎤 **Vocal Pitch Correction** (Auto-Tune style) `🚧 Work in Progress`
+- 🎤 **RVC Voice Conversion** (AI voice transformation)
 - 🎵 **ACE-Step Music Generation** (Text-to-Music, Audio Cover)
-- 🎼 **Vocal2BGM** (Transform vocal to full song) `🚧 Work in Progress`
 - 🎚️ **Stem Separation** (Demucs)
 - 🎹 **Repaint/Lego/Complete** (Audio editing)
 
@@ -18,7 +17,6 @@ The following features are currently under active development:
 | Feature | Status | Notes |
 |---|---|---|
 | **Vocal Pitch Correction** | 🚧 Beta | Auto-tune style pitch correction with scale matching. Basic functionality works, fine-tuning in progress. |
-| **Vocal2BGM** | 🚧 Beta | Transform acapella vocals into full songs with AI-generated instrumental. Beat alignment and mixing being optimized. |
 
 > 💡 These features are functional but may produce inconsistent results. Feedback and testing are welcome!
 
@@ -179,7 +177,7 @@ VocalForge uses **3 separate services** that run simultaneously:
 
 | Service | Port | Description |
 |---|---|---|
-| **Backend API** | 8000 | FastAPI server (Demucs, Pitch Correction, Vocal2BGM) |
+| **Backend API** | 8000 | FastAPI server (Demucs, RVC Voice Conversion) |
 | **ACE-Step API** | 8001 | Music generation service |
 | **Frontend UI** | 3000 | React web interface |
 
@@ -292,25 +290,7 @@ taskkill /F /IM python.exe
 
 ---
 
-### 3. Vocal2BGM (Vocal to Full Song)
-
-**Purpose:** Transform acapella vocal into complete song
-
-1. Go to **Vocal2BGM** tab
-2. Upload acapella vocal file
-3. System auto-detects BPM and Key
-4. Describe instrumental style (or use preset)
-5. Adjust vocal/instrumental volume balance
-6. Click **Generate Full Song**
-7. AI generates matching instrumental
-8. Vocal and instrumental are mixed with beat alignment
-9. Download final mix
-
-**API Endpoint:** `POST /mix_vocal_instrumental`
-
----
-
-### 4. Stem Separation (Demucs)
+### 3. Stem Separation (Demucs)
 
 **Purpose:** Separate audio into stems (vocals, drums, bass, other)
 
@@ -402,8 +382,7 @@ VocalForge/
  │    ├── src/
  │    │   ├── App.jsx                  # Main React app
  │    │   ├── components/
- │    │   │   ├── PitchCorrection.jsx  # Pitch correction UI
- │    │   │   ├── Vocal2BGM.jsx        # Vocal2BGM UI
+ │    │   │   ├── RVCConversion.jsx    # RVC Voice Conversion UI
  │    │   │   ├── AceStepTab.jsx       # ACE-Step UI
  │    │   │   └── ...
  │    │   └── main.jsx

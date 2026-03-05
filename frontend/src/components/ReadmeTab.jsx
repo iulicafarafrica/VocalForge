@@ -281,8 +281,8 @@ const todos = [
   },
   {
     icon: "🔊", color: "#e63946", bg: "#e6394620",
-    title: "Voice Clone / Vocal2BGM",
-    desc: "Integrare ACE-Step pentru voice cloning și Vocal2BGM - convertește voce/lyrics în melodie cu accompaniament. Suportă Reference Audio Input pentru stil.",
+    title: "RVC Voice Conversion",
+    desc: "Conversie vocală cu RVC - transformă vocea ta în alte voci folosind modele pre-antrenate. Suportă pitch shifting, emoții și formant preservation.",
   },
   {
     icon: "🎵", color: "#9b2de0", bg: "#9b2de020",

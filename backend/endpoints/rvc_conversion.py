@@ -45,7 +45,7 @@ async def rvc_convert(
     filter_radius: int = Form(3, description="Median filter radius for pitch smoothing"),
     rms_mix_rate: float = Form(0.25, description="Mix ratio original/converted"),
     protect: float = Form(0.33, description="Protection for voiceless consonants"),
-    output_format: str = Form("wav", description="Output format: wav, mp3, flac"),
+    output_format: str = Form("mp3", description="Output format: wav, mp3, flac"),
 ):
     """
     Convert voice using RVC model.
@@ -113,7 +113,19 @@ async def rvc_convert(
         out_filename = f"{job_id}_rvc_converted.{output_format}"
         out_path = os.path.join(OUTPUT_DIR, out_filename)
         
-        sf.write(out_path, converted_audio, out_sr)
+        if output_format == 'mp3':
+            # Save as WAV first, then convert to MP3 via ffmpeg
+            import subprocess
+            tmp_wav = out_path.replace('.mp3', '_tmp.wav')
+            sf.write(tmp_wav, converted_audio, out_sr)
+            subprocess.run([
+                'ffmpeg', '-y', '-i', tmp_wav,
+                '-codec:a', 'libmp3lame', '-qscale:a', '2',
+                out_path
+            ], check=True, capture_output=True)
+            os.remove(tmp_wav)
+        else:
+            sf.write(out_path, converted_audio, out_sr)
         
         # Calculate file size
         size_mb = os.path.getsize(out_path) / 1024 / 1024
@@ -167,7 +179,7 @@ async def rvc_convert_advanced(
     filter_radius: int = Form(3, description="Median filter radius"),
     rms_mix_rate: float = Form(0.25, description="RMS mix rate"),
     protect: float = Form(0.33, description="Protection level"),
-    output_format: str = Form("wav", description="Output format"),
+    output_format: str = Form("mp3", description="Output format"),
 ):
     """
     Advanced voice conversion with emotion-based F0 modification.
