@@ -4,7 +4,7 @@
  * Uses ACE-Step API with reference audio input
  */
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const API = "http://localhost:8000";
 
@@ -21,6 +21,15 @@ export default function Vocal2BGM({ addLog, tracks, setTracks }) {
   const [error, setError] = useState(null);
 
   const fileInputRef = useRef(null);
+
+  // Log model changes to console
+  useEffect(() => {
+    console.log(`[Vocal2BGM] DIT Model selected: ${model}`);
+    const modelName = model.replace("acestep-v15-", "").toUpperCase();
+    console.log(`[Vocal2BGM] Model type: ${modelName}`);
+    const steps = model.includes("turbo") ? "8" : "50";
+    console.log(`[Vocal2BGM] Inference steps: ${steps}`);
+  }, [model]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -43,13 +52,20 @@ export default function Vocal2BGM({ addLog, tracks, setTracks }) {
     setResult(null);
     setProgress(5);
 
+    // Log generation start with model info
+    const modelName = model.replace("acestep-v15-", "").toUpperCase();
+    const steps = model.includes("turbo") ? "8" : "50";
+    console.log(`[Vocal2BGM] Starting generation with model: ${model}`);
+    console.log(`[Vocal2BGM] Model: ${modelName} | Steps: ${steps} | Duration: ${duration}s`);
+    console.log(`[Vocal2BGM] Prompt: "${prompt.substring(0, 50)}..."`);
+
     const fd = new FormData();
     fd.append("prompt", prompt);
     fd.append("lyrics", "");
     fd.append("duration", duration.toString());
     fd.append("guidance_scale", "7.0");
     fd.append("seed", "-1");
-    fd.append("infer_steps", "8");
+    fd.append("infer_steps", steps);
     fd.append("dit_model", model);
     fd.append("vocal_language", "en");
     fd.append("task_type", "text2music");
