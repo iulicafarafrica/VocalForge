@@ -19,8 +19,6 @@
 
 ➡️ **[https://www.youtube.com/watch?v=8XSwCM7bM1A](https://www.youtube.com/watch?v=8XSwCM7bM1A)**
 
-![VocalForge v1.7 Interface](Project.png)
-
 <p align="center">
   <img src="Project.png" alt="VocalForge v1.7 Interface" width="600"/>
 </p>
