@@ -69,29 +69,14 @@ def apply_rvc_rescue_post_processing(input_path, output_path):
     """
     
     filter_chain = (
-        # 1. EQ - Surgical fix for RVC artifacts
-        "highpass=f=80,"                          # Cleanup rumble
-        "equalizer=f=2500:width_type=q:width=3:g=-6,"  # Remove harshness @ 2.5kHz
-        "equalizer=f=5000:width_type=q:width=2:g=-3,"  # Reduce sibilance @ 5kHz
-        "equalizer=f=150:width_type=q:width=2:g=3,"    # Restore warmth (RVC removes it)
-        
-        # 2. Compressor - Smooth dynamics (medium settings)
-        "acompressor="
-        "threshold=-22dB:"
-        "ratio=3:"
-        "attack=30ms:"
-        "release=120ms:"
-        "makeup=5dB,"
-        
-        # 3. Reverb - Recreate "musical space" lost from RVC ⭐
-        # This makes it sound less like "poetry reading" and more like singing
-        "aecho=0.75:0.85:50:0.3,"      # Early reflections (room sound)
-        "aecho=0.75:0.85:120:0.25",    # Reverb tail (space)
-        
-        # 4. Limiter - Prevent clipping
+        "highpass=f=80,"
+        "equalizer=f=2500:width_type=q:width=3:g=-6,"
+        "equalizer=f=5000:width_type=q:width=2:g=-3,"
+        "equalizer=f=150:width_type=q:width=2:g=3,"
+        "acompressor=threshold=-22dB:ratio=3:attack=30ms:release=120ms:makeup=5dB,"
+        "aecho=0.75:0.85:50:0.3,"
+        "aecho=0.75:0.85:120:0.25,"
         "alimiter=limit=-1dB:attack=5ms:release=50ms,"
-        
-        # 5. Loudness Normalization - Streaming standard (-14 LUFS)
         "loudnorm=I=-14:TP=-1:LRA=11:print_format=quiet"
     )
     
