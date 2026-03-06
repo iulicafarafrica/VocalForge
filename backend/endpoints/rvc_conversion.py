@@ -53,42 +53,47 @@ def apply_rvc_rescue_post_processing(input_path, output_path):
     """
     Repair RVC-damaged vocals and restore musicality.
     
-    Problem: RVC is trained on SPEECH, not SINGING
-    - BS-RoFormer: ✅ 9/10 (excellent, natural singing)
-    - RVC Raw: ❌ 5/10 (terrible, robotic "poetry reading")
-    - After Rescue: 🎯 8/10 (good, musical, listenable)
-    
-    What this fixes:
-    - Removes harsh digital artifacts (2.5-5kHz)
-    - Restores warmth lost from RVC (150Hz)
-    - Adds reverb to recreate "musical space"
-    - Smooths dynamics with compression
-    - Preserves harmony and vibrato better
-    
     Chain: EQ → Compressor → Reverb → Limiter → Loudness
     """
     
+    # Simplified filter chain - test each component
     filter_chain = (
         "highpass=f=80,"
-        "equalizer=f=2500:width_type=q:width=3:g=-6,"
+        "equalizer=f=2500:width_type=q:width=2:g=-5,"
         "equalizer=f=5000:width_type=q:width=2:g=-3,"
         "equalizer=f=150:width_type=q:width=2:g=3,"
-        "acompressor=threshold=-22dB:ratio=3:attack=30ms:release=120ms:makeup=5dB,"
-        "aecho=0.75:0.85:50:0.3,"
-        "aecho=0.75:0.85:120:0.25,"
-        "alimiter=limit=-1dB:attack=5ms:release=50ms,"
+        "acompressor=threshold=-20dB:ratio=3:attack=30:release=100:makeup=5,"
+        "aecho=0.75:0.8:50:0.3,"
+        "aecho=0.75:0.8:120:0.25,"
+        "alimiter=limit=-1dB:attack=5:release=50,"
         "loudnorm=I=-14:TP=-1:LRA=11:print_format=quiet"
     )
     
-    subprocess.run([
-        "ffmpeg", "-y",
-        "-i", input_path,
-        "-af", filter_chain,
-        "-ar", "48000",                       # Keep 48kHz quality
-        output_path
-    ], check=True, capture_output=True)
-    
-    print(f"[RVC Rescue] Applied post-processing: {input_path} → {output_path}")
+    try:
+        result = subprocess.run([
+            "ffmpeg", "-y",
+            "-i", input_path,
+            "-af", filter_chain,
+            "-ar", "48000",
+            output_path
+        ], check=False, capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            print(f"[RVC Rescue] FFmpeg error: {result.stderr}")
+            # If post-processing fails, just copy the file without processing
+            print(f"[RVC Rescue] Post-processing failed, using raw RVC output")
+            import shutil
+            shutil.copy2(input_path, output_path)
+            return
+        
+        print(f"[RVC Rescue] Applied post-processing: {input_path} → {output_path}")
+        
+    except Exception as e:
+        print(f"[RVC Rescue] Exception: {e}")
+        # Fallback: just copy the file
+        import shutil
+        shutil.copy2(input_path, output_path)
+        print(f"[RVC Rescue] Using raw RVC output due to error")
 
 
 # ── Vocal Separation ──────────────────────────────────────────────────────────
