@@ -398,14 +398,45 @@ start_backend.bat
 2. Ensure .pth files are present
 3. Restart RVC service
 
-### YouTube download fails
+### YouTube Cover fails
 
+**Error: "ModuleNotFoundError: No module named 'yt_dlp'"**
 ```bash
-# Update yt-dlp
+# Install yt-dlp in virtual environment
+cd D:\VocalForge
+venv\Scripts\activate
+pip install yt-dlp
+```
+
+**Error: "Download failed" sau timeout**
+```bash
+# Update yt-dlp (YouTube changes frequently)
 pip install -U yt-dlp
 
 # Check FFmpeg is installed
 ffmpeg -version
+```
+
+**Error: "RVC model not found"**
+```bash
+# Verify models exist
+dir D:\VocalForge\RVCWebUI\assets\weights\*.pth
+
+# Restart backend
+taskkill /F /IM python.exe
+cd D:\VocalForge\backend
+uvicorn main:app --reload --port 8000
+```
+
+**Error: "CORS error" sau "Network error"**
+```bash
+# Clear browser cache (Ctrl+Shift+Delete)
+# Restart frontend
+cd frontend
+npm run dev
+
+# Make sure backend is running on port 8000
+# Make sure frontend is running on port 3000
 ```
 
 ### Pitch correction artifacts
