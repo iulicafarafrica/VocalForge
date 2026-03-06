@@ -43,6 +43,49 @@
 
 ---
 
+## 📖 Quick Summary (v1.9.0)
+
+### 🎯 **Applio Features Integration** (NEW!)
+
+**All the best features from Applio, now in VocalForge!**
+
+```python
+# NEW: Applio Features in Auto Pipeline
+
+# 1. Autotune - Snap F0 to musical notes
+autotune_strength = 0.5  # 0.0-1.0 (recommended for singing)
+
+# 2. Clean Audio - Noise reduction
+clean_audio = True
+clean_strength = 0.5  # 0.0-1.0 (recommended for speech)
+
+# 3. Volume Envelope - RMS matching
+volume_envelope = 1.0  # 0.0-1.0 (match original dynamics)
+
+# 4. High-Pass Filter - Remove rumble
+apply_highpass = True  # Remove frequencies below 48Hz
+```
+
+**Quality Improvements:**
+```
+Singing Conversions:
+- ✅ Autotune: Better pitch accuracy (snaps to musical notes)
+- ✅ Volume Envelope: Natural dynamics (matches original)
+- ✅ High-Pass: Cleaner bass (removes rumble)
+
+Speech Conversions:
+- ✅ Clean Audio: Reduced background noise
+- ✅ High-Pass: Clearer voice (removes low-end mud)
+```
+
+**Files Created:**
+- `core/modules/audio_processing.py` - Applio audio utilities
+- `frontend/src/components/RVCConversion.jsx` - UI controls
+
+**Based on:** [Applio v3.6.2](https://github.com/IAHispano/Applio)
+
+---
+
 ## 📖 Quick Summary (v1.8.4)
 
 ### ⚡ What Changed in Latest Version?
@@ -91,49 +134,6 @@ const [pipelineIndexRate, setPipelineIndexRate] = useState(0.40);    // was 0.75
 Before v1.8.4: 5/10 (robotic, harsh, no harmony)
 After v1.8.4:  8/10 (natural, smooth, musical)
 ```
-
----
-
-## 📖 Quick Summary (v1.9.0)
-
-### 🎯 **Applio Features Integration** (NEW!)
-
-**All the best features from Applio, now in VocalForge!**
-
-```python
-# NEW: Applio Features in Auto Pipeline
-
-# 1. Autotune - Snap F0 to musical notes
-autotune_strength = 0.5  # 0.0-1.0 (recommended for singing)
-
-# 2. Clean Audio - Noise reduction
-clean_audio = True
-clean_strength = 0.5  # 0.0-1.0 (recommended for speech)
-
-# 3. Volume Envelope - RMS matching
-volume_envelope = 1.0  # 0.0-1.0 (match original dynamics)
-
-# 4. High-Pass Filter - Remove rumble
-apply_highpass = True  # Remove frequencies below 48Hz
-```
-
-**Quality Improvements:**
-```
-Singing Conversions:
-- ✅ Autotune: Better pitch accuracy (snaps to musical notes)
-- ✅ Volume Envelope: Natural dynamics (matches original)
-- ✅ High-Pass: Cleaner bass (removes rumble)
-
-Speech Conversions:
-- ✅ Clean Audio: Reduced background noise
-- ✅ High-Pass: Clearer voice (removes low-end mud)
-```
-
-**Files Created:**
-- `core/modules/audio_processing.py` - Applio audio utilities
-- `frontend/src/components/RVCConversion.jsx` - UI controls
-
-**Based on:** [Applio v3.6.2](https://github.com/IAHispano/Applio)
 
 ---
 
