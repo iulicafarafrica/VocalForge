@@ -3,6 +3,7 @@ RVC Voice Conversion API Endpoint for VocalForge
 """
 
 import os
+import sys
 import uuid
 import tempfile
 import soundfile as sf
@@ -10,6 +11,11 @@ import librosa
 import numpy as np
 from fastapi import APIRouter, UploadFile, File, Form
 from fastapi.responses import JSONResponse
+
+# Add project root to sys.path for core.modules import
+PROJECT_ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 # Import RVC wrapper
 from core.modules.rvc_model import RVCModel, convert_voice
