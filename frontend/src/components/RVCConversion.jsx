@@ -1,6 +1,12 @@
 /**
  * RVC Voice Conversion Component - Curat
  * Tabs: Pipeline Automat | Mix | Presets
+ * 
+ * Enhanced with Applio features:
+ * - Autotune (snap F0 to musical notes)
+ * - Clean Audio (noise reduction)
+ * - Volume Envelope (RMS matching)
+ * - High-Pass Filter (remove rumble)
  */
 
 import { useState, useEffect } from "react";
@@ -17,6 +23,15 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
   const [pipelineF0Method, setPipelineF0Method] = useState("harvest");
   const [pipelinePitch, setPipelinePitch] = useState(0);
   const [pipelineIndexRate, setPipelineIndexRate] = useState(0.40);
+  
+  // NEW: Applio features state
+  const [autotuneEnabled, setAutotuneEnabled] = useState(false);
+  const [autotuneStrength, setAutotuneStrength] = useState(0.5);
+  const [cleanAudioEnabled, setCleanAudioEnabled] = useState(false);
+  const [cleanStrength, setCleanStrength] = useState(0.5);
+  const [volumeEnvelope, setVolumeEnvelope] = useState(1.0);
+  const [applyHighpass, setApplyHighpass] = useState(true);
+  
   const [pipelineRunning, setPipelineRunning] = useState(false);
   const [pipelineProgress, setPipelineProgress] = useState(0);
   const [pipelineResult, setPipelineResult] = useState(null);
@@ -85,6 +100,13 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
       formData.append("f0_method", pipelineF0Method);
       formData.append("pitch_shift", pipelinePitch.toString());
       formData.append("index_rate", pipelineIndexRate.toString());
+      
+      // NEW: Applio features
+      formData.append("autotune_strength", autotuneEnabled ? autotuneStrength.toString() : "0.0");
+      formData.append("clean_audio", cleanAudioEnabled.toString());
+      formData.append("clean_strength", cleanStrength.toString());
+      formData.append("volume_envelope", volumeEnvelope.toString());
+      formData.append("apply_highpass", applyHighpass.toString());
 
       const progressInterval = setInterval(() => {
         setPipelineProgress(prev => prev >= 90 ? prev : prev + 8);
@@ -327,6 +349,112 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
             </div>
             <div style={{ fontSize: 11, color: "#6666aa", background: "#080812", padding: 8, borderRadius: 6 }}>
               💡 <strong>For Singing:</strong> Use <strong style={{ color: "#4ade80" }}>0.35-0.50</strong> to preserve original singing style. Higher values (0.75+) may destroy vibrato and harmony.
+            </div>
+
+            {/* ── ADVANCED SETTINGS (APPLIO FEATURES) ────────────────────────── */}
+            <div style={{
+              background: "linear-gradient(135deg, #1a1a2e, #0f0f1a)",
+              border: "1px solid #3a3a5a",
+              borderRadius: 12,
+              padding: 16,
+              marginBottom: 16,
+            }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#ff6b9d", marginBottom: 12 }}>
+                🎛 Advanced Settings (Applio Features)
+              </div>
+
+              {/* Autotune */}
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={autotuneEnabled}
+                    onChange={e => setAutotuneEnabled(e.target.checked)}
+                    style={{ width: 18, height: 18, cursor: "pointer" }}
+                  />
+                  <span style={{ color: "#e0e0ff", fontWeight: 600 }}>🎵 Autotune</span>
+                </label>
+                {autotuneEnabled && (
+                  <div>
+                    <div style={{ fontSize: 11, color: "#6666aa", marginBottom: 4 }}>
+                      Strength: {autotuneStrength.toFixed(2)}
+                    </div>
+                    <input
+                      type="range"
+                      min="0" max="1" step="0.05"
+                      value={autotuneStrength}
+                      onChange={e => setAutotuneStrength(parseFloat(e.target.value))}
+                      style={{ width: "100%" }}
+                    />
+                    <div style={{ fontSize: 10, color: "#444466", marginTop: 4 }}>
+                      Snap F0 to musical notes (recommended for singing)
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Clean Audio */}
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={cleanAudioEnabled}
+                    onChange={e => setCleanAudioEnabled(e.target.checked)}
+                    style={{ width: 18, height: 18, cursor: "pointer" }}
+                  />
+                  <span style={{ color: "#e0e0ff", fontWeight: 600 }}>🧹 Clean Audio</span>
+                </label>
+                {cleanAudioEnabled && (
+                  <div>
+                    <div style={{ fontSize: 11, color: "#6666aa", marginBottom: 4 }}>
+                      Strength: {cleanStrength.toFixed(2)}
+                    </div>
+                    <input
+                      type="range"
+                      min="0" max="1" step="0.05"
+                      value={cleanStrength}
+                      onChange={e => setCleanStrength(parseFloat(e.target.value))}
+                      style={{ width: "100%" }}
+                    />
+                    <div style={{ fontSize: 10, color: "#444466", marginTop: 4 }}>
+                      Noise reduction (recommended for speech)
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Volume Envelope */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 11, color: "#6666aa", marginBottom: 4 }}>
+                  📊 Volume Envelope (RMS Matching): {volumeEnvelope.toFixed(2)}
+                </div>
+                <input
+                  type="range"
+                  min="0" max="1" step="0.05"
+                  value={volumeEnvelope}
+                  onChange={e => setVolumeEnvelope(parseFloat(e.target.value))}
+                  style={{ width: "100%" }}
+                />
+                <div style={{ fontSize: 10, color: "#444466", marginTop: 4 }}>
+                  Match dynamics of original audio (1.0 = full match)
+                </div>
+              </div>
+
+              {/* High-Pass Filter */}
+              <div>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={applyHighpass}
+                    onChange={e => setApplyHighpass(e.target.checked)}
+                    style={{ width: 18, height: 18, cursor: "pointer" }}
+                  />
+                  <span style={{ color: "#e0e0ff", fontWeight: 600 }}>🔊 High-Pass Filter</span>
+                </label>
+                <div style={{ fontSize: 10, color: "#444466", marginTop: 4, marginLeft: 26 }}>
+                  Remove rumble below 48Hz (recommended)
+                </div>
+              </div>
             </div>
 
             {/* Run Button */}
