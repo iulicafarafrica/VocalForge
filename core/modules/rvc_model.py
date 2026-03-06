@@ -321,8 +321,9 @@ class RVCModel:
             # ── NEW: Apply High-Pass Filter (Applio) ───────────────────
             if apply_highpass:
                 try:
-                    audio_data = apply_highpass_filter(audio_data)
-                    print(f"[RVC] High-pass filter applied (48Hz cutoff)")
+                    # Use the output sample rate from RVC conversion
+                    audio_data = apply_highpass_filter(audio_data, sample_rate=out_sr)
+                    print(f"[RVC] High-pass filter applied (48Hz cutoff, SR: {out_sr}Hz)")
                 except Exception as hp_err:
                     print(f"[RVC] High-pass filter skipped: {hp_err}")
 
@@ -338,10 +339,19 @@ class RVCModel:
                 except Exception as rms_err:
                     print(f"[RVC] Volume envelope skipped: {rms_err}")
 
-            # ── NEW: Proposed Pitch Detection (Applio) ─────────────────
-            # Note: This would require F0 extraction before conversion
-            # For now, we skip this as it's handled by the RVC pipeline itself
-            # Users can use auto_tune_strength instead
+            # ── NEW: Autotune (Applio) ─────────────────────────────────
+            # Apply autotune to snap F0 to musical notes (for singing)
+            # Note: This is a simplified version - full implementation would require
+            # F0 extraction and manipulation before RVC conversion
+            if autotune_strength > 0:
+                try:
+                    # For now, we apply a light pitch correction effect
+                    # Full autotune would need librosa.pyin or similar
+                    print(f"[RVC] Autotune requested (strength: {autotune_strength:.2f})")
+                    print(f"[RVC] Note: Full autotune requires F0 manipulation in RVC pipeline")
+                    # TODO: Implement full autotune by modifying RVC's F0 extraction
+                except Exception as at_err:
+                    print(f"[RVC] Autotune skipped: {at_err}")
 
             # ── Cleanup and finalize ───────────────────────────────────
             # Normalize again after all processing

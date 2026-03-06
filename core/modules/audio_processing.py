@@ -12,25 +12,26 @@ from scipy import signal
 
 # ── High-Pass Filter (Butterworth) ────────────────────────────────────────────
 # Remove rumble below 48Hz (from Applio)
+# Note: Filter coefficients are calculated dynamically based on sample rate
+
 FILTER_ORDER = 5
 CUTOFF_FREQUENCY = 48  # Hz
-SAMPLE_RATE = 16000  # Hz
 
-bh, ah = signal.butter(
-    N=FILTER_ORDER, Wn=CUTOFF_FREQUENCY, btype="high", fs=SAMPLE_RATE
-)
-
-
-def apply_highpass_filter(audio):
+def apply_highpass_filter(audio, sample_rate=16000):
     """
     Apply high-pass filter to remove rumble below 48Hz.
     
     Args:
         audio: numpy array with audio samples
+        sample_rate: Sample rate of the audio (default: 16000Hz for RVC output)
     
     Returns:
         filtered_audio: numpy array
     """
+    # Calculate filter coefficients for this sample rate
+    bh, ah = signal.butter(
+        N=FILTER_ORDER, Wn=CUTOFF_FREQUENCY, btype="high", fs=sample_rate
+    )
     return signal.filtfilt(bh, ah, audio)
 
 
