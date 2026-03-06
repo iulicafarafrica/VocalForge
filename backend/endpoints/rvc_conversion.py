@@ -518,17 +518,30 @@ async def auto_pipeline(
     f0_method: str = Form("harvest", description="F0 extraction method: harvest (singing), rmvpe, pm, crepe"),
     pitch_shift: float = Form(0, description="Pitch shift in semitones"),
     index_rate: float = Form(0.40, description="Retrieval index ratio (0.40 preserves singing style)"),
+    
+    # NEW: Applio features
+    autotune_strength: float = Form(0.0, description="Autotune strength (0.0-1.0, snap F0 to musical notes)"),
+    clean_audio: bool = Form(False, description="Clean audio with noise reduction (recommended for speech)"),
+    clean_strength: float = Form(0.5, description="Clean strength (0.0-1.0)"),
+    volume_envelope: float = Form(1.0, description="RMS matching strength (0.0-1.0)"),
+    apply_highpass: bool = Form(True, description="Apply high-pass filter (remove rumble below 48Hz)"),
 ):
     """
     Automatic pipeline: BS-RoFormer → Normalize → RVC → Rescue Post-Processing.
 
     Upload a full song and get back the RVC-converted vocals in one click.
-    
+
     ⚠️ IMPORTANT: RVC is trained on SPEECH, not SINGING
     - Default F0 Method: "harvest" (better for singing than rmvpe)
     - Default Index Rate: 0.40 (preserves original singing style)
     - Includes "RVC Rescue" post-processing with reverb
     
+    NEW: Applio Features
+    - Autotune: Snap F0 to musical notes (for singing)
+    - Clean Audio: Noise reduction (for speech)
+    - Volume Envelope: RMS matching
+    - High-Pass Filter: Remove rumble
+
     This endpoint handles the entire workflow automatically.
     """
     import time
@@ -626,6 +639,7 @@ async def auto_pipeline(
         print(f"[Pipeline] Converting voice with {f0_method} (optimized for singing)...")
 
         # Convert voice with parameters optimized for SINGING (not speech)
+        # Now includes Applio features: autotune, highpass, volume envelope
         converted_audio, out_sr = rvc.convert(
             audio=audio,
             sr=sr,
@@ -635,9 +649,13 @@ async def auto_pipeline(
             filter_radius=3,
             rms_mix_rate=0.25,
             protect=0.55,              # Higher protect for singing
+            # NEW: Applio features
+            autotune_strength=autotune_strength,
+            apply_highpass=apply_highpass,
+            volume_envelope=volume_envelope,
         )
 
-        # Save RVC output (raw, damaged)
+        # Save RVC output
         rvc_output_path = os.path.join(temp_dir, f"rvc_{job_id}.wav")
         sf.write(rvc_output_path, converted_audio, out_sr, subtype='PCM_16')
 
@@ -646,6 +664,39 @@ async def auto_pipeline(
 
         step3_time = time.time() - step3_start
         print(f"[Pipeline] Step 3 complete: {step3_time:.1f}s")
+
+        # ── Step 3.5: Clean Audio (Noise Reduction) ───────────────────────────
+        # Apply noise reduction if enabled (recommended for speech)
+        if clean_audio and clean_strength > 0:
+            print(f"\n[Pipeline] Step 3.5/4: Cleaning audio (strength: {clean_strength})...")
+            step35_start = time.time()
+            
+            try:
+                import noisereduce as nr
+                
+                # Load audio for cleaning
+                audio_to_clean, clean_sr = librosa.load(rvc_output_path, sr=None, mono=True)
+                
+                # Apply noise reduction
+                cleaned_audio = nr.reduce_noise(
+                    y=audio_to_clean,
+                    sr=clean_sr,
+                    prop_decrease=clean_strength,
+                    stationary=True,  # For stationary noise
+                )
+                
+                # Save cleaned audio
+                cleaned_path = os.path.join(temp_dir, f"rvc_{job_id}_cleaned.wav")
+                sf.write(cleaned_path, cleaned_audio, clean_sr, subtype='PCM_16')
+                rvc_output_path = cleaned_path  # Use cleaned audio for next step
+                
+                step35_time = time.time() - step35_start
+                print(f"[Pipeline] Step 3.5 complete: {step35_time:.1f}s - Clean audio applied")
+                
+            except ImportError:
+                print(f"[Pipeline] Step 3.5: noisereduce library not found, skipping clean audio")
+            except Exception as clean_err:
+                print(f"[Pipeline] Step 3.5: Clean audio failed: {clean_err}")
 
         # ── Step 4: RVC Rescue Post-Processing ────────────────────────────────
         # Fix RVC artifacts and restore musicality
@@ -717,7 +768,7 @@ async def auto_pipeline(
 
         return JSONResponse({
             "status": "ok",
-            "message": "Pipeline complet! (with RVC Rescue post-processing)",
+            "message": "Pipeline complet! (with RVC Rescue + Applio features)",
             "filename_wav": final_wav,
             "filename_mp3": final_mp3,
             "url": f"/tracks/{final_wav}",  # Return WAV by default (higher quality)
@@ -730,9 +781,17 @@ async def auto_pipeline(
                 "separation": round(step1_time, 1),
                 "normalize": round(step2_time, 1),
                 "rvc_conversion": round(step3_time, 1),
-                "post_processing": round(step4_time, 1),  # NEW
+                "clean_audio": round(step35_time, 1) if 'step35_time' in locals() else 0,
+                "post_processing": round(step4_time, 1),
             },
-            "post_processing_applied": True,  # NEW
+            "applio_features": {
+                "autotune_strength": autotune_strength,
+                "clean_audio": clean_audio,
+                "clean_strength": clean_strength,
+                "volume_envelope": volume_envelope,
+                "apply_highpass": apply_highpass,
+            },
+            "post_processing_applied": True,
         })
         
     except Exception as e:
