@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### ⚠️ The Problem: RVC is Trained on SPEECH, Not SINGING
 
 **Critical Discovery:**
-- RVC models are trained on **speech audio** (vorbire)
+- RVC models are trained on **speech audio** (vorbire = speaking voice)
 - RVC doesn't understand **singing techniques** (vibrato, sustain, dynamics)
 - RVC treats singing like speech → destroys musicality
 
@@ -24,9 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ```
 Pipeline Step               | Quality | Description
 ---------------------------|---------|----------------------------------
-BS-RoFormer Separation     | 9/10 ✅ | "Excelent, vocal curat, natural"
-RVC Raw (before v1.8.4)    | 5/10 ❌ | "Groaznic - poezie robotică"
-RVC Rescue (v1.8.4+)       | 8/10 🎯 | "Foarte bun - sună muzical"
+BS-RoFormer Separation     | 9/10 ✅ | "Excellent, clean vocal, natural"
+RVC Raw (before v1.8.4)    | 5/10 ❌ | "Terrible - robotic poetry reading"
+RVC Rescue (v1.8.4+)       | 8/10 🎯 | "Very good - sounds musical"
 ```
 
 **What RVC Destroys:**

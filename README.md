@@ -49,15 +49,15 @@
 #### ⚠️ Critical Discovery: RVC is Trained on SPEECH, Not SINGING
 
 **The Problem:**
-- RVC models are trained on **speech audio** (vorbire), not singing
+- RVC models are trained on **speech audio** (vorbire = speaking voice), not singing
 - RVC doesn't understand **vibrato, sustain, harmony, dynamics**
 - Result: After RVC, vocals sound like "poetry reading" instead of singing
 
 **Quality Breakdown:**
 ```
-BS-RoFormer Separation:  ⭐⭐⭐⭐⭐ (9/10) ✅ "Excelent"
-RVC Raw (before v1.8.4): ⭐⭐ (5/10) ❌ "Groaznic - poezie robotică"
-RVC Rescue (v1.8.4+):    ⭐⭐⭐⭐ (8/10) 🎯 "Foarte bun - muzical"
+BS-RoFormer Separation:  ⭐⭐⭐⭐⭐ (9/10) ✅ "Excellent"
+RVC Raw (before v1.8.4): ⭐⭐ (5/10) ❌ "Terrible - robotic poetry reading"
+RVC Rescue (v1.8.4+):    ⭐⭐⭐⭐ (8/10) 🎯 "Very good - musical, natural"
 ```
 
 **What RVC Destroys:**
@@ -328,19 +328,19 @@ if (data.instrumental_url) {
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
 │  BS-RoFormer Separation:  ⭐⭐⭐⭐⭐ (9/10) ✅           │
-│  "Excelent, vocal curat, natural"                       │
+│  "Excellent, clean vocal, natural"                      │
 │                                                         │
 │  RVC Raw (before v1.8.4): ⭐⭐ (5/10) ❌               │
-│  "Groaznic - sună ca poezie robotică"                   │
-│  - Fără harmony, nu se aude cântat                      │
-│  - Artefacte digitale, harsh                            │
-│  - Fără vibrato, dynamics monotone                      │
+│  "Terrible - sounds like robotic poetry reading"        │
+│  - No harmony, doesn't sound like singing               │
+│  - Digital artifacts, harsh                             │
+│  - No vibrato, monotone dynamics                        │
 │                                                         │
 │  RVC Rescue (v1.8.4+):    ⭐⭐⭐⭐ (8/10) 🎯            │
-│  "Foarte bun - sună muzical, natural"                   │
-│  - Harmony restaurat                                    │
-│  - Reverb adaugă spațiu muzical                         │
-│  - Artefacte eliminate                                  │
+│  "Very good - sounds musical, natural"                  │
+│  - Harmony restored                                     │
+│  - Reverb adds musical space                            │
+│  - Artifacts removed                                    │
 │                                                         │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -356,7 +356,7 @@ if (data.instrumental_url) {
 | **Sound** | 🎵 Musical | 📖 Poetry reading |
 
 **Root Cause:**
-- RVC models are trained on **speech audio** (vorbire)
+- RVC models are trained on **speech audio** (vorbire = speaking voice)
 - RVC doesn't understand **singing techniques** (vibrato, sustain, dynamics)
 - RVC treats singing like speech → destroys musicality
 
