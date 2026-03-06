@@ -32,6 +32,9 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
   const [volumeEnvelope, setVolumeEnvelope] = useState(1.0);
   const [applyHighpass, setApplyHighpass] = useState(true);
   
+  // Preset for Applio features
+  const [applioPreset, setApplioPreset] = useState("custom");
+  
   const [pipelineRunning, setPipelineRunning] = useState(false);
   const [pipelineProgress, setPipelineProgress] = useState(0);
   const [pipelineResult, setPipelineResult] = useState(null);
@@ -81,6 +84,88 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
       const data = await res.json();
       if (data.status === "ok") setPresets(data.presets || {});
     } catch (err) { console.error("Failed to load presets:", err); }
+  };
+
+  // ── Preset Definitions for Applio Features ─────────────────────────────────
+  const applioPresets = {
+    custom: {
+      name: "Custom",
+      autotune: false, autotuneStrength: 0.5,
+      cleanAudio: false, cleanStrength: 0.5,
+      volumeEnvelope: 1.0,
+      highpass: true,
+    },
+    natural_singing: {
+      name: "🎵 Natural Singing",
+      autotune: true, autotuneStrength: 0.4,
+      cleanAudio: false, cleanStrength: 0.5,
+      volumeEnvelope: 1.0,
+      highpass: true,
+    },
+    heavy_autotune: {
+      name: "🤖 Heavy Autotune",
+      autotune: true, autotuneStrength: 1.0,
+      cleanAudio: false, cleanStrength: 0.5,
+      volumeEnvelope: 0.8,
+      highpass: true,
+    },
+    clear_speech: {
+      name: "🎙️ Clear Speech",
+      autotune: false, autotuneStrength: 0.5,
+      cleanAudio: true, cleanStrength: 0.5,
+      volumeEnvelope: 1.0,
+      highpass: true,
+    },
+    radio_voice: {
+      name: "📻 Radio Voice",
+      autotune: false, autotuneStrength: 0.5,
+      cleanAudio: true, cleanStrength: 0.7,
+      volumeEnvelope: 1.0,
+      highpass: true,
+    },
+    male_to_female: {
+      name: "👨 Male → Female",
+      autotune: true, autotuneStrength: 0.3,
+      cleanAudio: false, cleanStrength: 0.5,
+      volumeEnvelope: 1.0,
+      highpass: true,
+    },
+    female_to_male: {
+      name: "👩 Female → Male",
+      autotune: true, autotuneStrength: 0.3,
+      cleanAudio: false, cleanStrength: 0.5,
+      volumeEnvelope: 1.0,
+      highpass: true,
+    },
+    karaoke: {
+      name: "🎤 Karaoke",
+      autotune: true, autotuneStrength: 0.6,
+      cleanAudio: false, cleanStrength: 0.5,
+      volumeEnvelope: 0.9,
+      highpass: true,
+    },
+    noise_reduction: {
+      name: "🧹 Noise Reduction",
+      autotune: false, autotuneStrength: 0.5,
+      cleanAudio: true, cleanStrength: 0.8,
+      volumeEnvelope: 1.0,
+      highpass: true,
+    },
+  };
+
+  const applyApplioPreset = (presetKey) => {
+    const preset = applioPresets[presetKey];
+    if (!preset) return;
+    
+    setApplioPreset(presetKey);
+    setAutotuneEnabled(preset.autotune);
+    setAutotuneStrength(preset.autotuneStrength);
+    setCleanAudioEnabled(preset.cleanAudio);
+    setCleanStrength(preset.cleanStrength);
+    setVolumeEnvelope(preset.volumeEnvelope);
+    setApplyHighpass(preset.highpass);
+    
+    addLog(`✅ Preset applied: ${preset.name}`);
   };
 
   const runPipeline = async () => {
@@ -361,6 +446,35 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
             }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#ff6b9d", marginBottom: 12 }}>
                 🎛 Advanced Settings (Applio Features)
+              </div>
+              
+              {/* Preset Selector */}
+              <div style={{ marginBottom: 16 }}>
+                <span style={{ fontSize: 11, color: "#6666aa", display: "block", marginBottom: 6 }}>
+                  📋 Quick Preset
+                </span>
+                <select
+                  value={applioPreset}
+                  onChange={e => applyApplioPreset(e.target.value)}
+                  style={{
+                    width: "100%",
+                    background: "#080812",
+                    border: "1px solid #2a2a4a",
+                    color: "#e0e0ff",
+                    borderRadius: 8,
+                    padding: "10px 12px",
+                    fontSize: 13,
+                    outline: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  {Object.entries(applioPresets).map(([key, preset]) => (
+                    <option key={key} value={key}>{preset.name}</option>
+                  ))}
+                </select>
+                <div style={{ fontSize: 10, color: "#444466", marginTop: 4 }}>
+                  {applioPreset !== "custom" && "✨ Preset applied! You can still customize settings."}
+                </div>
               </div>
 
               {/* Autotune */}
