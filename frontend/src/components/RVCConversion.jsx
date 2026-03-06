@@ -14,9 +14,9 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
   // Pipeline state
   const [pipelineFile, setPipelineFile] = useState(null);
   const [pipelineModel, setPipelineModel] = useState("");
-  const [pipelineF0Method, setPipelineF0Method] = useState("rmvpe");
+  const [pipelineF0Method, setPipelineF0Method] = useState("harvest");
   const [pipelinePitch, setPipelinePitch] = useState(0);
-  const [pipelineIndexRate, setPipelineIndexRate] = useState(0.75);
+  const [pipelineIndexRate, setPipelineIndexRate] = useState(0.40);
   const [pipelineRunning, setPipelineRunning] = useState(false);
   const [pipelineProgress, setPipelineProgress] = useState(0);
   const [pipelineResult, setPipelineResult] = useState(null);
@@ -239,8 +239,27 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
         <h2 style={{
           fontSize: 24, fontWeight: 800,
           background: "linear-gradient(135deg, #ff6b9d, #ff8fab)",
-          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 12,
+          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 8,
         }}>🎤 RVC Voice Conversion</h2>
+        
+        {/* Description */}
+        <div style={{
+          background: "linear-gradient(135deg, #1a1a2e, #0f0f1a)",
+          border: "1px solid #2a2a4a",
+          borderRadius: 12,
+          padding: 16,
+          marginBottom: 16,
+        }}>
+          <div style={{ fontSize: 13, color: "#a0a0cc", lineHeight: 1.6, marginBottom: 8 }}>
+            <strong style={{ color: "#ff6b9d" }}>What is RVC?</strong> RVC (Retrieval-based Voice Conversion) uses AI to transform vocals from one voice to another using trained voice models.
+          </div>
+          <div style={{ fontSize: 12, color: "#6666aa" }}>
+            <strong>⚡ Auto Pipeline:</strong> Upload full song → Separate vocals → Convert with RVC → Save instrumental → Mix together in Final Mix tab
+          </div>
+          <div style={{ fontSize: 11, color: "#444466", marginTop: 8, fontStyle: "italic" }}>
+            💡 <strong>Tip:</strong> For best singing quality, use <strong style={{ color: "#4ade80" }}>harvest</strong> F0 method and <strong style={{ color: "#4ade80" }}>0.40</strong> Index Rate (optimized for singing, not speech)
+          </div>
+        </div>
 
         <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
           {[["pipeline", "⚡ Auto Pipeline"], ["mix", "🎚 Final Mix"], ["presets", "💾 Presets"]].map(([id, label]) => (
@@ -279,13 +298,16 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
             </select>
 
             {/* F0 Method */}
-            <span style={S.label}>🎛 F0 Method</span>
+            <span style={S.label}>🎛 F0 Method (Pitch Extraction)</span>
             <select value={pipelineF0Method} onChange={e => setPipelineF0Method(e.target.value)} style={{ ...S.select, marginBottom: 16 }}>
-              <option value="rmvpe">RMVPE (Recommended)</option>
-              <option value="harvest">Harvest</option>
-              <option value="pm">PM (fast)</option>
-              <option value="crepe">Crepe (GPU)</option>
+              <option value="harvest">🎵 Harvest - Best for singing (smooth, natural)</option>
+              <option value="rmvpe">⚡ RMVPE - Fast & accurate (default)</option>
+              <option value="pm">🚀 PM - Fastest (lower quality)</option>
+              <option value="crepe">🎛 Crepe - GPU accelerated (best quality)</option>
             </select>
+            <div style={{ fontSize: 11, color: "#6666aa", marginBottom: 16, background: "#080812", padding: 8, borderRadius: 6 }}>
+              💡 <strong>Recommendation:</strong> Use <strong style={{ color: "#4ade80" }}>harvest</strong> for singing (preserves vibrato & harmony better than rmvpe)
+            </div>
 
             {/* Pitch */}
             <span style={S.label}>🎚 Pitch Shift: {pipelinePitch > 0 ? "+" : ""}{pipelinePitch} semitones</span>
@@ -293,12 +315,18 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#6666aa", marginBottom: 16 }}>
               <span>-12 (lower)</span><span>0</span><span>+12 (higher)</span>
             </div>
+            <div style={{ fontSize: 11, color: "#6666aa", marginBottom: 16, background: "#080812", padding: 8, borderRadius: 6 }}>
+              🎯 <strong>Tip:</strong> Keep at 0 for same key. Use ±1-3 for small adjustments. Extreme shifts may reduce quality.
+            </div>
 
             {/* Index Rate */}
             <span style={S.label}>📊 Index Rate: {pipelineIndexRate.toFixed(2)}</span>
             <input type="range" min="0" max="1" step="0.01" value={pipelineIndexRate} onChange={e => setPipelineIndexRate(parseFloat(e.target.value))} style={{ width: "100%", marginBottom: 4 }} />
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#6666aa", marginBottom: 16 }}>
-              <span>0 (no index)</span><span>0.75 (recommended)</span><span>1.0 (maxim)</span>
+              <span>0 (original voice)</span><span>0.40 (singing)</span><span>1.0 (full conversion)</span>
+            </div>
+            <div style={{ fontSize: 11, color: "#6666aa", background: "#080812", padding: 8, borderRadius: 6 }}>
+              💡 <strong>For Singing:</strong> Use <strong style={{ color: "#4ade80" }}>0.35-0.50</strong> to preserve original singing style. Higher values (0.75+) may destroy vibrato and harmony.
             </div>
 
             {/* Run Button */}
