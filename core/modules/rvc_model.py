@@ -22,32 +22,41 @@ INFER_DIR = os.path.join(RVC_DIR, "infer")
 if INFER_DIR not in sys.path:
     sys.path.insert(0, INFER_DIR)
 
-# Save original working directory and change to RVC_DIR for config loading
+# Save original working directory
 ORIGINAL_CWD = os.getcwd()
+
+# Set environment variables for RVC
+os.environ["RVC_ROOT"] = RVC_DIR
+os.environ["weight_root"] = os.path.join(RVC_DIR, "assets", "weights")
+os.environ["index_root"] = os.path.join(RVC_DIR, "assets", "indexes")
+
+# Change to RVC_DIR for config loading
 os.chdir(RVC_DIR)
 
 print(f"[RVC] RVC_DIR: {RVC_DIR}")
-print(f"[RVC] sys.path updated: {RVC_DIR in sys.path}")
 print(f"[RVC] Working directory: {os.getcwd()}")
 
+# Import Config and other modules
+from configs.config import Config
 from infer.modules.vc.modules import VC
 from infer.lib.audio import load_audio
-from configs.config import Config
 
-# Change back to original directory after imports
-os.chdir(ORIGINAL_CWD)
+print(f"[RVC] Config loaded successfully")
 
 
 class RVCModel:
     """
     RVC Voice Conversion Model Wrapper
-    
+
     Provides easy-to-use interface for voice conversion with:
     - Pitch shifting
     - Timbre/embedding control
     - Emotion-based F0 modification
     """
     
+    # Store original working directory as class attribute
+    ORIGINAL_CWD = ORIGINAL_CWD
+
     def __init__(self, device=None, config=None):
         """
         Initialize RVC model
@@ -72,42 +81,52 @@ class RVCModel:
     
     def load_model(self, model_path, sid=0):
         """
-        Load RVC voice model
-        
+        Load RVC voice model (auto-detect v1 or v2)
+
         Args:
             model_path: Path to .pth model file
             sid: Speaker ID (for models with multiple speakers)
         """
         if not os.path.exists(model_path):
             raise FileNotFoundError(f"Model not found: {model_path}")
-        
+
         print(f"[RVC] Loading model: {model_path}")
         
+        # Load checkpoint to detect version
+        cpt = torch.load(model_path, map_location="cpu")
+        version = cpt.get("version", "v1")
+        tgt_sr = cpt["config"][-1]
+        
+        print(f"[RVC] Model version: {version}")
+        print(f"[RVC] Target SR: {tgt_sr}Hz")
+
         # Get model filename
         model_filename = os.path.basename(model_path)
         model_dir = os.path.dirname(model_path)
-        
+
         # Temporarily change weight_root env var
         original_weight_root = os.getenv("weight_root", "")
         original_index_root = os.getenv("index_root", "")
         os.environ["weight_root"] = model_dir
         os.environ["index_root"] = os.path.join(RVC_DIR, "logs")
         os.environ["rmvpe_root"] = os.path.join(RVC_DIR, "assets", "rmvpe")
-        
+
         try:
             result = self.vc.get_vc(model_filename)
             self.current_model = model_path
             self.current_sid = sid
-            
+            self.version = version
+            self.tgt_sr = tgt_sr
+
             # Extract index path from result
             if isinstance(result, tuple) and len(result) > 3:
                 self.index_path = result[3].get("value") if isinstance(result[3], dict) else None
-            
+
             print(f"[RVC] Model loaded successfully: {model_filename}")
             print(f"[RVC] Target SR: {self.vc.tgt_sr}")
             print(f"[RVC] F0 enabled: {self.vc.if_f0}")
             print(f"[RVC] Version: {self.vc.version}")
-            
+
         except Exception as e:
             print(f"[RVC] Error loading model: {e}")
             raise
@@ -304,14 +323,14 @@ class RVCModel:
                 print(f"[RVC] Dry/Wet mix: {int(dry_wet*100)}% converted / {int((1-dry_wet)*100)}% original")
 
             print(f"[RVC] Conversion complete: {len(audio_data)} samples @ {tgt_sr}Hz")
-            
+
             return audio_data, tgt_sr
-            
+
         except Exception as e:
             print(f"[RVC] Conversion error: {e}")
             raise
         finally:
-            os.chdir(ORIGINAL_CWD)
+            os.chdir(self.ORIGINAL_CWD)
             # Clean up temp file
             if isinstance(audio, np.ndarray) and os.path.exists(input_path):
                 try:

@@ -1,9 +1,9 @@
-# 🎵 VocalForge v1.8.1
+# 🎵 VocalForge v1.8.2
 
 > **AI-Powered Music Production Studio** — Transform your voice, generate music, and create professional tracks with cutting-edge AI.
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.8.1-blue?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8.2-blue?style=for-the-badge" alt="Version">
   <img src="https://img.shields.io/badge/Status-Beta-yellow?style=for-the-badge" alt="Status">
   <img src="https://img.shields.io/badge/Python-3.10%2B-green?style=for-the-badge&logo=python" alt="Python">
   <img src="https://img.shields.io/badge/GPU-NVIDIA%20CUDA-orange?style=for-the-badge&logo=nvidia" alt="GPU">
@@ -26,7 +26,7 @@
 
 ## 📖 Table of Contents
 
-- [Changelog](#-changelog)
+- [What's New in v1.8.2](#-whats-new-in-v182)
 - [Features](#-features)
 - [Quick Start](#-quick-start)
 - [Installation](#-installation)
@@ -34,122 +34,116 @@
 - [API Reference](#-api-reference)
 - [Hardware Requirements](#-hardware-requirements)
 - [Troubleshooting](#-troubleshooting)
+- [Changelog](#-changelog)
 
 ---
 
-## 📝 Changelog
+## ✨ What's New in v1.8.2
 
-### v1.8.1 — Hotfix Release (March 6, 2026)
+### 🆕 **YouTube Cover Generator** (NEW!)
 
-#### 🐛 Fixed
-- **RVC Separation Endpoint** — Fixed `Separator.load_model()` parameter name
-  - Changed `model_name` to `model_filename` (audio-separator API compliance)
-  - Added `.ckpt` extension to BS-RoFormer model filename
-  - Model now downloads automatically on first use
-- **Stem Separation** — BS-RoFormer now working correctly for vocal/instrumental extraction
+Download audio from YouTube and create AI covers in one click!
 
-#### 🔧 Technical
-- Updated `backend/endpoints/rvc_conversion.py` line 84
-- Model filename: `model_bs_roformer_ep_317_sdr_12.9755.ckpt`
-- First separation triggers automatic model download (~300MB)
+**Features:**
+- 📥 Download audio from YouTube (WAV/MP3)
+- ✂️ Automatic vocal separation (BS-RoFormer)
+- 🎤 RVC voice conversion
+- 🎚️ Mix vocals with instrumental
+- ⬇️ Download final cover
 
----
+**Usage:**
+```bash
+# Web UI
+1. Open http://localhost:3000
+2. Click "📺 YouTube Cover" tab
+3. Paste YouTube URL
+4. Select RVC model
+5. Click "Start YouTube Cover"
+```
 
-### v1.8 — Major Release (March 2026)
+**API Endpoint:**
+```bash
+# Download only
+POST /youtube/download
+- url: https://www.youtube.com/watch?v=...
+- output_format: wav
 
-#### 🎯 New Tabs (Workflow Enhancement)
-
-**✂️ Separate Tab**
-- Upload full song → auto-separate with Demucs
-- Vocals + Instrumental separation
-- One-click "Use Vocals in Convert" button
-- Download individual stems
-
-**🎚️ Mix Tab**
-- Mix converted vocal with instrumental
-- Independent volume control (Vocal / Instrumental)
-- Real-time preview
-- Export final mix (MP3, WAV)
-
-**💾 Presets Tab**
-- Save all RVC settings with custom name
-  - Model, Pitch (±12 semitones), Emotion (5 types)
-  - Index Rate, Formant Preservation, Auto-Tune
-- Apply preset with single click
-- Delete or export presets
-- Import community presets
-
-#### 🐛 Fixed
-- RVC working directory issues
-- Unicode encoding errors (Windows compatibility)
-- Config path loading errors
-- Argument parsing conflicts
-
-#### 🔧 Technical
-- Added RVC Voice API (port 8002)
-- Enhanced `core/modules/rvc_model.py`
-- Updated `START_ALL.bat` (4 services)
-- Improved error handling and logging
+# Full cover pipeline
+POST /youtube/cover
+- url: https://www.youtube.com/watch?v=...
+- rvc_model_name: FlorinSalam.pth
+- pitch_shift: 0
+- f0_method: rmvpe
+- index_rate: 0.75
+```
 
 ---
 
-### v1.7 — Previous Release
+### 🎯 **RVC v2 Support** (NEW!)
 
-#### ✅ Added
-- **RVC Voice Conversion** — Complete AI voice transformation
-  - Custom .pth model support
-  - Pitch shifting (±12 semitones)
-  - Emotion control (5 emotions)
-  - Formant preservation
-  - 4 pre-loaded models
-- **Windows Terminal** — Required for multi-tab startup
-- **Enhanced RVC UI** — Improved conversion interface
+Auto-detect and use RVC v2 models with improved quality!
 
-#### ❌ Removed
-- **Vocal2BGM** — Feature deprecated
-- **Pitch Correction Tab** — Replaced by RVC
+**Features:**
+- ✅ Auto-detect RVC v1 vs v2
+- ✅ RMVPE++ pitch extraction (better quality)
+- ✅ 768-dim model architecture (v2)
+- ✅ 48kHz output (v2)
+- ✅ Backward compatible with v1 models
+
+**Model Structure:**
+```
+RVCWebUI/
+├── assets/weights/        # RVC v1 models (.pth)
+└── models/v2/             # RVC v2 models
+    ├── Lunar-RVC/
+    │    ├── model.pth     # Model weights
+    │    └── model.yaml    # Model config
+    └── Model-Name/
+         ├── model.pth
+         └── model.yaml
+```
 
 ---
 
-### v1.6 — Initial Release
+### 🔧 **Enhanced Pipeline** (IMPROVED!)
 
-- ACE-Step integration
-- Stem separation (Demucs)
-- Repaint/Lego/Complete
-- Genre presets (50+)
+Complete audio processing pipeline with professional quality!
 
----
+**Pipeline Steps:**
+```
+Input Audio
+    ↓
+[1] BS-RoFormer → Vocal separation (SDR 12.97)
+    ↓
+[2] MelBand Cleanup → Remove artifacts (optional)
+    ↓
+[3] De-reverb → Remove reverb (optional)
+    ↓
+[4] Denoise → Remove noise (optional)
+    ↓
+[5] Normalize → FFmpeg loudnorm (I=-16)
+    ↓
+[6] RVC v2 Conversion → Voice conversion (RMVPE)
+    ↓
+[7] MelBand Post → Final cleanup (optional)
+    ↓
+Output Clean
+```
 
-## ✨ Features
+**RVC Script Commands:**
+```bash
+# Single file conversion
+python scripts/inference_rvc_v2.py \
+  --input input.wav \
+  --model models/v2/Lunar-RVC/model.pth
 
-### 🎤 RVC Voice Conversion
-Transform your voice into any other voice using AI models.
-- **Custom Models** — Load .pth voice models
-- **Pitch Control** — Adjust pitch shifting (±12 semitones)
-- **Emotion Engine** — Happy, Sad, Angry, Calm, Fearful
-- **Formant Preservation** — Keep natural vocal timbre
-- **Pre-loaded Models** — Bad Bunny, Florin Salam, Justin Bieber, Kanye West
+# One model, all files
+python scripts/run_pipeline_v2.py \
+  --model models/v2/Lunar-RVC/model.pth
 
-### 🎵 ACE-Step Music Generation
-Generate complete songs from text descriptions.
-- **Text-to-Music** — Describe your song, AI creates it
-- **Audio Cover** — Generate instrumental from reference audio
-- **50+ Genre Presets** — Hip-Hop, Pop, EDM, Manele, Reggaeton
-- **Multiple Models** — Turbo (8 steps), Base/SFT (50 steps)
-- **Advanced Editing** — Repaint, Lego, Complete
-
-### 🎚️ Stem Separation
-Extract individual instruments from any song.
-- **Demucs Integration** — Industry-leading separation
-- **4 Stems** — Vocals, Drums, Bass, Other
-- **6 Stems Mode** — Plus Guitar, Piano
-- **Multiple Models** — htdemucs, htdemucs_ft, htdemucs_6s
-
-### 🎹 Audio Editing
-Professional audio manipulation tools.
-- **Repaint** — Edit specific sections
-- **Lego** — Add instruments to tracks
-- **Complete** — Extend/continue audio
+# All models, all files
+python scripts/run_pipeline_multi_v2.py
+```
 
 ---
 
@@ -174,12 +168,10 @@ START_ALL.bat
 | Service | URL | Port | Description |
 |---------|-----|------|-------------|
 | **Frontend UI** | http://localhost:3000 | 3000 | React web interface |
-| **Backend API** | http://localhost:8000 | 8000 | FastAPI server (Demucs, RVC) |
-| **RVC Voice API** | http://localhost:8002 | 8002 | Voice conversion service |
-| **ACE-Step API** | http://localhost:8001 | 8001 | Music generation service |
+| **Backend API** | http://localhost:8000 | 8000 | FastAPI server |
 | **API Docs** | http://localhost:8000/docs | 8000 | Interactive API documentation |
 
-> 💡 **Tip:** All 4 services must be running for full functionality. Use `START_ALL.bat` to launch everything at once.
+> 💡 **Tip:** All services must be running for full functionality. Use `START_ALL.bat` to launch everything at once.
 
 ---
 
@@ -229,6 +221,9 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Install additional for YouTube Cover
+pip install yt-dlp
 ```
 
 #### 3. Install Frontend Dependencies
@@ -239,56 +234,55 @@ npm install
 cd ..
 ```
 
-#### 4. Install ACE-Step
+#### 4. Install RVC Models
+
+RVC models are stored in `RVCWebUI/assets/weights/`:
 
 ```bash
-cd ace-step
-uv sync
-cd ..
-```
-
-> 📝 **Note:** ACE-Step requires ~10GB for models (downloaded on first run)
-
-#### 5. Install RVC Voice Conversion
-
-RVC is included in the project, but requires additional setup:
-
-```bash
-# RVC models are stored separately
-# Download RVC models (.pth files) from:
+# Download RVC models from:
 # - https://weights.gg/models
 # - https://huggingface.co/IAHispano/Applio
-# - https://huggingface.co/Rei/RVC-Models
 
 # Place models in:
 D:\VocalForge\RVCWebUI\assets\weights\
 ```
 
-> 💡 **Tip:** Pre-loaded models include: Bad Bunny, Florin Salam, Justin Bieber, Kanye West
-
-#### 6. Verify Installation
-
-```bash
-python -c "import torch; print(f'PyTorch: {torch.__version__}')"
-python -c "import librosa; print(f'Librosa: {librosa.__version__}')"
-python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
-```
+> 💡 **Tip:** Pre-loaded models include: FlorinSalam, JustinBieber, BadBunny, KanyeWest, and 16+ more!
 
 ---
 
 ## 🎯 Usage Guide
 
-### 1. RVC Voice Conversion
+### 1. YouTube Cover Generator (NEW!)
 
-**Best for:** Voice transformation, character voices, covers
+**Best for:** Creating AI covers from YouTube songs
+
+1. Go to **YouTube Cover** tab
+2. Paste YouTube URL
+3. Select RVC model
+4. Adjust pitch shift (-12 to +12 semitones)
+5. Click **Start YouTube Cover**
+6. Wait ~60-90 seconds
+7. Download final cover
+
+**Pro Tips:**
+- Use "Download Only" to just save audio from YouTube
+- Higher index rate (0.75-1.0) = more original voice characteristics
+- Lower index rate (0.40-0.60) = more dramatic transformation
+
+---
+
+### 2. RVC Voice Conversion
+
+**Best for:** Voice transformation with custom models
 
 1. Go to **RVC Voice Conversion** tab
 2. Upload vocal file (WAV, MP3, FLAC)
 3. Select voice model from dropdown
 4. Adjust settings:
    - **Pitch Shift** — ±12 semitones
-   - **Emotion** — Happy, Sad, Angry, Calm, Fearful
-   - **F0 Method** — rmvpe (recommended), harvest, pm
+   - **F0 Method** — rmvpe (recommended), harvest, pm, crepe
+   - **Index Rate** — 0.75 (recommended)
 5. Click **Convert**
 6. Download converted audio
 
@@ -300,7 +294,7 @@ python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
 
 ---
 
-### 2. ACE-Step Music Generation
+### 3. ACE-Step Music Generation
 
 **Best for:** Creating beats, full songs, instrumentals
 
@@ -318,54 +312,22 @@ python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
    - **Base** — 50 steps, ~3 min, all features
    - **SFT** — 50 steps, ~3 min, highest quality
 6. Click **Generate**
-7. Wait for completion
-8. Download or add to tracks
-
-**Pro Tips:**
-- Use Turbo for quick sketches
-- Use SFT for final productions
-- Include instruments in prompt for better results
-- Reference audio improves style matching
+7. Download or add to tracks
 
 ---
 
-### 3. Stem Separation
+### 4. Stem Separation
 
 **Best for:** Remixes, karaoke, sampling, acapella extraction
 
 1. Go to **Stem Separation** tab
 2. Upload full song
 3. Select model:
-   - **htdemucs** — Fast, good quality
-   - **htdemucs_ft** — Slower, better quality
-   - **htdemucs_6s** — 6 stems (includes guitar, piano)
+   - **BS-RoFormer** — Best quality (SDR 12.97)
+   - **HT-Demucs** — Fast, good quality
+   - **HT-Demucs-FT** — Slower, better quality
 4. Click **Separate Stems**
 5. Download individual stems
-
-**Pro Tips:**
-- Use WAV for best quality
-- htdemucs_6s for detailed separation
-- Extract vocals for acapella
-- Remove vocals for karaoke
-
----
-
-### 4. Repaint / Lego / Complete
-
-**Repaint** — Edit specific section:
-1. Select time range (start/end)
-2. Enter new prompt for that section
-3. Generate modified version
-
-**Lego** — Add instruments:
-1. Upload existing track
-2. Select instrument (Drums, Bass, Guitar, Piano, Strings)
-3. Generate enhanced version
-
-**Complete** — Extend audio:
-1. Upload audio
-2. Specify extension duration
-3. Generate continuation
 
 ---
 
@@ -375,46 +337,19 @@ python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
+| `/youtube/download` | POST | Download audio from YouTube |
+| `/youtube/cover` | POST | Full YouTube cover pipeline |
 | `/rvc/convert` | POST | Convert voice using RVC model |
+| `/rvc/auto_pipeline` | POST | Automatic pipeline (Separation → RVC) |
 | `/rvc/models` | GET | List available RVC models |
+| `/rvc/separate` | POST | Separate vocals from instrumental |
 | `/detect_bpm_key` | POST | Detect BPM and key from audio |
-| `/demucs_separate` | POST | Separate audio into stems |
-| `/ace_generate` | POST | Generate music with ACE-Step |
-| `/acestep/repaint` | POST | Edit audio section |
-| `/acestep/lego` | POST | Add instrument to track |
-| `/acestep/complete` | POST | Extend audio |
 | `/hardware` | GET | Hardware/GPU info |
 | `/vram_usage` | GET | Current VRAM usage |
 | `/clear_cache` | GET | Clear GPU memory cache |
 | `/health` | GET | Health check |
 
 **Interactive Docs:** http://localhost:8000/docs
-
----
-
-### RVC Voice API (Port 8002)
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | RVC service status |
-| `/convert_voice/` | POST | Convert voice using RVC model |
-| `/models` | GET | List available RVC models |
-| `/unload` | GET | Unload RVC model and free VRAM |
-
-**Interactive Docs:** http://localhost:8002/docs
-
----
-
-### ACE-Step API (Port 8001)
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | Server status |
-| `/release_task` | POST | Submit generation task |
-| `/query_result` | POST | Query task result |
-| `/v1/audio` | GET | Download generated audio |
-
-**Interactive Docs:** http://localhost:8001/docs
 
 ---
 
@@ -431,12 +366,12 @@ python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
 
 ### Performance Benchmarks
 
-| GPU | ACE-Step (60s) | RVC Conversion | Stem Separation |
-|-----|----------------|----------------|-----------------|
-| **RTX 4090 (24GB)** | ~30 sec | Real-time | ~10 sec |
-| **RTX 3070 (8GB)** | ~1-2 min | ~10 sec | ~20 sec |
-| **RTX 2060 (6GB)** | ~3-4 min | ~20 sec | ~30 sec |
-| **CPU Only** | ~10-15 min | ~1 min | ~2 min |
+| Task | RTX 3070 (8GB) | RTX 2060 (6GB) | CPU Only |
+|------|----------------|----------------|----------|
+| **BS-RoFormer Separation** | ~25s | ~40s | ~2 min |
+| **RVC Conversion (10s)** | ~5s | ~10s | ~30s |
+| **YouTube Download** | ~10s | ~10s | ~10s |
+| **Full YouTube Cover** | ~50-60s | ~70-80s | ~3-4 min |
 
 > 💡 **Tip:** Use Turbo model for faster generation on lower-end GPUs.
 
@@ -463,23 +398,15 @@ start_backend.bat
 2. Ensure .pth files are present
 3. Restart RVC service
 
-### ACE-Step not responding
+### YouTube download fails
 
 ```bash
-# Check status
-curl http://localhost:8001/health
+# Update yt-dlp
+pip install -U yt-dlp
 
-# Restart
-taskkill /F /IM python.exe
-start_acestep.bat
+# Check FFmpeg is installed
+ffmpeg -version
 ```
-
-### CUDA Out of Memory
-
-- Reduce batch size in settings
-- Use Turbo model (8 steps)
-- Close other GPU applications
-- Lower audio quality settings
 
 ### Pitch correction artifacts
 
@@ -498,39 +425,90 @@ npm run build
 
 ---
 
+## 📝 Changelog
+
+### v1.8.2 — Current Release (March 2026)
+
+#### 🆕 YouTube Cover Generator
+- **Download from YouTube** — Audio extraction (WAV/MP3)
+- **Full cover pipeline** — Download → Separate → RVC → Mix
+- **Download only mode** — Save audio without processing
+- **Progress tracking** — Real-time status per step
+- **Pitch control** — -12 to +12 semitones
+- **F0 method selection** — RMVPE, harvest, pm, crepe
+- **Index rate control** — 0.00 to 1.00
+
+#### 🎯 RVC v2 Support
+- **Auto-detect v1/v2** — Automatic version detection
+- **768-dim architecture** — v2 model support
+- **48kHz output** — Higher quality
+- **RMVPE++** — Improved pitch extraction
+- **YAML config support** — Per-model configuration
+
+#### 🔧 Enhanced Pipeline
+- **MelBand cleanup** — Pre and post RVC (optional)
+- **De-reverb** — Remove reverb (optional)
+- **Denoise** — Remove noise (optional)
+- **Improved RMVPE** — Better quality conversion
+- **Auto-cleanup** — Temp files removed automatically
+
+#### 📚 Scripts
+- `pipeline_loader.py` — Unified loader (v1 + v2)
+- `inference_rvc_v2.py` — Single file conversion
+- `run_pipeline_v2.py` — One model, all files
+- `run_pipeline_multi_v2.py` — All models, all files
+
+---
+
+### v1.8.1 — Hotfix Release (March 6, 2026)
+
+#### 🐛 Fixed
+- **RVC Separation Endpoint** — Fixed `Separator.load_model()` parameter name
+- **Stem Separation** — BS-RoFormer working correctly
+
+---
+
+### v1.8.0 — Major Release (March 2026)
+
+#### 🎯 New Tabs
+- **✂️ Separate Tab** — Vocal/instrumental separation
+- **🎚️ Mix Tab** — Mix vocals with instrumental
+- **💾 Presets Tab** — Save and load RVC presets
+
+---
+
 ## 📂 Project Structure
 
 ```
 VocalForge/
 ├── backend/
 │   ├── main.py                    # FastAPI server (port 8000)
-│   ├── app.py                     # RVC API (port 8002)
 │   ├── endpoints/
-│   │   ├── rvc_conversion.py      # RVC endpoint
-│   │   └── acestep_advanced.py    # Repaint/Lego/Complete
-│   ├── output/                    # Generated audio
-│   └── temp/                      # Temporary files
+│   │   ├── youtube_cover.py       # YouTube Cover API 🆕
+│   │   └── rvc_conversion.py      # RVC API
+│   └── output/                    # Generated audio
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx                # Main React app
-│   │   └── components/
-│   │       ├── RVCConversion.jsx  # RVC UI
-│   │       ├── AceStepTab.jsx     # ACE-Step UI
-│   │       └── ...
+│   │   ├── components/
+│   │   │   ├── YouTubeCover.jsx   # YouTube Cover UI 🆕
+│   │   │   └── RVCConversion.jsx  # RVC UI
+│   │   └── App.jsx                # Main React app
 │   └── package.json
 │
-├── core/
-│   ├── modules/
-│   │   ├── rvc_model.py           # RVC wrapper
-│   │   └── ...
-│   └── engine.py
+├── RVCWebUI/
+│   ├── scripts/
+│   │   ├── pipeline_loader.py     # RVC loader (v1+v2) 🆕
+│   │   ├── inference_rvc_v2.py    # RVC v2 inference 🆕
+│   │   ├── run_pipeline_v2.py     # Single model pipeline 🆕
+│   │   └── run_pipeline_multi_v2.py # Multi-model pipeline 🆕
+│   ├── models/v2/                 # RVC v2 models 🆕
+│   ├── assets/weights/            # RVC v1 models
+│   └── input/                     # Input audio
 │
-├── RVCWebUI/                      # RVC submodule
-├── ace-step/                      # ACE-Step submodule
 ├── START_ALL.bat                  # Launch all services
 ├── setup.bat                      # One-click install
-└── requirements.txt               # Python dependencies
+└── README.md                      # This file
 ```
 
 ---
@@ -554,9 +532,10 @@ MIT License — See [LICENSE](LICENSE) file for details.
 ## 🙏 Acknowledgments
 
 - **[ACE-Step](https://github.com/ace-step/ACE-Step)** — Music generation
-- **[RVC-WebUI](https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI)** — Voice conversion
-- **[Demucs](https://github.com/facebookresearch/demucs)** — Stem separation
-- **[Librosa](https://librosa.org/)** — Audio analysis
+- **[RVC-Project](https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI)** — Voice conversion
+- **[AICoverGen](https://github.com/GXCoder78/AICoverGen)** — YouTube cover inspiration
+- **[audio-separator](https://github.com/Anjok07/ultimatevocalremovergui)** — BS-RoFormer separation
+- **[yt-dlp](https://github.com/yt-dlp/yt-dlp)** — YouTube download
 - **[FastAPI](https://fastapi.tiangolo.com/)** — Backend framework
 - **[React](https://react.dev/)** — Frontend framework
 
@@ -571,7 +550,7 @@ MIT License — See [LICENSE](LICENSE) file for details.
 ---
 
 <p align="center">
-  <strong>VocalForge v1.8.1</strong> — Made with ❤️ for music creators
+  <strong>VocalForge v1.8.2</strong> — Made with ❤️ for music creators
   <br>
   <sub>Last Updated: March 6, 2026</sub>
 </p>

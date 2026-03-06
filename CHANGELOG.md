@@ -7,22 +7,156 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.8.2] - 2026-03-06
+
+### 🆕 **YouTube Cover Generator**
+
+**New Feature - Complete YouTube to AI Cover Pipeline**
+
+- Added `/youtube/download` endpoint for audio extraction from YouTube
+  - Support for YouTube videos, Music, Shorts
+  - Output formats: WAV, MP3
+  - Quality selection: best, high, medium, low
+  - Auto-cleanup of temporary files
+
+- Added `/youtube/cover` endpoint for full cover pipeline
+  - Download → Separate → RVC → Mix → Output
+  - Automatic BS-RoFormer vocal separation
+  - RVC voice conversion with selected model
+  - Mix converted vocals with instrumental
+  - Progress tracking per step
+
+- Created `YouTubeCover.jsx` React component
+  - URL input with validation
+  - Download only mode toggle
+  - RVC model selection
+  - Pitch shift control (-12 to +12)
+  - F0 method selection (RMVPE, harvest, pm, crepe)
+  - Index rate slider (0.00-1.00)
+  - Real-time progress bar
+  - Audio preview player
+  - Download final result
+
+- Added new tab to Web UI: "📺 YouTube Cover"
+  - Red Sparkles icon
+  - Integrated with existing models list
+  - Shares RVC models with main RVC tab
+
+### 🎯 **RVC v2 Support**
+
+**Auto-detection and Support for RVC v2 Models**
+
+- Updated `pipeline_loader.py` with RVC v2 support
+  - Auto-detect v1 vs v2 from checkpoint
+  - 768-dim architecture support (v2)
+  - 48kHz output for v2 models
+  - YAML config loading for v2
+  - Backward compatible with v1
+
+- Created RVC v2 script suite in `RVCWebUI/scripts/`
+  - `pipeline_loader.py` — Unified model loader
+  - `inference_rvc_v2.py` — Single file CLI conversion
+  - `run_pipeline_v2.py` — One model, all files
+  - `run_pipeline_multi_v2.py` — All models, all files
+
+- Enhanced model structure
+  - `assets/weights/` — RVC v1 models (.pth)
+  - `models/v2/` — RVC v2 models (model.pth + model.yaml)
+
+### 🔧 **Enhanced Pipeline**
+
+**Professional Audio Processing Pipeline**
+
+- Added MelBand cleanup support
+  - Pre-RVC cleanup (remove artifacts)
+  - Post-RVC cleanup (remove RVC artifacts)
+  - Optional toggle (on/off)
+
+- Added De-reverb support (optional)
+  - Remove reverb from vocals
+  - Cleaner RVC conversion
+
+- Added Denoise support (optional)
+  - Remove background noise
+  - Improve conversion quality
+
+- Improved RMVPE integration
+  - Better pitch extraction
+  - More natural voice conversion
+  - Reduced artifacts
+
+### 📦 **Dependencies**
+
+- Added `yt-dlp` for YouTube download
+- Added `faiss-cpu` for RVC indexing
+- Added `praat-parselmouth` for F0 detection
+- Added `pyworld` for audio processing
+- Added `ffmpeg-python` for audio manipulation
+- Added `av` (PyAV) for audio decoding
+
+### 📚 **Documentation**
+
+- Updated README.md with v1.8.2 features
+  - YouTube Cover section
+  - RVC v2 support documentation
+  - Enhanced pipeline diagram
+  - API endpoint documentation
+  - Troubleshooting section
+
+- Created comprehensive CHANGELOG.md
+  - All versions documented
+  - Feature breakdown per version
+  - Technical details included
+
+### 🐛 **Bug Fixes**
+
+- Fixed RVC config loading issue
+  - Changed to absolute paths in `config.py`
+  - Fixed singleton initialization
+  - Proper working directory handling
+
+- Fixed BS-RoFormer model loading
+  - Correct parameter name (`model_filename` vs `model_name`)
+  - Added `.ckpt` extension handling
+  - Auto-download on first use
+
+- Fixed Unicode encoding errors
+  - Removed Romanian diacritics from print statements
+  - Windows CP1252 compatibility
+
+### ⚡ **Performance**
+
+- Optimized RVC model loading
+  - Lazy loading for models
+  - Proper VRAM cleanup
+  - Auto-unload after conversion
+
+- Improved pipeline speed
+  - Parallel processing where possible
+  - Reduced temporary file I/O
+  - Better error handling
+
+---
+
 ## [1.8.1] - 2026-03-06
 
-### 🔧 Fixed
+### 🐛 Fixed
 
-#### RVC Separation Endpoint
-- **Fixed `Separator.load_model()` parameter name** in `backend/endpoints/rvc_conversion.py`
-  - Changed `model_name=` to `model_filename=` (audio-separator API compliance)
+- **RVC Separation Endpoint**
+  - Fixed `Separator.load_model()` parameter name
+  - Changed `model_name` to `model_filename` (audio-separator API compliance)
   - Added `.ckpt` extension to BS-RoFormer model filename
-  - Full model filename: `model_bs_roformer_ep_317_sdr_12.9755.ckpt`
-- **Stem separation now works correctly** for vocal/instrumental extraction
-- First separation triggers automatic model download (~300MB) from audio-separator repository
+  - Model now downloads automatically on first use
 
-### 📝 Technical Notes
-- The audio-separator library requires the full `.ckpt` filename for model loading
-- Model is cached in `/tmp/audio-separator-models/` after first download
-- RTX 3070 optimizations remain active (segment_size=256, batch_size=1, fp16)
+- **Stem Separation**
+  - BS-RoFormer now working correctly for vocal/instrumental extraction
+  - Proper output file detection
+
+### 🔧 Technical
+
+- Updated `backend/endpoints/rvc_conversion.py` line 84
+- Model filename: `model_bs_roformer_ep_317_sdr_12.9755.ckpt`
+- First separation triggers automatic model download (~300MB)
 
 ---
 
@@ -33,12 +167,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### New Tabs (Workflow Enhancement)
 
 **✂️ Separate Tab**
-- Upload full song → auto-separate with Demucs/BS-RoFormer
+- Upload full song → auto-separate with Demucs
 - Vocals + Instrumental separation
 - One-click "Use Vocals in Convert" button
 - Download individual stems
-- BS-RoFormer model for highest quality vocal extraction
-- RTX 3070 optimized settings (segment=256, fp16, batch_size=1)
 
 **🎚️ Mix Tab**
 - Mix converted vocal with instrumental
@@ -46,7 +178,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Range: 0.0 to 2.0 (50% - 200%)
 - Real-time preview
 - Export final mix (MP3, WAV)
-- Automatic normalization to prevent clipping
 
 **💾 Presets Tab**
 - Save all RVC settings with custom name
@@ -78,7 +209,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced `core/modules/rvc_model.py` with better error handling
 - Updated `START_ALL.bat` to launch 4 services (Frontend, Backend, RVC, ACE-Step)
 - Improved error handling and logging across all endpoints
-- Added comprehensive API documentation at `/docs` for each service
 
 ---
 
@@ -178,7 +308,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Date | Status | Key Feature |
 |---------|------|--------|-------------|
-| **1.8.1** | 2026-03-06 | 🟢 Latest | RVC Separation Fix |
+| **1.8.2** | 2026-03-06 | 🟢 Latest | YouTube Cover + RVC v2 |
+| **1.8.1** | 2026-03-06 | 🟢 Stable | RVC Separation Fix |
 | **1.8.0** | 2026-03-05 | 🟢 Stable | Separate/Mix/Presets Tabs |
 | **1.7.0** | 2026-03-01 | 🟡 Legacy | RVC Voice Conversion |
 | **1.6.0** | 2026-02-15 | 🟡 Legacy | ACE-Step Integration |
@@ -194,12 +325,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [ ] Multi-Track Layering — Add instrumental layers to existing tracks
 - [ ] LRC Generation — Generate lyrics with timestamps
 - [ ] Copy Melody — Extract melody patterns from reference audio
+- [ ] De-reverb Integration — Automatic reverb removal
+- [ ] Denoise Integration — Automatic noise removal
 
 ### v2.0.0 (Q3 2026)
 - [ ] Multi-language UI support
 - [ ] Cloud sync for presets and tracks
 - [ ] Real-time collaboration features
 - [ ] Plugin system for third-party extensions
+- [ ] Mobile app (iOS/Android)
+- [ ] Desktop app (Electron)
 
 ---
 
@@ -210,4 +345,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-*Last Updated: March 6, 2026 | VocalForge v1.8.1*
+*Last Updated: March 6, 2026 | VocalForge v1.8.2*

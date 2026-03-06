@@ -40,10 +40,20 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
   const [showPresets, setShowPresets] = useState(false);
 
   // Active tab
-  const [activeTab, setActiveTab] = useState("separate");
+  const [activeTab, setActiveTab] = useState("pipeline");
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+
+  // Pipeline Automat state
+  const [pipelineFile, setPipelineFile] = useState(null);
+  const [pipelineModel, setPipelineModel] = useState("");
+  const [pipelineF0Method, setPipelineF0Method] = useState("rmvpe");
+  const [pipelinePitch, setPipelinePitch] = useState(0);
+  const [pipelineIndexRate, setPipelineIndexRate] = useState(0.75);
+  const [pipelineRunning, setPipelineRunning] = useState(false);
+  const [pipelineProgress, setPipelineProgress] = useState(0);
+  const [pipelineResult, setPipelineResult] = useState(null);
 
   const fileInputRef = useRef(null);
 
@@ -61,7 +71,8 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
         setModels(data.models || []);
         if (data.models && data.models.length > 0) {
           setSelectedModel(data.models[0].name);
-          addLog(`🎤 RVC: ${data.models.length} model(e) disponibile`);
+          setPipelineModel(data.models[0].name);
+          addLog(`🎤 RVC: ${data.models.length} model(e) disponibile (v1 + v2)`);
         }
       }
     } catch (err) {
@@ -76,6 +87,59 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
       const data = await res.json();
       if (data.status === "ok") setPresets(data.presets || {});
     } catch (err) { console.error("Failed to load presets:", err); }
+  };
+
+  const runPipeline = async () => {
+    if (!pipelineFile || !pipelineModel) return;
+    
+    setPipelineRunning(true);
+    setPipelineProgress(0);
+    setPipelineResult(null);
+    setError(null);
+    
+    try {
+      addLog(`⚡ Pipeline: Începe procesarea pentru ${pipelineFile.name}`);
+      
+      const formData = new FormData();
+      formData.append("audio_file", pipelineFile);
+      formData.append("rvc_model_name", pipelineModel);
+      formData.append("f0_method", pipelineF0Method);
+      formData.append("pitch_shift", pipelinePitch.toString());
+      formData.append("index_rate", pipelineIndexRate.toString());
+      
+      // Simulare progress
+      const progressInterval = setInterval(() => {
+        setPipelineProgress(prev => {
+          if (prev >= 90) return prev;
+          return prev + 10;
+        });
+      }, 500);
+      
+      const response = await fetch(`${API}/rvc/auto_pipeline`, {
+        method: "POST",
+        body: formData,
+      });
+      
+      clearInterval(progressInterval);
+      
+      const data = await response.json();
+      
+      if (data.status === "ok") {
+        setPipelineProgress(100);
+        setPipelineResult(data);
+        addLog(`✅ Pipeline complet! Timp total: ${data.total_time_sec}s`);
+        addLog(`📊 Separare: ${data.steps.separation}s | Normalize: ${data.steps.normalize}s | RVC: ${data.steps.rvc_conversion}s`);
+      } else {
+        throw new Error(data.error || "Eroare necunoscută");
+      }
+      
+    } catch (err) {
+      console.error("Pipeline error:", err);
+      setError(err.message);
+      addLog(`❌ Pipeline: ${err.message}`);
+    } finally {
+      setPipelineRunning(false);
+    }
   };
 
   const savePreset = async () => {
@@ -313,7 +377,7 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
 
         {/* Tabs */}
         <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-          {[["separate","✂️ Separate"],["convert","🎤 Convert"],["mix","🎚 Mix"],["presets","💾 Presets"]].map(([id, label]) => (
+          {[["pipeline","⚡ Pipeline Automat"],["separate","✂️ Separate"],["convert","🎤 Convert"],["mix","🎚 Mix"],["presets","💾 Presets"]].map(([id, label]) => (
             <button key={id} onClick={() => setActiveTab(id)} style={{
               padding: "8px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600,
               background: activeTab === id ? "linear-gradient(135deg,#ff6b9d,#ff8fab)" : "#1a1a2e",
@@ -631,6 +695,206 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
               ✕ Close
             </button>
           </div>
+        </div>
+      )}
+
+      {/* ── PIPELINE AUTOMAT TAB ── */}
+      {activeTab === "pipeline" && (
+        <div>
+          <div style={S.card}>
+            <span style={S.label}>⚡ Upload Piesă Completă</span>
+            <div onClick={() => { const i = document.createElement("input"); i.type="file"; i.accept="audio/*"; i.onchange=e=>{setPipelineFile(e.target.files[0]);}; i.click(); }}
+              style={{ border: pipelineFile ? "2px solid #ff6b9d" : "2px dashed #2a2a4a", borderRadius: 12, padding: 24, textAlign: "center", cursor: "pointer", background: pipelineFile ? "#ff6b9d11" : "transparent" }}>
+              {pipelineFile ? (
+                <div><div style={{fontSize:28,marginBottom:6}}>🎵</div><div style={{color:"#ff6b9d",fontWeight:600}}>{pipelineFile.name}</div></div>
+              ) : (
+                <div><div style={{fontSize:28,marginBottom:6}}>📁</div><div style={{color:"#6666aa"}}>Click pentru a uploada piesa</div></div>
+              )}
+            </div>
+
+            {/* Model Selector */}
+            <div style={{ marginTop: 16 }}>
+              <span style={{ ...S.label, display: "block", marginBottom: 8 }}>🎤 Model RVC</span>
+              <select
+                value={pipelineModel}
+                onChange={(e) => setPipelineModel(e.target.value)}
+                style={{
+                  width: "100%",
+                  background: "#080812",
+                  border: "1px solid #2a2a4a",
+                  color: "#e0e0ff",
+                  borderRadius: 8,
+                  padding: "10px 12px",
+                  fontSize: 13,
+                  outline: "none",
+                  fontFamily: "inherit",
+                }}
+              >
+                {models.map((m, i) => (
+                  <option key={i} value={m.name}>
+                    {m.name} ({m.size_mb} MB) {m.version === 'v2' ? '🆕 v2' : 'v1'}
+                  </option>
+                ))}
+              </select>
+              <div style={{ fontSize: 11, color: "#6666aa", marginTop: 6 }}>
+                🆕 RVC v2 = calitate mai bună (48kHz, rmvpe++)
+              </div>
+            </div>
+
+            {/* F0 Method */}
+            <div style={{ marginTop: 16 }}>
+              <span style={{ ...S.label, display: "block", marginBottom: 8 }}>🎛 F0 Method</span>
+              <select
+                value={pipelineF0Method}
+                onChange={(e) => setPipelineF0Method(e.target.value)}
+                style={{
+                  width: "100%",
+                  background: "#080812",
+                  border: "1px solid #2a2a4a",
+                  color: "#e0e0ff",
+                  borderRadius: 8,
+                  padding: "10px 12px",
+                  fontSize: 13,
+                  outline: "none",
+                  fontFamily: "inherit",
+                }}
+              >
+                <option value="rmvpe">RMVPE (Recomandat)</option>
+                <option value="harvest">Harvest</option>
+                <option value="pm">PM</option>
+                <option value="crepe">Crepe</option>
+              </select>
+            </div>
+
+            {/* Pitch Shift */}
+            <div style={{ marginTop: 16 }}>
+              <span style={{ ...S.label, display: "block", marginBottom: 8 }}>
+                🎚 Pitch Shift: {pipelinePitch > 0 ? "+" : ""}{pipelinePitch} semitones
+              </span>
+              <input
+                type="range"
+                min="-12"
+                max="12"
+                value={pipelinePitch}
+                onChange={(e) => setPipelinePitch(parseInt(e.target.value))}
+                style={{ width: "100%" }}
+              />
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#6666aa", marginTop: 4 }}>
+                <span>-12 (octavă jos)</span>
+                <span>0 (original)</span>
+                <span>+12 (octavă sus)</span>
+              </div>
+            </div>
+
+            {/* Index Rate */}
+            <div style={{ marginTop: 16 }}>
+              <span style={{ ...S.label, display: "block", marginBottom: 8 }}>
+                📊 Index Rate: {pipelineIndexRate.toFixed(2)}
+              </span>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={pipelineIndexRate}
+                onChange={(e) => setPipelineIndexRate(parseFloat(e.target.value))}
+                style={{ width: "100%" }}
+              />
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#6666aa", marginTop: 4 }}>
+                <span>0 (fără index)</span>
+                <span>0.75 (recomandat)</span>
+                <span>1 (maxim)</span>
+              </div>
+              <div style={{ fontSize: 11, color: "#8888aa", marginTop: 8, lineHeight: 1.6 }}>
+                <div>• 0.60 - 0.80 → Majoritatea cazurilor (echilibru bun)</div>
+                <div>• 0.40 - 0.60 → Vrei o transformare mai dramatică</div>
+                <div>• 0.80 - 1.00 → Vrei să păstrezi mai mult din vocea originală</div>
+              </div>
+            </div>
+
+            {/* Run Button */}
+            <button
+              onClick={runPipeline}
+              disabled={!pipelineFile || pipelineRunning}
+              style={{
+                width: "100%",
+                marginTop: 24,
+                padding: "14px 20px",
+                background: (!pipelineFile || pipelineRunning) ? "#444466" : "linear-gradient(135deg, #ff6b9d, #ff8fab)",
+                color: "#fff",
+                border: "none",
+                borderRadius: 12,
+                fontSize: 15,
+                fontWeight: 700,
+                cursor: (!pipelineFile || pipelineRunning) ? "not-allowed" : "pointer",
+                opacity: (!pipelineFile || pipelineRunning) ? 0.6 : 1,
+              }}
+            >
+              {pipelineRunning ? `⏳ Procesare... ${pipelineProgress}%` : "⚡ Start Pipeline Automat"}
+            </button>
+
+            {/* Progress Bar */}
+            {pipelineRunning && (
+              <div style={{ marginTop: 16 }}>
+                <div style={{ background: "#1a1a2e", borderRadius: 8, height: 8, overflow: "hidden" }}>
+                  <div style={{
+                    width: `${pipelineProgress}%`,
+                    background: "linear-gradient(90deg, #ff6b9d, #ff8fab)",
+                    height: "100%",
+                    transition: "width 0.3s",
+                  }} />
+                </div>
+                <div style={{ fontSize: 12, color: "#6666aa", marginTop: 6, textAlign: "center" }}>
+                  {pipelineProgress < 30 && "🎵 Separare vocală (BS-RoFormer)..."}
+                  {pipelineProgress >= 30 && pipelineProgress < 60 && "🔊 Normalize audio..."}
+                  {pipelineProgress >= 60 && pipelineProgress < 90 && "🎤 Conversie RVC..."}
+                  {pipelineProgress >= 90 && "💾 Finalizare..."}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Result */}
+          {pipelineResult && (
+            <div style={{ ...S.card, background: "#ff6b9d11", border: "2px solid #ff6b9d44" }}>
+              <div style={{ fontSize: 28, textAlign: "center", marginBottom: 12 }}>✅</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: "#ff6b9d", textAlign: "center", marginBottom: 12 }}>
+                Pipeline Complet!
+              </div>
+              <div style={{ fontSize: 13, color: "#6666aa", textAlign: "center", marginBottom: 16 }}>
+                Timp total: {pipelineResult.total_time_sec}s | Separare: {pipelineResult.steps.separation}s | RVC: {pipelineResult.steps.rvc_conversion}s
+              </div>
+              <audio controls src={`${API}${pipelineResult.url}`} style={{ width: "100%", marginBottom: 12 }} />
+              <a
+                href={`${API}${pipelineResult.url}`}
+                download={pipelineResult.filename}
+                style={{
+                  display: "block",
+                  textAlign: "center",
+                  background: "#ff6b9d22",
+                  color: "#ff6b9d",
+                  border: "1px solid #ff6b9d44",
+                  padding: "12px",
+                  borderRadius: 8,
+                  fontSize: 14,
+                  fontWeight: 700,
+                  textDecoration: "none",
+                }}
+              >
+                ⬇ Download Rezultat
+              </a>
+            </div>
+          )}
+
+          {/* Error */}
+          {error && (
+            <div style={{ ...S.card, background: "#e6394611", border: "2px solid #e6394644" }}>
+              <div style={{ fontSize: 28, textAlign: "center", marginBottom: 12 }}>❌</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "#e63946", textAlign: "center" }}>
+                {error}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

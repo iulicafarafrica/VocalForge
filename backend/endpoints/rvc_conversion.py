@@ -15,8 +15,14 @@ from fastapi.responses import JSONResponse
 from core.modules.rvc_model import RVCModel, convert_voice
 import subprocess
 import json
+import shutil
 
 router = APIRouter(prefix="/rvc", tags=["RVC Voice Conversion"])
+
+# Directories
+BACKEND_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TEMP_DIR = os.path.join(BACKEND_DIR, "temp")
+os.makedirs(TEMP_DIR, exist_ok=True)
 
 # Global RVC instance (lazy loaded)
 _rvc_instance = None
@@ -449,6 +455,190 @@ async def rvc_convert_advanced(
         protect=protect,
         output_format=output_format,
     )
+
+
+@router.post("/auto_pipeline")
+async def auto_pipeline(
+    audio_file: UploadFile = File(..., description="Full song (vocals + instrumental)"),
+    rvc_model_name: str = Form(..., description="RVC model name from assets/weights/"),
+    f0_method: str = Form("rmvpe", description="F0 extraction method: rmvpe, harvest, pm, crepe"),
+    pitch_shift: float = Form(0, description="Pitch shift in semitones"),
+    index_rate: float = Form(0.75, description="Retrieval index ratio"),
+):
+    """
+    Automatic pipeline: BS-RoFormer separation → Normalize → RVC conversion.
+    
+    Upload a full song and get back the RVC-converted vocals in one click.
+    This endpoint handles the entire workflow automatically.
+    """
+    import time
+    from audio_separator.separator import Separator
+    
+    tmp_files = []
+    temp_dir = None
+    
+    try:
+        from main import OUTPUT_DIR
+        
+        # Create temp directory for this job
+        job_id = uuid.uuid4().hex
+        temp_dir = os.path.join(TEMP_DIR, f"pipeline_{job_id}")
+        os.makedirs(temp_dir, exist_ok=True)
+        
+        total_start = time.time()
+        
+        # Save uploaded file
+        suffix = os.path.splitext(audio_file.filename)[1] or ".wav"
+        fd, input_path = tempfile.mkstemp(prefix="pipeline_input_", suffix=suffix, dir=temp_dir)
+        os.close(fd)
+        tmp_files.append(input_path)
+        
+        with open(input_path, "wb") as f:
+            f.write(await audio_file.read())
+        
+        # ── Step 1: BS-RoFormer Separation ────────────────────────────────────
+        print(f"\n[Pipeline] Step 1/3: BS-RoFormer separation...")
+        step1_start = time.time()
+        
+        separator = Separator(
+            output_dir=temp_dir,
+            output_format="WAV",
+            normalization_threshold=0.9,
+        )
+        separator.load_model(model_filename="model_bs_roformer_ep_317_sdr_12.9755.ckpt")
+        outputs = separator.separate(input_path)
+        
+        # Find vocals file
+        vocals_path = None
+        for out_file in outputs:
+            if "vocals" in out_file.lower() or "(Vocals)" in out_file:
+                vocals_path = os.path.join(temp_dir, out_file)
+                break
+        
+        if not vocals_path:
+            raise RuntimeError("BS-RoFormer did not produce vocal output")
+        
+        step1_time = time.time() - step1_start
+        print(f"[Pipeline] Step 1 complete: {step1_time:.1f}s - Vocals: {os.path.basename(vocals_path)}")
+        
+        # ── Step 2: Normalize ─────────────────────────────────────────────────
+        print(f"\n[Pipeline] Step 2/3: Normalize audio...")
+        step2_start = time.time()
+        
+        norm_path = os.path.join(temp_dir, f"norm_{job_id}.wav")
+        subprocess.run([
+            "ffmpeg", "-y",
+            "-i", vocals_path,
+            "-filter:a", "loudnorm=I=-16:TP=-1.5:LRA=11",
+            norm_path
+        ], check=True, capture_output=True)
+        
+        step2_time = time.time() - step2_start
+        print(f"[Pipeline] Step 2 complete: {step2_time:.1f}s")
+        
+        # ── Step 3: RVC Conversion ────────────────────────────────────────────
+        print(f"\n[Pipeline] Step 3/3: RVC conversion...")
+        step3_start = time.time()
+        
+        # Find RVC model
+        weights_dir = os.path.join(os.path.dirname(__file__), "..", "..", "RVCWebUI", "assets", "weights")
+        model_path = os.path.join(weights_dir, rvc_model_name)
+        
+        if not os.path.exists(model_path):
+            raise RuntimeError(f"RVC model not found: {rvc_model_name}")
+        
+        # Use core.modules.rvc_model for conversion
+        print(f"[Pipeline] Loading RVC model: {rvc_model_name}")
+        
+        from core.modules.rvc_model import RVCModel
+        
+        rvc = RVCModel()
+        rvc.load_model(model_path)
+        
+        # Load normalized audio
+        audio, sr = librosa.load(norm_path, sr=16000, mono=True)
+        
+        print(f"[Pipeline] Converting voice with {f0_method}...")
+        
+        # Convert voice
+        converted_audio, out_sr = rvc.convert(
+            audio=audio,
+            sr=sr,
+            f0_up_key=pitch_shift,
+            f0_method=f0_method,
+            index_rate=index_rate,
+            filter_radius=3,
+            rms_mix_rate=0.25,
+            protect=0.33,
+        )
+        
+        # Save output
+        rvc_output_path = os.path.join(temp_dir, f"rvc_{job_id}.wav")
+        sf.write(rvc_output_path, converted_audio, out_sr)
+        
+        # Unload RVC model
+        rvc.unload_model()
+        
+        step3_time = time.time() - step3_start
+        print(f"[Pipeline] Step 3 complete: {step3_time:.1f}s")
+        
+        # ── Final Output ──────────────────────────────────────────────────────
+        # Convert to MP3
+        final_mp3 = f"pipeline_{job_id}_final.mp3"
+        final_mp3_path = os.path.join(OUTPUT_DIR, final_mp3)
+        
+        subprocess.run([
+            "ffmpeg", "-y",
+            "-i", rvc_output_path,
+            "-codec:a", "libmp3lame",
+            "-b:a", "192k",
+            final_mp3_path
+        ], check=True, capture_output=True)
+        
+        total_time = time.time() - total_start
+        
+        # Cleanup temp files
+        try:
+            shutil.rmtree(temp_dir)
+        except:
+            pass
+        
+        return JSONResponse({
+            "status": "ok",
+            "message": "Pipeline complet!",
+            "filename": final_mp3,
+            "url": f"/tracks/{final_mp3}",
+            "duration_sec": round(len(converted_audio) / out_sr, 2),
+            "total_time_sec": round(total_time, 1),
+            "steps": {
+                "separation": round(step1_time, 1),
+                "normalize": round(step2_time, 1),
+                "rvc_conversion": round(step3_time, 1),
+            }
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        
+        # Cleanup on error
+        if temp_dir and os.path.exists(temp_dir):
+            try:
+                shutil.rmtree(temp_dir)
+            except:
+                pass
+        
+        return JSONResponse(
+            {"status": "error", "error": str(e)},
+            status_code=500
+        )
+    finally:
+        # Cleanup any remaining temp files
+        for f in tmp_files:
+            try:
+                os.remove(f)
+            except:
+                pass
 
 
 @router.get("/models")

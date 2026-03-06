@@ -9,6 +9,7 @@ import AceStepTab from "./components/AceStepTab";
 import RepaintLegoComplete from "./components/RepaintLegoComplete";
 import ReadmeTab from "./components/ReadmeTab";
 import RVCConversion from "./components/RVCConversion";
+import YouTubeCover from "./components/YouTubeCover";
 
 const API = "http://localhost:8000";
 
@@ -17,6 +18,7 @@ const TABS = [
   { id: "Demucs",  Icon: Sliders,    label: "Stem Separation", color: "#00e5ff" },
   { id: "ACEStep", Icon: Music2,     label: "ACE-Step", color: "#ff6b9d" },
   { id: "RVC", Icon: Mic2, label: "RVC Voice Conversion", color: "#ff6b9d" },
+  { id: "YouTube", Icon: Sparkles,   label: "YouTube Cover", color: "#ff0000" },
   { id: "ACEAdvanced", Icon: Layers, label: "Repaint/Lego/Complete", color: "#00b4d8" },
   { id: "Tracks",  Icon: FolderOpen, label: "Tracks", color: "#ffd166" },
   { id: "Models",  Icon: Monitor,    label: "Models", color: "#e63946" },
@@ -28,6 +30,7 @@ export default function App() {
   const [logs, setLogs] = useState([`[OK] VocalForge v1.7 loaded — ${new Date().toLocaleTimeString()}`]);
   const [showLogs, setShowLogs] = useState(false);
   const [tracks, setTracks] = useState([]);
+  const [models, setModels] = useState([]);
   const [hwInfo, setHwInfo] = useState(null);
 
   // ── AceStep state lifted here so it persists across tab switches ──────────
@@ -212,6 +215,10 @@ export default function App() {
 
         <div style={{ display: tab === "RVC" ? "block" : "none" }}>
           <RVCConversion addLog={addLog} tracks={tracks} setTracks={setTracks} />
+        </div>
+
+        <div style={{ display: tab === "YouTube" ? "block" : "none" }}>
+          <YouTubeCover addLog={addLog} models={models} />
         </div>
 
         <div style={{ display: tab === "ACEAdvanced" ? "block" : "none" }}>

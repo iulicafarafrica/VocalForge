@@ -214,6 +214,10 @@ app.include_router(acestep_advanced_router)
 from endpoints.rvc_conversion import router as rvc_conversion_router
 app.include_router(rvc_conversion_router)
 
+# Include YouTube Cover router
+from endpoints.youtube_cover import router as youtube_cover_router
+app.include_router(youtube_cover_router)
+
 @app.on_event("startup")
 async def startup_event():
     loop = asyncio.get_running_loop()
