@@ -40,10 +40,11 @@ def get_rvc_instance():
 @router.post("/separate")
 async def separate_vocals(
     audio_file: UploadFile = File(..., description="Full song (vocals + instrumental)"),
-    model: str = Form("htdemucs", description="Demucs model: htdemucs, htdemucs_ft"),
+    model: str = Form("bs_roformer", description="Separation model: bs_roformer"),
 ):
     """
-    Separate vocals from instrumental using Demucs.
+    Separate vocals from instrumental using BS-RoFormer (audio-separator).
+    Optimized for RTX 3070 (8GB VRAM).
     Returns URLs for vocal track and instrumental track.
     """
     tmp_files = []
@@ -61,31 +62,36 @@ async def separate_vocals(
         out_dir = os.path.join(OUTPUT_DIR, f"sep_{job_id}")
         os.makedirs(out_dir, exist_ok=True)
 
-        print(f"[RVC API] Separating vocals with Demucs ({model})...")
-
-        # Use sys.executable to ensure we use the correct Python (with venv)
-        import sys
-        result = subprocess.run([
-            sys.executable, "-m", "demucs",
-            "--two-stems", "vocals",
-            "-n", model,
-            "-o", out_dir,
-            input_path
-        ], capture_output=True, text=True, timeout=300)
-
-        if result.returncode != 0:
-            raise RuntimeError(f"Demucs failed: {result.stderr[:500]}")
-
+        # BS-RoFormer with audio-separator (optimized for RTX 3070)
+        print(f"[RVC API] Separating vocals with BS-RoFormer (audio-separator)...")
+        print(f"[RVC API] RTX 3070 optimizations: segment=256, fp16, batch_size=1")
+        
+        from audio_separator import Separator
+        
+        # Initialize separator with RTX 3070 optimizations
+        separator = Separator(
+            output_dir=out_dir,
+            output_format="WAV",
+            segment_size=256,      # reduce VRAM usage
+            batch_size=1,          # stability
+            precision="float16",   # fp16 for less VRAM
+        )
+        
+        # Load BS-RoFormer model
+        separator.load_model(model_name="model_bs_roformer_ep_317_sdr_12.9755")
+        
+        # Separate vocals
+        output = separator.separate(input_path)
+        
         # Find output files
         vocals_path = None
         instrumental_path = None
-        for root, dirs, files in os.walk(out_dir):
-            for fname in files:
-                fpath = os.path.join(root, fname)
-                if "vocals" in fname.lower():
-                    vocals_path = fpath
-                elif "no_vocals" in fname.lower() or "instrumental" in fname.lower():
-                    instrumental_path = fpath
+        for out_file in output:
+            out_path = os.path.join(out_dir, out_file)
+            if "vocals" in out_file.lower():
+                vocals_path = out_path
+            elif "instrumental" in out_file.lower() or "instruments" in out_file.lower():
+                instrumental_path = out_path
 
         if not vocals_path:
             raise RuntimeError("Demucs did not produce vocal output")

@@ -666,13 +666,10 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
                   fontFamily: "inherit",
                 }}
               >
-                <option value="bs_roformer">🏆 BS-RoFormer (SDR 12.97) - Cea mai bună calitate</option>
-                <option value="htdemucs">⚡ htdemucs - Rapid (bună calitate)</option>
-                <option value="htdemucs_ft">🎯 htdemucs_ft - Mai bun (mai lent)</option>
-                <option value="htdemucs_6s">🎸 htdemucs_6s - 6 stems (guitar, piano)</option>
+                <option value="bs_roformer">🏆 BS-RoFormer (SDR 12.97) - Best Quality</option>
               </select>
               <div style={{ color: "#6666aa", fontSize: 11, marginTop: 6 }}>
-                💡 BS-RoFormer oferă cea mai bună separare voce/instrumental (SDR 12.97)
+                💡 BS-RoFormer offers best vocal/instrumental separation (SDR 12.97)
               </div>
             </div>
             
