@@ -1,9 +1,9 @@
-# 🎵 VocalForge v1.8
+# 🎵 VocalForge v1.8.1
 
 > **AI-Powered Music Production Studio** — Transform your voice, generate music, and create professional tracks with cutting-edge AI.
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.8-blue?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.8.1-blue?style=for-the-badge" alt="Version">
   <img src="https://img.shields.io/badge/Status-Beta-yellow?style=for-the-badge" alt="Status">
   <img src="https://img.shields.io/badge/Python-3.10%2B-green?style=for-the-badge&logo=python" alt="Python">
   <img src="https://img.shields.io/badge/GPU-NVIDIA%20CUDA-orange?style=for-the-badge&logo=nvidia" alt="GPU">
@@ -39,7 +39,23 @@
 
 ## 📝 Changelog
 
-### v1.8 — Current Release (March 2026)
+### v1.8.1 — Hotfix Release (March 6, 2026)
+
+#### 🐛 Fixed
+- **RVC Separation Endpoint** — Fixed `Separator.load_model()` parameter name
+  - Changed `model_name` to `model_filename` (audio-separator API compliance)
+  - Added `.ckpt` extension to BS-RoFormer model filename
+  - Model now downloads automatically on first use
+- **Stem Separation** — BS-RoFormer now working correctly for vocal/instrumental extraction
+
+#### 🔧 Technical
+- Updated `backend/endpoints/rvc_conversion.py` line 84
+- Model filename: `model_bs_roformer_ep_317_sdr_12.9755.ckpt`
+- First separation triggers automatic model download (~300MB)
+
+---
+
+### v1.8 — Major Release (March 2026)
 
 #### 🎯 New Tabs (Workflow Enhancement)
 
@@ -555,7 +571,7 @@ MIT License — See [LICENSE](LICENSE) file for details.
 ---
 
 <p align="center">
-  <strong>VocalForge v1.8</strong> — Made with ❤️ for music creators
+  <strong>VocalForge v1.8.1</strong> — Made with ❤️ for music creators
   <br>
-  <sub>Last Updated: March 2026</sub>
+  <sub>Last Updated: March 6, 2026</sub>
 </p>

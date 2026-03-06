@@ -66,19 +66,22 @@ async def separate_vocals(
         print(f"[RVC API] Separating vocals with BS-RoFormer (audio-separator)...")
         print(f"[RVC API] RTX 3070 optimizations: segment=256, fp16, batch_size=1")
         
-        from audio_separator import Separator
+        from audio_separator.separator.separator import Separator
         
         # Initialize separator with RTX 3070 optimizations
         separator = Separator(
             output_dir=out_dir,
             output_format="WAV",
-            segment_size=256,      # reduce VRAM usage
-            batch_size=1,          # stability
-            precision="float16",   # fp16 for less VRAM
+            normalization_threshold=0.9,
+            mdxc_params={
+                'segment_size': 256,   # reduce VRAM usage
+                'batch_size': 1,        # stability
+                'overlap': 8,           # default overlap
+            }
         )
-        
+
         # Load BS-RoFormer model
-        separator.load_model(model_name="model_bs_roformer_ep_317_sdr_12.9755")
+        separator.load_model(model_filename="model_bs_roformer_ep_317_sdr_12.9755.ckpt")
         
         # Separate vocals
         output = separator.separate(input_path)
