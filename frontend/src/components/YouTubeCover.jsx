@@ -112,14 +112,23 @@ export default function YouTubeCover({ addLog, models }) {
       });
       
       clearInterval(progressInterval);
-      
+
       const data = await response.json();
-      
+      console.log("[YouTube Cover] Response data:", data);
+
       if (data.status === "ok") {
         setProgress(100);
-        setResult(data);
+        setResult({
+          filename: data.filename,
+          url: data.url,
+          video_title: data.video_title,
+          rvc_model: data.rvc_model,
+          total_time_sec: data.total_time_sec,
+          steps: data.steps,
+        });
         addLog(`✅ YouTube Cover complet! Timp total: ${data.total_time_sec}s`);
         addLog(`📊 Download: ${data.steps.download}s | Separare: ${data.steps.separation}s | RVC: ${data.steps.rvc_conversion}s`);
+        addLog(`🎵 Output file: ${data.filename}`);
       } else {
         throw new Error(data.detail || "Pipeline failed");
       }
@@ -383,9 +392,20 @@ export default function YouTubeCover({ addLog, models }) {
               )}
             </>
           )}
-          
-          <audio controls src={`${API}${result.url}`} style={{ width: "100%", marginBottom: 12 }} />
-          
+
+          <div style={{ fontSize: 12, color: "#8888aa", textAlign: "center", marginBottom: 8 }}>
+            File: {result.filename}
+          </div>
+          <audio 
+            controls 
+            src={`${API}${result.url}`} 
+            style={{ width: "100%", marginBottom: 12 }}
+            onError={(e) => {
+              console.error("Audio load error:", e);
+              addLog(`⚠️ Audio player error: Cannot load ${API}${result.url}`);
+            }}
+          />
+
           <a
             href={`${API}${result.url}`}
             download={result.filename}
