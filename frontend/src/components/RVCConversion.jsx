@@ -52,11 +52,11 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
         setModels(data.models || []);
         if (data.models?.length > 0) {
           setPipelineModel(data.models[0].name);
-          addLog(`🎤 RVC: ${data.models.length} model(e) disponibile`);
+          addLog(`🎤 RVC: ${data.models.length} model(s) available`);
         }
       }
     } catch (err) {
-      addLog(`[ERR] RVC: Nu s-au putut încărca modelele`);
+      addLog(`[ERR] RVC: Could not load models`);
     }
   };
 
@@ -104,9 +104,9 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
         // Store for Mix tab
         if (data.instrumental_url) setSeparatedInstrumental({ url: `${API}${data.instrumental_url}`, filename: data.instrumental_filename });
         if (data.url) setConvertedVocals({ url: `${API}${data.url}`, filename: data.filename });
-        addLog(`✅ Pipeline complet! ${data.total_time_sec}s`);
+        addLog(`✅ Pipeline complete! ${data.total_time_sec}s`);
       } else {
-        throw new Error(data.error || "Eroare necunoscută");
+        throw new Error(data.error || "Unknown error");
       }
     } catch (err) {
       setPipelineError(err.message);
@@ -119,7 +119,7 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
   const handleMix = async () => {
     if (!convertedVocals || !separatedInstrumental) return;
     setMixing(true);
-    addLog(`🎚 Mixare voce + instrumental...`);
+    addLog(`🎚 Mixing vocals + instrumental...`);
     try {
       const [vocBlob, instBlob] = await Promise.all([
         fetch(convertedVocals.url).then(r => r.blob()),
@@ -134,7 +134,7 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
       const data = await res.json();
       if (data.status !== "ok") throw new Error(data.error);
       setMixResult({ url: `${API}${data.url}`, filename: data.filename, duration: data.duration_sec, size: data.size_mb });
-      addLog(`✅ Mix final: ${data.filename} (${data.duration_sec}s)`);
+      addLog(`✅ Final mix: ${data.filename} (${data.duration_sec}s)`);
     } catch (err) {
       addLog(`[ERR] Mix: ${err.message}`);
     } finally {
@@ -162,7 +162,7 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
     if (data.status === "ok") {
       setPresets(data.presets);
       setPresetName("");
-      addLog(`💾 Preset salvat: ${presetName}`);
+      addLog(`💾 Preset saved: ${presetName}`);
     }
   };
 
@@ -174,7 +174,7 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
     setPipelineF0Method(p.f0_method ?? "rmvpe");
     setPipelineIndexRate(p.index_rate ?? 0.75);
     setActiveTab("pipeline");
-    addLog(`✅ Preset încărcat: ${name}`);
+    addLog(`✅ Preset loaded: ${name}`);
   };
 
   const deletePreset = async (name) => {
@@ -243,7 +243,7 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
         }}>🎤 RVC Voice Conversion</h2>
 
         <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-          {[["pipeline", "⚡ Pipeline Automat"], ["mix", "🎚 Mix Final"], ["presets", "💾 Presets"]].map(([id, label]) => (
+          {[["pipeline", "⚡ Auto Pipeline"], ["mix", "🎚 Final Mix"], ["presets", "💾 Presets"]].map(([id, label]) => (
             <button key={id} onClick={() => setActiveTab(id)} style={{
               padding: "8px 18px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600,
               background: activeTab === id ? "linear-gradient(135deg,#ff6b9d,#ff8fab)" : "#1a1a2e",
@@ -258,20 +258,20 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
         <div>
           <div style={S.card}>
             {/* Upload */}
-            <span style={S.label}>🎵 Upload Piesă Completă</span>
+            <span style={S.label}>🎵 Upload Full Song</span>
             <div
               onClick={() => { const i = document.createElement("input"); i.type = "file"; i.accept = "audio/*"; i.onchange = e => setPipelineFile(e.target.files[0]); i.click(); }}
               style={{ border: pipelineFile ? "2px solid #ff6b9d" : "2px dashed #2a2a4a", borderRadius: 12, padding: 24, textAlign: "center", cursor: "pointer", background: pipelineFile ? "#ff6b9d11" : "transparent", marginBottom: 16 }}
             >
               {pipelineFile ? (
-                <div><div style={{ fontSize: 28, marginBottom: 6 }}>🎵</div><div style={{ color: "#ff6b9d", fontWeight: 600 }}>{pipelineFile.name}</div><div style={{ color: "#444466", fontSize: 11 }}>{(pipelineFile.size / 1024 / 1024).toFixed(2)} MB · Click pentru a schimba</div></div>
+                <div><div style={{ fontSize: 28, marginBottom: 6 }}>🎵</div><div style={{ color: "#ff6b9d", fontWeight: 600 }}>{pipelineFile.name}</div><div style={{ color: "#444466", fontSize: 11 }}>{(pipelineFile.size / 1024 / 1024).toFixed(2)} MB · Click to change</div></div>
               ) : (
-                <div><div style={{ fontSize: 28, marginBottom: 6 }}>📁</div><div style={{ color: "#6666aa" }}>Click pentru a uploada piesa completă</div><div style={{ color: "#444466", fontSize: 11, marginTop: 4 }}>WAV, MP3, FLAC suportate</div></div>
+                <div><div style={{ fontSize: 28, marginBottom: 6 }}>📁</div><div style={{ color: "#6666aa" }}>Click to upload full song</div><div style={{ color: "#444466", fontSize: 11, marginTop: 4 }}>WAV, MP3, FLAC supported</div></div>
               )}
             </div>
 
             {/* Model */}
-            <span style={S.label}>🧠 Model RVC</span>
+            <span style={S.label}>🧠 RVC Model</span>
             <select value={pipelineModel} onChange={e => setPipelineModel(e.target.value)} style={{ ...S.select, marginBottom: 16 }}>
               {models.map((m, i) => (
                 <option key={i} value={m.name}>{m.name} ({m.size_mb} MB){m.version === "v2" ? " 🆕 v2" : ""}</option>
@@ -281,9 +281,9 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
             {/* F0 Method */}
             <span style={S.label}>🎛 F0 Method</span>
             <select value={pipelineF0Method} onChange={e => setPipelineF0Method(e.target.value)} style={{ ...S.select, marginBottom: 16 }}>
-              <option value="rmvpe">RMVPE (Recomandat)</option>
+              <option value="rmvpe">RMVPE (Recommended)</option>
               <option value="harvest">Harvest</option>
-              <option value="pm">PM (rapid)</option>
+              <option value="pm">PM (fast)</option>
               <option value="crepe">Crepe (GPU)</option>
             </select>
 
@@ -291,14 +291,14 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
             <span style={S.label}>🎚 Pitch Shift: {pipelinePitch > 0 ? "+" : ""}{pipelinePitch} semitones</span>
             <input type="range" min="-12" max="12" value={pipelinePitch} onChange={e => setPipelinePitch(parseInt(e.target.value))} style={{ width: "100%", marginBottom: 4 }} />
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#6666aa", marginBottom: 16 }}>
-              <span>-12 (jos)</span><span>0</span><span>+12 (sus)</span>
+              <span>-12 (lower)</span><span>0</span><span>+12 (higher)</span>
             </div>
 
             {/* Index Rate */}
             <span style={S.label}>📊 Index Rate: {pipelineIndexRate.toFixed(2)}</span>
             <input type="range" min="0" max="1" step="0.01" value={pipelineIndexRate} onChange={e => setPipelineIndexRate(parseFloat(e.target.value))} style={{ width: "100%", marginBottom: 4 }} />
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#6666aa", marginBottom: 16 }}>
-              <span>0 (fără index)</span><span>0.75 (recomandat)</span><span>1.0 (maxim)</span>
+              <span>0 (no index)</span><span>0.75 (recommended)</span><span>1.0 (maxim)</span>
             </div>
 
             {/* Run Button */}
@@ -309,7 +309,7 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
               cursor: (!pipelineFile || pipelineRunning || !pipelineModel) ? "not-allowed" : "pointer",
               opacity: (!pipelineFile || pipelineRunning || !pipelineModel) ? 0.6 : 1,
             }}>
-              {pipelineRunning ? `⏳ Procesare... ${pipelineProgress}%` : "⚡ Start Pipeline Automat"}
+              {pipelineRunning ? `⏳ Processing... ${pipelineProgress}%` : "⚡ Start Auto Pipeline"}
             </button>
 
             {/* Progress */}
@@ -319,10 +319,10 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
                   <div style={{ width: `${pipelineProgress}%`, background: "linear-gradient(90deg, #ff6b9d, #ff8fab)", height: "100%", transition: "width 0.3s" }} />
                 </div>
                 <div style={{ fontSize: 12, color: "#6666aa", marginTop: 6, textAlign: "center" }}>
-                  {pipelineProgress < 30 && "🎵 Separare vocală..."}
-                  {pipelineProgress >= 30 && pipelineProgress < 60 && "🔊 Procesare audio..."}
-                  {pipelineProgress >= 60 && pipelineProgress < 90 && "🎤 Conversie RVC..."}
-                  {pipelineProgress >= 90 && "💾 Finalizare..."}
+                  {pipelineProgress < 30 && "🎵 Separating vocals..."}
+                  {pipelineProgress >= 30 && pipelineProgress < 60 && "🔊 Processing audio..."}
+                  {pipelineProgress >= 60 && pipelineProgress < 90 && "🎤 RVC Conversion..."}
+                  {pipelineProgress >= 90 && "💾 Finalizing..."}
                 </div>
               </div>
             )}
@@ -331,21 +331,32 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
           {/* Result */}
           {pipelineResult && (
             <div style={{ ...S.card, background: "#ff6b9d11", border: "2px solid #ff6b9d44" }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: "#ff6b9d", textAlign: "center", marginBottom: 8 }}>✅ Pipeline Complet!</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: "#ff6b9d", textAlign: "center", marginBottom: 8 }}>✅ Pipeline Complete!</div>
               <div style={{ fontSize: 13, color: "#6666aa", textAlign: "center", marginBottom: 12 }}>
-                Timp total: {pipelineResult.total_time_sec}s
+                Total time: {pipelineResult.total_time_sec}s | WAV + MP3
               </div>
               <audio controls src={`${API}${pipelineResult.url}`} style={{ width: "100%", marginBottom: 12 }} />
               <div style={{ display: "flex", gap: 8 }}>
-                <a href={`${API}${pipelineResult.url}`} download={pipelineResult.filename}
+                <a href={`${API}${pipelineResult.url}`} download={pipelineResult.filename_wav || pipelineResult.filename}
                   style={{ flex: 1, textAlign: "center", background: "#ff6b9d22", color: "#ff6b9d", border: "1px solid #ff6b9d44", padding: 10, borderRadius: 8, textDecoration: "none", fontWeight: 700, fontSize: 13 }}>
-                  ⬇ Download Voce Convertită
+                  ⬇ Download WAV (High Quality)
                 </a>
-                <button onClick={() => setActiveTab("mix")}
-                  style={{ flex: 1, background: "#7c3aed22", color: "#a78bfa", border: "1px solid #7c3aed44", padding: 10, borderRadius: 8, cursor: "pointer", fontWeight: 700, fontSize: 13 }}>
-                  🎚 Mergi la Mix →
-                </button>
+                <a href={`${API}${pipelineResult.url_mp3}`} download={pipelineResult.filename_mp3}
+                  style={{ flex: 1, textAlign: "center", background: "#ff6b9d11", color: "#ff6b9d", border: "1px solid #ff6b9d33", padding: 10, borderRadius: 8, textDecoration: "none", fontWeight: 700, fontSize: 13 }}>
+                  ⬇ Download MP3
+                </a>
               </div>
+              {/* Go to Final Mix Button */}
+              {convertedVocals && separatedInstrumental && (
+                <button onClick={() => setActiveTab("mix")} style={{
+                  width: "100%", marginTop: 12, padding: "14px 20px", fontSize: 15, fontWeight: 700,
+                  background: "linear-gradient(135deg, #4ecdc4, #45b7aa)",
+                  color: "#fff", border: "none", borderRadius: 12,
+                  cursor: "pointer",
+                }}>
+                  🎚 Go to Final Mix →
+                </button>
+              )}
             </div>
           )}
 
@@ -362,29 +373,32 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
       {activeTab === "mix" && (
         <div>
           <div style={S.card}>
-            <span style={S.label}>🎚 Mix Voce Convertită + Instrumental</span>
+            <span style={S.label}>🎚 Mix Converted Voice + Instrumental</span>
             {!convertedVocals || !separatedInstrumental ? (
               <div style={{ color: "#ff6b9d", fontSize: 13, padding: 12, background: "#ff6b9d11", borderRadius: 8 }}>
-                ⚠️ Mai întâi rulează <strong>Pipeline Automat</strong> pentru a obține vocea convertită și instrumentalul.
+                ⚠️ First run <strong>Auto Pipeline</strong> to get the converted voice and instrumental.
               </div>
             ) : (
               <div>
+                <div style={{ color: "#4ade80", fontSize: 13, padding: 8, background: "#4ade8011", borderRadius: 8, marginBottom: 16, border: "1px solid #4ade8044" }}>
+                  ✅ Files ready from Auto Pipeline! You can now mix them together.
+                </div>
                 <div style={{ color: "#a0a0cc", fontSize: 13, marginBottom: 16 }}>
-                  <div style={{ marginBottom: 4 }}>🎤 Voce: <strong>{convertedVocals.filename}</strong></div>
+                  <div style={{ marginBottom: 4 }}>🎤 Vocals: <strong>{convertedVocals.filename}</strong></div>
                   <div>🎹 Instrumental: <strong>{separatedInstrumental.filename}</strong></div>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
                   <div>
-                    <span style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>🎤 Volum Voce ({Math.round(vocalsVolume * 100)}%)</span>
+                    <span style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>🎤 Vocals Volume ({Math.round(vocalsVolume * 100)}%)</span>
                     <input type="range" min="0.1" max="2" step="0.05" value={vocalsVolume} onChange={e => setVocalsVolume(parseFloat(e.target.value))} style={{ width: "100%" }} />
                   </div>
                   <div>
-                    <span style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>🎹 Volum Instrumental ({Math.round(instrumentalVolume * 100)}%)</span>
+                    <span style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>🎹 Instrumental Volume ({Math.round(instrumentalVolume * 100)}%)</span>
                     <input type="range" min="0.1" max="2" step="0.05" value={instrumentalVolume} onChange={e => setInstrumentalVolume(parseFloat(e.target.value))} style={{ width: "100%" }} />
                   </div>
                 </div>
                 <button onClick={handleMix} disabled={mixing} style={{ ...S.btn, width: "100%", opacity: mixing ? 0.5 : 1 }}>
-                  {mixing ? "⏳ Se mixează..." : "🎚 Creează Mix Final"}
+                  {mixing ? "⏳ Mixing..." : "🎚 Create Final Mix"}
                 </button>
               </div>
             )}
@@ -392,7 +406,7 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
 
           {mixResult && (
             <div style={{ ...S.card, borderLeft: "4px solid #ff6b9d" }}>
-              <span style={{ ...S.label, color: "#ff6b9d" }}>✅ Mix Final Gata!</span>
+              <span style={{ ...S.label, color: "#ff6b9d" }}>✅ Final Mix Ready!</span>
               <div style={{ color: "#a0a0cc", fontSize: 13, marginBottom: 10 }}>
                 <div>🎵 {mixResult.filename}</div>
                 <div>⏱ {mixResult.duration}s · 📦 {mixResult.size} MB</div>
@@ -400,7 +414,7 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
               <audio controls src={mixResult.url} style={{ width: "100%", marginBottom: 10 }} />
               <a href={mixResult.url} download={mixResult.filename}
                 style={{ display: "block", textAlign: "center", background: "#ff6b9d22", color: "#ff6b9d", border: "1px solid #ff6b9d44", padding: 10, borderRadius: 8, textDecoration: "none", fontWeight: 700 }}>
-                ⬇ Download Mix Final
+                ⬇ Download Final Mix
               </a>
             </div>
           )}
@@ -411,29 +425,29 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
       {activeTab === "presets" && (
         <div>
           <div style={S.card}>
-            <span style={S.label}>💾 Salvează Setările Curente ca Preset</span>
+            <span style={S.label}>💾 Save Current Settings as Preset</span>
             <div style={{ display: "flex", gap: 8 }}>
               <input
                 value={presetName}
                 onChange={e => setPresetName(e.target.value)}
-                placeholder='Ex: "Kanye Sad -3" sau "Bad Bunny +5"'
+                placeholder='E.g. "Kanye Sad -3" or "Bad Bunny +5"'
                 style={{ ...S.input, flex: 1 }}
               />
               <button onClick={savePreset} disabled={!presetName.trim()}
                 style={{ ...S.btn, padding: "10px 16px", opacity: !presetName.trim() ? 0.5 : 1 }}>
-                💾 Salvează
+                💾 Save
               </button>
             </div>
             <div style={{ color: "#444466", fontSize: 11, marginTop: 6 }}>
-              Salvează modelul + pitch + F0 method + index rate din Pipeline
+              Saves model + pitch + F0 method + index rate from Pipeline
             </div>
           </div>
 
           <div style={S.card}>
-            <span style={S.label}>📂 Preseturi Salvate</span>
+            <span style={S.label}>📂 Saved Presets</span>
             {Object.keys(presets).length === 0 ? (
               <div style={{ color: "#444466", fontSize: 13, padding: 12, textAlign: "center" }}>
-                Nu ai niciun preset salvat încă.
+                No presets saved yet.
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -450,7 +464,7 @@ export default function RVCConversion({ addLog, tracks, setTracks }) {
                     </div>
                     <button onClick={() => loadPreset(name)}
                       style={{ background: "#ff6b9d22", color: "#ff6b9d", border: "1px solid #ff6b9d44", borderRadius: 6, padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>
-                      ▶ Aplică
+                      ▶ Apply
                     </button>
                     <button onClick={() => deletePreset(name)}
                       style={{ background: "#e6394622", color: "#e63946", border: "1px solid #e6394644", borderRadius: 6, padding: "6px 10px", cursor: "pointer", fontSize: 12 }}>

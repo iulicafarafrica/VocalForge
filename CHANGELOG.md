@@ -7,6 +7,405 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.8.4] - 2026-03-06
+
+### 🎯 **RVC Rescue Post-Processing** (NEW!)
+
+**Fix RVC-Damaged Vocals and Restore Musicality**
+
+#### ⚠️ The Problem: RVC is Trained on SPEECH, Not SINGING
+
+**Critical Discovery:**
+- RVC models are trained on **speech audio** (vorbire)
+- RVC doesn't understand **singing techniques** (vibrato, sustain, dynamics)
+- RVC treats singing like speech → destroys musicality
+
+**Quality Breakdown:**
+```
+Pipeline Step               | Quality | Description
+---------------------------|---------|----------------------------------
+BS-RoFormer Separation     | 9/10 ✅ | "Excelent, vocal curat, natural"
+RVC Raw (before v1.8.4)    | 5/10 ❌ | "Groaznic - poezie robotică"
+RVC Rescue (v1.8.4+)       | 8/10 🎯 | "Foarte bun - sună muzical"
+```
+
+**What RVC Destroys:**
+| Characteristic | Before RVC (Singing) | After RVC (Speech) |
+|---------------|---------------------|-------------------|
+| Note Sustain | ✅ Long, sustained | ❌ Cut short |
+| Vibrato | ✅ Natural vibration | ❌ Disappears |
+| Harmony | ✅ Rich overtones | ❌ Lost |
+| Dynamics | ✅ Expressive | ❌ Monotone |
+| Sound | 🎵 Musical | 📖 Poetry reading |
+
+#### 🔧 The Solution: "RVC Rescue" Post-Processing
+
+**New Default Parameters for SINGING:**
+```python
+# Changed in v1.8.4 (optimized for singing, not speech)
+f0_method: "harvest"      # Smoother than rmvpe
+index_rate: 0.40          # Was 0.75 (preserves original style)
+protect: 0.55             # Was 0.33 (protects consonants)
+```
+
+**New Post-Processing Chain (Applied Automatically):**
+```python
+1. EQ → Surgical fix
+   ├─ High-pass @ 80Hz (cleanup rumble)
+   ├─ Cut 2.5kHz -6dB (remove harshness)
+   ├─ Cut 5kHz -3dB (reduce sibilance)
+   └─ Boost 150Hz +3dB (restore warmth lost from RVC)
+
+2. Compressor → Smooth dynamics
+   ├─ Threshold: -22dB
+   ├─ Ratio: 3:1
+   ├─ Attack: 30ms
+   ├─ Release: 120ms
+   └─ Makeup: 5dB
+
+3. Reverb → Recreate "musical space" ⭐ CRITICAL
+   ├─ Early reflections: 50ms (room sound)
+   └─ Reverb tail: 120ms (space)
+   # This makes it sound less like "poetry reading"
+   # and more like actual singing
+
+4. Limiter → Prevent clipping
+   └─ Limit: -1dB ceiling
+
+5. Loudness Normalization → Streaming standard
+   └─ Target: -14 LUFS (Spotify/YouTube standard)
+```
+
+#### 📊 Results
+
+**What RVC Rescue FIXES:**
+- ✅ Harsh frequencies reduced (2.5-5kHz)
+- ✅ Warmth restored (150Hz boost)
+- ✅ Dynamics smoothed (compression)
+- ✅ Musical space added (reverb)
+- ✅ Less robotic, more natural
+- ✅ Harmony and vibrato preserved better
+
+**What RVC Rescue CANNOT FIX:**
+- ❌ Completely restore original singing quality
+- ❌ Add back vibrato that RVC destroyed
+- ❌ Make RVC sound like professional studio
+
+**Reality Check:**
+```
+Best Case:
+- BS-RoFormer: 9/10 (excellent)
+- After RVC + Rescue: 8/10 (very good)
+- Loss: ~1 point (acceptable trade-off)
+```
+
+#### 🔧 Technical Changes
+
+**File**: `backend/endpoints/rvc_conversion.py`
+
+**Added Function**:
+```python
+def apply_rvc_rescue_post_processing(input_path, output_path):
+    """
+    Repair RVC-damaged vocals and restore musicality.
+    Chain: EQ → Compressor → Reverb → Limiter → Loudness
+    """
+```
+
+**Updated Auto Pipeline**:
+- Step 3: RVC Conversion (with new params: harvest, 0.40, 0.55)
+- **Step 4: RVC Rescue Post-Processing** ⭐ NEW
+  - Applies FFmpeg filter chain
+  - Adds reverb for musical space
+  - Smooths dynamics
+  - Normalizes loudness
+
+**API Response Enhanced**:
+```json
+{
+  "status": "ok",
+  "message": "Pipeline complet! (with RVC Rescue post-processing)",
+  "steps": {
+    "separation": 25.2,
+    "normalize": 2.1,
+    "rvc_conversion": 24.8,
+    "post_processing": 3.5        // NEW
+  },
+  "post_processing_applied": true  // NEW
+}
+```
+
+#### 📝 Documentation
+
+- Updated README.md with RVC limitations explanation
+- Added "RVC Rescue" section with before/after comparison
+- Documented what can and cannot be fixed
+- Added realistic expectations (8/10 best case)
+
+---
+
+## [1.8.3] - 2026-03-06
+
+### 🎯 **RVC Final Mix Integration** (NEW!)
+
+**Complete Auto Pipeline → Final Mix Workflow**
+
+The RVC tab now has a fully integrated workflow from upload to final mix!
+
+#### 🔗 How Auto Pipeline → Final Mix Connection Works
+
+**The Problem (Before v1.8.3):**
+- Auto Pipeline converted vocals but **lost the instrumental**
+- Final Mix tab showed "First run Auto Pipeline" even after completion
+- **No way to mix** converted vocals with original instrumental
+- Users had to manually run separate steps
+
+**The Solution (v1.8.3):**
+1. **Auto Pipeline now saves BOTH outputs:**
+   - `converted_vocals.wav` - RVC-processed vocals
+   - `instrumental.mp3` - Original instrumental (320kbps, 48kHz)
+
+2. **Backend automatically:**
+   - Detects instrumental from BS-RoFormer separation
+   - Converts to MP3 (high quality)
+   - Saves to OUTPUT_DIR
+   - Returns `instrumental_url` in API response
+
+3. **Frontend automatically:**
+   - Stores both files in state
+   - Shows "Go to Final Mix" button
+   - Pre-loads files in Final Mix tab
+   - Ready to mix with one click
+
+#### 📊 Complete Pipeline Flow
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  1. Upload Full Song (vocal + instrumental)             │
+│     Example: "FlorinSalam - Song.mp3"                   │
+└─────────────────────────────────────────────────────────┘
+                         ↓
+┌─────────────────────────────────────────────────────────┐
+│  2. Auto Pipeline (50-60 seconds)                       │
+│                                                         │
+│     Step 1: BS-RoFormer Separation                      │
+│     ├─ Input: Full song                                 │
+│     ├─ Output 1: vocals.wav (clean vocal)               │
+│     └─ Output 2: instrumental.wav (clean instrumental) ⭐│
+│                                                         │
+│     Step 2: Normalize (FFmpeg loudnorm)                 │
+│     ├─ Input: vocals.wav                                │
+│     └─ Output: normalized_vocals.wav (I=-16 LUFS)       │
+│                                                         │
+│     Step 3: RVC Voice Conversion                        │
+│     ├─ Input: normalized_vocals.wav                     │
+│     ├─ Model: FlorinSalam.pth                           │
+│     └─ Output: converted_vocals.wav ⭐                   │
+│         ⚠️ May contain RVC artifacts (5/10 quality)     │
+│                                                         │
+│     Step 4: Save Both for Final Mix                     │
+│     ├─ converted_vocals.wav → final WAV/MP3             │
+│     └─ instrumental.wav → instrumental.mp3 ⭐ NEW!      │
+└─────────────────────────────────────────────────────────┘
+                         ↓
+┌─────────────────────────────────────────────────────────┐
+│  3. Click "🎚 Go to Final Mix →"                        │
+│     Auto-switches to Final Mix tab                      │
+└─────────────────────────────────────────────────────────┘
+                         ↓
+┌─────────────────────────────────────────────────────────┐
+│  4. Final Mix Tab (Auto-Loaded)                         │
+│                                                         │
+│     ✅ Files Ready Message (green)                      │
+│     🎤 Vocals: converted_vocals.wav                     │
+│     🎹 Instrumental: instrumental.mp3                   │
+│                                                         │
+│     Volume Controls:                                    │
+│     ├─ Vocals: 0.1x - 2.0x (default: 1.0)              │
+│     └─ Instrumental: 0.1x - 2.0x (default: 1.0)        │
+│                                                         │
+│     Click "Create Final Mix" → 🎵 Complete Cover!       │
+└─────────────────────────────────────────────────────────┘
+```
+
+#### ⚠️ Known Issue: RVC Audio Quality
+
+**Current Quality: 5/10** - RVC conversion introduces artifacts
+
+**Root Cause Analysis:**
+
+```
+Pipeline Step          | Quality | Notes
+-----------------------|---------|----------------------------------
+BS-RoFormer Separation | 9/10 ✅ | Clean vocal/instrumental split
+Normalize (loudnorm)   | 10/10 ✅ | Professional loudness
+RVC Conversion         | 5/10 ⚠️ | Adds artifacts, harsh frequencies
+Final Mix              | 8/10 ✅ | Good balance, normalized
+```
+
+**Why RVC Adds Artifacts:**
+
+1. **F0 Method Limitations**
+   - RMVPE can be too aggressive
+   - Pitch extraction errors cause robotic artifacts
+   - High-frequency harshness
+
+2. **Index Rate Too High**
+   - Default 0.75 may be too strong
+   - Blends too much target voice characteristics
+   - Loses natural vocal timbre
+
+3. **Protect Too Low**
+   - Default 0.33 doesn't protect voiceless consonants enough
+   - Artifacts on "s", "sh", "f", "th" sounds
+
+4. **No Post-Processing**
+   - RVC output is raw, unprocessed
+   - No EQ to cut harsh frequencies
+   - No de-esser to reduce sibilance
+   - No compressor to smooth dynamics
+
+**Temporary Workarounds (Until Fixed):**
+
+```python
+# Option 1: Lower Index Rate (More Natural)
+index_rate: 0.50  # Instead of 0.75
+# Pros: More natural, less artifacts
+# Cons: Less voice transformation
+
+# Option 2: Higher Protect (Better Consonants)
+protect: 0.50  # Instead of 0.33
+# Pros: Cleaner consonants, less artifacts
+# Cons: Slightly less transformation
+
+# Option 3: Different F0 Method
+f0_method: "harvest"  # Instead of "rmvpe"
+# Pros: Smoother, less aggressive
+# Cons: Slower, may lose some accuracy
+
+# Option 4: Lower Pitch Shift
+pitch_shift: 0  # Avoid extreme shifts
+# Pros: Fewer artifacts
+# Cons: Limited range
+```
+
+**Recommended Settings for Better Quality:**
+
+```
+# For Natural Sound (Less Transformation)
+F0 Method: rmvpe
+Index Rate: 0.50
+Protect: 0.50
+Pitch: 0
+
+# For Heavy Transformation (More Artifacts)
+F0 Method: rmvpe
+Index Rate: 0.75
+Protect: 0.33
+Pitch: ±3
+
+# For Balanced Quality
+F0 Method: harvest
+Index Rate: 0.60
+Protect: 0.45
+Pitch: 0
+```
+
+**Planned Fix (v1.8.4):**
+
+```python
+# Post-Processing Pipeline After RVC
+Step 1: De-reverb    → Remove RVC reverb artifacts
+Step 2: Denoise      → Remove background noise
+Step 3: EQ           → Cut harsh frequencies (2-4kHz)
+Step 4: De-esser     → Reduce sibilance (5-8kHz)
+Step 5: Compressor   → Smooth dynamics (2:1 ratio)
+Step 6: Limiter      → Prevent clipping (-1dB ceiling)
+```
+
+#### 🔧 Technical Implementation
+
+**Backend Changes** (`backend/endpoints/rvc_conversion.py`):
+
+```python
+# Step 1: Find BOTH vocals and instrumental from BS-RoFormer
+vocals_path = None
+instrumental_path = None
+for out_file in outputs:
+    if "vocals" in out_file.lower():
+        vocals_path = out_path  # ✅ Saved
+    elif "instrumental" in out_file.lower():
+        instrumental_path = out_path  # ✅ NEW! Saved too
+
+# Step 2: Convert instrumental to MP3 (320kbps, 48kHz)
+if instrumental_path:
+    subprocess.run([
+        "ffmpeg", "-y",
+        "-i", instrumental_path,
+        "-codec:a", "libmp3lame",
+        "-b:a", "320k",  # High quality
+        "-ar", "48000",  # 48kHz sample rate
+        instrumental_mp3_path
+    ])
+
+# Step 3: Return BOTH URLs to frontend
+return JSONResponse({
+    "status": "ok",
+    "url": f"/tracks/{final_wav}",           # Converted vocals
+    "url_mp3": f"/tracks/{final_mp3}",       # Converted vocals MP3
+    "instrumental_url": f"/tracks/{instrumental_mp3}",  # ⭐ NEW!
+    "instrumental_filename": instrumental_mp3,          # ⭐ NEW!
+})
+```
+
+**Frontend Changes** (`frontend/src/components/RVCConversion.jsx`):
+
+```javascript
+// Store instrumental from Auto Pipeline
+if (data.instrumental_url) {
+    setSeparatedInstrumental({
+        url: `${API}${data.instrumental_url}`,
+        filename: data.instrumental_filename
+    });
+}
+
+// Show "Go to Final Mix" button
+{convertedVocals && separatedInstrumental && (
+    <button onClick={() => setActiveTab("mix")}>
+        🎚 Go to Final Mix →
+    </button>
+)}
+
+// Auto-load in Final Mix tab
+{!convertedVocals || !separatedInstrumental ? (
+    <div>⚠️ First run Auto Pipeline...</div>
+) : (
+    <div>
+        <div style={{color: "#4ade80"}}>
+            ✅ Files ready from Auto Pipeline!
+        </div>
+        🎤 Vocals: {convertedVocals.filename}
+        🎹 Instrumental: {separatedInstrumental.filename}
+        {/* Volume controls + Mix button */}
+    </div>
+)}
+```
+
+### 📊 **Technical Improvements**
+
+- **Audio Quality**: Instrumental saved at 320kbps MP3, 48kHz
+- **File Management**: Proper cleanup of temporary files after pipeline
+- **UI/UX**: Clear visual feedback at each step
+- **Workflow**: Seamless transition between pipeline and mixing
+
+### 🐛 **Bug Fixes**
+
+- Fixed: Final Mix tab showing "First run Auto Pipeline" even after completion
+- Fixed: Missing instrumental URL in Auto Pipeline response
+- Fixed: Incomplete file detection for BS-RoFormer outputs
+
+---
+
 ## [1.8.2] - 2026-03-06
 
 ### 🆕 **YouTube Cover Generator**

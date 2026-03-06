@@ -18,8 +18,8 @@ echo Pornire servicii in Windows Terminal...
 
 wt -w 0 new-tab -p "Command Prompt" --title "Frontend" cmd /k "cd /d D:\VocalForge\frontend && npm run dev" ^
 ; split-pane --vertical -p "Git Bash" --title "ACE-Step (Lazy Load)" C:\PROGRA~1\Git\usr\bin\bash.exe --login -i /d/VocalForge/start_acestep_env.sh ^
-; split-pane --horizontal -p "Command Prompt" --title "Backend" cmd /k "cd /d D:\VocalForge && call venv\Scripts\activate.bat && python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000" ^
-; split-pane --horizontal -p "Command Prompt" --title "RVC Voice" cmd /k "cd /d D:\VocalForge && call venv\Scripts\activate.bat && python -m uvicorn backend.app:app --host 0.0.0.0 --port 8002"
+; split-pane --horizontal -p "Command Prompt" --title "Backend" cmd /k "cd /d D:\VocalForge && call venv\Scripts\activate.bat && set PYTHONUNBUFFERED=1 && python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --log-level info" ^
+; split-pane --horizontal -p "Command Prompt" --title "RVC Voice" cmd /k "cd /d D:\VocalForge && call venv\Scripts\activate.bat && set PYTHONUNBUFFERED=1 && python -m uvicorn backend.app:app --host 0.0.0.0 --port 8002"
 
 echo.
 echo Toate serviciile pornesc in Windows Terminal...
