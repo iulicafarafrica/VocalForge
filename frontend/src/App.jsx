@@ -129,7 +129,7 @@ export default function App() {
               <span style={{ color: "#06d6a0" }}>Vocal</span><span style={{ color: "#7209b7" }}>Forge</span>
             </div>
             <div style={{ color: "#444466", fontSize: 11, letterSpacing: 1 }}>AI Audio Studio</div>
-            <div style={{ color: "#ffffff", fontSize: 10, letterSpacing: 0.5, marginTop: 2 }}>made by HSK (February 21)</div>
+            <div style={{ color: "#ffffff", fontSize: 10, letterSpacing: 0.5, marginTop: 2 }}>made by HSK</div>
           </div>
         </div>
 
