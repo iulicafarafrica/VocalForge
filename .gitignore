@@ -194,4 +194,11 @@ web_search.py
 test_*.py
 test_*.wav
 test_*.txt
-APPLIO_TEST_REPORT.md  
+APPLIO_TEST_REPORT.md
+
+# ======================
+# Session auto-save files (local recovery only)
+# ======================
+SESSION_AUTO.json
+SESSION_CURRENT.md
+start_auto_session.bat  
