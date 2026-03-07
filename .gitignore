@@ -185,4 +185,13 @@ QWEN_START.bat
 # ======================
 proiect.txt
 proiect nou.txt
-*.txt  
+*.txt
+
+# ======================
+# Local utility scripts (not for GitHub)
+# ======================
+web_search.py
+test_*.py
+test_*.wav
+test_*.txt
+APPLIO_TEST_REPORT.md  

@@ -90,9 +90,12 @@ class AudioProcessor:
         rms2 = torch.maximum(rms2, torch.zeros_like(rms2) + 1e-6)
 
         # Adjust target audio RMS based on the source audio RMS
+        # Formula: target * (source_rms / target_rms)^rate
+        # When rate=1.0: fully match source RMS
+        # When rate=0.0: keep original target RMS
         adjusted_audio = (
             target_audio
-            * (torch.pow(rms1, 1 - rate) * torch.pow(rms2, rate - 1)).numpy()
+            * (torch.pow(rms1, rate) * torch.pow(rms2, 1 - rate) / rms2).numpy()
         )
         return adjusted_audio
 
