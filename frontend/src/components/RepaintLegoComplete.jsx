@@ -47,15 +47,9 @@ export default function RepaintLegoComplete() {
   const [inferSteps, setInferSteps] = useState(12);
   const [keyScale, setKeyScale] = useState('');
   const [audioFormat, setAudioFormat] = useState('mp3');
-  const [ditModel, setDitModel] = useState('acestep-v15-turbo');
-  
-  // Log model changes to console
-  useEffect(() => {
-    console.log(`[Repaint/Lego/Complete] DIT Model changed to: ${ditModel}`);
-    const modelName = ditModel.replace('acestep-v15-', '').toUpperCase();
-    const steps = ditModel.includes('turbo') ? '8' : '50';
-    console.log(`[Repaint/Lego/Complete] Model: ${modelName} | Inference Steps: ${steps}`);
-  }, [ditModel, mode]);
+
+  // Default DIT Model (no UI selection)
+  const ditModel = 'acestep-v15-turbo';
   
   const [audioCoverStrength, setAudioCoverStrength] = useState(1.0);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -459,47 +453,6 @@ export default function RepaintLegoComplete() {
           />
           <span style={{ color: '#6666aa', fontSize: 11, marginTop: 4, display: 'block' }}>
             More steps = better quality, slower generation (default: 12, recommended: 8-20)
-          </span>
-        </div>
-
-        {/* DiT Model Selection */}
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ ...labelStyle, marginBottom: 4 }}>DiT Model</label>
-          <select
-            value={ditModel}
-            onChange={(e) => setDitModel(e.target.value)}
-            style={{ ...inputStyle, fontFamily: 'monospace', fontSize: 12 }}
-          >
-            <option value="acestep-v15-turbo">⚡ turbo         │ 8 steps  │ CFG: ❌ │ Fast generation</option>
-            <option value="acestep-v15-turbo-shift3">⚡ turbo-shift3 │ 8 steps  │ CFG: ❌ │ Alternative variant</option>
-            <option value="acestep-v15-base">🎯 base          │ 50 steps │ CFG: ✅ │ All features (Lego, Complete, Extract)</option>
-            <option value="acestep-v15-sft">🎵 sft           │ 50 steps │ CFG: ✅ │ High quality generation</option>
-          </select>
-          
-          {/* Model Compatibility Warning */}
-          {currentMode.modelSupport[ditModel] && !currentMode.modelSupport[ditModel].supported && (
-            <div style={{
-              marginTop: 8,
-              padding: '8px 12px',
-              background: 'rgba(230,57,70,0.1)',
-              border: '1px solid #e63946',
-              borderRadius: 6,
-              color: '#e63946',
-              fontSize: 11,
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}>
-              <span>⚠️</span>
-              <span>
-                {currentMode.modelSupport[ditModel].note} — Switch to Base model for {currentMode.label}!
-              </span>
-            </div>
-          )}
-          
-          <span style={{ color: '#6666aa', fontSize: 11, marginTop: 4, display: 'block' }}>
-            ⚡ Turbo: Fast (8 steps, no CFG) · 🎯 Base: All features · 🎵 SFT: High quality
           </span>
         </div>
 

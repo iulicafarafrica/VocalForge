@@ -649,27 +649,12 @@ export default function AceStepTab({
   const [thinking, setThinking] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  // ── Tensor Model Selection ────────────────────────────────────────────────
-  const [tensorModel, setTensorModel] = useState("acestep-v15-turbo"); // default
-
   // ── Clean Temp Files ──────────────────────────────────────────────────────
   const [cleaningTemp, setCleaningTemp] = useState(false);
   const [cleanResult, setCleanResult] = useState(null);
 
-  // Log model changes to console AND app logs
-  useEffect(() => {
-    const modelInfo = TENSOR_MODELS.find(m => m.id === tensorModel);
-    const modelName = modelInfo?.name || 'Unknown';
-    const steps = modelInfo?.steps || 'N/A';
-    const cfg = modelInfo?.cfg ? '✅' : '❌';
-    
-    console.log(`[ACE-Step] DIT Model changed to: ${tensorModel}`);
-    console.log(`[ACE-Step] Model: ${modelName} | Steps: ${steps} | CFG: ${cfg}`);
-    console.log(`[ACE-Step] Features: ${modelInfo?.features || 'Standard'}`);
-    
-    // Also show in app Logs Panel
-    addLog(`🔄 Model switched: ${modelName} (${steps} steps, CFG: ${cfg})`);
-  }, [tensorModel, addLog]);
+  // Default DIT Model (no UI selection)
+  const tensorModel = "acestep-v15-turbo";
 
   const TENSOR_MODELS = [
     { id: "acestep-v15-merge", name: "🎯 Merge SFT+Turbo", desc: "8 steps │ Best of both worlds", color: "#06d6a0", steps: 8, cfg: false, features: "Turbo speed + SFT quality" },
@@ -1183,68 +1168,6 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                   <span>{t.icon}</span><span>{t.label}</span>
                 </button>
               ))}
-            </div>
-
-            {/* DiT Model Selection */}
-            <div style={{ marginTop: 12 }}>
-              <span style={{ color: "#6666aa", fontSize: 11, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8, display: "block" }}>
-                🧠 DiT Model
-              </span>
-              <select
-                value={tensorModel}
-                onChange={(e) => setTensorModel(e.target.value)}
-                style={{
-                  width: "100%",
-                  background: "#080812",
-                  border: "1px solid #2a2a4a",
-                  color: "#e0e0ff",
-                  borderRadius: 8,
-                  padding: "10px 12px",
-                  fontSize: 12,
-                  fontFamily: "monospace",
-                  cursor: "pointer",
-                }}
-              >
-                <option value="acestep-v15-turbo">⚡ turbo         │ 8 steps  │ CFG: ❌ │ Fast generation</option>
-                <option value="acestep-v15-turbo-shift3">⚡ turbo-shift3 │ 8 steps  │ CFG: ❌ │ Alternative variant</option>
-                <option value="acestep-v15-base">🎯 base          │ 50 steps │ CFG: ✅ │ All features (Lego, Complete, Extract)</option>
-                <option value="acestep-v15-sft">🎵 sft           │ 50 steps │ CFG: ✅ │ High quality generation</option>
-              </select>
-
-              {/* Model Compatibility for current task type */}
-              <div style={{
-                marginTop: 8,
-                padding: "8px 10px",
-                background: taskType === "text2music" ? "rgba(0,229,255,0.04)" : "rgba(114,9,183,0.04)",
-                borderRadius: 6,
-                border: `1px solid ${taskType === "text2music" ? "#00e5ff44" : "#7209b744"}`,
-              }}>
-                <span style={{ color: taskType === "text2music" ? "#00e5ff" : "#c77dff", fontSize: 10, fontWeight: 700, display: "block", marginBottom: 6 }}>
-                  🔍 Model Support: {taskType === "text2music" ? "✍️ Text → Music" : "🎵 Audio Cover"}
-                </span>
-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  {Object.entries(taskTypeModelSupport[taskType]).map(([modelId, { supported, note }]) => (
-                    <div
-                      key={modelId}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        padding: "4px 8px",
-                        borderRadius: 4,
-                        background: supported ? "rgba(6,214,160,0.06)" : "rgba(230,57,70,0.06)",
-                        border: `1px solid ${supported ? "#06d6a033" : "#e6394633"}`,
-                        fontSize: 9,
-                        fontFamily: "monospace",
-                      }}
-                    >
-                      <span style={{ color: supported ? "#06d6a0" : "#e63946", fontWeight: 600 }}>
-                        {modelId.replace("acestep-v15-", "")}
-                      </span>
-                      <span style={{ color: supported ? "#06d6a0" : "#e63946" }}>{note}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
 
             {/* Audio source upload (only for audio2audio) */}
@@ -1960,7 +1883,7 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
         </div>
       </div>
 
-      {/* ═══════════════════════════════════════════════════════════════════
+      {/* ════════════════════���══════════════════════════════════════════════
           Advanced Settings Panel
           Based on ACE-Step v1.5 API documentation
       ═══════════════════════════════════════════════════════════════════ */}
