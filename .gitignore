@@ -179,13 +179,21 @@ ace-step-ui-ref
 # ======================
 QWEN.md
 QWEN_START.bat
+output-language.md
 
 # ======================
-# Local text files (not for GitHub)
+# Qwen session files (auto-save, recovery)
 # ======================
-proiect.txt
-proiect nou.txt
-*.txt
+SESSION_AUTO.json
+SESSION_CURRENT.md
+SESSION_SUMMARY*.md
+start_auto_session.bat
+save_session.bat
+research_session.md
+SKILL_audio_engineer_v2*.md
+SKILL-INDEX.txt
+skill-part*.txt
+audio-engineer*.txt
 
 # ======================
 # Local utility scripts (not for GitHub)
