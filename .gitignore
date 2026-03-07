@@ -196,6 +196,20 @@ skill-part*.txt
 audio-engineer*.txt
 
 # ======================
+# Local text files (not for GitHub)
+# ======================
+proiect*.txt
+*.txt
+
+# ======================
+# Local images/screenshots (not for GitHub)
+# ======================
+image.png
+*.png
+*.jpg
+*.jpeg
+
+# ======================
 # Local utility scripts (not for GitHub)
 # ======================
 web_search.py
