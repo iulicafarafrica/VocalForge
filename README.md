@@ -1,4 +1,4 @@
-# 🎵 VocalForge v1.9.0
+# 🎵 VocalForge v2.0.0
 
 ## 🎉 NEW: VocalForge v2.0.0 - Pipeline with Diffusion Refinement
 
@@ -65,7 +65,7 @@ http://localhost:8000/docs
 > **AI-Powered Music Production Studio** — Transform your voice, generate music, and create professional tracks with cutting-edge AI.
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.9.0-blue?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/Version-2.0.0-blue?style=for-the-badge" alt="Version">
   <img src="https://img.shields.io/badge/Status-Beta-yellow?style=for-the-badge" alt="Status">
   <img src="https://img.shields.io/badge/Python-3.10%2B-green?style=for-the-badge&logo=python" alt="Python">
   <img src="https://img.shields.io/badge/GPU-NVIDIA%20CUDA-orange?style=for-the-badge&logo=nvidia" alt="GPU">
@@ -1196,7 +1196,7 @@ npm run build
 
 ## 📝 Changelog
 
-### v1.8.2 — Current Release (March 2026)
+### v2.0.0 — Current Release (March 8, 2026)
 
 #### 🆕 YouTube Cover Generator
 - **Download from YouTube** — Audio extraction (WAV/MP3)
