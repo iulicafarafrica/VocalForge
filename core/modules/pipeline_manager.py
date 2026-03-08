@@ -21,10 +21,36 @@ import subprocess
 import shutil
 import librosa
 import soundfile as sf
+import torch
+import gc
+import torch
+import gc
 from pathlib import Path
 from typing import Optional
 from dataclasses import dataclass
 from enum import Enum
+
+
+def force_cleanup():
+    """
+    Eliberare brutală a memoriei GPU pentru stabilitate pe RTX 3070 (8GB).
+    Combina gc.collect() + torch.cuda.empty_cache() + torch.cuda.ipc_collect()
+    
+    This is CRITICAL for preventing OOM errors when running:
+    - Stage 1: BS-RoFormer (4-5GB VRAM)
+    - Stage 2: RVC (4-6GB VRAM)
+    - Stage 3: ACE-Step (6-8GB VRAM)
+    
+    On 8GB VRAM, we need to FREE memory between stages!
+    """
+    gc.collect()
+    
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        torch.cuda.ipc_collect()
+        
+    print("[SYSTEM] ✅ VRAM curățat complet (force_cleanup).")
+
 
 BASE_DIR    = Path("D:/VocalForge")
 AUDIO_DIR   = BASE_DIR / "audio" / "pipeline"
@@ -271,6 +297,12 @@ async def run_stage1_separation(job: PipelineJob) -> bool:
         job.stage1_status = StageStatus.DONE
         job.progress = 35
         print(f"[Stage 1] ✅ Separation complete: {vocals_path}")
+        
+        # 🔴 NEW: Force cleanup after Stage 1
+        print(f"\n[Stage 1→2] Running force cleanup after separation...")
+        force_cleanup()
+        await asyncio.sleep(1)  # Short settle
+        
         return True
 
     except Exception as e:
@@ -337,12 +369,24 @@ async def run_stage2_rvc(job: PipelineJob) -> bool:
 
         job.rvc_output_path = rvc_output
         
-        # 🔴 CRITICAL: Unload RVC model BEFORE Stage 3 (VRAM management)
-        print(f"\n[Stage 2→3] Unloading RVC model to free VRAM for ACE-Step...")
+        # 🔴 CRITICAL: Dual cleanup BEFORE Stage 3 (ACE-Step)
+        print(f"\n[Stage 2→3] Running DUAL cleanup before ACE-Step...")
+        
+        # Method 1: Local torch cleanup
+        print(f"[Stage 2→3] Method 1: Local torch.cuda.empty_cache()...")
+        force_cleanup()
+        
+        # Method 2: API-based cleanup (existing)
+        print(f"[Stage 2→3] Method 2: API-based RVC unload...")
         await unload_rvc_model_from_backend()
+        
+        # Wait for GPU to settle (CRITICAL for 8GB VRAM)
+        print(f"[Stage 2→3] Waiting 3 seconds for GPU to settle...")
+        await asyncio.sleep(3)
         
         job.stage2_status = StageStatus.DONE
         job.progress = 65
+        print(f"[Stage 2→3] ✅ VRAM curățat complet. Ready for ACE-Step.")
         print(f"[Stage 2] ✅ RVC conversion complete: {rvc_output}")
         return True
 
