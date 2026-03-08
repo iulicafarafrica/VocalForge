@@ -1,9 +1,9 @@
 """
 VocalForge v1.9 - FastAPI Backend
-Real pipeline: Demucs vocal separation → so-vits-svc voice conversion → remix
+Real pipeline: Demucs vocal separation -> so-vits-svc voice conversion -> remix
 
 Endpoints:
-  POST /process_cover       - full cover: separate vocals → convert → remix
+  POST /process_cover       - full cover: separate vocals -> convert -> remix
   POST /preview             - 10-second preview of same pipeline
   POST /upload_model        - upload a so-vits-svc model (.pth + config.json)
   GET  /list_models         - list available voice models
@@ -269,7 +269,7 @@ def detect_hardware():
 hw = detect_hardware()
 
 # ── Job store (in-memory progress tracking) ───────────────────────────────────
-# job_id → {"step": str, "pct": int, "logs": [...], "done": bool, "result": dict|None, "error": str|None}
+# job_id -> {"step": str, "pct": int, "logs": [...], "done": bool, "result": dict|None, "error": str|None}
 _jobs: dict = {}
 
 def _job_log(job_id: str, msg: str, pct: int = None):
@@ -289,7 +289,7 @@ def _vram_used_gb() -> float:
     return 0.0
 
 # ── Lazy model cache ───────────────────────────────────────────────────────────
-_svc_cache: dict = {}   # model_id → SoVITSInfer instance
+_svc_cache: dict = {}   # model_id -> SoVITSInfer instance
 
 # so-vits-svc directory (needed for pretrain/ and other relative paths)
 SOVITS_DIR = os.path.abspath(os.path.join(BASE_DIR, "..", "so-vits-svc"))
@@ -339,20 +339,20 @@ def _get_svc(model_id: str):
 def separate_vocals(audio_path: str, out_dir: str, model: str = "auto") -> tuple[str, str]:
     """
     Separate vocals from audio.
-    model="auto"  -> incearca BS-RoFormer, fallback la htdemucs dacă nu e instalat
+    model="auto"  -> incearca BS-RoFormer, fallback la htdemucs daca nu e instalat
     model="bs_roformer_1297" -> forteaza BS-RoFormer (audio-separator)
     model="htdemucs"         -> forteaza htdemucs (demucs)
     Returns (vocals_path, instrumental_path).
     """
-    # Auto: preferă BS-RoFormer dacă audio-separator e instalat
+    # Auto: prefera BS-RoFormer daca audio-separator e instalat
     if model == "auto":
         try:
             from audio_separator.separator import Separator  # noqa: F401
             model = "bs_roformer_1297"
-            print("[SEP] audio-separator disponibil → folosesc BS-RoFormer (SDR 12.97)")
+            print("[SEP] audio-separator disponibil -> folosesc BS-RoFormer (SDR 12.97)")
         except ImportError:
             model = "htdemucs"
-            print("[SEP] audio-separator lipsă → fallback la htdemucs")
+            print("[SEP] audio-separator lipsa -> fallback la htdemucs")
 
     if model in UVR_MODEL_MAP:
         # ── BS-RoFormer / Mel-Band RoFormer via audio-separator ──────────────
@@ -542,7 +542,7 @@ async def process_cover(
         )
         vram_after = _vram_used_gb()
         t2_sec = round(time.time() - t2, 1)
-        _job_log(job_id, f"Voice conversion done in {t2_sec}s | VRAM: {vram_before}→{vram_after} GB", pct=75)
+        _job_log(job_id, f"Voice conversion done in {t2_sec}s | VRAM: {vram_before}->{vram_after} GB", pct=75)
 
         # ── Step 3: Mix ───────────────────────────────────────────────────────
         _job_log(job_id, "Step 3/3 — Mixing vocals with instrumental...", pct=80)
@@ -814,11 +814,11 @@ DEMUCS_STEM_MAP = {
 UVR_MODEL_MAP = {
     # BS-RoFormer — best quality vocals/instrumental (SDR 12.97), recomandat
     "bs_roformer_1297":  "model_bs_roformer_ep_317_sdr_12.9755.ckpt",
-    # Mel-Band RoFormer — alternativă mai ușoară (mai puțin VRAM)
+    # Mel-Band RoFormer — alternativa mai usoara (mai putin VRAM)
     "mel_band_roformer": "model_mel_band_roformer_ep_3005_sdr_11.4360.ckpt",
 }
 
-# Modele care produc "other" în loc de "instrumental" — trebuie tratate special
+# Modele care produc "other" in loc de "instrumental" — trebuie tratate special
 UVR_OTHER_AS_INSTRUMENTAL = {"mel_band_roformer"}
 
 UVR_MODELS_DIR = os.path.join(BASE_DIR, "uvr_models")
@@ -844,8 +844,8 @@ def separate_stems_uvr(audio_path: str, out_dir: str, model_id: str, mode: str =
         raise ValueError(f"Unknown UVR model: {model_id}")
 
     # ── VRAM optimization: chunk_size + batch_size reduse ────────────────────
-    # BS-RoFormer și Mel-Band RoFormer pot consuma 100% VRAM fără chunking.
-    # chunk_size=256000 = ~5.8s la 44100Hz — procesare în bucăți mici
+    # BS-RoFormer si Mel-Band RoFormer pot consuma 100% VRAM fara chunking.
+    # chunk_size=256000 = ~5.8s la 44100Hz — procesare in bucati mici
     # batch_size=1 — nu procesa mai multe chunk-uri simultan
     vram_gb = hw.get("vram_gb", 0)
     if vram_gb >= 10:
@@ -887,12 +887,12 @@ def separate_stems_uvr(audio_path: str, out_dir: str, model_id: str, mode: str =
     output_files = separator.separate(audio_path)
     print(f"[UVR] Output files: {output_files}")
 
-    # Eliberează VRAM după separare
+    # Elibereaza VRAM dupa separare
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
 
-    # audio-separator numește fișierele: "input_(Vocals)_model_name.wav"
-    # Unele modele (mel_band_roformer) produc "(other)" în loc de "(instrumental)"
+    # audio-separator numeste fisierele: "input_(Vocals)_model_name.wav"
+    # Unele modele (mel_band_roformer) produc "(other)" in loc de "(instrumental)"
     treat_other_as_instr = model_id in UVR_OTHER_AS_INSTRUMENTAL
 
     stems = {}
@@ -927,7 +927,7 @@ def separate_stems_uvr(audio_path: str, out_dir: str, model_id: str, mode: str =
     if not stems:
         raise RuntimeError(f"UVR produced no output files. Got: {output_files}")
 
-    # Dacă tot nu avem "instrumental", încearcă să folosim orice stem non-vocals
+    # Daca tot nu avem "instrumental", incearca sa folosim orice stem non-vocals
     if "instrumental" not in stems and "vocals" in stems:
         non_vocal = [k for k in stems if k != "vocals"]
         if non_vocal:
@@ -1520,7 +1520,7 @@ async def process_cover_full(
     Full pipeline with AudioEngine post-processing:
     1. Demucs: separate vocals
     2. so-vits-svc: voice conversion
-    3. AudioEngine: Morph → Harmony → Mastering
+    3. AudioEngine: Morph -> Harmony -> Mastering
     4. Mix with instrumental
     """
     job_id = uuid.uuid4().hex
@@ -1566,7 +1566,7 @@ async def process_cover_full(
         _job_log(job_id, f"Voice conversion done in {t2_sec}s", pct=60)
 
         # Step 3: AudioEngine (Morph + Harmony + Mastering)
-        _job_log(job_id, "Step 3/4 — AudioEngine (Morph → Harmony → Mastering)...", pct=65)
+        _job_log(job_id, "Step 3/4 — AudioEngine (Morph -> Harmony -> Mastering)...", pct=65)
         t3 = time.time()
 
         engine_config = {
@@ -1586,7 +1586,7 @@ async def process_cover_full(
         engine_history = engine_meta.get("history", [])
         _job_log(job_id, f"AudioEngine done in {t3_sec}s | steps: {len(engine_history)}", pct=80)
         for h in engine_history:
-            _job_log(job_id, f"  → {h}")
+            _job_log(job_id, f"  -> {h}")
 
         # Step 4: Mix
         _job_log(job_id, "Step 4/4 — Mixing with instrumental...", pct=85)
@@ -1711,7 +1711,7 @@ async def karaoke(
         vocals_audio = vocals_audio[:min_len]
         instr_audio = instr_audio[:min_len]
 
-        # vocal_reduction=1.0 → pure instrumental; 0.0 → original mix
+        # vocal_reduction=1.0 -> pure instrumental; 0.0 -> original mix
         result_audio = instr_audio + vocals_audio * (1.0 - vocal_reduction)
         peak = np.max(np.abs(result_audio))
         if peak > 1.0:
@@ -1750,7 +1750,7 @@ async def karaoke(
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Lyrics Cover — TTS from lyrics → so-vits-svc → mix with uploaded instrumental
+# Lyrics Cover — TTS from lyrics -> so-vits-svc -> mix with uploaded instrumental
 # ──────────────────────────────────────────────────────────────────────────────
 
 @app.post("/lyrics_cover")
@@ -1871,7 +1871,7 @@ async def lyrics_cover(
             # Clamp stretch ratio to reasonable range (0.5x - 2.0x)
             stretch_ratio = instr_duration / vocal_duration
             stretch_ratio = max(0.5, min(2.0, stretch_ratio))
-            print(f"[LYRICS {job_id[:8]}] Stretching vocals {round(vocal_duration,1)}s → {round(instr_duration,1)}s (ratio={round(stretch_ratio,3)})")
+            print(f"[LYRICS {job_id[:8]}] Stretching vocals {round(vocal_duration,1)}s -> {round(instr_duration,1)}s (ratio={round(stretch_ratio,3)})")
             vocals = librosa.effects.time_stretch(vocals, rate=stretch_ratio)
 
         # Resample instrumental to match vocals SR if needed
@@ -2033,9 +2033,9 @@ async def acestep_genre_presets():
             ],
             "Romanian": [
                 {"label": "Manele", "cat": "Romanian", "prompt": "Romanian manele, accordion, oriental synth, Balkan rhythm, party music, Turkish hicaz scale", "bpm": 112, "negative_prompt": "trap 808 dominance, metal distortion, EDM drop, dubstep", "instrumental": False},
-                {"label": "Pop Românesc", "cat": "Romanian", "prompt": "Romanian pop modern, contemporary production, catchy melody, radio Romania", "bpm": 120, "negative_prompt": "metal screaming, dark trap, orchestral epic, harsh distortion", "instrumental": False},
-                {"label": "Hip-Hop Românesc", "cat": "Romanian", "prompt": "Romanian hip hop, rap in Romanian, urban beat, street lyrics", "bpm": 92, "negative_prompt": "orchestral, EDM four-on-the-floor, smooth jazz, country", "instrumental": False},
-                {"label": "Muzică Populară", "cat": "Romanian", "prompt": "Romanian popular music, flute, violin, accordion, traditional rhythm, folk", "bpm": 95, "negative_prompt": "trap beats, EDM, metal, autotune, electronic drop", "instrumental": False},
+                {"label": "Pop Romanesc", "cat": "Romanian", "prompt": "Romanian pop modern, contemporary production, catchy melody, radio Romania", "bpm": 120, "negative_prompt": "metal screaming, dark trap, orchestral epic, harsh distortion", "instrumental": False},
+                {"label": "Hip-Hop Romanesc", "cat": "Romanian", "prompt": "Romanian hip hop, rap in Romanian, urban beat, street lyrics", "bpm": 92, "negative_prompt": "orchestral, EDM four-on-the-floor, smooth jazz, country", "instrumental": False},
+                {"label": "Muzica Populara", "cat": "Romanian", "prompt": "Romanian popular music, flute, violin, accordion, traditional rhythm, folk", "bpm": 95, "negative_prompt": "trap beats, EDM, metal, autotune, electronic drop", "instrumental": False},
             ],
             "Metal": [
                 {"label": "Heavy Metal", "cat": "Metal", "prompt": "heavy metal, distorted guitar riffs, powerful drums, aggressive vocals, classic metal", "bpm": 140, "negative_prompt": "smooth jazz, pop chorus, orchestral strings, trap 808", "instrumental": False},
@@ -2257,7 +2257,7 @@ async def ace_generate(
                     if init_response.status_code == 200:
                         init_data = init_response.json()
                         loaded_model = init_data.get("data", {}).get("loaded_model", dit_model)
-                        print(f"[ACE {job_id[:8]}] ✅ Model loaded: {loaded_model}")
+                        print(f"[ACE {job_id[:8]}] [OK] Model loaded: {loaded_model}")
                         
                         # Wait a moment for model to fully initialize
                         await asyncio.sleep(2)
@@ -2279,10 +2279,10 @@ async def ace_generate(
             if meta_parts:
                 full_prompt = full_prompt + "\n" + ", ".join(meta_parts) if full_prompt else ", ".join(meta_parts)
 
-            # ── Optimizări pentru audio cover ──────────────────────────────────
+            # ── Optimizari pentru audio cover ──────────────────────────────────
             is_cover = task_type in ("audio2audio", "cover")
-            effective_duration = duration  # folosim durata exactă setată de utilizator
-            # Asigură-te că durata este pozitivă, altfel -1 pentru auto
+            effective_duration = duration  # folosim durata exacta setata de utilizator
+            # Asigura-te ca durata este pozitiva, altfel -1 pentru auto
             if effective_duration <= 0:
                 effective_duration = -1
             print(f"[ACE {job_id[:8]}] Duration: {effective_duration}s | task_type={task_type} | vocal_language={vocal_language}")
@@ -2313,14 +2313,14 @@ async def ace_generate(
                 "use_adg": use_adg,
                 "cfg_interval_start": cfg_interval_start,
                 "cfg_interval_end": cfg_interval_end,
-                # Pentru audio2audio/cover: nu lăsa LM să modifice durata specificată de utilizator
+                # Pentru audio2audio/cover: nu lasa LM sa modifice durata specificata de utilizator
                 "use_cot_metas": False if is_cover else use_cot_metas,
                 "use_cot_caption": use_cot_caption,
                 "use_cot_language": use_cot_language,
                 "allow_lm_batch": allow_lm_batch,
                 # Thinking mode (5Hz LM for audio code generation)
                 "thinking": thinking,
-                # ── Optimizări VRAM (RTX 3070 8GB) ───────────────────────────
+                # ── Optimizari VRAM (RTX 3070 8GB) ───────────────────────────
                 # batch_size: from user (default 1 to save VRAM)
                 "batch_size": batch_size,
                 # use_tiled_decode: from user (VRAM optimization for VAE decode)
@@ -2447,11 +2447,11 @@ async def ace_generate(
                     except Exception:
                         result_arr = []
 
-                    # ACE-Step returnează lista de fișiere în result_arr
+                    # ACE-Step returneaza lista de fisiere in result_arr
                     # Fiecare element are "file" = URL /v1/audio?path=... sau cale disk
                     audio_file_path = None
                     if result_arr and isinstance(result_arr, list):
-                        # Caută primul element cu "file" non-gol
+                        # Cauta primul element cu "file" non-gol
                         for item_r in result_arr:
                             f = item_r.get("file", "")
                             if f:
@@ -2469,13 +2469,13 @@ async def ace_generate(
 
                     # audio_file_path poate fi:
                     # 1. URL relativ: /v1/audio?path=C%3A%5C...
-                    # 2. Cale disk absolută: D:\VocalForge\ace-step\.cache\...\file.wav
+                    # 2. Cale disk absoluta: D:\VocalForge\ace-step\.cache\...\file.wav
                     # 3. URL complet: http://localhost:8001/v1/audio?path=...
                     real_path = audio_file_path
 
                     if "/v1/audio" in audio_file_path:
                         # Extrage parametrul "path" din URL
-                        # Suportă atât URL relativ cât și absolut
+                        # Suporta atat URL relativ cat si absolut
                         if audio_file_path.startswith("http"):
                             parsed = urllib.parse.urlparse(audio_file_path)
                         else:
@@ -2486,14 +2486,14 @@ async def ace_generate(
                             real_path = urllib.parse.unquote(path_vals[0])
                         print(f"[ACE {job_id[:8]}] Extracted disk path from URL: {real_path}")
                     elif not os.path.isabs(audio_file_path):
-                        # Cale relativă — încearcă față de ace-step dir
+                        # Cale relativa — incearca fata de ace-step dir
                         ace_dir = os.path.join(os.path.dirname(BASE_DIR), "ace-step")
                         real_path = os.path.join(ace_dir, audio_file_path)
                         print(f"[ACE {job_id[:8]}] Relative path resolved to: {real_path}")
 
                     print(f"[ACE {job_id[:8]}] Final disk path: {real_path} | exists={os.path.exists(real_path)}")
 
-                    # Copiază fișierul audio în output directory
+                    # Copiaza fisierul audio in output directory
                     out_filename = f"{job_id}_ace.{OUTPUT_FORMAT}"
                     out_path = os.path.join(OUTPUT_DIR, out_filename)
 
@@ -2509,8 +2509,8 @@ async def ace_generate(
                             shutil.copy2(real_path, out_path)
                         print(f"[ACE {job_id[:8]}] Copied from disk: {real_path}")
                     else:
-                        # Descarcă via /v1/audio endpoint
-                        # Folosim calea originală din result (URL-encoded corect de ACE-Step)
+                        # Descarca via /v1/audio endpoint
+                        # Folosim calea originala din result (URL-encoded corect de ACE-Step)
                         if "/v1/audio" in audio_file_path:
                             # Folosim URL-ul original direct
                             if audio_file_path.startswith("http"):

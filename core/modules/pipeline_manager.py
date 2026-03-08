@@ -1,6 +1,6 @@
 """
 core/modules/pipeline_manager.py
-Pipeline: BS RoFormer (/demucs_separate) → RVC (/rvc/convert) → ACE-Step (/audio2audio)
+Pipeline: BS RoFormer (/demucs_separate) -> RVC (/rvc/convert) -> ACE-Step (/audio2audio)
 
 Stage 1 foloseste /demucs_separate cu model=bs_roformer_1297
 - acelasi endpoint ca DemucsTab => rapid (25-40 sec), model deja pe disk
@@ -33,7 +33,7 @@ from enum import Enum
 
 def force_cleanup():
     """
-    Eliberare brutală a memoriei GPU pentru stabilitate pe RTX 3070 (8GB).
+    Eliberare brutala a memoriei GPU pentru stabilitate pe RTX 3070 (8GB).
     Combina gc.collect() + torch.cuda.empty_cache() + torch.cuda.ipc_collect()
     
     This is CRITICAL for preventing OOM errors when running:
@@ -49,7 +49,7 @@ def force_cleanup():
         torch.cuda.empty_cache()
         torch.cuda.ipc_collect()
         
-    print("[SYSTEM] ✅ VRAM curățat complet (force_cleanup).")
+    print("[SYSTEM] [OK] VRAM curatat complet (force_cleanup).")
 
 
 BASE_DIR    = Path("D:/VocalForge")
@@ -141,7 +141,7 @@ async def normalize_audio_to_target(audio_path: str, target_db: float = -1.0) ->
         if result.returncode == 0:
             # Replace original with normalized
             shutil.move(temp_path, audio_path)
-            print(f"[Gain Staging] ✅ Normalized to {target_db}dB peak, -16 LUFS: {audio_path}")
+            print(f"[Gain Staging] [OK] Normalized to {target_db}dB peak, -16 LUFS: {audio_path}")
             return True
         else:
             print(f"[Gain Staging] ⚠️ Warning: normalization failed: {result.stderr[:200]}")
@@ -151,7 +151,7 @@ async def normalize_audio_to_target(audio_path: str, target_db: float = -1.0) ->
             return False
             
     except Exception as e:
-        print(f"[Gain Staging] ❌ Error: {e}")
+        print(f"[Gain Staging] [ERR] Error: {e}")
         if os.path.exists(temp_path):
             os.remove(temp_path)
         return False
@@ -184,7 +184,7 @@ async def unload_rvc_model_from_backend() -> bool:
             # Wait for cleanup to complete
             await asyncio.sleep(1)
             
-        print("[VRAM Management] ✅ RVC model unloaded, VRAM cleared for ACE-Step")
+        print("[VRAM Management] [OK] RVC model unloaded, VRAM cleared for ACE-Step")
         return True
         
     except Exception as e:
@@ -209,7 +209,7 @@ async def ensure_sample_rate_48k(audio_path: str) -> tuple[str, bool]:
         audio, sr = librosa.load(audio_path, sr=None, mono=False)
         
         if sr == 48000:
-            print(f"[Sample Rate] ✅ Already 48kHz: {audio_path}")
+            print(f"[Sample Rate] [OK] Already 48kHz: {audio_path}")
             return audio_path, False
         
         # Resample to 48kHz
@@ -226,11 +226,11 @@ async def ensure_sample_rate_48k(audio_path: str) -> tuple[str, bool]:
         resampled_path = audio_path.replace(".mp3", "_48k.wav").replace(".wav", "_48k.wav")
         sf.write(resampled_path, audio_48k.T if audio.ndim > 1 else audio_48k, 48000)
         
-        print(f"[Sample Rate] ✅ Resampled to 48kHz: {resampled_path}")
+        print(f"[Sample Rate] [OK] Resampled to 48kHz: {resampled_path}")
         return resampled_path, True
         
     except Exception as e:
-        print(f"[Sample Rate] ❌ Error: {e}")
+        print(f"[Sample Rate] [ERR] Error: {e}")
         return audio_path, False  # Return original on error
 
 
@@ -290,16 +290,16 @@ async def run_stage1_separation(job: PipelineJob) -> bool:
         job.vocals_path       = vocals_path
         job.instrumental_path = instrumental_path if instrumental_url else None
         
-        # 🎵 Gain Staging: Normalize vocals to -1dB peak, -16 LUFS
+        # [MUSIC] Gain Staging: Normalize vocals to -1dB peak, -16 LUFS
         print(f"\n[Stage 1] Applying gain staging to vocals...")
         await normalize_audio_to_target(vocals_path, target_db=-1.0)
         
         job.stage1_status = StageStatus.DONE
         job.progress = 35
-        print(f"[Stage 1] ✅ Separation complete: {vocals_path}")
+        print(f"[Stage 1] [OK] Separation complete: {vocals_path}")
         
-        # 🔴 NEW: Force cleanup after Stage 1
-        print(f"\n[Stage 1→2] Running force cleanup after separation...")
+        # [CRIT] NEW: Force cleanup after Stage 1
+        print(f"\n[Stage 1->2] Running force cleanup after separation...")
         force_cleanup()
         await asyncio.sleep(1)  # Short settle
         
@@ -308,7 +308,7 @@ async def run_stage1_separation(job: PipelineJob) -> bool:
     except Exception as e:
         job.stage1_status = StageStatus.ERROR
         job.error = f"Stage 1 (BS RoFormer) error: {str(e)}"
-        print(f"[Stage 1] ❌ Error: {e}")
+        print(f"[Stage 1] [ERR] Error: {e}")
         return False
 
 
@@ -369,31 +369,31 @@ async def run_stage2_rvc(job: PipelineJob) -> bool:
 
         job.rvc_output_path = rvc_output
         
-        # 🔴 CRITICAL: Dual cleanup BEFORE Stage 3 (ACE-Step)
-        print(f"\n[Stage 2→3] Running DUAL cleanup before ACE-Step...")
+        # [CRIT] CRITICAL: Dual cleanup BEFORE Stage 3 (ACE-Step)
+        print(f"\n[Stage 2->3] Running DUAL cleanup before ACE-Step...")
         
         # Method 1: Local torch cleanup
-        print(f"[Stage 2→3] Method 1: Local torch.cuda.empty_cache()...")
+        print(f"[Stage 2->3] Method 1: Local torch.cuda.empty_cache()...")
         force_cleanup()
         
         # Method 2: API-based cleanup (existing)
-        print(f"[Stage 2→3] Method 2: API-based RVC unload...")
+        print(f"[Stage 2->3] Method 2: API-based RVC unload...")
         await unload_rvc_model_from_backend()
         
         # Wait for GPU to settle (CRITICAL for 8GB VRAM)
-        print(f"[Stage 2→3] Waiting 3 seconds for GPU to settle...")
+        print(f"[Stage 2->3] Waiting 3 seconds for GPU to settle...")
         await asyncio.sleep(3)
         
         job.stage2_status = StageStatus.DONE
         job.progress = 65
-        print(f"[Stage 2→3] ✅ VRAM curățat complet. Ready for ACE-Step.")
-        print(f"[Stage 2] ✅ RVC conversion complete: {rvc_output}")
+        print(f"[Stage 2->3] [OK] VRAM curatat complet. Ready for ACE-Step.")
+        print(f"[Stage 2] [OK] RVC conversion complete: {rvc_output}")
         return True
 
     except Exception as e:
         job.stage2_status = StageStatus.ERROR
         job.error = f"Stage 2 (RVC) error: {str(e)}"
-        print(f"[Stage 2] ❌ Error: {e}")
+        print(f"[Stage 2] [ERR] Error: {e}")
         return False
 
 
@@ -406,7 +406,7 @@ async def run_stage3_refinement(job: PipelineJob) -> bool:
     final_output = str(job_dir / "final_refined_vocals.wav")
 
     try:
-        # 📊 Sample Rate Check: Ensure 48kHz for ACE-Step
+        # [STATS] Sample Rate Check: Ensure 48kHz for ACE-Step
         print(f"\n[Stage 3] Checking sample rate...")
         rvc_input_path, was_resampled = await ensure_sample_rate_48k(job.rvc_output_path)
         if was_resampled:
@@ -452,20 +452,20 @@ async def run_stage3_refinement(job: PipelineJob) -> bool:
         job.final_output_path = final_output
         job.stage3_status     = StageStatus.DONE
         job.progress = 95
-        print(f"[Stage 3] ✅ ACE-Step refinement complete: {final_output}")
+        print(f"[Stage 3] [OK] ACE-Step refinement complete: {final_output}")
         return True
 
     except Exception as e:
         job.stage3_status = StageStatus.ERROR
         job.error = f"Stage 3 (ACE-Step) error: {str(e)}"
-        print(f"[Stage 3] ❌ Error: {e}")
+        print(f"[Stage 3] [ERR] Error: {e}")
         return False
 
 
 # ── Runner complet ────────────────────────────────────────────────────────────
 async def run_pipeline(job_id: str):
     """
-    Run complete pipeline: Stage 1 → Stage 2 → Stage 3
+    Run complete pipeline: Stage 1 -> Stage 2 -> Stage 3
     
     Optimizations applied:
     - Gain Staging after Stage 1 (-1dB peak, -16 LUFS)
@@ -475,7 +475,7 @@ async def run_pipeline(job_id: str):
     """
     job = get_job(job_id)
     if not job:
-        print(f"[Pipeline] ❌ Job not found: {job_id}")
+        print(f"[Pipeline] [ERR] Job not found: {job_id}")
         return
     
     print(f"\n{'='*60}")
@@ -489,26 +489,26 @@ async def run_pipeline(job_id: str):
     # Stage 1: Separation + Gain Staging
     print(f"[Pipeline] Starting Stage 1/3: BS-RoFormer Separation...")
     if not await run_stage1_separation(job):
-        print(f"[Pipeline] ❌ Pipeline failed at Stage 1")
+        print(f"[Pipeline] [ERR] Pipeline failed at Stage 1")
         return
-    print(f"[Pipeline] ✅ Stage 1 complete\n")
+    print(f"[Pipeline] [OK] Stage 1 complete\n")
     
     # Stage 2: RVC + VRAM Management
     print(f"[Pipeline] Starting Stage 2/3: RVC Voice Conversion...")
     if not await run_stage2_rvc(job):
-        print(f"[Pipeline] ❌ Pipeline failed at Stage 2")
+        print(f"[Pipeline] [ERR] Pipeline failed at Stage 2")
         return
-    print(f"[Pipeline] ✅ Stage 2 complete\n")
+    print(f"[Pipeline] [OK] Stage 2 complete\n")
     
     # Stage 3: ACE-Step Refinement
     print(f"[Pipeline] Starting Stage 3/3: ACE-Step Diffusion Refinement...")
     if not await run_stage3_refinement(job):
-        print(f"[Pipeline] ❌ Pipeline failed at Stage 3")
+        print(f"[Pipeline] [ERR] Pipeline failed at Stage 3")
         return
-    print(f"[Pipeline] ✅ Stage 3 complete\n")
+    print(f"[Pipeline] [OK] Stage 3 complete\n")
     
     job.progress = 100
     print(f"{'='*60}")
-    print(f"[Pipeline] ✅ PIPELINE COMPLETED SUCCESSFULLY!")
+    print(f"[Pipeline] [OK] PIPELINE COMPLETED SUCCESSFULLY!")
     print(f"[Pipeline] Final output: {job.final_output_path}")
     print(f"{'='*60}\n")
