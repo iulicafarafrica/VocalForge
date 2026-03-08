@@ -1,82 +1,55 @@
 # ======================
-# Qwen / AionUI Files (LOCAL ONLY - DO NOT PUSH)
+# LOCAL ORGANIZED FOLDERS (DO NOT PUSH)
 # ======================
+local/
+assets/
+unused/
 
-# Qwen configuration
+# ======================
+# Qwen Files
+# ======================
 QWEN.md
 .qwen/
 output-language.md
-
-# Qwen session files
-SESSION_*.md
-SESSION_*.json
-
-# Qwen temp files
-.qwen_*.txt
-.qwen_*.json
-.qwen_*.ps1
-.qwen_temp.*
-.qwen_b64.txt
-.qwen_input.txt
-.qwen_write.json
-
-# Qwen helper scripts
 qwen_*.py
 qwen_*.bat
 qwen_*.ps1
 qwen_*.sh
-
-# Qwen skills
-SKILL_*.md
-SKILL_*.txt
-skill-*.txt
-skills/
-
-# Qwen logs
 qwen_*.log
 qwen_logs/
-
-# Qwen documentation
+SESSION_*.md
+SESSION_*.json
 research_session.md
+SKILL_*.md
 FILE_CREATION_GUIDE.md
 TERMINAL_WRAPPERS_STATUS.md
 
 # ======================
-# Personal Files (LOCAL ONLY)
+# Personal Files
 # ======================
-
-# Personal notes
 proiect*.txt
 proiect*.md
 notes*.txt
 notes*.md
 personal*.txt
 personal*.md
-
-# Drafts
 draft*.txt
 draft*.md
 
-# Temporary test files
-test_*.txt
-test_*.md
+# ======================
+# Test Files
+# ======================
 test_*.py
+test_*.md
+test_*.txt
 test_*.jsx
 test_*.js
 TEST_*.md
 TEST_*.txt
-.git_tracked_files.txt
-
-# Temporary scripts
-create_*.py
-create_*.bat
-create_*.ps1
-create_*.sh
-_write_*.py
-write_*.py
+tests/
 
 # ======================
-# Backup Files (LOCAL ONLY)
+# Backup Files
 # ======================
 backup_*/
 Backup*/
@@ -88,7 +61,7 @@ backup_to_github.*
 restore_from_backup.bat
 
 # ======================
-# Cleanup Scripts (LOCAL ONLY)
+# Cleanup Scripts
 # ======================
 CLEANUP.bat
 CLEANUP_README.md
@@ -96,7 +69,7 @@ full_clean.bat
 quick_clean.bat
 
 # ======================
-# Fix Scripts (LOCAL ONLY)
+# Fix Scripts
 # ======================
 fix_acestep_deps.bat
 fix_gpu.bat
@@ -104,7 +77,7 @@ fix_torchao.bat
 TRITON_FIX.md
 
 # ======================
-# Old Documentation (LOCAL ONLY)
+# Old Documentation
 # ======================
 ACESTEP_TURBO_FIX.md
 FINAL_REPORT.md
@@ -115,18 +88,18 @@ update_skill_log.md
 SESSION_SUMMARY*.md
 
 # ======================
-# Images (LOCAL ONLY)
+# Images (Local Only)
 # ======================
 *.png
 !frontend/public/favicon.png
 
 # ======================
-# Seed Files (LOCAL ONLY)
+# Seed Files
 # ======================
 Seed bun/
 
 # ======================
-# Unused/Old Files (LOCAL ONLY)
+# Unused/Old Files
 # ======================
 VocalForge_v1_2_backend.py
 model_loader.py
@@ -135,12 +108,28 @@ START_ALL - Copy.bat
 start_auto_session.bat
 
 # ======================
-# Run Scripts (LOCAL ONLY - use START_ALL.bat)
+# Run Scripts (Use START_ALL.bat)
 # ======================
 run.bat
 run_*.bat
 run_*.ps1
 run_*.sh
+write_file.py
+
+# ======================
+# Temp Files
+# ======================
+*.tmp
+*.temp
+temp/
+tmp/
+create_*.py
+create_*.bat
+create_*.ps1
+create_*.sh
+_write_*.py
+write_*.py
+*_gpu*.py
 
 # ======================
 # Editor Files
@@ -206,8 +195,6 @@ checkpoints/
 # ======================
 output/
 outputs/
-temp/
-tmp/
 *.wav
 *.mp3
 *.flac
@@ -221,7 +208,7 @@ tmp/
 gradio_outputs/
 
 # ======================
-# IDE
+# IDE Cache
 # ======================
 .ruff_cache/
 .pytest_cache/
@@ -250,9 +237,10 @@ PRN
 AUX
 COM[0-9]
 LPT[0-9]
+{'
 
 # ======================
-# Keep These (Essential)
+# KEEP THESE (Essential Project Files)
 # ======================
 !START_ALL.bat
 !start_*.bat
@@ -268,3 +256,8 @@ LPT[0-9]
 !GPU_MEMORY_README.md
 !RTX3070_OPTIMIZATION_GUIDE.md
 !VocalForge_Architecture_Documentation.md
+!GITHUB_RELEASE_NOTES.md
+!presetmanager.json
+!presets_rvc.json
+!lora_config.json
+!eslint.config.js
