@@ -9,6 +9,7 @@ import AceStepTab from "./components/AceStepTab";
 import RepaintLegoComplete from "./components/RepaintLegoComplete";
 import ReadmeTab from "./components/ReadmeTab";
 import RVCConversion from "./components/RVCConversion";
+import GPUMonitorTab from "./components/GPUMonitorTab";
 
 const API = "http://localhost:8000";
 
@@ -21,6 +22,7 @@ const TABS = [
   { id: "Tracks",  Icon: FolderOpen, label: "Tracks", color: "#ffd166" },
   { id: "Models",  Icon: Monitor,    label: "Models", color: "#e63946" },
   { id: "Notes",   Icon: FileText,   label: "Notes", color: "#06d6a0" },
+  { id: "GPU",     Icon: Monitor,    label: "GPU Monitor", color: "#10b981" },
 ];
 
 export default function App() {
@@ -47,7 +49,7 @@ export default function App() {
     bpmEnabled: false, bpm: 120,
     keyScaleEnabled: false, keyScale: "",
     negativePromptEnabled: false, negativePrompt: "",
-    
+
     // ACE-Step AI Generation
     guidanceEnabled: false, guidanceScale: 9.0,
     inferStepsEnabled: false, inferSteps: 12,
@@ -56,11 +58,11 @@ export default function App() {
     tempEnabled: false, temperature: 0.8,
     topkEnabled: false, topK: 0,
     toppEnabled: false, topP: 0.92,
-    
+
     // Audio Format
     audioFormatEnabled: false, audioFormat: "mp3",
     tiledDecodeEnabled: true, useTiledDecode: true,  // Always on for VRAM optimization
-    
+
     // Processing
     fp16Enabled: true, fp16: true,  // Activat implicit pentru RTX 3070
     segmentEnabled: false, segmentLength: 2048,  // Optimizat pentru 8GB VRAM
@@ -231,6 +233,10 @@ export default function App() {
           <NotesTab />
         </div>
 
+        <div style={{ display: tab === "GPU" ? "block" : "none" }}>
+          <GPUMonitorTab />
+        </div>
+
       </main>
 
       {/* ── Logs Panel ── */}
@@ -325,4 +331,4 @@ export default function App() {
       </footer>
     </div>
   );
-} 
+}
