@@ -1,226 +1,118 @@
 # ======================
-# Python
+# Qwen / AionUI Files (LOCAL ONLY - DO NOT PUSH)
 # ======================
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+# All Qwen-related configuration and session files
 
-# Virtual environments
-venv/
-.venv/
-ENV/
-env/
-.env
+# Qwen configuration
+QWEN.md
+.qwen/
+.qwen/
+.qwen/
+output-language.md
 
-# ======================
-# Node.js
-# ======================
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Qwen session files
+SESSION_*.md
+SESSION_*.json
+SESSION_CURRENT.md
+SESSION_AUTO.json
+SESSION_SUMMARY*.md
 
-# ======================
-# AI Models (downloadable)
-# ======================
-models/
-uvr_models/
-checkpoints/
-*.pth
-*.pth.*
-*.bin
-*.pt
-*.onnx
-*.safetensors
-*.ckpt
-*.pb
-*.h5
-*.mlmodel
-*.mlpackage
+# Qwen temp files
+.qwen_*.txt
+.qwen_*.json
+.qwen_*.ps1
+.qwen_temp.*
+.qwen_b64.txt
+.qwen_input.txt
+.qwen_write.json
+
+# Qwen helper scripts (local utilities)
+qwen_*.py
+qwen_*.bat
+qwen_*.ps1
+qwen_*.sh
+
+# Qwen skills (if stored locally)
+SKILL_*.md
+SKILL_*.txt
+skill-*.txt
+skills/
+
+# Qwen logs
+qwen_*.log
+qwen_logs/
 
 # ======================
-# Generated/Output files
+# Personal Files (LOCAL ONLY)
 # ======================
-output/
-outputs/
-temp/
-tmp/
-*.wav
-*.mp3
-*.flac
-*.ogg
-*.m4a
-*.video
-*.mp4
-*.avi
-*.mov
-*.gif
-*.log
-gradio_outputs/
-lora_outputs/
+# Personal notes, drafts, temporary files
 
-# ======================
-# IDE / Editor
-# ======================
-.idea/
+# Personal notes
+proiect*.txt
+proiect*.md
+notes*.txt
+notes*.md
+personal*.txt
+personal*.md
+
+# Drafts
+draft*.txt
+draft*.md
+draft_*.txt
+draft_*.md
+
+# Temporary test files
+test_*.txt
+test_*.md
+test_*.py
+test_*.jsx
+test_*.js
+TEST_*.md
+TEST_*.txt
+
+# Temporary scripts
+create_*.py
+create_*.bat
+create_*.ps1
+create_*.sh
+_write_*.py
+write_*.py
+
+# Temporary batch files
+*.bat
+!START_ALL.bat
+!start_*.bat
+!setup.bat
+!install_*.bat
+!fix_*.bat
+!clean_*.bat
+!backup_*.bat
+!run_*.bat
+
+# Temporary PowerShell scripts
+*.ps1
+!start_*.ps1
+
+# Backup files
+*.bak
+*.backup
+*.old
+backup_*/
+Backup*/
+
+# Editor files (local)
 .vscode/
+.idea/
 *.swp
 *.swo
 *~
 .DS_Store
 Thumbs.db
 
-# ======================
-# Jupyter Notebook
-# ======================
-.ipynb_checkpoints/
+# Log files (local)
+*.log
+logs/
 
 # ======================
-# Ruff cache
+# Existing ignores (keep)
 # ======================
-.ruff_cache/
-
-# ======================
-# Ace-step submodule (separate repo)
-# ======================
-ace-step/
-so-vits-svc/
-RVCWebUI/
-
-# ======================
-# Backend specific
-# ======================
-backend/models/
-backend/*/models/
-backend/output/
-backend/temp/
-backend/*.log
-
-# ======================
-# Environment variables (secrets)
-# ======================
-.env
-.env.local
-.env.*.local
-
-# ======================
-# Misc
-# ======================
-*.cache/
-.cache/
-.coverage
-htmlcov/
-.pytest_cache/
-.tox/
-.mypy_cache/
-
-# ======================
-# Windows reserved names
-# ======================
-nul
-$null
-CON
-PRN
-AUX
-COM1
-COM2
-COM3
-COM4
-COM5
-COM6
-COM7
-COM8
-COM9
-LPT1
-LPT2
-LPT3
-LPT4
-LPT5
-LPT6
-LPT7
-LPT8
-LPT9
-
-# ======================
-# Backup folders
-# ======================
-backup ui/
-Backup/
-*.zip
-
-# ======================
-# Qwen/Minimax skills (config local)
-# ======================
-.qwen/
-.minimax/
-.tmp/
-ace-step-ui-ref
-.pip_cache/
-
-# ======================
-# Qwen local config (keep locally, not on GitHub)
-# ======================
-QWEN.md
-QWEN_START.bat
-output-language.md
-
-# ======================
-# Qwen session files (auto-save, recovery)
-# ======================
-SESSION_AUTO.json
-SESSION_CURRENT.md
-SESSION_SUMMARY*.md
-start_auto_session.bat
-save_session.bat
-research_session.md
-SKILL_audio_engineer_v2*.md
-SKILL-INDEX.txt
-skill-part*.txt
-audio-engineer*.txt
-
-# ======================
-# Local text files (not for GitHub)
-# ======================
-proiect*.txt
-*.txt
-
-# ======================
-# Local images/screenshots (not for GitHub)
-# ======================
-image.png
-*.png
-*.jpg
-*.jpeg
-
-# ======================
-# Local utility scripts (not for GitHub)
-# ======================
-web_search.py
-test_*.py
-test_*.wav
-test_*.txt
-APPLIO_TEST_REPORT.md
-
-# ======================
-# Session auto-save files (local recovery only)
-# ======================
-SESSION_AUTO.json
-SESSION_CURRENT.md
-start_auto_session.bat  
