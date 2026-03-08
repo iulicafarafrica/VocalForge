@@ -1,5 +1,5 @@
 """
-VocalForge v1.7 - FastAPI Backend
+VocalForge v1.9 - FastAPI Backend
 Real pipeline: Demucs vocal separation → so-vits-svc voice conversion → remix
 
 Endpoints:
@@ -14,6 +14,14 @@ Endpoints:
   GET  /vram_usage          - current VRAM usage
   GET  /clear_cache         - clear GPU VRAM cache
   GET  /health              - health check
+  
+  GPU Memory Management (NEW in v1.9):
+  GET  /gpu/info             - get GPU VRAM information
+  GET  /gpu/cleanup          - manual GPU VRAM cleanup
+  GET  /gpu/models           - list loaded models in VRAM
+  POST /gpu/unload/{name}    - unload specific model from VRAM
+  POST /gpu/unload-all       - unload all models from VRAM
+  GET  /gpu/can-load/{name}  - check if model can be loaded
 """
 
 import os
@@ -213,6 +221,10 @@ app.include_router(acestep_advanced_router)
 # Include RVC Voice Conversion router
 from endpoints.rvc_conversion import router as rvc_conversion_router
 app.include_router(rvc_conversion_router)
+
+# Include GPU Memory Management router
+from endpoints.gpu_info import router as gpu_router
+app.include_router(gpu_router)
 
 @app.on_event("startup")
 async def startup_event():

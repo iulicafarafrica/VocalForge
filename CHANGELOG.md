@@ -842,3 +842,48 @@ if (data.instrumental_url) {
 ---
 
 *Last Updated: March 6, 2026 | VocalForge v1.8.2*
+  
+---  
+  
+## [1.9.1] - 2026-03-08  
+  
+### ?? **GPU Memory Management** (NEW!)  
+  
+**Complete GPU VRAM monitoring and optimization!**  
+  
+**Backend:**  
+- `core/modules/gpu_memory.py` - VRAM management with GPUMemoryManager  
+- `backend/endpoints/gpu_info.py` - 6 GPU API endpoints  
+- `backend/main.py` - GPU router integrated  
+  
+**Frontend:**  
+- `frontend/src/components/GPUMonitor.jsx` - Real-time VRAM monitor  
+  
+**API Endpoints:**  
+- GET /gpu/info - Get GPU VRAM information  
+- GET /gpu/cleanup - Manual GPU VRAM cleanup  
+- GET /gpu/models - List loaded models in VRAM  
+- POST /gpu/unload/{name} - Unload specific model  
+- POST /gpu/unload-all - Unload all models  
+- GET /gpu/can-load/{name} - Check if model can be loaded  
+  
+**Optimized for:** NVIDIA RTX 3070 8GB VRAM, CUDA 11.8  
+  
+### ??? **Terminal Wrappers** (NEW!)  
+  
+- `run.bat` - Universal wrapper (PowerShell by default)  
+- `run_ps1.bat` - PowerShell wrapper  
+- Windows Terminal installed and configured  
+  
+### ?? **Documentation**  
+  
+- `GPU_MEMORY_README.md` - Complete GPU documentation  
+- `TERMINAL_WRAPPERS_STATUS.md` - Wrapper status guide  
+- `SESSION_CURRENT.md` - Auto-save session tracking  
+  
+### ? **Session Auto-Save**  
+  
+- Auto-save every 30 minutes  
+- Session recovery on crash/disconnect  
+- Context preservation across restarts  
+  
