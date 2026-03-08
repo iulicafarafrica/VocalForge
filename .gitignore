@@ -1,21 +1,15 @@
 # ======================
 # Qwen / AionUI Files (LOCAL ONLY - DO NOT PUSH)
 # ======================
-# All Qwen-related configuration and session files
 
 # Qwen configuration
 QWEN.md
-.qwen/
-.qwen/
 .qwen/
 output-language.md
 
 # Qwen session files
 SESSION_*.md
 SESSION_*.json
-SESSION_CURRENT.md
-SESSION_AUTO.json
-SESSION_SUMMARY*.md
 
 # Qwen temp files
 .qwen_*.txt
@@ -26,13 +20,13 @@ SESSION_SUMMARY*.md
 .qwen_input.txt
 .qwen_write.json
 
-# Qwen helper scripts (local utilities)
+# Qwen helper scripts
 qwen_*.py
 qwen_*.bat
 qwen_*.ps1
 qwen_*.sh
 
-# Qwen skills (if stored locally)
+# Qwen skills
 SKILL_*.md
 SKILL_*.txt
 skill-*.txt
@@ -42,10 +36,14 @@ skills/
 qwen_*.log
 qwen_logs/
 
+# Qwen documentation
+research_session.md
+FILE_CREATION_GUIDE.md
+TERMINAL_WRAPPERS_STATUS.md
+
 # ======================
 # Personal Files (LOCAL ONLY)
 # ======================
-# Personal notes, drafts, temporary files
 
 # Personal notes
 proiect*.txt
@@ -58,8 +56,6 @@ personal*.md
 # Drafts
 draft*.txt
 draft*.md
-draft_*.txt
-draft_*.md
 
 # Temporary test files
 test_*.txt
@@ -69,6 +65,7 @@ test_*.jsx
 test_*.js
 TEST_*.md
 TEST_*.txt
+.git_tracked_files.txt
 
 # Temporary scripts
 create_*.py
@@ -78,29 +75,76 @@ create_*.sh
 _write_*.py
 write_*.py
 
-# Temporary batch files
-*.bat
-!START_ALL.bat
-!start_*.bat
-!setup.bat
-!install_*.bat
-!fix_*.bat
-!clean_*.bat
-!backup_*.bat
-!run_*.bat
-
-# Temporary PowerShell scripts
-*.ps1
-!start_*.ps1
-
-# Backup files
+# ======================
+# Backup Files (LOCAL ONLY)
+# ======================
+backup_*/
+Backup*/
 *.bak
 *.backup
 *.old
-backup_*/
-Backup*/
+backup_excludes.txt
+backup_to_github.*
+restore_from_backup.bat
 
-# Editor files (local)
+# ======================
+# Cleanup Scripts (LOCAL ONLY)
+# ======================
+CLEANUP.bat
+CLEANUP_README.md
+full_clean.bat
+quick_clean.bat
+
+# ======================
+# Fix Scripts (LOCAL ONLY)
+# ======================
+fix_acestep_deps.bat
+fix_gpu.bat
+fix_torchao.bat
+TRITON_FIX.md
+
+# ======================
+# Old Documentation (LOCAL ONLY)
+# ======================
+ACESTEP_TURBO_FIX.md
+FINAL_REPORT.md
+FIXES_APPLIED.md
+GITHUB_BACKUP_GUIDE.md
+IMPLEMENTATION_SUMMARY.md
+update_skill_log.md
+SESSION_SUMMARY*.md
+
+# ======================
+# Images (LOCAL ONLY)
+# ======================
+*.png
+!frontend/public/favicon.png
+
+# ======================
+# Seed Files (LOCAL ONLY)
+# ======================
+Seed bun/
+
+# ======================
+# Unused/Old Files (LOCAL ONLY)
+# ======================
+VocalForge_v1_2_backend.py
+model_loader.py
+start_demo.bat
+START_ALL - Copy.bat
+start_auto_session.bat
+
+# ======================
+# Run Scripts (LOCAL ONLY - use START_ALL.bat)
+# ======================
+run.bat
+run_*.bat
+run_*.ps1
+run_*.sh
+
+# ======================
+# Editor Files
+# ======================
 .vscode/
 .idea/
 *.swp
@@ -109,10 +153,118 @@ Backup*/
 .DS_Store
 Thumbs.db
 
-# Log files (local)
+# ======================
+# Logs
+# ======================
 *.log
 logs/
 
 # ======================
-# Existing ignores (keep)
+# Python
 # ======================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+ENV/
+env/
+.env
+
+# ======================
+# Node.js
+# ======================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+frontend/dist/
+frontend/node_modules/
+
+# ======================
+# AI Models
+# ======================
+models/
+uvr_models/
+checkpoints/
+*.pth
+*.pth.*
+*.bin
+*.pt
+*.onnx
+*.safetensors
+*.ckpt
+*.pb
+*.h5
+*.mlmodel
+*.mlpackage
+
+# ======================
+# Generated/Output
+# ======================
+output/
+outputs/
+temp/
+tmp/
+*.wav
+*.mp3
+*.flac
+*.ogg
+*.m4a
+*.video
+*.mp4
+*.avi
+*.mov
+*.gif
+gradio_outputs/
+
+# ======================
+# IDE
+# ======================
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ======================
+# Submodules
+# ======================
+ace-step/
+so-vits-svc/
+RVCWebUI/
+ace-step-ui-ref/
+
+# ======================
+# Misc
+# ======================
+*.cache/
+.cache/
+nul
+$null
+CON
+PRN
+AUX
+COM[0-9]
+LPT[0-9]
+
+# ======================
+# Keep These (Essential)
+# ======================
+!START_ALL.bat
+!start_*.bat
+!start_acestep_env.*
+!setup.bat
+!install_*.bat
+!check_config.py
+!requirements.txt
+!package.json
+!README.md
+!CHANGELOG.md
+!QUICKSTART.md
+!GPU_MEMORY_README.md
+!RTX3070_OPTIMIZATION_GUIDE.md
+!VocalForge_Architecture_Documentation.md
