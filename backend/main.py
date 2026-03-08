@@ -198,6 +198,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include Audio Analysis router (BPM, Key, Chords detection)
+from endpoints.audio_analysis import router as audio_analysis_router
+app.include_router(audio_analysis_router)
+
 app.mount("/tracks", StaticFiles(directory=OUTPUT_DIR), name="tracks")
 
 from fastapi.responses import FileResponse
@@ -225,6 +229,10 @@ app.include_router(rvc_conversion_router)
 # Include GPU Memory Management router
 from endpoints.gpu_info import router as gpu_router
 app.include_router(gpu_router)
+
+# Include Vocal Pipeline router
+from endpoints.pipeline import router as pipeline_router
+app.include_router(pipeline_router)
 
 @app.on_event("startup")
 async def startup_event():
@@ -331,9 +339,9 @@ def _get_svc(model_id: str):
 def separate_vocals(audio_path: str, out_dir: str, model: str = "auto") -> tuple[str, str]:
     """
     Separate vocals from audio.
-    model="auto"  → încearcă BS-RoFormer, fallback la htdemucs dacă nu e instalat
-    model="bs_roformer_1297" → forțează BS-RoFormer (audio-separator)
-    model="htdemucs"         → forțează htdemucs (demucs)
+    model="auto"  -> incearca BS-RoFormer, fallback la htdemucs dacă nu e instalat
+    model="bs_roformer_1297" -> forteaza BS-RoFormer (audio-separator)
+    model="htdemucs"         -> forteaza htdemucs (demucs)
     Returns (vocals_path, instrumental_path).
     """
     # Auto: preferă BS-RoFormer dacă audio-separator e instalat
@@ -850,7 +858,7 @@ def separate_stems_uvr(audio_path: str, out_dir: str, model_id: str, mode: str =
         chunk_size = 131072   # ~3s chunks — GPU slab / CPU
         overlap = 0.25
 
-    print(f"[UVR] Loading model: {model_file} | VRAM={vram_gb}GB → chunk_size={chunk_size}")
+    print(f"[UVR] Loading model: {model_file} | VRAM={vram_gb}GB -> chunk_size={chunk_size}")
 
     separator = Separator(
         model_file_dir=UVR_MODELS_DIR,
@@ -901,7 +909,7 @@ def separate_stems_uvr(audio_path: str, out_dir: str, model_id: str, mode: str =
             if treat_other_as_instr:
                 # mel_band_roformer: "(other)" = tot ce nu e vocals = instrumental
                 stems["instrumental"] = full_path
-                print(f"[UVR] Mapped (other) → instrumental (model={model_id})")
+                print(f"[UVR] Mapped (other) -> instrumental (model={model_id})")
             else:
                 stems["other"] = full_path
         elif "(drums)" in fname_lower:
@@ -981,8 +989,9 @@ async def demucs_separate(
     t_start = time.time()
 
     try:
-        # Save uploaded file
-        in_path = os.path.join(job_dir, "input.wav")
+        # Save uploaded file - keep original extension
+        original_ext = os.path.splitext(file.filename)[1] or ".wav"
+        in_path = os.path.join(job_dir, f"input{original_ext}")
         raw_bytes = await file.read()
         with open(in_path, "wb") as f_out:
             f_out.write(raw_bytes)
