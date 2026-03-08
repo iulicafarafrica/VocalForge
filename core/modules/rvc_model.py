@@ -255,23 +255,30 @@ class RVCModel:
             else:
                 tgt_sr = self.vc.tgt_sr
                 audio_data = output_audio
-            
+
             if audio_data is None:
                 raise RuntimeError("Conversion failed - audio output is None. Check hubert model and logs.")
-            
+
+            # DEBUG: Print audio info after RVC conversion
+            print(f"[RVC DEBUG] After conversion: audio_data shape={audio_data.shape}, tgt_sr={tgt_sr}, original sr={sr}")
+
             # Resample to 44100Hz for browser compatibility
             TARGET_SR = 44100
             if tgt_sr != TARGET_SR:
+                print(f"[RVC DEBUG] Before resample: tgt_sr={tgt_sr}, TARGET_SR={TARGET_SR}")
                 audio_data = librosa.resample(audio_data.astype(np.float32), orig_sr=tgt_sr, target_sr=TARGET_SR)
-                print(f"[RVC] Resampled: {tgt_sr}Hz -> {TARGET_SR}Hz")
+                print(f"[RVC] Resampled: {tgt_sr}Hz -> {TARGET_SR}Hz, new shape={audio_data.shape}")
                 tgt_sr = TARGET_SR
-            
+
             # Normalize audio to prevent clipping/distortion
             audio_data = audio_data.astype(np.float32)
             max_val = np.abs(audio_data).max()
             if max_val > 0.95:
                 audio_data = audio_data * (0.95 / max_val)
                 print(f"[RVC] Normalized audio (peak was {max_val:.3f})")
+
+            # DEBUG: Before spectral denoiser
+            print(f"[RVC DEBUG] Before denoiser: audio_data shape={audio_data.shape}, tgt_sr={tgt_sr}")
 
             # ── Spectral Denoiser (reduce RVC artifacts/noise) ────────
             # Uses spectral subtraction: estimate noise floor from silent
@@ -288,10 +295,10 @@ class RVCModel:
                 if noise_frames.shape[1] > 0:
                     noise_profile = noise_frames.mean(axis=1, keepdims=True)
                     # Spectral subtraction with over-subtraction factor
-                    alpha = 2.0  # over-subtraction factor
+                    alpha = 1.2  # over-subtraction factor (reduced for natural sound)
                     magnitude_denoised = np.maximum(
                         magnitude - alpha * noise_profile,
-                        0.1 * magnitude  # keep at least 10% to avoid musical noise
+                        0.3 * magnitude  # keep at least 30% to preserve harmonics
                     )
                     D_denoised = magnitude_denoised * np.exp(1j * phase)
                     audio_data = librosa.istft(D_denoised, hop_length=512, length=len(audio_data))
@@ -322,16 +329,34 @@ class RVCModel:
             if apply_highpass:
                 try:
                     # Use the output sample rate from RVC conversion
-                    audio_data = apply_highpass_filter(audio_data, sample_rate=out_sr)
-                    print(f"[RVC] High-pass filter applied (48Hz cutoff, SR: {out_sr}Hz)")
+                    audio_data = apply_highpass_filter(audio_data, sample_rate=tgt_sr)
+                    print(f"[RVC] High-pass filter applied (48Hz cutoff, SR: {tgt_sr}Hz)")
                 except Exception as hp_err:
                     print(f"[RVC] High-pass filter skipped: {hp_err}")
 
             # ── NEW: Volume Envelope / RMS Matching (Applio) ──────────
-            if volume_envelope != 1.0 and original_audio_for_mix is not None:
+            if 0 < volume_envelope < 1.0 and original_audio_for_mix is not None:
                 try:
+                    # Resample original_audio to match tgt_sr for change_rms
+                    if len(original_audio_for_mix) != len(audio_data) or sr != tgt_sr:
+                        original_audio_resampled = librosa.resample(
+                            original_audio_for_mix.astype(np.float32),
+                            orig_sr=sr,
+                            target_sr=tgt_sr
+                        )
+                        # Trim or pad to match exact length
+                        if len(original_audio_resampled) > len(audio_data):
+                            original_audio_resampled = original_audio_resampled[:len(audio_data)]
+                        elif len(original_audio_resampled) < len(audio_data):
+                            original_audio_resampled = np.pad(
+                                original_audio_resampled,
+                                (0, len(audio_data) - len(original_audio_resampled))
+                            )
+                    else:
+                        original_audio_resampled = original_audio_for_mix
+
                     audio_data = AudioProcessor.change_rms(
-                        original_audio_for_mix, sr,
+                        original_audio_resampled, tgt_sr,
                         audio_data, tgt_sr,
                         volume_envelope
                     )

@@ -77,16 +77,24 @@ class AudioProcessor:
         )
 
         # Interpolate RMS to match target audio length
+        # rms1 and rms2 are 2D tensors: (1, num_frames)
+        # Need to interpolate to match target_audio length
+        target_length = target_audio.shape[0]
+        
         rms1 = F.interpolate(
             torch.from_numpy(rms1).float().unsqueeze(0),
-            size=target_audio.shape[0],
+            size=target_length,
             mode="linear",
-        ).squeeze()
+            align_corners=False,
+        ).squeeze(0).squeeze(0)
+        
         rms2 = F.interpolate(
             torch.from_numpy(rms2).float().unsqueeze(0),
-            size=target_audio.shape[0],
+            size=target_length,
             mode="linear",
-        ).squeeze()
+            align_corners=False,
+        ).squeeze(0).squeeze(0)
+        
         rms2 = torch.maximum(rms2, torch.zeros_like(rms2) + 1e-6)
 
         # Adjust target audio RMS based on the source audio RMS

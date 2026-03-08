@@ -59,14 +59,14 @@ def apply_rvc_rescue_post_processing(input_path, output_path):
     # Simplified filter chain - test each component
     filter_chain = (
         "highpass=f=80,"
-        "equalizer=f=2500:width_type=q:width=2:g=-5,"
-        "equalizer=f=5000:width_type=q:width=2:g=-3,"
-        "equalizer=f=150:width_type=q:width=2:g=3,"
-        "acompressor=threshold=-20dB:ratio=3:attack=30:release=100:makeup=5,"
-        "aecho=0.75:0.8:50:0.3,"
-        "aecho=0.75:0.8:120:0.25,"
-        "alimiter=limit=-1dB:attack=5:release=50,"
-        "loudnorm=I=-14:TP=-1:LRA=11:print_format=quiet"
+        "equalizer=f=2500:width_type=q:width=1.5:g=-2.5,"
+        "equalizer=f=4000:width_type=q:width=1:g=-1.5,"
+        "equalizer=f=120:width_type=q:width=1.5:g=2,"
+        "acompressor=threshold=-16dB:ratio=2:attack=20:release=80:makeup=3,"
+        "aecho=0.3:0.4:50:0.15,"
+        "aecho=0.2:0.3:120:0.1,"
+        "alimiter=limit=-1dB:attack=10:release=80,"
+        "loudnorm=I=-14:TP=-1:LRA=11"
     )
     
     try:
