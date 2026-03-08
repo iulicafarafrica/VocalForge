@@ -58,4 +58,4 @@ echo "Model loads automatically on first request"
 echo "via /v1/init endpoint"
 echo ""
 
-/c/Users/gigid/.local/bin/uv.exe run acestep-api --host 0.0.0.0 --port 8001
+python main.py
