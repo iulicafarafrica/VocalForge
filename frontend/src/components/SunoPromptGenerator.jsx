@@ -1,19 +1,20 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const API = "http://localhost:8000";
 
-// Data from ER-Suno-PromptGenerator (adapted)
-const GENRES = [
-  'Pop', 'Electronic', 'Rock', 'Hip-Hop', 'Jazz', 'Classical', 'R&B', 'Country', 'Lo-Fi', 'EDM', 'Acoustic',
-  'Indie', 'Alternative', 'Folk', 'Soul', 'Funk', 'Blues', 'Reggae', 'Punk', 'Disco', 'House', 'Techno',
-  'Trance', 'Dubstep', 'Drum and Bass', 'Synthwave', 'Ambient', 'Trap', 'K-Pop', 'J-Pop'
-];
-
-const METAL_SUBGENRES = [
-  'Heavy Metal', 'Thrash Metal', 'Death Metal', 'Black Metal', 'Power Metal', 'Doom Metal', 'Symphonic Metal',
-  'Progressive Metal', 'Nu Metal', 'Folk Metal', 'Metalcore', 'Deathcore', 'Industrial Metal', 'Groove Metal',
-  'Gothic Metal', 'Sludge Metal', 'Post-Metal', 'Djent'
-];
+// Genres will be loaded from ACE-Step API
+const DEFAULT_GENRES = {
+  'Hip-Hop': { subgenres: { 'Trap': {}, 'Drill': {}, 'Lo-Fi': {} } },
+  'Electronic': { subgenres: { 'House': {}, 'Techno': {}, 'Trance': {} } },
+  'Rock': { subgenres: { 'Alternative': {}, 'Indie': {}, 'Metal': {} } },
+  'Pop': { subgenres: { 'Synth Pop': {}, 'Dance Pop': {} } },
+  'R&B': { subgenres: { 'Soul': {}, 'Funk': {} } },
+  'Jazz': { subgenres: { 'Blues': {}, 'Swing': {} } },
+  'Classical': { subgenres: { 'Orchestral': {}, 'Cinematic': {} } },
+  'Country': { subgenres: { 'Folk': {}, 'Americana': {} } },
+  'Reggae': { subgenres: { 'Dancehall': {}, 'Dub': {} } },
+  'Punk': { subgenres: { 'Hardcore': {}, 'Ska': {} } },
+};
 
 const STYLES = [
   'Upbeat', 'Energetic', 'Slow', 'Emotional', 'Aggressive', 'Melancholic', 'Atmospheric', 'Epic', 'Dark',
@@ -132,7 +133,7 @@ const HELP_DATA = {
   }
 };
 
-export default function SunoPromptGenerator({ addLog }) {
+export default function PromptGenerator({ addLog }) {
   const [text, setText] = useState('');
   const [selectedGenres, setSelectedGenres] = useState([]);
   const [selectedStyles, setSelectedStyles] = useState([]);
@@ -142,7 +143,33 @@ export default function SunoPromptGenerator({ addLog }) {
   const [activeHelp, setActiveHelp] = useState(null);
   const [expandedSections, setExpandedSections] = useState({});
   const [copied, setCopied] = useState(false);
+  const [genrePresets, setGenrePresets] = useState(DEFAULT_GENRES);
+  const [selectedGenreCat, setSelectedGenreCat] = useState('Hip-Hop');
+  const [selectedSubgenres, setSelectedSubgenres] = useState([]);
   const textareaRef = useRef(null);
+
+  // Load genre presets from ACE-Step API
+  useEffect(() => {
+    const loadGenres = async () => {
+      try {
+        const res = await fetch(`${API}/acestep_genre_presets`);
+        const data = await res.json();
+        if (data?.genres) {
+          // Exclude certain genres as in AceStepTab
+          const EXCLUDED = ["EDM", "Hip Hop", "Pop", "Classical", "Afrobeat", "Instrumental", "Other"];
+          const filtered = Object.fromEntries(
+            Object.entries(data.genres).filter(([k]) => !EXCLUDED.includes(k))
+          );
+          setGenrePresets(filtered);
+          const firstGenre = Object.keys(filtered)[0];
+          if (firstGenre) setSelectedGenreCat(firstGenre);
+        }
+      } catch (err) {
+        console.error("Failed to load genres:", err);
+      }
+    };
+    loadGenres();
+  }, []);
 
   const toggleGenre = (genre) => {
     setSelectedGenres((prev) =>
@@ -239,8 +266,9 @@ export default function SunoPromptGenerator({ addLog }) {
     if (isExpanded) {
       itemsToDisplay = filteredItems;
     } else {
-      const selectedFiltered = filteredItems.filter(i => selected.includes(i) || (typeof selected === 'string' && selected === i));
-      const unselectedFiltered = filteredItems.filter(i => !selected.includes(i) && selected !== i);
+      const isSelected = (item) => Array.isArray(selected) ? selected.includes(item) : selected === item;
+      const selectedFiltered = filteredItems.filter(i => isSelected(i));
+      const unselectedFiltered = filteredItems.filter(i => !isSelected(i));
       const remainingSlots = Math.max(0, displayCount - selectedFiltered.length);
       itemsToDisplay = [...selectedFiltered, ...unselectedFiltered.slice(0, remainingSlots)];
     }
@@ -249,7 +277,7 @@ export default function SunoPromptGenerator({ addLog }) {
       <>
         <div className="chip-container" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
           {itemsToDisplay.map(item => {
-            const isSelected = selected.includes ? selected.includes(item) : selected === item;
+            const isSelected = Array.isArray(selected) ? selected.includes(item) : selected === item;
             return (
               <button
                 key={item}
@@ -307,10 +335,10 @@ export default function SunoPromptGenerator({ addLog }) {
           }}>🎸</div>
           <div style={{ flex: 1 }}>
             <h2 style={{ fontSize: 22, fontWeight: 900, color: 'white', margin: 0, letterSpacing: 1 }}>
-              Suno Prompt Generator
+              Prompt Generator
             </h2>
             <p style={{ fontSize: 12, color: '#6b7280', margin: 0 }}>
-              Create structured prompts for Suno AI (adapted from ER-Suno-PromptGenerator)
+              Create structured prompts for AI music generation
             </p>
           </div>
         </div>
@@ -337,10 +365,10 @@ export default function SunoPromptGenerator({ addLog }) {
         />
       </div>
 
-      {/* Genres */}
+      {/* Genre Categories & Subgenres (from ACE-Step) */}
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: 'white', margin: 0 }}>Select Genres</h3>
+          <h3 style={{ fontSize: 14, fontWeight: 700, color: 'white', margin: 0 }}>🎼 Genre & Subgenre</h3>
           <button
             onClick={() => setActiveHelp('genres')}
             style={{
@@ -350,23 +378,90 @@ export default function SunoPromptGenerator({ addLog }) {
             }}
           >?</button>
         </div>
-        {renderChips(GENRES, selectedGenres, toggleGenre, 'genres')}
+        
+        {/* Genre Category Buttons */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+          {Object.keys(genrePresets).map((genreCat) => {
+            const subgenres = genrePresets[genreCat]?.subgenres || {};
+            const isActive = selectedGenreCat === genreCat;
+            return (
+              <button
+                key={genreCat}
+                onClick={() => {
+                  setSelectedGenreCat(genreCat);
+                  setSelectedSubgenres([]);
+                }}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 6,
+                  border: isActive ? '1px solid #9b2de0' : '1px solid #2a2a4a',
+                  background: isActive ? '#9b2de022' : '#0a0a1a',
+                  color: isActive ? '#c77dff' : '#444466',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4
+                }}
+              >
+                {genreCat}
+                <span style={{
+                  background: isActive ? '#9b2de033' : '#1a1a2e',
+                  color: isActive ? '#c77dff' : '#333355',
+                  borderRadius: 10,
+                  padding: '1px 5px',
+                  fontSize: 10,
+                  fontWeight: 800
+                }}>{Object.keys(subgenres).length}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Subgenre Buttons */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', maxHeight: 140, overflowY: 'auto' }}>
+          {Object.entries(genrePresets[selectedGenreCat]?.subgenres || {}).map(([subName, preset]) => {
+            const key = `${selectedGenreCat}|${subName}`;
+            const isSelected = selectedSubgenres.includes(key);
+            return (
+              <button
+                key={key}
+                onClick={() => {
+                  setSelectedSubgenres((prev) =>
+                    prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+                  );
+                  // Also add to selectedGenres for prompt generation
+                  setSelectedGenres((prev) =>
+                    prev.includes(subName) ? prev.filter((g) => g !== subName) : [...prev, subName]
+                  );
+                }}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 6,
+                  border: isSelected ? '1px solid #9b2de0' : '1px solid #2a2a4a',
+                  background: isSelected ? '#9b2de022' : '#0a0a1a',
+                  color: isSelected ? '#c77dff' : '#6666aa',
+                  fontSize: 11,
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap'
+                }}
+                title={preset?.caption || subName}
+              >
+                {subName}
+                {preset?.bpm > 0 && <span style={{ marginLeft: 4, opacity: 0.8 }}>♩{preset.bpm}</span>}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Metal Subgenres */}
+      {/* Genres (Additional) */}
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: 'white', margin: 0 }}>Metal Subgenres (Primary)</h3>
-          <button
-            onClick={() => setActiveHelp('metal')}
-            style={{
-              width: 20, height: 20, borderRadius: '50%',
-              border: '1px solid #6b7280', background: 'transparent',
-              color: '#6b7280', fontSize: 12, cursor: 'pointer'
-            }}
-          >?</button>
+          <h3 style={{ fontSize: 14, fontWeight: 700, color: 'white', margin: 0 }}>Additional Genres</h3>
         </div>
-        {renderChips(METAL_SUBGENRES, selectedGenres, toggleGenre, 'metal')}
+        {renderChips(Object.keys(genrePresets), selectedGenres, toggleGenre, 'additionalGenres')}
       </div>
 
       {/* Styles */}

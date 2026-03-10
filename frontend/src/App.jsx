@@ -12,7 +12,7 @@ import RVCConversion from "./components/RVCConversion";
 import AudioAnalysisTab from "./components/AudioAnalysisTab";
 import PipelineTab from "./components/PipelineTab";
 import SunoTab from "./components/SunoTab";
-import SunoPromptGenerator from "./components/SunoPromptGenerator";
+import SunoPrompt from "./components/SunoPromptGenerator";
 
 const API = "http://localhost:8000";
 
@@ -23,7 +23,7 @@ const TABS = [
   { id: "RVC", Icon: Mic2, label: "Voice Mix RVC", color: "#ff6b9d" },
   { id: "Pipeline", Icon: Zap, label: "Vocal Pipeline", color: "#a855f7" },
   { id: "Suno", Icon: Radio, label: "Suno AI", color: "#f59e0b" },
-  { id: "SunoPrompt", Icon: Guitar, label: "Prompt Generator", color: "#10b981" },
+  { id: "SunoPrompt", Icon: Guitar, label: "Prompt Gen.", color: "#10b981" },
   { id: "ACEAdvanced", Icon: Layers, label: "Repaint", color: "#00b4d8" },
   { id: "AudioAnalysis", Icon: Activity, label: "Audio Analysis", color: "#f59e0b" },
   { id: "Tracks",  Icon: FolderOpen, label: "Tracks", color: "#ffd166" },
@@ -232,7 +232,7 @@ export default function App() {
         </div>
 
         <div style={{ display: tab === "SunoPrompt" ? "block" : "none" }}>
-          <SunoPromptGenerator addLog={addLog} />
+          <SunoPrompt addLog={addLog} />
         </div>
 
         <div style={{ display: tab === "ACEAdvanced" ? "block" : "none" }}>

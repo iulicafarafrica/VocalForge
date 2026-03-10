@@ -1,22 +1,18 @@
 """
 backend/endpoints/pipeline.py
-Endpoint FastAPI pentru pipeline-ul BS RoFormer → RVC → ACE-Step
+BS RoFormer → RVC → ACE-Step → Mix & Master
 """
 
 import asyncio
 import json
+import os
+import aiofiles
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks
 from fastapi.responses import StreamingResponse, FileResponse
 from pathlib import Path
-import aiofiles
-import os
 
 from core.modules.pipeline_manager import (
-    create_job,
-    get_job,
-    run_pipeline,
-    AUDIO_DIR,
-    StageStatus,
+    create_job, get_job, run_pipeline, AUDIO_DIR, StageStatus,
 )
 
 router = APIRouter(prefix="/pipeline", tags=["pipeline"])
@@ -27,36 +23,44 @@ router = APIRouter(prefix="/pipeline", tags=["pipeline"])
 async def start_pipeline(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
-    rvc_model: str = Form(...),
-    rvc_pitch: int = Form(0),
-    rvc_protect: float = Form(0.33),
+    rvc_model: str   = Form(...),
+    rvc_pitch: int   = Form(0),
+    rvc_protect: float  = Form(0.33),
+    ace_strength: float = Form(0.4),
+    ace_steps: int      = Form(24),
+    enable_stage3: bool = Form(True),
+    enable_stage4: bool = Form(True),
+    # Applio features (forwarded to RVC but accepted here to avoid 422)
+    enable_autotune: bool        = Form(True),
+    autotune_strength: float     = Form(0.4),
+    enable_highpass: bool        = Form(True),
+    enable_volume_envelope: bool = Form(True),
 ):
-    """
-    Porneste pipeline-ul complet.
-    Returneaza job_id pentru a urmari progresul.
-    """
-    # Salveaza fisierul input
     AUDIO_DIR.mkdir(parents=True, exist_ok=True)
-    input_path = str(AUDIO_DIR / f"input_{file.filename}")
+
+    # Preserve original extension
+    original_ext = os.path.splitext(file.filename)[1] or ".wav"
+    input_path   = str(AUDIO_DIR / f"input_{file.filename}")
 
     async with aiofiles.open(input_path, "wb") as f:
-        content = await file.read()
-        await f.write(content)
+        await f.write(await file.read())
 
-    # Creeaza job (fara ace_strength/ace_steps - nu mai e nevoie pentru Stage 3 simplu)
     job = create_job(
         input_path=input_path,
         rvc_model=rvc_model,
         rvc_pitch=rvc_pitch,
         rvc_protect=rvc_protect,
+        ace_strength=ace_strength,
+        ace_steps=ace_steps,
+        enable_stage3=enable_stage3,
+        enable_stage4=enable_stage4,
     )
 
-    # Porneste pipeline in background
     background_tasks.add_task(run_pipeline, job.job_id)
 
     return {
-        "job_id": job.job_id,
-        "status": "started",
+        "job_id":  job.job_id,
+        "status":  "started",
         "message": f"Pipeline pornit pentru {file.filename}",
     }
 
@@ -64,36 +68,36 @@ async def start_pipeline(
 # ── GET /pipeline/status/{job_id} ─────────────────────────────────────────────
 @router.get("/status/{job_id}")
 async def get_status(job_id: str):
-    """Returneaza statusul curent al unui job."""
     job = get_job(job_id)
     if not job:
         raise HTTPException(status_code=404, detail=f"Job {job_id} nu exista")
 
+    def _exists(p):
+        return bool(p and os.path.exists(p))
+
     return {
-        "job_id": job.job_id,
+        "job_id":   job.job_id,
         "progress": job.progress,
-        "error": job.error,
+        "error":    job.error,
         "stages": {
             "stage1_separation": job.stage1_status,
-            "stage2_rvc": job.stage2_status,
-            "stage3_refinement": job.stage3_status,
+            "stage2_rvc":        job.stage2_status,
+            "stage3_clarify":    job.stage3_status,
+            "stage4_mix":        job.stage4_status,
         },
         "outputs": {
-            "vocals": job.vocals_path,
-            "instrumental": job.instrumental_path,
-            "rvc_raw": job.rvc_output_path,
-            "final": job.final_output_path,
+            "vocals":       job.vocals_path       if _exists(job.vocals_path)             else None,
+            "instrumental": job.instrumental_path if _exists(job.instrumental_path)       else None,
+            "rvc_raw":      job.rvc_output_path   if _exists(job.rvc_output_path)         else None,
+            "final":        job.refined_vocals_path if _exists(job.refined_vocals_path)   else None,
+            "final_mix":    job.final_mix_path    if _exists(job.final_mix_path)          else None,
         },
     }
 
 
-# ── GET /pipeline/progress/{job_id} - SSE live progress ─────────────────────
+# ── GET /pipeline/progress/{job_id} SSE ──────────────────────────────────────
 @router.get("/progress/{job_id}")
 async def stream_progress(job_id: str):
-    """
-    Server-Sent Events pentru progress bar live in frontend.
-    Frontend-ul asculta: new EventSource('/pipeline/progress/JOB_ID')
-    """
     job = get_job(job_id)
     if not job:
         raise HTTPException(status_code=404, detail=f"Job {job_id} nu exista")
@@ -109,16 +113,15 @@ async def stream_progress(job_id: str):
                 last_progress = job.progress
                 data = {
                     "progress": job.progress,
-                    "stage1": job.stage1_status,
-                    "stage2": job.stage2_status,
-                    "stage3": job.stage3_status,
-                    "error": job.error,
-                    "done": job.progress == 100,
-                    "final_path": job.final_output_path,
+                    "stage1":   job.stage1_status,
+                    "stage2":   job.stage2_status,
+                    "stage3":   job.stage3_status,
+                    "stage4":   job.stage4_status,
+                    "error":    job.error,
+                    "done":     job.progress == 100,
                 }
                 yield f"data: {json.dumps(data)}\n\n"
 
-            # Job terminat (succes sau eroare)
             if job.progress == 100 or job.error:
                 break
 
@@ -127,44 +130,40 @@ async def stream_progress(job_id: str):
     return StreamingResponse(
         event_generator(),
         media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",
-        },
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
 
 
 # ── GET /pipeline/download/{job_id}/{file_type} ───────────────────────────────
 @router.get("/download/{job_id}/{file_type}")
 async def download_file(job_id: str, file_type: str):
-    """
-    Descarca un fisier din pipeline.
-    file_type: vocals | instrumental | rvc_raw | final | final_mix
-    """
     job = get_job(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job negasit")
 
     path_map = {
-        "vocals": job.vocals_path,
+        "vocals":       job.vocals_path,
         "instrumental": job.instrumental_path,
-        "rvc_raw": job.rvc_output_path,
-        "final": job.final_output_path,
-        "final_mix": job.final_mix_path,  # NEW: Mix Final (Vocal + Instrumental)
+        "rvc_raw":      job.rvc_output_path,
+        "final":        job.refined_vocals_path,
+        "final_mix":    job.final_mix_path,
+        # MP3 variant of final mix
+        "final_mix_mp3": (job.final_mix_path or "").replace(".wav", ".mp3"),
     }
 
     path = path_map.get(file_type)
     if not path or not os.path.exists(path):
-        raise HTTPException(status_code=404, detail=f"Fisier {file_type} nu e gata inca")
+        raise HTTPException(status_code=404, detail=f"Fisier '{file_type}' nu e gata")
 
-    filename = f"{job_id}_{file_type}.wav"
-    return FileResponse(path, media_type="audio/wav", filename=filename)
+    ext      = os.path.splitext(path)[1]
+    media    = "audio/mpeg" if ext == ".mp3" else "audio/wav"
+    filename = f"{job_id}_{file_type}{ext}"
+    return FileResponse(path, media_type=media, filename=filename)
 
 
 # ── GET /pipeline/models ──────────────────────────────────────────────────────
 @router.get("/models")
 async def list_rvc_models():
-    """Lista modelele RVC disponibile."""
     import aiohttp
     try:
         async with aiohttp.ClientSession() as session:

@@ -1,0 +1,357 @@
+✦ 📋 LISTA COMPLETĂ — Ce mai avem de făcut
+
+    ---
+
+    🔴 IMEDIATE (Sprint 1: 2026-03-10 → 2026-03-15)
+
+    Testing & Stabilization
+
+     - [ ] 1. Test Custom Mode end-to-end ← CRITICAL
+       - Debug 422 error
+       - Clear Python cache
+       - Restart backend
+       - Verify generation works
+       - ETA: 10-15 minute
+
+     - [ ] 2. Test Full Pipeline (10+ executions)
+       - Run pipeline with 10 different songs
+       - Document quality metrics (UTMOS, SDR, LUFS)
+       - Compare Stage 2 vs Stage 3 quality
+       - ETA: 1 oră
+
+     - [ ] 3. Fix any remaining bugs
+       - Based on test results
+       - ETA: 1-2 ore
+
+     - [ ] 4. Create demo video
+       - Record screen during pipeline execution
+       - Edit + upload to YouTube
+       - ETA: 1-2 ore
+
+    ---
+
+    📅 PHASE 1: CORE FEATURES (20% done — 1/5)
+
+    ✅ 1. Audio Understanding Engine — 100% COMPLETE
+     - [x] BPM detection
+     - [x] Key detection
+     - [x] Time signature detection
+     - [x] 6 API endpoints
+
+    ---
+
+    🔴 2. Vocal2BGM — NEXT (3-5 days)
+
+    Backend:
+     - [ ] backend/endpoints/vocal2bgm.py — API endpoint
+     - [ ] core/modules/melody_conditioning.py — ACE-Step conditioning logic
+     - [ ] BPM/key/genre extraction from vocal
+     - [ ] ACE-Step BGM generation with audio conditioning
+     - [ ] Beat alignment (librosa.beat_track)
+     - [ ] Sidechain compression for vocal+BGM mix
+     - [ ] Master final (-14 LUFS, -1 dBTP)
+
+    Frontend:
+     - [ ] frontend/src/components/Vocal2BGM.jsx — UI component
+     - [ ] Upload vocal widget
+     - [ ] Auto-detect BPM/key/genre display
+     - [ ] Genre selection dropdown
+     - [ ] BGM preview player
+     - [ ] Download final track button
+
+    Testing:
+     - [ ] Test with 10+ vocal recordings
+     - [ ] Verify BPM matching (±2 BPM tolerance)
+     - [ ] Verify key matching (±1 semitone tolerance)
+     - [ ] Verify BGM doesn't overpower vocal (-3dB gain reduction)
+
+    ETA: 3-5 days
+
+    ---
+
+    🟠 3. Multi-Track Layering (4-6 days)
+
+    Backend:
+     - [ ] backend/endpoints/layering.py — API endpoint
+     - [ ] core/modules/stem_layering.py — Layering logic
+     - [ ] Add drums to existing track
+     - [ ] Add bass to existing track
+     - [ ] Add guitar/pads to existing track
+     - [ ] Layer multiple instruments
+     - [ ] Mix balance control
+
+    Frontend:
+     - [ ] frontend/src/components/MultiTrackLayering.jsx — UI component
+     - [ ] Upload base track widget
+     - [ ] Instrument selection (drums, bass, guitar, pads)
+     - [ ] Layer preview
+     - [ ] Volume sliders per layer
+     - [ ] Download final mix
+
+    ETA: 4-6 days
+
+    ---
+
+    🟠 4. LRC Generation (2-3 days)
+
+    Backend:
+     - [ ] backend/endpoints/lrc_generation.py — API endpoint
+     - [ ] core/modules/whisperx_wrapper.py — WhisperX integration
+     - [ ] Word-level timestamps extraction
+     - [ ] LRC file format export
+     - [ ] SRT export option
+
+    Frontend:
+     - [ ] frontend/src/components/LrcGenerator.jsx — UI component
+     - [ ] Upload audio widget
+     - [ ] Language selection
+     - [ ] LRC preview (karaoke-style)
+     - [ ] Download LRC/SRT button
+
+    ETA: 2-3 days
+
+    ---
+
+    🟡 5. Copy Melody (3-4 days)
+
+    Backend:
+     - [ ] backend/endpoints/copy_melody.py — API endpoint
+     - [ ] Melody extraction (librosa.pyin)
+     - [ ] MIDI export
+     - [ ] Pattern matching
+     - [ ] Melody variation generation
+
+    Frontend:
+     - [ ] frontend/src/components/CopyMelody.jsx — UI component
+     - [ ] Upload reference audio
+     - [ ] Melody visualization (piano roll)
+     - [ ] MIDI download
+     - [ ] Variation generation
+
+    ETA: 3-4 days
+
+    ---
+
+    📅 PHASE 2: QUALITY IMPROVEMENTS (0% done — 0/5)
+
+    🔴 6. RVC Quality Enhancement (2-3 weeks)
+
+    Research:
+     - [ ] Collect singing datasets (10-30 hours)
+     - [ ] Fine-tune RVC on singing (not speech)
+     - [ ] Test vibrato preservation
+     - [ ] Test harmony retention
+     - [ ] Reduce robotic artifacts
+
+    Implementation:
+     - [ ] Custom RVC models for singing
+     - [ ] Better f0 extraction for singing
+     - [ ] Improved index training
+     - [ ] Quality metrics: target 9/10 (from 8/10)
+
+    ETA: 2-3 weeks
+
+    ---
+
+    🟠 7. Batch Processing (3-4 days)
+
+    Backend:
+     - [ ] Queue system (Celery or simple job queue)
+     - [ ] Process 10-100 files simultaneously
+     - [ ] Progress tracking per file
+     - [ ] Error handling and retry logic
+     - [ ] Export all results as ZIP
+
+    Frontend:
+     - [ ] Batch upload widget
+     - [ ] Progress bar per file
+     - [ ] Error reporting
+     - [ ] Download all as ZIP
+
+    ETA: 3-4 days
+
+    ---
+
+    🟠 8. Real-Time RVC Preview (4-5 days)
+
+    Backend:
+     - [ ] WebSocket streaming endpoint
+     - [ ] Chunked processing (100ms chunks)
+     - [ ] Low-latency F0 extraction (<50ms)
+     - [ ] Real-time gain control
+     - [ ] Target latency: <100ms
+
+    Frontend:
+     - [ ] WebSocket client
+     - [ ] Real-time audio playback
+     - [ ] Latency monitoring
+     - [ ] Start/stop recording
+
+    ETA: 4-5 days
+
+    ---
+
+    🟠 9. AI Mastering (1-2 weeks)
+
+    Backend:
+     - [ ] backend/endpoints/ai_mastering.py — API endpoint
+     - [ ] EQ matching (reference tracks)
+     - [ ] Multi-band compression
+     - [ ] Stereo enhancement
+     - [ ] Loudness normalization:
+       - Spotify: -14 LUFS
+       - YouTube: -14 LUFS
+       - Apple Music: -16 LUFS
+       - Club/DJ: -9 to -6 LUFS
+
+    Frontend:
+     - [ ] frontend/src/components/AIMastering.jsx — UI component
+     - [ ] Upload track widget
+     - [ ] Platform selection (Spotify, YouTube, etc.)
+     - [ ] Reference track upload (optional)
+     - [ ] Before/after A/B comparison
+     - [ ] Download mastered track
+
+    ETA: 1-2 weeks
+
+    ---
+
+    🟡 10. Cloud Sync (5-7 days)
+
+    Backend:
+     - [ ] Google Drive integration
+     - [ ] Dropbox integration
+     - [ ] OneDrive integration
+     - [ ] OAuth2 authentication
+     - [ ] Sync presets to cloud
+     - [ ] Sync tracks to cloud
+
+    Frontend:
+     - [ ] Cloud settings tab
+     - [ ] Connect/disconnect accounts
+     - [ ] Manual sync button
+     - [ ] Auto-sync toggle
+
+    ETA: 5-7 days
+
+    ---
+
+    📅 PHASE 3: ADVANCED FEATURES (0% done — 0/4)
+
+    🟠 11. Vocal Harmonizer (4-5 days)
+
+    Backend:
+     - [ ] backend/endpoints/vocal_harmonizer.py — API endpoint
+     - [ ] 3-part harmony generation
+     - [ ] 5th intervals
+     - [ ] Octave doubling
+     - [ ] Custom harmony intervals
+     - [ ] Pitch correction for harmonies
+
+    Frontend:
+     - [ ] frontend/src/components/VocalHarmonizer.jsx — UI component
+     - [ ] Upload vocal widget
+     - [ ] Harmony type selection (3rd, 5th, octave)
+     - [ ] Harmony density slider (1-4 voices)
+     - [ ] Preview harmonies
+     - [ ] Download harmonized vocal
+
+    ETA: 4-5 days
+
+    ---
+
+    🟡 12. Chord Detection (2-3 days)
+
+    Backend:
+     - [ ] backend/endpoints/chord_detection.py — API endpoint
+     - [ ] Chord progression detection (essentia)
+     - [ ] PDF export (chord sheet)
+     - [ ] JSON export
+     - [ ] Guitar tab export
+
+    Frontend:
+     - [ ] frontend/src/components/ChordDetection.jsx — UI component
+     - [ ] Upload audio widget
+     - [ ] Chord visualization (timeline)
+     - [ ] Download PDF/JSON/Guitar Tab
+
+    ETA: 2-3 days
+
+    ---
+
+    🟡 13. Drum Pattern Extraction (3-4 days)
+
+    Backend:
+     - [ ] backend/endpoints/drum_extraction.py — API endpoint
+     - [ ] Kick/snare/hihat detection
+     - [ ] MIDI export
+     - [ ] Pattern visualization
+     - [ ] Groove quantization
+
+    Frontend:
+     - [ ] frontend/src/components/DrumExtraction.jsx — UI component
+     - [ ] Upload audio widget
+     - [ ] Drum pattern visualization
+     - [ ] MIDI download
+     - [ ] Quantize toggle
+
+    ETA: 3-4 days
+
+    ---
+
+    🟡 14. Formant Shifting (2-3 days)
+
+    Backend:
+     - [ ] backend/endpoints/formant_shifting.py — API endpoint
+     - [ ] Formant shift control (-12 to +12 semitones)
+     - [ ] Preserve pitch (no pitch change)
+     - [ ] Natural timbre change
+     - [ ] Male ↔ Female conversion
+
+    Frontend:
+     - [ ] frontend/src/components/FormantShifter.jsx — UI component
+     - [ ] Upload audio widget
+     - [ ] Formant shift slider (-12 to +12)
+     - [ ] Pitch preserve toggle
+     - [ ] Preview button
+     - [ ] Download shifted audio
+
+    ETA: 2-3 days
+
+    ---
+
+    📥 BACKLOG / NICE TO HAVE
+
+    Performance Optimizations
+     - [ ] TensorRT optimization (2-3x faster inference)
+     - [ ] INT8 quantization (4x smaller models)
+     - [ ] Batch size optimization (dynamic based on VRAM)
+     - [ ] Model caching (faster reload)
+
+    UI/UX Improvements
+     - [ ] Onboarding wizard
+     - [ ] Interactive tooltips
+     - [ ] Video tutorials
+     - [ ] Dark/Light theme toggle
+
+    Integrations
+     - [ ] Discord bot
+     - [ ] Telegram bot
+     - [ ] API rate limiting
+     - [ ] OAuth2 authentication
+
+    Documentation
+     - [ ] API documentation (Swagger/OpenAPI)
+     - [ ] User manual (PDF)
+     - [ ] Developer guide
+     - [ ] Video tutorial series
+
+    ---
+
+    📊 OVERALL PROGRESS
+
+     1 Phase 1: Core Features          [██░░░░░░░░] 20% (1/5)
+     2 Phase 2: Quality Improvements   [░░░░░░░░░░]  0% (0/5)
+     3 Phase 3: Advanced Features      [░░░░░░░░░░]  0% (0/4)
+     4 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     5 TOTAL PROGRESS:                 [█░░░░░░░░░]  7% (1/14)
