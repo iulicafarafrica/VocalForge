@@ -34,6 +34,16 @@
 
 ## 🔥 What's New in v2.0.0
 
+### **Version History**
+
+| Version | Features | Quality |
+|---------|----------|---------|
+| **v2.0.0** | Pipeline v2.3, GPU Memory Management | Testing |
+| **v1.9.0** | Applio Features (Autotune, Clean Audio, Volume Envelope, HPF) | 9/10 |
+| **v1.8.4** | RVC Rescue Post-Processing | 8/10 |
+| **v1.8.3** | RVC Final Mix Integration | - |
+| **v1.8.2** | YouTube Cover Generator, RVC v2 Support | - |
+
 ### **🎵 Pipeline v2.3 - 4 Complete Stages**
 
 ```
@@ -58,7 +68,7 @@ Stage 4: Mix Final → vocal + instrumental together
 
 ### **🎤 RVC Optimized for SINGING**
 
-| Parametru | Before (Speech) | After (Singing) |
+| Parameter | Before (Speech) | After (Singing) |
 |-----------|-----------------|-----------------|
 | **f0_method** | rmvpe | harvest (smoother) |
 | **index_rate** | 0.75 | 0.40 (preserves style) |
@@ -170,51 +180,51 @@ FlorinSalam, JustinBieber, BadBunny, KanyeWest, +16 more
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  INPUT: Full Song (MP3/WAV)                             │
-│  Example: "JustinBieber - Sorry.mp3"                    │
+│ INPUT: Full Song (MP3/WAV)                              │
+│ Example: "JustinBieber - Sorry.mp3"                     │
 └─────────────────────────────────────────────────────────┘
-                         ↓
+                          ↓
 ┌─────────────────────────────────────────────────────────┐
-│  STAGE 1: BS-RoFormer Separation (~30s)                 │
-│  - Model: bs_roformer_1297 (SDR 12.97)                  │
-│  - Output: vocals.wav + instrumental.wav                │
-│  - Gain Staging: Normalize to -1dB peak                 │
+│ STAGE 1: BS-RoFormer Separation (~30s)                  │
+│ - Model: bs_roformer_1297 (SDR 12.97)                   │
+│ - Output: vocals.wav + instrumental.wav                 │
+│ - Gain Staging: Normalize to -1dB peak                  │
 └─────────────────────────────────────────────────────────┘
-                         ↓
+                          ↓
 ┌─────────────────────────────────────────────────────────┐
-│  STAGE 2: RVC Voice Conversion (~15s)                   │
-│  - Model: User-selected (e.g., FlorinSalam.pth)         │
-│  - Applio Features: Autotune, High-Pass, Volume Env.    │
-│  - Params: harvest, 0.40 index, 0.55 protect            │
-│  - Output: converted_raw.wav                            │
-│  - VRAM Management: Unload RVC after conversion         │
+│ STAGE 2: RVC Voice Conversion (~15s)                    │
+│ - Model: User-selected (e.g., FlorinSalam.pth)          │
+│ - Applio Features: Autotune, High-Pass, Volume Env.     │
+│ - Params: harvest, 0.40 index, 0.55 protect             │
+│ - Output: converted_raw.wav                             │
+│ - VRAM Management: Unload RVC after conversion          │
 └─────────────────────────────────────────────────────────┘
-                         ↓
+                          ↓
 ┌─────────────────────────────────────────────────────────┐
-│  STAGE 3: Clarification (OPTIONAL, ~30s)                │
-│  - Re-extraction: BS-RoFormer (reduce RVC artifacts)    │
-│  - FFmpeg Filters:                                      │
-│    ├─ highpass=f=100 (remove rumble)                    │
-│    ├─ deesser=i=0.1 (reduce sibilance)                  │
-│    ├─ loudnorm=I=-10:TP=-1:LRA=11 (commercial loudness) │
-│    └─ acompressor (smooth dynamics)                     │
-│  - Output: final_clear_vocals.wav                       │
+│ STAGE 3: Clarification (OPTIONAL, ~30s)                 │
+│ - Re-extraction: BS-RoFormer (reduce RVC artifacts)     │
+│ - FFmpeg Filters:                                       │
+│   ├─ highpass=f=100 (remove rumble)                     │
+│   ├─ deesser=i=0.1 (reduce sibilance)                   │
+│   ├─ loudnorm=I=-10:TP=-1:LRA=11 (commercial loudness)  │
+│   └─ acompressor (smooth dynamics)                      │
+│ - Output: final_clear_vocals.wav                        │
 └─────────────────────────────────────────────────────────┘
-                         ↓
+                          ↓
 ┌─────────────────────────────────────────────────────────┐
-│  STAGE 4: Mix Final (~5s)                               │
-│  - Mix: final_clear_vocals.wav + instrumental.wav       │
-│  - Volumes: Vocal 1.2x (+1.6dB), Inst 1.0x (0dB)        │
-│  - Output: final_mix.wav                                │
+│ STAGE 4: Mix Final (~5s)                                │
+│ - Mix: final_clear_vocals.wav + instrumental.wav        │
+│ - Volumes: Vocal 1.2x (+1.6dB), Inst 1.0x (0dB)         │
+│ - Output: final_mix.wav                                 │
 └─────────────────────────────────────────────────────────┘
-                         ↓
+                          ↓
 ┌─────────────────────────────────────────────────────────┐
-│  OUTPUT: 5 Files Available for Download                 │
-│  1. 🎵 Vocals (separated)                               │
-│  2. 🎸 Instrumental                                     │
-│  3. 🎤 RVC Raw (before clarification)                   │
-│  4. ✨ Vocal Clarified (after Stage 3)                  │
-│  5. 🎚️ Mix Final (vocal + instrumental together)        │
+│ OUTPUT: 5 Files Available for Download                  │
+│ 1. 🎵 Vocals (separated)                                │
+│ 2. 🎸 Instrumental                                      │
+│ 3. 🎤 RVC Raw (before clarification)                    │
+│ 4. ✨ Vocal Clarified (after Stage 3)                   │
+│ 5. 🎚️ Mix Final (vocal + instrumental together)         │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -312,13 +322,27 @@ Complete GPU VRAM monitoring and optimization for NVIDIA RTX 3070 8GB.
 
 ### **API Endpoints:**
 
-```bash
-GET  /gpu/info          # Get GPU VRAM information
-GET  /gpu/cleanup       # Manual GPU VRAM cleanup
-GET  /gpu/models        # List loaded models in VRAM
-POST /gpu/unload/{name} # Unload specific model from VRAM
-POST /gpu/unload-all    # Unload all models from VRAM
-GET  /gpu/can-load/{name}  # Check if model can be loaded
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/gpu/info` | Get GPU VRAM information |
+| `GET` | `/gpu/cleanup` | Manual GPU VRAM cleanup |
+| `GET` | `/gpu/models` | List loaded models in VRAM |
+| `POST` | `/gpu/unload/{name}` | Unload specific model from VRAM |
+| `POST` | `/gpu/unload-all` | Unload all models from VRAM |
+| `GET` | `/gpu/can-load/{name}` | Check if model can be loaded |
+
+### **VRAM Optimization (RTX 3070 8GB):**
+
+```python
+# VRAM-based chunk sizing
+vram_gb >= 10  →  chunk_size = 485100   # ~11s
+vram_gb >= 6   →  chunk_size = 256000   # ~5.8s  ← RTX 3070
+vram_gb < 6    →  chunk_size = 131072   # ~3s
+
+# ACE-Step settings
+"batch_size": 1
+"use_tiled_decode": True
+"fp16": True
 ```
 
 ### **Files:**
@@ -351,28 +375,128 @@ GET  /gpu/can-load/{name}  # Check if model can be loaded
 
 ## 🛣️ Roadmap
 
+### **Overall Progress**
+
+```
+Phase 1: Core Features          [██░░░░░░░░] 20% (1/5)
+Phase 2: Quality Improvements   [░░░░░░░░░░]  0% (0/5)
+Phase 3: Advanced Features      [░░░░░░░░░░]  0% (0/4)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TOTAL PROGRESS:                 [█░░░░░░░░░]  7% (1/14)
+```
+
 ### **Phase 1: Core Features (Q2 2026) - 20% Complete**
 
-- [x] ✅ Audio Understanding Engine (BPM, Key, Time Signature)
-- [ ] ⏸️ Vocal2BGM (transform vocal → full song)
-- [ ] ⏹️ Multi-Track Layering
-- [ ] ⏹️ LRC Generation (synchronized lyrics)
-- [ ] ⏹️ Copy Melody
+| # | Feature | Status | Priority | ETA |
+|---|---------|--------|----------|-----|
+| 1 | Audio Understanding Engine | ✅ DONE | — | — |
+| 2 | **Vocal2BGM** | ⏸️ PLANNED | 🔴 HIGH | 3-5 days |
+| 3 | Multi-Track Layering | ⏹️ TODO | 🟠 MEDIUM | 4-6 days |
+| 4 | LRC Generation | ⏹️ TODO | 🟠 MEDIUM | 2-3 days |
+| 5 | Copy Melody | ⏹️ TODO | 🟡 LOW | 3-4 days |
 
-### **Phase 2: Quality Improvements (Q3 2026)**
+### **Phase 2: Quality Improvements (Q3 2026) - 0% Complete**
 
-- [ ] ⏹️ RVC Quality Enhancement (fine-tune on singing)
-- [ ] ⏹️ Batch Processing (10-100 files)
-- [ ] ⏹️ Real-Time RVC Preview (<100ms latency)
-- [ ] ⏹️ AI Mastering
-- [ ] ⏹️ Cloud Sync (Google Drive/Dropbox)
+| # | Feature | Status | Priority | ETA |
+|---|---------|--------|----------|-----|
+| 6 | RVC Quality Enhancement | ⏹️ TODO | 🔴 HIGH | 2-3 weeks |
+| 7 | Batch Processing | ⏹️ TODO | 🟠 MEDIUM | 3-4 days |
+| 8 | Real-Time RVC Preview | ⏹️ TODO | 🟠 MEDIUM | 4-5 days |
+| 9 | AI Mastering | ⏹️ TODO | 🟠 MEDIUM | 1-2 weeks |
+| 10 | Cloud Sync | ⏹️ TODO | 🟡 LOW | 5-7 days |
 
-### **Phase 3: Advanced Features (Q4 2026)**
+### **Phase 3: Advanced Features (Q4 2026) - 0% Complete**
 
-- [ ] ⏹️ Vocal Harmonizer (3rds, 5ths, octaves)
-- [ ] ⏹️ Chord Detection → export PDF/JSON
-- [ ] ⏹️ Drum Pattern Extraction → export MIDI
-- [ ] ⏹️ Formant Shifting (male↔female without pitch change)
+| # | Feature | Status | Priority | ETA |
+|---|---------|--------|----------|-----|
+| 11 | Vocal Harmonizer | ⏹️ TODO | 🟠 MEDIUM | 4-5 days |
+| 12 | Chord Detection | ⏹️ TODO | 🟡 LOW | 2-3 days |
+| 13 | Drum Pattern Extraction | ⏹️ TODO | 🟡 LOW | 3-4 days |
+| 14 | Formant Shifting | ⏹️ TODO | 🟡 LOW | 2-3 days |
+
+### **Next Feature: Vocal2BGM**
+
+```
+vocal.wav
+    ↓ 1. Extract BPM, key, genre
+    ↓ 2. ACE-Step BGM generation
+         tags: "{genre} instrumental, {bpm}bpm, {key} key"
+         audio_prompt: vocal.wav
+    ↓ 3. Beat alignment (librosa.beat_track)
+    ↓ 4. Mix vocal + BGM (sidechain compression)
+    ↓ 5. Master (-14 LUFS, -1 dBTP)
+```
+
+---
+
+## 🏃 Current Sprint
+
+### **Sprint 1 (2026-03-10 to 2026-03-15) — Testing & Stabilization**
+
+**Tasks:**
+- [ ] Run 10+ successful pipeline executions
+- [ ] Compare Stage 2 (raw RVC) vs Stage 3 (clarified) quality
+- [ ] Document quality metrics (UTMOS, SDR, LUFS)
+- [ ] Fix any remaining bugs
+- [ ] Decide on Pipeline Tab (enable or remove from `App.jsx:17`)
+- [ ] Create demo video
+
+**Definition of Done:**
+- ✅ Pipeline runs 10/10 times without errors
+- ✅ Quality metrics documented
+- ✅ No OOM errors
+- ✅ Demo video published
+
+### **Sprint History**
+
+| Sprint | Dates | Goal | Status |
+|--------|-------|------|--------|
+| Sprint 0 | 2026-03-01 to 2026-03-08 | Pipeline v2.3 + Audio Analysis | ✅ COMPLETE |
+| Sprint 1 | 2026-03-10 to 2026-03-15 | Testing & Stabilization | 🏃 IN PROGRESS |
+| Sprint 2 | 2026-03-15 to 2026-03-22 | Vocal2BGM Implementation | ⏸️ PLANNED |
+
+---
+
+## ⚠️ Known Issues
+
+| Severity | Issue | Location | Action |
+|----------|-------|----------|--------|
+| ⚠️ DESIGN | RVC trained on SPEECH, not SINGING | RVC core | Best case 8/10 with Rescue |
+| 🔴 HIGH | No test coverage | Entire codebase | Add pytest + Jest |
+| 🟠 MEDIUM | Pipeline Tab disabled | `App.jsx:17` | Enable or remove |
+| 🟠 MEDIUM | Hardcoded Windows paths | Multiple files | Use env vars/config |
+| 🟡 LOW | Large files (>2000 lines) | `main.py`, `AceStepTab.jsx` | Refactor into modules |
+| 🟡 LOW | Inconsistent version numbers | Multiple files | Centralize in VERSION file |
+| 🟡 LOW | Inline styles in React | Multiple JSX files | Move to CSS |
+
+---
+
+## 🏗️ Project Structure
+
+```
+D:\VocalForge\
+├── 🐍 Backend (FastAPI)
+│   ├── backend/main.py                        (2587 lines - MAIN SERVER)
+│   ├── backend/endpoints/audio_analysis.py    (Audio Understanding Engine)
+│   ├── backend/endpoints/rvc_conversion.py    (RVC + Rescue post-processing)
+│   ├── backend/endpoints/youtube_cover.py     (YouTube Cover API)
+│   └── core/modules/
+│       ├── pipeline_manager.py                (Pipeline v2.3)
+│       ├── gpu_memory.py                      (GPU Memory Management)
+│       └── audio_processing.py               (Applio features)
+│
+├── ⚛️ Frontend (React)
+│   ├── frontend/src/App.jsx                   (main app, 8 tabs)
+│   └── frontend/src/components/              (15 JSX files)
+│       ├── AceStepTab.jsx
+│       ├── YouTubeCover.jsx
+│       └── GPUMonitor.jsx
+│
+└── 📄 Documentation
+    ├── README.md       (GitHub, English)
+    ├── CHANGELOG.md    (982 lines)
+    └── TODO.md         (roadmap)
+```
 
 ---
 

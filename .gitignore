@@ -6,6 +6,18 @@ assets/
 unused/
 
 # ======================
+# Cache Folders (DO NOT PUSH)
+# ======================
+.pip_cache/
+.minimax/
+node_modules/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# ======================
 # Qwen Files
 # ======================
 QWEN.md
@@ -34,7 +46,6 @@ TERMINAL_WRAPPERS_STATUS.md
 !GITHUB_BACKUP_GUIDE.md
 !CLEANUP_README.md
 !extension_readme.md
-!TODO.md
 
 # ======================
 # Personal Files
