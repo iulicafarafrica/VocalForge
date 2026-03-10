@@ -234,6 +234,14 @@ app.include_router(gpu_router)
 from endpoints.pipeline import router as pipeline_router
 app.include_router(pipeline_router)
 
+# Include Suno router (local only)
+from endpoints.suno import router as suno_router
+app.include_router(suno_router)
+
+# Include Suno Prompt Generator router (adapted from ER-Suno-PromptGenerator)
+from endpoints.suno_prompt import router as suno_prompt_router
+app.include_router(suno_prompt_router)
+
 @app.on_event("startup")
 async def startup_event():
     loop = asyncio.get_running_loop()
