@@ -42,7 +42,7 @@
 | **v1.9.0** | Applio Features (Autotune, Clean Audio, Volume Envelope, HPF) | 9/10 |
 | **v1.8.4** | RVC Rescue Post-Processing | 8/10 |
 | **v1.8.3** | RVC Final Mix Integration | - |
-| **v1.8.2** | YouTube Cover Generator, RVC v2 Support | - |
+| **v1.8.2** | RVC v2 Support | - |
 
 ### **🎵 Pipeline v2.3 - 4 Complete Stages**
 
@@ -479,7 +479,6 @@ D:\VocalForge\
 │   ├── backend/main.py                        (2587 lines - MAIN SERVER)
 │   ├── backend/endpoints/audio_analysis.py    (Audio Understanding Engine)
 │   ├── backend/endpoints/rvc_conversion.py    (RVC + Rescue post-processing)
-│   ├── backend/endpoints/youtube_cover.py     (YouTube Cover API)
 │   └── core/modules/
 │       ├── pipeline_manager.py                (Pipeline v2.3)
 │       ├── gpu_memory.py                      (GPU Memory Management)
