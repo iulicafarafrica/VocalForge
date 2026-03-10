@@ -625,13 +625,22 @@ export default function AceStepTab({
   const [seedSaveInput, setSeedSaveInput] = useState(false);
 
   // ── Audio Cover (audio2audio) ──────────────────────────────────────────────
-  const [taskType, setTaskType] = useState("text2music");  // "text2music" | "audio2audio"
+  const [taskType, setTaskType] = useState("text2music");  // "text2music" | "audio2audio" | "custom"
   const [sourceAudio, setSourceAudio] = useState(null);   // File object
   const [sourceAudioUrl, setSourceAudioUrl] = useState(null);
   const [sourceStrength, setSourceStrength] = useState(0.5); // 0=ignore src, 1=copy src
   const [sourceBpm, setSourceBpm] = useState(null);
   const [sourceKey, setSourceKey] = useState(null);
   const [detectingSource, setDetectingSource] = useState(false);
+
+  // ── Custom Mode (reference audio) ─────────────────────────────────────────
+  const [customReferenceAudio, setCustomReferenceAudio] = useState(null);
+  const [customReferenceUrl, setCustomReferenceUrl] = useState(null);
+  const [customRefStrength, setCustomRefStrength] = useState(0.7); // 0.0-1.0
+  const [customTags, setCustomTags] = useState("");
+  const [detectingCustom, setDetectingCustom] = useState(false);
+  const [customBpm, setCustomBpm] = useState(null);
+  const [customKey, setCustomKey] = useState(null);
 
   // ── Extra generation params ────────────────────────────────────────────────
   const [negativePrompt, setNegativePrompt] = useState("");
@@ -789,8 +798,14 @@ export default function AceStepTab({
   const wordCount = lyrics.trim() ? lyrics.trim().split(/\s+/).length : 0;
 
   const handleGenerate = async () => {
-    if (!prompt.trim()) { addLog("[ERR] Enter a music prompt"); return; }
+    if (!prompt.trim() && taskType !== "custom") { addLog("[ERR] Enter a music prompt"); return; }
     if (!aceOnline) { addLog("[ERR] ACE-Step API is offline. Run start_acestep.bat first."); return; }
+    
+    // Custom mode validation
+    if (taskType === "custom") {
+      if (!customReferenceAudio) { addLog("[ERR] Upload reference audio for Custom mode"); return; }
+      if (!customTags.trim() && !prompt.trim()) { addLog("[ERR] Enter tags or prompt for Custom mode"); return; }
+    }
 
     setProcessing(true);
     setProgress(5);
@@ -844,6 +859,22 @@ export default function AceStepTab({
     if (taskType === "audio2audio" && sourceAudio) {
       fd.append("source_audio", sourceAudio);
       fd.append("source_audio_strength", sourceStrength);
+    }
+    // Custom mode (reference audio)
+    if (taskType === "custom" && customReferenceAudio) {
+      fd.append("mode", "custom");
+      fd.append("audio_prompt", customReferenceAudio);
+      fd.append("ref_audio_strength", customRefStrength);
+      if (customTags) {
+        fd.append("tags", customTags);
+      }
+      // Auto-detect BPM/Key from reference and send if available
+      if (customBpm && customBpm > 0) {
+        fd.append("bpm", customBpm);
+      }
+      if (customKey && customKey.trim()) {
+        fd.append("key_scale", customKey);
+      }
     }
 
     // Advanced ACE-Step parameters
@@ -1150,13 +1181,14 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
 
           </div>
 
-          {/* ── Task Type: text2music vs audio2audio ── */}
+          {/* ── Task Type: text2music vs audio2audio vs custom ── */}
           <div style={S.card}>
             <span style={S.label}>🎯 Task Type</span>
-            <div style={{ display: "flex", gap: 8, marginBottom: taskType === "audio2audio" ? 12 : 0 }}>
+            <div style={{ display: "flex", gap: 8, marginBottom: (taskType === "audio2audio" || taskType === "custom") ? 12 : 0 }}>
               {[
                 { id: "text2music", icon: "✍️", label: "Text → Music" },
                 { id: "audio2audio", icon: "🎵", label: "Audio Cover" },
+                { id: "custom", icon: "🎨", label: "Custom" },
               ].map(t => (
                 <button key={t.id} onClick={() => setTaskType(t.id)} style={{
                   flex: 1, padding: "10px 8px", borderRadius: 8, fontSize: 12, fontWeight: 700,
@@ -1254,6 +1286,125 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                   </div>
                   <div style={{ color: "#444466", fontSize: 11, marginTop: 4 }}>
                     💡 0.5 = balanced cover · 0.8 = close to original · 0.3 = creative reinterpretation
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Custom Mode UI (reference audio) */}
+            {taskType === "custom" && (
+              <div>
+                {/* Reference audio upload */}
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{
+                    display: "block", border: "2px dashed #2a2a4a", borderRadius: 8,
+                    padding: "16px", textAlign: "center", cursor: "pointer",
+                    background: customReferenceAudio ? "#7209b711" : "#080812",
+                    borderColor: customReferenceAudio ? "#9b2de0" : "#2a2a4a",
+                  }}>
+                    <input type="file" accept="audio/*" style={{ display: "none" }}
+                      onChange={async e => {
+                        const f = e.target.files[0];
+                        if (f) {
+                          setCustomReferenceAudio(f);
+                          setCustomReferenceUrl(URL.createObjectURL(f));
+                          setCustomBpm(null);
+                          setCustomKey(null);
+                          setDetectingCustom(true);
+                          try {
+                            const bkFd = new FormData();
+                            bkFd.append("file", f, f.name);
+                            const bkRes = await fetch(`${API}/detect_bpm_key`, { method: "POST", body: bkFd });
+                            const bkData = await bkRes.json();
+                            if (bkData.bpm) { setCustomBpm(bkData.bpm); setCustomKey(bkData.key); }
+                          } catch {}
+                          setDetectingCustom(false);
+                        }
+                      }} />
+                    {customReferenceAudio ? (
+                      <div>
+                        <div style={{ color: "#c77dff", fontSize: 13, fontWeight: 700 }}>🎨 {customReferenceAudio.name}</div>
+                        <div style={{ color: "#444466", fontSize: 11 }}>{(customReferenceAudio.size / 1024 / 1024).toFixed(1)} MB</div>
+                      </div>
+                    ) : (
+                      <div>
+                        <div style={{ fontSize: 24, marginBottom: 4 }}>🎨</div>
+                        <div style={{ color: "#6666aa", fontSize: 12 }}>Drop reference audio here or click to browse</div>
+                        <div style={{ color: "#333355", fontSize: 11, marginTop: 4 }}>WAV, MP3, FLAC supported</div>
+                      </div>
+                    )}
+                  </label>
+                </div>
+
+                {customReferenceUrl && (
+                  <div style={{ marginBottom: 12 }}>
+                    <audio controls src={customReferenceUrl} style={{ width: "100%", marginBottom: 6 }} />
+                    <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                      {detectingCustom && (
+                        <span style={{ color: "#444466", fontSize: 11, fontFamily: "monospace" }}>⏳ Detecting BPM & Key...</span>
+                      )}
+                      {customBpm && (
+                        <span style={{ background: "#c77dff22", color: "#c77dff", border: "1px solid #c77dff44", borderRadius: 6, padding: "3px 10px", fontSize: 12, fontFamily: "monospace" }}>♩ {customBpm} BPM</span>
+                      )}
+                      {customKey && (
+                        <span style={{ background: "#c77dff22", color: "#c77dff", border: "1px solid #c77dff44", borderRadius: 6, padding: "3px 10px", fontSize: 12, fontFamily: "monospace" }}>🎵 {customKey}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Tags input */}
+                <div style={{ marginBottom: 12 }}>
+                  <label style={{ color: "#8888aa", fontSize: 12, display: "block", marginBottom: 4 }}>🏷️ Genre/Style Tags</label>
+                  <input type="text" value={customTags} onChange={e => setCustomTags(e.target.value)}
+                    placeholder="e.g., hip-hop, trap, 140bpm, minor key, aggressive"
+                    style={{
+                      width: "100%", padding: "10px", borderRadius: 8, border: "1px solid #2a2a4a",
+                      background: "#0a0a1a", color: "#e0e0e0", fontSize: 13,
+                    }} />
+                </div>
+
+                {/* Reference strength slider */}
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                    <span style={{ color: "#8888aa", fontSize: 12 }}>💪 Reference Audio Strength</span>
+                    <span style={{ color: "#c77dff", fontSize: 12, fontFamily: "monospace", fontWeight: 700 }}>{customRefStrength.toFixed(2)}</span>
+                  </div>
+                  <input type="range" min={0} max={1} step={0.05} value={customRefStrength}
+                    onChange={e => setCustomRefStrength(Number(e.target.value))}
+                    style={{ width: "100%", accentColor: "#9b2de0" }} />
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
+                    <span style={{ color: "#333355", fontSize: 10 }}>0 = ignore reference</span>
+                    <span style={{ color: "#333355", fontSize: 10 }}>1 = strict adherence</span>
+                  </div>
+                  <div style={{ color: "#444466", fontSize: 11, marginTop: 4 }}>
+                    💡 0.7 = balanced (recommended) · 0.5 = creative freedom · 0.9 = strict structure match
+                  </div>
+                </div>
+
+                {/* Info box */}
+                <div style={{
+                  background: "#7209b711", border: "1px solid #9b2de044", borderRadius: 8,
+                  padding: "12px", marginBottom: 8,
+                }}>
+                  <div style={{ color: "#c77dff", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>🎨 How Custom Mode Works:</div>
+                  <div style={{ color: "#8888aa", fontSize: 11, lineHeight: 1.5 }}>
+                    1. Upload a reference audio (demo, sketch, or any track)<br/>
+                    2. ACE-Step extracts rhythm, tempo, and structure<br/>
+                    3. Enter tags/prompt for the NEW music style you want<br/>
+                    4. Generate a completely NEW track following the reference's feel
+                  </div>
+                </div>
+
+                {/* Difference from Audio Cover */}
+                <div style={{
+                  background: "#06d6a011", border: "1px solid #06d6a044", borderRadius: 8,
+                  padding: "12px", marginBottom: 8,
+                }}>
+                  <div style={{ color: "#06d6a0", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>🆚 Custom vs Audio Cover:</div>
+                  <div style={{ color: "#8888aa", fontSize: 11, lineHeight: 1.5 }}>
+                    <strong>Custom:</strong> NEW composition with reference's rhythm/structure<br/>
+                    <strong>Audio Cover:</strong> SAME song transformed to different style
                   </div>
                 </div>
               </div>
