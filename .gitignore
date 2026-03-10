@@ -26,7 +26,6 @@ TERMINAL_WRAPPERS_STATUS.md
 
 # All Qwen-related .md files (except project documentation)
 *.md
-!CHANGELOG.md
 !CONTRIBUTING.md
 !LICENSE.md
 !GPU_MEMORY_README.md
