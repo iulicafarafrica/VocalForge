@@ -24,11 +24,9 @@ SKILL_*.md
 FILE_CREATION_GUIDE.md
 TERMINAL_WRAPPERS_STATUS.md
 
-# All Qwen-related .md files (except README.md and project docs)
+# All Qwen-related .md files (except project documentation)
 *.md
-!README.md
 !CHANGELOG.md
-!QUICKSTART.md
 !CONTRIBUTING.md
 !LICENSE.md
 !GPU_MEMORY_README.md
