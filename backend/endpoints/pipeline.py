@@ -30,8 +30,6 @@ async def start_pipeline(
     rvc_model: str = Form(...),
     rvc_pitch: int = Form(0),
     rvc_protect: float = Form(0.33),
-    ace_strength: float = Form(0.4),
-    ace_steps: int = Form(24),
 ):
     """
     Porneste pipeline-ul complet.
@@ -45,14 +43,12 @@ async def start_pipeline(
         content = await file.read()
         await f.write(content)
 
-    # Creeaza job
+    # Creeaza job (fara ace_strength/ace_steps - nu mai e nevoie pentru Stage 3 simplu)
     job = create_job(
         input_path=input_path,
         rvc_model=rvc_model,
         rvc_pitch=rvc_pitch,
         rvc_protect=rvc_protect,
-        ace_strength=ace_strength,
-        ace_steps=ace_steps,
     )
 
     # Porneste pipeline in background
@@ -143,7 +139,7 @@ async def stream_progress(job_id: str):
 async def download_file(job_id: str, file_type: str):
     """
     Descarca un fisier din pipeline.
-    file_type: vocals | instrumental | rvc_raw | final
+    file_type: vocals | instrumental | rvc_raw | final | final_mix
     """
     job = get_job(job_id)
     if not job:
@@ -154,6 +150,7 @@ async def download_file(job_id: str, file_type: str):
         "instrumental": job.instrumental_path,
         "rvc_raw": job.rvc_output_path,
         "final": job.final_output_path,
+        "final_mix": job.final_mix_path,  # NEW: Mix Final (Vocal + Instrumental)
     }
 
     path = path_map.get(file_type)

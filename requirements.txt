@@ -91,3 +91,4 @@ torch>=2.1.0
 # python -c "import librosa; print(f'Librosa: {librosa.__version__}')"
 # python -c "import fastapi; print(f'FastAPI: {fastapi.__version__}')"
 # python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
+python-dotenv 

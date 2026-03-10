@@ -56,15 +56,16 @@ def apply_rvc_rescue_post_processing(input_path, output_path):
     Chain: EQ → Compressor → Reverb → Limiter → Loudness
     """
     
-    # Simplified filter chain - test each component
+    # RVC Rescue Post-Processing - NO REVERB (dry vocal)
+    # EQ: Cut harsh frequencies gently, boost warmth
+    # Compressor: Smooth dynamics without squashing
+    # NO REVERB - clean, dry vocal
     filter_chain = (
         "highpass=f=80,"
-        "equalizer=f=2500:width_type=q:width=1.5:g=-2.5,"
-        "equalizer=f=4000:width_type=q:width=1:g=-1.5,"
-        "equalizer=f=120:width_type=q:width=1.5:g=2,"
-        "acompressor=threshold=-16dB:ratio=2:attack=20:release=80:makeup=3,"
-        "aecho=0.3:0.4:50:0.15,"
-        "aecho=0.2:0.3:120:0.1,"
+        "equalizer=f=2000:width_type=q:width=2:g=-1.5,"   # Gentle cut at 2kHz (harshness)
+        "equalizer=f=3000:width_type=q:width=1.5:g=-1,"   # Gentle cut at 3kHz (sibilance)
+        "equalizer=f=150:width_type=q:width=2:g=2,"       # Boost warmth at 150Hz
+        "acompressor=threshold=-18dB:ratio=2.5:attack=25:release=100:makeup=4,"
         "alimiter=limit=-1dB:attack=10:release=80,"
         "loudnorm=I=-14:TP=-1:LRA=11"
     )

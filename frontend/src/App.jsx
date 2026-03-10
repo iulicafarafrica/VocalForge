@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { BookOpen, Sliders, Sparkles, Layers, FolderOpen, Monitor, FileText, Music2, Mic2 } from "lucide-react";
+import { BookOpen, Sliders, Sparkles, Layers, FolderOpen, Monitor, FileText, Music2, Mic2, Activity } from "lucide-react";
 import "./index.css";
 import ModelsTab from "./components/ModelsTab";
 import NotesTab from "./components/NotesTab";
@@ -9,7 +9,9 @@ import AceStepTab from "./components/AceStepTab";
 import RepaintLegoComplete from "./components/RepaintLegoComplete";
 import ReadmeTab from "./components/ReadmeTab";
 import RVCConversion from "./components/RVCConversion";
-import GPUMonitorTab from "./components/GPUMonitorTab";
+import AudioAnalysisTab from "./components/AudioAnalysisTab";
+// PipelineTab import removed - tab disabled but code kept for future use
+// import PipelineTab from "./components/PipelineTab";
 
 const API = "http://localhost:8000";
 
@@ -17,12 +19,13 @@ const TABS = [
   { id: "Readme",  Icon: BookOpen,   label: "ReadMe", color: "#00e5ff" },
   { id: "Demucs",  Icon: Sliders,    label: "Stem Separation", color: "#00e5ff" },
   { id: "ACEStep", Icon: Music2,     label: "ACE-Step", color: "#ff6b9d" },
-  { id: "RVC", Icon: Mic2, label: "RVC Voice Conversion", color: "#ff6b9d" },
-  { id: "ACEAdvanced", Icon: Layers, label: "Repaint/Lego/Complete", color: "#00b4d8" },
+  { id: "RVC", Icon: Mic2, label: "Voice Mix RVC", color: "#ff6b9d" },
+  // { id: "Pipeline", Icon: Zap, label: "Vocal Pipeline", color: "#a855f7" }, // Disabled but kept for future
+  { id: "ACEAdvanced", Icon: Layers, label: "Repaint", color: "#00b4d8" },
+  { id: "AudioAnalysis", Icon: Activity, label: "Audio Analysis", color: "#f59e0b" },
   { id: "Tracks",  Icon: FolderOpen, label: "Tracks", color: "#ffd166" },
-  { id: "Models",  Icon: Monitor,    label: "Models", color: "#e63946" },
+  { id: "Models",  Icon: Monitor,    label: "Models & GPU", color: "#e63946" },
   { id: "Notes",   Icon: FileText,   label: "Notes", color: "#06d6a0" },
-  { id: "GPU",     Icon: Monitor,    label: "GPU Monitor", color: "#10b981" },
 ];
 
 export default function App() {
@@ -217,8 +220,18 @@ export default function App() {
           <RVCConversion addLog={addLog} tracks={tracks} setTracks={setTracks} />
         </div>
 
+        {/* Pipeline Tab disabled but kept for future use
+        <div style={{ display: tab === "Pipeline" ? "block" : "none" }}>
+          <PipelineTab addLog={addLog} />
+        </div>
+        */}
+
         <div style={{ display: tab === "ACEAdvanced" ? "block" : "none" }}>
           <RepaintLegoComplete />
+        </div>
+
+        <div style={{ display: tab === "AudioAnalysis" ? "block" : "none" }}>
+          <AudioAnalysisTab addLog={addLog} />
         </div>
 
         <div style={{ display: tab === "Tracks" ? "block" : "none" }}>
@@ -231,10 +244,6 @@ export default function App() {
 
         <div style={{ display: tab === "Notes" ? "block" : "none" }}>
           <NotesTab />
-        </div>
-
-        <div style={{ display: tab === "GPU" ? "block" : "none" }}>
-          <GPUMonitorTab />
         </div>
 
       </main>

@@ -3,9 +3,10 @@ import React, { useState, useRef, useEffect } from 'react';
 const API = 'http://localhost:8000';
 
 const STAGES = [
-  { key: 'stage1_separation', label: 'Stage 1', desc: 'BS RoFormer — Separare vocala', icon: '🎵', color: '#6366f1' },
+  { key: 'stage1_separation', label: 'Stage 1', desc: 'BS-RoFormer — Separare vocala', icon: '🎵', color: '#6366f1' },
   { key: 'stage2_rvc',        label: 'Stage 2', desc: 'RVC — Voice Conversion',       icon: '🎤', color: '#8b5cf6' },
-  { key: 'stage3_refinement', label: 'Stage 3', desc: 'ACE-Step — Refinement',         icon: '✨', color: '#a855f7' },
+  { key: 'stage3_clarify',    label: 'Stage 3', desc: 'Clarificare — BS-RoFormer + FFmpeg', icon: '✨', color: '#a855f7' },
+  { key: 'stage4_mix',        label: 'Stage 4', desc: 'Mix Final — Vocal + Instrumental', icon: '🎚️', color: '#ec4899' },
 ];
 
 const STATUS_COLOR = {
@@ -27,9 +28,16 @@ export default function PipelineTab() {
   const [models, setModels]       = useState([]);
   const [rvcModel, setRvcModel]   = useState('');
   const [rvcPitch, setRvcPitch]   = useState(0);
-  const [rvcProtect, setRvcProtect] = useState(0.33);
-  const [aceStrength, setAceStrength] = useState(0.4);
-  const [aceSteps, setAceSteps]   = useState(24);
+  const [rvcProtect, setRvcProtect] = useState(0.55); // Optimized for singing
+  
+  // Applio Features (Stage 2)
+  const [enableAutotune, setEnableAutotune] = useState(true);
+  const [autotuneStrength, setAutotuneStrength] = useState(0.4);
+  const [enableHighpass, setEnableHighpass] = useState(true);
+  const [enableVolumeEnvelope, setEnableVolumeEnvelope] = useState(true);
+  
+  // Stage 3 Clarification (optional)
+  const [enableStage3, setEnableStage3] = useState(false); // Default OFF (like RVC Tab)
   const [jobId, setJobId]         = useState(null);
   const [progress, setProgress]   = useState(0);
   const [stages, setStages]       = useState({});
@@ -66,7 +74,8 @@ export default function PipelineTab() {
       setStages({
         stage1_separation: data.stage1,
         stage2_rvc:        data.stage2,
-        stage3_refinement: data.stage3,
+        stage3_clarify:    data.stage3,
+        stage4_mix:        data.stage4,
       });
       if (data.error) {
         setError(data.error);
@@ -106,8 +115,15 @@ export default function PipelineTab() {
     form.append('rvc_model', rvcModel);
     form.append('rvc_pitch', rvcPitch);
     form.append('rvc_protect', rvcProtect);
-    form.append('ace_strength', aceStrength);
-    form.append('ace_steps', aceSteps);
+    
+    // Applio Features (Stage 2)
+    form.append('enable_autotune', enableAutotune);
+    form.append('autotune_strength', autotuneStrength);
+    form.append('enable_highpass', enableHighpass);
+    form.append('enable_volume_envelope', enableVolumeEnvelope);
+    
+    // Stage 3 Clarification (optional)
+    form.append('enable_stage3', enableStage3);
 
     try {
       const res = await fetch(`${API}/pipeline/run`, { method: 'POST', body: form });
@@ -223,22 +239,8 @@ export default function PipelineTab() {
                 label: 'RVC Protect', val: rvcProtect, set: setRvcProtect, min: 0, max: 0.5, step: 0.01,
                 display: rvcProtect,
                 desc: 'Protects voiceless consonants (s, t, f) from voice conversion.',
-                example: '0.33 = recommended  ·  0 = convert all  ·  0.5 = max protection',
+                example: '0.55 = recommended for singing  ·  0.33 = default',
                 color: '#8b5cf6',
-              },
-              {
-                label: 'ACE Strength', val: aceStrength, set: setAceStrength, min: 0.1, max: 0.9, step: 0.05,
-                display: aceStrength,
-                desc: 'How strongly ACE-Step refines the audio. Lower = closer to RVC output.',
-                example: '0.3 = subtle cleanup  ·  0.5 = balanced  ·  0.8 = heavy regen',
-                color: '#a855f7',
-              },
-              {
-                label: 'ACE Steps', val: aceSteps, set: setAceSteps, min: 8, max: 50, step: 4,
-                display: `${aceSteps} steps`,
-                desc: 'Number of diffusion steps. More steps = better quality but slower.',
-                example: '8 = fast/turbo  ·  24 = recommended  ·  50 = max quality',
-                color: '#a855f7',
               },
             ].map(({ label, val, set, min, max, step, display, desc, example, color }) => (
               <div key={label} style={{ background: '#0d1117', borderRadius: '8px', padding: '12px', border: '1px solid #1f2937' }}>
@@ -253,6 +255,53 @@ export default function PipelineTab() {
                   style={{ width: '100%', accentColor: color }} />
               </div>
             ))}
+          </div>
+
+          {/* Applio Features & Stage 3 Toggle */}
+          <div style={{ marginTop: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            {/* Applio Features */}
+            <div style={{ background: '#0d1117', borderRadius: '8px', padding: '12px', border: '1px solid #1f2937' }}>
+              <h4 style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '10px', fontWeight: 'bold' }}>
+                🎛️ Applio Features (Stage 2)
+              </h4>
+              <label style={{ display: 'flex', alignItems: 'center', fontSize: '11px', color: '#e5e7eb', marginBottom: '8px' }}>
+                <input type="checkbox" checked={enableAutotune} onChange={e => setEnableAutotune(e.target.checked)}
+                  style={{ marginRight: '8px', accentColor: '#6366f1' }} />
+                🎵 Autotune (recommended for singing)
+              </label>
+              {enableAutotune && (
+                <input type="range" min="0" max="1" step="0.1" value={autotuneStrength}
+                  onChange={e => setAutotuneStrength(Number(e.target.value))}
+                  style={{ width: '100%', accentColor: '#6366f1', marginBottom: '8px' }} />
+              )}
+              <label style={{ display: 'flex', alignItems: 'center', fontSize: '11px', color: '#e5e7eb', marginBottom: '8px' }}>
+                <input type="checkbox" checked={enableHighpass} onChange={e => setEnableHighpass(e.target.checked)}
+                  style={{ marginRight: '8px', accentColor: '#6366f1' }} />
+                🔊 High-Pass Filter (48Hz)
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', fontSize: '11px', color: '#e5e7eb' }}>
+                <input type="checkbox" checked={enableVolumeEnvelope} onChange={e => setEnableVolumeEnvelope(e.target.checked)}
+                  style={{ marginRight: '8px', accentColor: '#6366f1' }} />
+                📊 Volume Envelope (RMS matching)
+              </label>
+            </div>
+
+            {/* Stage 3 Toggle */}
+            <div style={{ background: '#0d1117', borderRadius: '8px', padding: '12px', border: '1px solid #1f2937' }}>
+              <h4 style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '10px', fontWeight: 'bold' }}>
+                ✨ Stage 3 Clarification
+              </h4>
+              <label style={{ display: 'flex', alignItems: 'center', fontSize: '11px', color: '#e5e7eb', marginBottom: '8px' }}>
+                <input type="checkbox" checked={enableStage3} onChange={e => setEnableStage3(e.target.checked)}
+                  style={{ marginRight: '8px', accentColor: '#a855f7' }} />
+                Enable Stage 3 (+30s)
+              </label>
+              <p style={{ fontSize: '10px', color: '#6b7280', margin: 0, lineHeight: 1.4 }}>
+                Re-extract vocals + FFmpeg filters to reduce RVC artifacts.
+                <br />
+                <strong style={{ color: '#f59e0b' }}>Recommended: OFF</strong> (use RVC Tab for better quality)
+              </p>
+            </div>
           </div>
         </div>
       )}
@@ -292,8 +341,9 @@ export default function PipelineTab() {
             {[
               { key: 'vocals',       label: '🎵 Vocals (separat)',        color: '#6366f1' },
               { key: 'instrumental', label: '🎸 Instrumental',            color: '#6366f1' },
-              { key: 'rvc_raw',      label: '🎤 RVC Raw (nerafinat)',     color: '#8b5cf6' },
-              { key: 'final',        label: '✨ Final Rafinat (ACE-Step)', color: '#10b981' },
+              { key: 'rvc_raw',      label: '🎤 RVC Raw',                 color: '#8b5cf6' },
+              { key: 'final',        label: '✨ Vocal Clarificat',        color: '#10b981' },
+              { key: 'final_mix',    label: '🎚️ Mix Final (Vocal+Inst)', color: '#ec4899' },
             ].map(({ key, label, color }) => (
               <a key={key} href={`${API}/pipeline/download/${jobId}/${key}`}
                 style={{ display: 'block', padding: '12px 16px', background: '#1f2937',

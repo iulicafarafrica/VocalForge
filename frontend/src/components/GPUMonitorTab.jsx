@@ -40,7 +40,7 @@ const GPUMonitorTab = () => {
   return (
     <div style={{padding:'24px',maxWidth:'800px',margin:'0 auto'}}>
       <h2 style={{marginBottom:'24px',color:'white',fontSize:'24px'}}>🎮 GPU Monitor (RTX 3070)</h2>
-      
+
       <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:'16px',marginBottom:'24px'}}>
         <div style={{background:'#1a1a2e',padding:'20px',borderRadius:'12px'}}>
           <div style={{color:'#888',fontSize:'12px',marginBottom:'8px'}}>Total VRAM</div>

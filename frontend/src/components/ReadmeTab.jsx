@@ -110,7 +110,7 @@ const features = [
     items: [
       "Text→Music: generate track from style description + lyrics",
       "Audio Cover: transform an existing track into another style",
-      "Repaint: regenerate sections of a track",
+      "Repaint: regenerate sections of a track (30-60s sections)",
       "Advanced params: CFG scale, diffusion steps, seed, shift",
       "LM controls: temperature, top-k, top-p, CFG scale LM",
       "BPM, Key, Time Signature optional in prompt",
@@ -122,16 +122,18 @@ const features = [
   },
   {
     Icon: Mic2, color: "#06d6a0", bg: "#06d6a015",
-    title: "Voice Cover (SVC)", sub: "so-vits-svc 4.1",
+    title: "Voice Mix RVC", sub: "RVC v2 + Applio Features",
     items: [
-      "Vocal conversion with so-vits-svc 4.1",
-      "Pitch shift ±24 semitone",
-      "F0 predictors: pm, harvest, crepe, rmvpe",
-      "Noise scale, cluster ratio, slice dB configurable",
-      "Vocal gain + instrumental gain independent",
-      "Job tracking with SSE progress stream",
-      "10s quick preview before full processing",
-      "Segment streaming for long tracks (1-5 min/segment)",
+      "⚡ Auto Pipeline: Upload full song → Separate → RVC → Mix",
+      "🎚️ Final Mix: Mix converted vocals with instrumental",
+      "🎛️ Applio Features: Autotune, Clean Audio, Volume Envelope, High-Pass",
+      "RVC v2 models support (768-dim, 48kHz, RMVPE++)",
+      "Pitch shift ±12 semitones",
+      "F0 methods: rmvpe, harvest, pm, crepe",
+      "Index rate 0.0-1.0, Protect 0.0-0.5",
+      "20+ pre-loaded RVC models",
+      "💾 Presets: Save/load all RVC settings",
+      "RVC Rescue Post-Processing: EQ, Reverb, Compression for singing",
     ],
   },
   {
@@ -148,7 +150,7 @@ const features = [
   },
   {
     Icon: Monitor, color: "#e63946", bg: "#e6394615",
-    title: "Models Manager", sub: "so-vits-svc models",
+    title: "Models Manager", sub: "so-vits-svc + RVC models",
     items: [
       "Upload model .pth + config.json",
       "List available models with size",
@@ -156,6 +158,19 @@ const features = [
       "Auto-detect speakers from config.json",
       "Model cache in memory for fast conversions",
       "Support pre-existing models without meta.json",
+      "RVC v1/v2 auto-detection",
+    ],
+  },
+  {
+    Icon: Activity, color: "#f59e0b", bg: "#f59e0b15",
+    title: "Audio Analysis", sub: "BPM, Key, Time Signature",
+    items: [
+      "Auto-detect BPM (librosa.beat.beat_track)",
+      "Key detection (Krumhansl-Schmuckler profiles)",
+      "Time signature detection",
+      "Duration detection",
+      "6 API endpoints for audio analysis",
+      "Integration with ACE-Step generation",
     ],
   },
   {
@@ -167,11 +182,84 @@ const features = [
       "Persists between sessions",
     ],
   },
+  {
+    Icon: Zap, color: "#9b5de5", bg: "#9b5de515",
+    title: "Repaint", sub: "ACE-Step Advanced",
+    items: [
+      "Select a portion (e.g., 30-60s) and regenerate",
+      "Change lyrics, add bridge, modify endings",
+      "Audio Cover Strength control (0.0-1.0)",
+      "All models support Repaint (turbo, base, sft)",
+      "Fast generation with turbo models (8 steps)",
+      "Full quality with base/sft (50 steps)",
+    ],
+  },
 ];
 
 const changelog = [
   {
-    ver: "v1.8", date: "March 2026", type: "current",
+    ver: "v2.0.0", date: "March 2026", type: "current",
+    changes: [
+      { type: "new", text: "🎵 Pipeline v2.3 - 4 Stage-uri: Separare → RVC → Clarificare → Mix Final" },
+      { type: "new", text: "🎛️ Applio Features Integration: Autotune (snap F0), Clean Audio, Volume Envelope, High-Pass Filter" },
+      { type: "new", text: "🎚️ Mix Final cu volume boost: Vocal 1.2x (+1.6dB), Instrumental 1.0x (0dB)" },
+      { type: "new", text: "🔊 Loudness comercial: -10 LUFS (ca Spotify/YouTube), nu -16 LUFS" },
+      { type: "new", text: "✨ Stage 3 Clarificare: Fără lowpass/afftdn (prea agresive), doar highpass + deesser + loudnorm" },
+      { type: "new", text: "🎤 RVC optimizat pentru SINGING: harvest f0_method, 0.40 index_rate, 0.55 protect" },
+      { type: "imp", text: "5 download outputs: Vocals, Instrumental, RVC Raw, Vocal Clarificat, Mix Final" },
+      { type: "imp", text: "Stage 3 opțional (default OFF) - ca RVC Tab să fie mai bun" },
+    ],
+  },
+  {
+    ver: "v1.9.0", date: "March 2026", type: "old",
+    changes: [
+      { type: "new", text: "🎛️ Applio Features: Autotune (0.0-1.0), Clean Audio (speech only), Volume Envelope (RMS matching), High-Pass (48Hz)" },
+      { type: "new", text: "🎤 RVC Rescue Post-Processing: EQ (-2.5kHz/-5kHz), Reverb (50ms+120ms), Compression (3:1), Limiter" },
+      { type: "new", text: "🎯 Default params pentru SINGING: harvest, 0.40 index, 0.55 protect (nu speech params)" },
+      { type: "imp", text: "Quality: singing 9/10, speech 9/10 (față de 8/10 înainte)" },
+      { type: "imp", text: "RVC v2 support: 768-dim, 48kHz, RMVPE++ F0 extraction" },
+    ],
+  },
+  {
+    ver: "v1.8.4", date: "March 2026", type: "old",
+    changes: [
+      { type: "new", text: "🎚️ RVC Rescue Post-Processing: repară daunele RVC, adaugă reverb pentru spațiu muzical" },
+      { type: "new", text: "EQ: Cut harsh 2.5kHz (-6dB), restore warmth 150Hz (+3dB)" },
+      { type: "new", text: "Compressor: Smooth dynamics (3:1 ratio), Reverb: 50ms + 120ms echoes" },
+      { type: "imp", text: "Quality: 5/10 → 8/10 (+60%) după RVC Rescue" },
+      { type: "fix", text: "RVC e antrenat pe SPEECH, nu pe SINGING - RVC Rescue îmbunătățește dar nu poate restaura complet" },
+    ],
+  },
+  {
+    ver: "v1.8.3", date: "March 2026", type: "old",
+    changes: [
+      { type: "new", text: "🔗 RVC Final Mix Integration - Auto Pipeline → Final Mix workflow" },
+      { type: "new", text: "💾 Auto Pipeline salvează instrumental, buton 'Go to Final Mix'" },
+      { type: "new", text: "🎚️ Final Mix tab: auto-load converted vocals + instrumental, independent volume control (0.1x-2.0x)" },
+      { type: "imp", text: "Instrumental saved as 320kbps MP3, 48kHz sample rate" },
+      { type: "fix", text: "Final Mix tab showing 'First run Auto Pipeline' even after completion" },
+    ],
+  },
+  {
+    ver: "v1.8.2", date: "March 2026", type: "old",
+    changes: [
+      { type: "new", text: "📺 YouTube Cover Generator - Download audio from YouTube, auto-separate, RVC, mix" },
+      { type: "new", text: "🎤 RVC v2 Support - Auto-detect v1/v2, 768-dim, 48kHz, RMVPE++" },
+      { type: "new", text: "✨ Enhanced Pipeline - MelBand cleanup, De-reverb, Denoise, Normalize (FFmpeg loudnorm)" },
+      { type: "imp", text: "RVC Scripts: pipeline_loader.py, inference_rvc_v2.py, run_pipeline_v2.py" },
+      { type: "fix", text: "RVC Separation Endpoint - model_bs_roformer parameter name" },
+    ],
+  },
+  {
+    ver: "v1.8.1", date: "March 2026", type: "old",
+    changes: [
+      { type: "fix", text: "RVC Separation Endpoint - model_bs_roformer_ep_317_sdr_12.9755.ckpt" },
+      { type: "fix", text: "Stem Separation - BS-RoFormer now working correctly" },
+      { type: "imp", text: "Auto-download model on first use (~300MB)" },
+    ],
+  },
+  {
+    ver: "v1.8", date: "March 2026", type: "old",
     changes: [
       { type: "new", text: "✂️ Separate Tab — Upload full song, auto-separate vocals + instrumental with Demucs, one-click 'Use Vocals in Convert'" },
       { type: "new", text: "🎚️ Mix Tab — Mix converted vocal with instrumental, independent volume control, real-time preview, export final mix" },
@@ -327,14 +415,14 @@ export default function ReadmeTab() {
       <div style={s.hero}>
         <div style={s.heroTitle}>VocalForge</div>
         <div style={s.heroSub}>AI Audio Studio — Documentation & Features</div>
-        <div style={s.version}>v1.8 · Beta Ready · Windows 10 · CUDA</div>
+        <div style={s.version}>v2.0.0 · Pipeline v2.3 · Beta Ready · Windows 10 · CUDA</div>
         <div style={{ marginTop: 20, display: "flex", justifyContent: "center", gap: 28, flexWrap: "wrap" }}>
           {[
             { Icon: Sliders,   label: "Stem Separation", color: "#00e5ff" },
             { Icon: Sparkles,  label: "AI Music Gen",    color: "#7209b7" },
-            { Icon: Mic2,      label: "Voice Cover",     color: "#06d6a0" },
-            { Icon: BookOpen,  label: "Lyrics Cover",    color: "#ffd166" },
-            { Icon: FileText,  label: "Notes",           color: "#e63946" },
+            { Icon: Mic2,      label: "Voice Mix RVC",   color: "#06d6a0" },
+            { Icon: Zap,       label: "Repaint",         color: "#9b5de5" },
+            { Icon: Activity,  label: "Audio Analysis",  color: "#f59e0b" },
           ].map(({ Icon, label, color }) => (
             <div key={label} style={{ display: "flex", alignItems: "center", gap: 6, color, fontSize: 13 }}>
               <Icon size={16} />

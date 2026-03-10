@@ -1,6 +1,6 @@
 /**
- * Repaint / Lego / Complete Tab
- * ACE-Step Advanced Features - UI aligned with VocalForge theme
+ * Repaint Tab - ACE-Step Advanced Feature
+ * Simplified version - only Repaint (Lego and Complete removed)
  */
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -38,10 +38,8 @@ const inputStyle = {
 };
 
 export default function RepaintLegoComplete() {
-  const [mode, setMode] = useState('repaint');
   const [file, setFile] = useState(null);
   const [prompt, setPrompt] = useState('');
-  const [instruction, setInstruction] = useState('');
   const [guidanceScale, setGuidanceScale] = useState(9.0);
   const [seed, setSeed] = useState(-1);
   const [inferSteps, setInferSteps] = useState(12);
@@ -50,7 +48,7 @@ export default function RepaintLegoComplete() {
 
   // Default DIT Model (no UI selection)
   const ditModel = 'acestep-v15-turbo';
-  
+
   const [audioCoverStrength, setAudioCoverStrength] = useState(1.0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState(null);
@@ -81,41 +79,34 @@ export default function RepaintLegoComplete() {
     setError(null);
     setResult(null);
     setProgress('Uploading file...');
-    
+
     // Log generation parameters
     const modelName = ditModel.replace('acestep-v15-', '').toUpperCase();
     const steps = ditModel.includes('turbo') ? '8' : '50';
-    console.log(`[Repaint/Lego/Complete] === ${mode.toUpperCase()} START ===`);
-    console.log(`[Repaint/Lego/Complete] Model: ${ditModel} (${modelName}) | Steps: ${steps}`);
-    console.log(`[Repaint/Lego/Complete] Mode: ${mode.toUpperCase()} | Prompt: "${prompt.slice(0, 50)}..."`);
-    console.log(`[Repaint/Lego/Complete] Instruction: "${instruction.slice(0, 50)}..."`);
-    console.log(`[Repaint/Lego/Complete] ===============================`);
+    console.log(`[Repaint] === START ===`);
+    console.log(`[Repaint] Model: ${ditModel} (${modelName}) | Steps: ${steps}`);
+    console.log(`[Repaint] Prompt: "${prompt.slice(0, 50)}..."`);
+    console.log(`[Repaint] ===============================`);
 
     const formData = new FormData();
     formData.append('file', file);
     formData.append('prompt', prompt);
-    formData.append('instruction', instruction);
     formData.append('guidance_scale', guidanceScale);
     formData.append('seed', seed);
     formData.append('infer_steps', inferSteps);
     formData.append('key_scale', keyScale);
     formData.append('audio_format', audioFormat);
     formData.append('dit_model', ditModel);
-
-    if (mode === 'repaint') {
-      formData.append('start_time', startTime);
-      formData.append('end_time', endTime);
-      formData.append('lyrics', lyrics);
-      formData.append('audio_cover_strength', audioCoverStrength);
-    } else if (mode === 'lego') {
-      // instruction is already appended above
-    } else if (mode === 'complete') {
-      // instruction is already appended above
-    }
+    
+    // Repaint specific parameters
+    formData.append('start_time', startTime);
+    formData.append('end_time', endTime);
+    formData.append('lyrics', lyrics);
+    formData.append('audio_cover_strength', audioCoverStrength);
 
     try {
-      const endpoint = mode === 'repaint' ? '/acestep/repaint' : mode === 'lego' ? '/acestep/lego' : '/acestep/complete';
-      setProgress(`Processing ${mode}...`);
+      const endpoint = '/acestep/repaint';
+      setProgress(`Processing repaint...`);
 
       const response = await fetch(`${API_BASE}${endpoint}`, { method: 'POST', body: formData });
       let data = {};
@@ -136,46 +127,18 @@ export default function RepaintLegoComplete() {
     }
   };
 
-  const modeConfig = {
-    repaint: {
-      label: 'Repaint',
-      icon: '🖌️',
-      color: '#9b5de5',
-      desc: 'Select a portion of the track (e.g. seconds 30–60) and regenerate it.\nUseful to fix a section that doesn\'t sound right without regenerating everything.\nYou can change lyrics, add a bridge, modify endings.\nAll models support Repaint.',
-      modelSupport: {
-        'acestep-v15-turbo': { supported: true, note: '✅ Fast (8 steps)' },
-        'acestep-v15-turbo-shift3': { supported: true, note: '✅ Fast (8 steps)' },
-        'acestep-v15-base': { supported: true, note: '✅ Full support + CFG (50 steps)' },
-        'acestep-v15-sft': { supported: true, note: '✅ High quality + CFG (50 steps)' },
-      },
-    },
-    lego: {
-      label: 'Lego',
-      icon: '🧱',
-      color: '#f9c74f',
-      desc: 'Add or regenerate specific instruments in a track.\nUse the instruction field to describe what track/instrument to add.\nThe rest of the audio stays unchanged.\n⚠️ ONLY Base model supports Lego!',
-      modelSupport: {
-        'acestep-v15-turbo': { supported: false, note: '❌ Not supported' },
-        'acestep-v15-turbo-shift3': { supported: false, note: '❌ Not supported' },
-        'acestep-v15-base': { supported: true, note: '✅ ONLY Base model supports Lego' },
-        'acestep-v15-sft': { supported: false, note: '❌ Not supported' },
-      },
-    },
-    complete: {
-      label: 'Complete',
-      icon: '🎼',
-      color: '#06d6a0',
-      desc: 'Auto-complete incomplete tracks with specified instruments.\nUse the instruction field to describe what instruments to add.\n⚠️ ONLY Base model supports Complete!',
-      modelSupport: {
-        'acestep-v15-turbo': { supported: false, note: '❌ Not supported' },
-        'acestep-v15-turbo-shift3': { supported: false, note: '❌ Not supported' },
-        'acestep-v15-base': { supported: true, note: '✅ ONLY Base model supports Complete' },
-        'acestep-v15-sft': { supported: false, note: '❌ Not supported' },
-      },
+  const repaintConfig = {
+    label: 'Repaint',
+    icon: '🖌️',
+    color: '#9b5de5',
+    desc: 'Select a portion of the track (e.g. seconds 30–60) and regenerate it.\nUseful to fix a section that doesn\'t sound right without regenerating everything.\nYou can change lyrics, add a bridge, modify endings.\nAll models support Repaint.',
+    modelSupport: {
+      'acestep-v15-turbo': { supported: true, note: '✅ Fast (8 steps)' },
+      'acestep-v15-turbo-shift3': { supported: true, note: '✅ Fast (8 steps)' },
+      'acestep-v15-base': { supported: true, note: '✅ Full support + CFG (50 steps)' },
+      'acestep-v15-sft': { supported: true, note: '✅ High quality + CFG (50 steps)' },
     },
   };
-
-  const currentMode = modeConfig[mode];
 
   return (
     <div style={{ maxWidth: 720, margin: '0 auto' }}>
@@ -190,39 +153,15 @@ export default function RepaintLegoComplete() {
           WebkitTextFillColor: 'transparent',
           marginBottom: 4,
         }}>
-          {currentMode.icon} {currentMode.label}
+          {repaintConfig.icon} {repaintConfig.label}
         </h2>
-        <p style={{ color: '#444466', fontSize: 13 }}>{currentMode.label} - ACE-Step Advanced</p>
-      </div>
-
-      {/* Mode selector */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-        {Object.entries(modeConfig).map(([key, cfg]) => (
-          <button
-            key={key}
-            onClick={() => setMode(key)}
-            style={{
-              flex: 1,
-              padding: '12px 16px',
-              borderRadius: 10,
-              border: `1px solid ${mode === key ? cfg.color : '#2a2a4a'}`,
-              background: mode === key ? `${cfg.color}22` : 'transparent',
-              color: mode === key ? cfg.color : '#6666aa',
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}
-          >
-            {cfg.icon} {cfg.label}
-          </button>
-        ))}
+        <p style={{ color: '#444466', fontSize: 13 }}>Repaint - ACE-Step Advanced</p>
       </div>
 
       {/* Mode description card */}
-      <div style={{ ...sectionStyle, borderLeft: `4px solid ${currentMode.color}` }}>
+      <div style={{ ...sectionStyle, borderLeft: `4px solid ${repaintConfig.color}` }}>
         <p style={{ color: '#a0a0cc', fontSize: 14, lineHeight: 1.55, margin: 0, whiteSpace: 'pre-line' }}>
-          {currentMode.desc}
+          {repaintConfig.desc}
         </p>
       </div>
 
@@ -234,10 +173,10 @@ export default function RepaintLegoComplete() {
         borderLeft: `4px solid #ffd166`,
       }}>
         <span style={{ ...labelStyle, color: '#ffd166', marginBottom: 10 }}>
-          🔍 Model Compatibility for {currentMode.label}
+          🔍 Model Compatibility for Repaint
         </span>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontFamily: 'monospace', fontSize: 11 }}>
-          {Object.entries(currentMode.modelSupport).map(([modelId, { supported, note }]) => (
+          {Object.entries(repaintConfig.modelSupport).map(([modelId, { supported, note }]) => (
             <div
               key={modelId}
               style={{
@@ -276,7 +215,7 @@ export default function RepaintLegoComplete() {
             background: file ? '#0d0d22' : 'transparent',
           }}
           onMouseOver={(e) => {
-            e.currentTarget.style.borderColor = currentMode.color;
+            e.currentTarget.style.borderColor = repaintConfig.color;
             e.currentTarget.style.background = '#0d0d22';
           }}
           onMouseOut={(e) => {
@@ -299,115 +238,70 @@ export default function RepaintLegoComplete() {
         <input ref={fileInputRef} type="file" accept="audio/*" onChange={handleFileChange} style={{ display: 'none' }} />
       </div>
 
-      {/* Mode-specific options */}
-      {mode === 'repaint' && (
-        <div style={sectionStyle}>
-          <span style={labelStyle}>Repaint region</span>
+      {/* Repaint region settings */}
+      <div style={sectionStyle}>
+        <span style={labelStyle}>Repaint region</span>
 
-          {/* Start Time */}
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ ...labelStyle, marginBottom: 4 }}>Start time (seconds)</label>
-            <input
-              type="number"
-              min="0"
-              max="300"
-              step="0.1"
-              value={startTime}
-              onChange={(e) => setStartTime(parseFloat(e.target.value) || 0)}
-              style={inputStyle}
-            />
-          </div>
-
-          {/* End Time */}
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ ...labelStyle, marginBottom: 4 }}>End time (seconds)</label>
-            <input
-              type="number"
-              min="0"
-              max="300"
-              step="0.1"
-              value={endTime}
-              onChange={(e) => setEndTime(parseFloat(e.target.value) || 0)}
-              style={inputStyle}
-            />
-          </div>
-
-          {/* Instruction */}
-          <div style={{ marginBottom: 12 }}>
-            <label style={labelStyle}>Instruction (optional)</label>
-            <textarea
-              value={instruction}
-              onChange={(e) => setInstruction(e.target.value)}
-              placeholder="e.g., Change the melody, Add jazz drums, Make it more energetic..."
-              style={{ ...inputStyle, minHeight: 60, resize: 'vertical' }}
-            />
-          </div>
-
-          {/* Lyrics */}
-          <div>
-            <label style={labelStyle}>Lyrics (optional)</label>
-            <textarea
-              value={lyrics}
-              onChange={(e) => setLyrics(e.target.value)}
-              placeholder="Lyrics for the repainted section..."
-              style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }}
-            />
-          </div>
-
-          {/* Audio Cover Strength */}
-          <div style={{ marginTop: 12 }}>
-            <label style={labelStyle}>Audio Cover Strength: {audioCoverStrength.toFixed(1)}</label>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={audioCoverStrength}
-              onChange={(e) => setAudioCoverStrength(parseFloat(e.target.value))}
-              style={{ width: '100%' }}
-            />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#6666aa', marginTop: '4px' }}>
-              <span>Creative (0.0)</span>
-              <span>Faithful (1.0)</span>
-            </div>
-            <span style={{ color: '#6666aa', fontSize: 11, marginTop: 4, display: 'block' }}>
-              How much to preserve from the original audio
-            </span>
-          </div>
+        {/* Start Time */}
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ ...labelStyle, marginBottom: 4 }}>Start time (seconds)</label>
+          <input
+            type="number"
+            min="0"
+            max="300"
+            step="0.1"
+            value={startTime}
+            onChange={(e) => setStartTime(parseFloat(e.target.value) || 0)}
+            style={inputStyle}
+          />
         </div>
-      )}
 
-      {/* LEGO mode options */}
-      {mode === 'lego' && (
-        <div style={sectionStyle}>
-          <span style={labelStyle}>Instruction for track generation</span>
+        {/* End Time */}
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ ...labelStyle, marginBottom: 4 }}>End time (seconds)</label>
+          <input
+            type="number"
+            min="0"
+            max="300"
+            step="0.1"
+            value={endTime}
+            onChange={(e) => setEndTime(parseFloat(e.target.value) || 0)}
+            style={inputStyle}
+          />
+        </div>
+
+        {/* Lyrics */}
+        <div style={{ marginBottom: 12 }}>
+          <label style={labelStyle}>Lyrics (optional)</label>
           <textarea
-            value={instruction}
-            onChange={(e) => setInstruction(e.target.value)}
-            placeholder="e.g., Add drums and bass to this track, Generate a guitar solo section..."
+            value={lyrics}
+            onChange={(e) => setLyrics(e.target.value)}
+            placeholder="Lyrics for the repainted section..."
             style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }}
           />
-          <span style={{ color: '#6666aa', fontSize: 11, marginTop: 4, display: 'block' }}>
-            Describe what instrument or track element to add/generate
-          </span>
         </div>
-      )}
 
-      {/* Complete mode options */}
-      {mode === 'complete' && (
-        <div style={sectionStyle}>
-          <span style={labelStyle}>Instruction for completion</span>
-          <textarea
-            value={instruction}
-            onChange={(e) => setInstruction(e.target.value)}
-            placeholder="e.g., Complete this track with drums, bass, and guitar, Add missing instruments to make it a full song..."
-            style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }}
+        {/* Audio Cover Strength */}
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ ...labelStyle, marginBottom: 4 }}>Audio Cover Strength: {audioCoverStrength.toFixed(1)}</label>
+          <input
+            type="range"
+            min="0.0"
+            max="1.0"
+            step="0.05"
+            value={audioCoverStrength}
+            onChange={(e) => setAudioCoverStrength(parseFloat(e.target.value))}
+            style={{ width: '100%', accentColor: repaintConfig.color }}
           />
+          <div style={{ fontSize: '11px', color: '#6666aa', marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
+            <span>Transform (0.0)</span>
+            <span>Preserve (1.0)</span>
+          </div>
           <span style={{ color: '#6666aa', fontSize: 11, marginTop: 4, display: 'block' }}>
-            Describe what instruments should be added to complete the track
+            How much to preserve from the original audio
           </span>
         </div>
-      )}
+      </div>
 
       {/* Common parameters */}
       <div style={sectionStyle}>
@@ -558,7 +452,7 @@ export default function RepaintLegoComplete() {
           border: 'none',
           background: isProcessing || !file
             ? '#1a1a3a'
-            : `linear-gradient(135deg, ${currentMode.color}, #00e5ff)`,
+            : `linear-gradient(135deg, ${repaintConfig.color}, #00e5ff)`,
           color: isProcessing || !file ? '#444466' : '#080812',
           fontWeight: 700,
           fontSize: 15,
@@ -567,7 +461,7 @@ export default function RepaintLegoComplete() {
           marginBottom: 24,
         }}
       >
-        {isProcessing ? 'Processing…' : `Generate ${currentMode.label}`}
+        {isProcessing ? 'Processing…' : 'Generate Repaint'}
       </button>
 
       {/* Result */}

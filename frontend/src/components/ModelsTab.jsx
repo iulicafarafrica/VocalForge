@@ -89,9 +89,31 @@ export default function ModelsTab({ addLog }) {
           )}
         </div>
 
-        {/* VRAM Usage */}
+        {/* VRAM Usage - Enhanced with GPU Monitor stats */}
         <div style={S.card}>
-          <span style={S.label}>📊 VRAM Usage</span>
+          <span style={S.label}>📊 VRAM Usage (GPU Monitor)</span>
+          
+          {/* VRAM Grid Stats */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, marginBottom: 12 }}>
+            <div style={{ background: "#0a0a1a", padding: 10, borderRadius: 8, border: "1px solid #1a1a2e" }}>
+              <div style={{ color: "#888", fontSize: 10, marginBottom: 4 }}>Total VRAM</div>
+              <div style={{ color: "#00e5ff", fontSize: 18, fontWeight: 700 }}>{vram?.total_gb?.toFixed(2) || "8.00"} GB</div>
+            </div>
+            <div style={{ background: "#0a0a1a", padding: 10, borderRadius: 8, border: "1px solid #1a1a2e" }}>
+              <div style={{ color: "#888", fontSize: 10, marginBottom: 4 }}>Free VRAM</div>
+              <div style={{ color: "#10b981", fontSize: 18, fontWeight: 700 }}>{((vram?.total_gb || 8) - (vram?.used_gb || 0)).toFixed(2)} GB</div>
+            </div>
+            <div style={{ background: "#0a0a1a", padding: 10, borderRadius: 8, border: "1px solid #1a1a2e" }}>
+              <div style={{ color: "#888", fontSize: 10, marginBottom: 4 }}>Allocated</div>
+              <div style={{ color: "#f59e0b", fontSize: 18, fontWeight: 700 }}>{vram?.used_gb?.toFixed(2) || "0.00"} GB</div>
+            </div>
+            <div style={{ background: "#0a0a1a", padding: 10, borderRadius: 8, border: "1px solid #1a1a2e" }}>
+              <div style={{ color: "#888", fontSize: 10, marginBottom: 4 }}>Usage</div>
+              <div style={{ color: vramColor, fontSize: 18, fontWeight: 700 }}>{vramPct.toFixed(1)}%</div>
+            </div>
+          </div>
+
+          {/* VRAM Progress Bar */}
           <div style={{ marginBottom: 10 }}>
             <div style={{ height: 14, background: "#0a0a1a", borderRadius: 7, overflow: "hidden", border: "1px solid #1a1a2e" }}>
               <div style={{
@@ -110,10 +132,18 @@ export default function ModelsTab({ addLog }) {
               </span>
             </div>
           </div>
-          <button onClick={fetchVram}
-            style={{ background: "#1a1a2e", color: "#aaaacc", border: "1px solid #2a2a4a", borderRadius: 7, padding: "6px 14px", fontSize: 12, cursor: "pointer" }}>
-            🔄 Refresh
-          </button>
+
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={fetchVram}
+              style={{ background: "#3b82f6", color: "white", border: "none", borderRadius: 7, padding: "8px 16px", fontSize: 12, cursor: "pointer", fontWeight: 600 }}>
+              🔄 Refresh
+            </button>
+            <button onClick={() => action("clear_cache", "Clear GPU Cache")}
+              disabled={loading === "clear_cache"}
+              style={{ background: loading === "clear_cache" ? "#666" : "#ef4444", color: "white", border: "none", borderRadius: 7, padding: "8px 16px", fontSize: 12, cursor: loading === "clear_cache" ? "not-allowed" : "pointer", fontWeight: 600 }}>
+              🧹 Cleanup VRAM
+            </button>
+          </div>
         </div>
 
         {/* GPU Actions */}
