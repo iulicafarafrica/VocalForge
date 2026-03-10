@@ -10,6 +10,16 @@
   <img src="https://img.shields.io/badge/License-MIT-red?style=for-the-badge" alt="License">
 </p>
 
+<p align="center">
+  <strong>
+    <a href="#-quick-start">Quick Start</a> •
+    <a href="#-features">Features</a> •
+    <a href="#-pipeline-v23">Pipeline</a> •
+    <a href="#-installation">Installation</a> •
+    <a href="CHANGELOG.md">Changelog</a>
+  </strong>
+</p>
+
 ---
 
 ## 🎬 Quick Preview
@@ -19,27 +29,6 @@
 <p align="center">
   <img src="Project.png" alt="VocalForge Interface" width="600"/>
 </p>
-
----
-
-## 📖 Table of Contents
-
-- [🔥 What's New in v2.0.0](#-whats-new-in-v200)
-- [🎯 Core Features](#-core-features)
-- [🚀 Quick Start](#-quick-start)
-- [📦 Installation](#-installation)
-- [🎛️ Usage Guide](#-usage-guide)
-- [📊 Pipeline v2.3 - Complete Flow](#-pipeline-v23---complete-flow)
-- [🎤 Voice Mix RVC](#-voice-mix-rvc)
-- [🎵 ACE-Step v1.5](#-ace-step-v15)
-- [🎚️ Features Comparison](#-features-comparison)
-- [📈 Performance Benchmarks](#-performance-benchmarks)
-- [🔧 API Reference](#-api-reference)
-- [📝 Changelog](#-changelog)
-- [🛣️ Roadmap](#️-roadmap)
-- [💻 Hardware Requirements](#-hardware-requirements)
-- [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
 
 ---
 
@@ -59,19 +48,13 @@ Stage 4: Mix Final → vocal + instrumental together
 - **🎵 Autotune** — Snap F0 to musical notes (0.0-1.0 strength)
 - **🧹 Clean Audio** — Noise reduction for speech (0.0-1.0 strength)
 - **📊 Volume Envelope** — RMS matching (preserves original dynamics)
-- **🔊 High-Pass Filter** — Remove rumble below 48Hz (always recommended)
+- **🔊 High-Pass Filter** — Remove rumble below 48Hz
 
 ### **🎚️ Mix Final with Volume Boost**
 
 - **Vocal:** 1.2x (+1.6dB) — more present in mix
 - **Instrumental:** 1.0x (0dB) — original volume
 - **Loudness:** -10 LUFS (commercial, like Spotify/YouTube)
-
-### **✨ Stage 3 Optimized**
-
-- **Removed** `lowpass=f=8000` (cut too much "air" and "sparkle")
-- **Removed** `afftdn` (spectral denoise destroyed natural harmonics)
-- **Only:** `highpass` + `deesser` + `loudnorm` + `acompressor`
 
 ### **🎤 RVC Optimized for SINGING**
 
@@ -85,7 +68,7 @@ Stage 4: Mix Final → vocal + instrumental together
 
 ---
 
-## 🎯 Core Features
+## 🎯 Features
 
 ### **8 Main Modules:**
 
@@ -99,6 +82,14 @@ Stage 4: Mix Final → vocal + instrumental together
 | 📁 | **Tracks Manager** | View, play, download, delete files |
 | 💻 | **Models Manager** | Upload, list, delete RVC models |
 | 📝 | **Notes** | Personal notes with auto-save |
+
+### **Key Capabilities:**
+
+- ✅ **YouTube Cover Generator** — Download → Separate → Convert → Mix
+- ✅ **RVC v2 Support** — 768-dim, 48kHz, RMVPE++
+- ✅ **50+ Genre Presets** — Hip-Hop, Pop, EDM, Manele, etc.
+- ✅ **Vocal Languages** — EN, RO, ZH, JA, KO, FR, DE, ES, IT, PT, RU
+- ✅ **GPU Optimization** — NVIDIA RTX 3070 8GB optimized
 
 ---
 
@@ -140,121 +131,43 @@ START_ALL.bat
 - Windows Terminal (Microsoft Store)
 - CUDA 11.8/12.1 (optional, for GPU acceleration)
 
-### **Step 1: Clone**
+### **Step-by-Step:**
 
 ```bash
+# 1. Clone
 git clone https://github.com/iulicafarafrica/VocalForge.git
 cd VocalForge
-```
 
-### **Step 2: Install Python Dependencies**
-
-```bash
+# 2. Python Dependencies
 python -m venv venv
 venv\Scripts\activate
 pip install torch --index-url https://download.pytorch.org/whl/cu121
 pip install -r requirements.txt
-```
 
-### **Step 3: Install Node Dependencies**
-
-```bash
+# 3. Node Dependencies
 cd frontend
 npm install
 cd ..
-```
 
-### **Step 4: Install ACE-Step**
-
-```bash
+# 4. ACE-Step
 cd ace-step
 uv sync
 cd ..
+
+# 5. RVC Models
+# Download .pth models from:
+# - https://weights.gg/models
+# - https://huggingface.co/IAHispano/Applio
+# Place in: RVCWebUI/assets/weights/
 ```
-
-### **Step 5: Download RVC Models**
-
-Download `.pth` models from:
-- [weights.gg/models](https://weights.gg/models)
-- [HuggingFace - IAHispano/Applio](https://huggingface.co/IAHispano/Applio)
-
-Place in: `RVCWebUI/assets/weights/`
 
 ### **Pre-loaded Models:**
 
-- FlorinSalam.pth
-- JustinBieber.pth
-- BadBunny.pth
-- KanyeWest.pth
-- +16 more models
-
----
-
-## 🎛️ Usage Guide
-
-### **1. Stem Separation Tab**
-
-**Upload full song → Separate vocals + instrumental**
-
-- **Model:** BS-RoFormer (SDR 12.97) — best quality
-- **Modes:** Vocals Only, Instrumental Only, All Stems
-- **Time:** ~25-40 seconds for 3-min song
-
-### **2. Voice Mix RVC Tab**
-
-**⚡ Auto Pipeline:**
-
-1. Upload full song
-2. Enable Applio Features (recommended for singing)
-3. Select RVC model
-4. Click "Start Auto Pipeline"
-5. Wait ~50-60 seconds
-6. Click "Go to Final Mix"
-7. Adjust volumes (Vocal 1.2x, Instrumental 1.0x)
-8. Click "Create Final Mix"
-9. Download result
-
-**🎛️ Applio Features Settings:**
-
-| Feature | For Singing | For Speech |
-|---------|-------------|------------|
-| **Autotune** | ✅ ON (0.4) | ❌ OFF |
-| **Clean Audio** | ❌ OFF | ✅ ON (0.5) |
-| **Volume Envelope** | ✅ 1.0 | ✅ 1.0 |
-| **High-Pass** | ✅ ON | ✅ ON |
-
-### **3. ACE-Step Tab**
-
-**Text→Music:**
-
-1. Enter prompt (e.g., "pop music, upbeat, piano")
-2. Add lyrics (optional)
-3. Set duration (30-240 seconds)
-4. Click "Generate"
-5. Wait ~1-3 minutes (turbo/base model)
-
-**Audio Cover:**
-
-1. Upload reference audio
-2. Enter target style prompt
-3. Set audio cover strength (0.0-1.0)
-4. Click "Generate"
-
-### **4. Repaint Tab**
-
-**Regenerate sections of existing tracks:**
-
-1. Upload audio file
-2. Set start/end time (e.g., 30-60 seconds)
-3. Enter new lyrics for section
-4. Set audio cover strength (0.0-1.0)
-5. Click "Generate Repaint"
+FlorinSalam, JustinBieber, BadBunny, KanyeWest, +16 more
 
 ---
 
 ## 📊 Pipeline v2.3 - Complete Flow
-
-### **Diagram:**
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -279,7 +192,7 @@ Place in: `RVCWebUI/assets/weights/`
 └─────────────────────────────────────────────────────────┘
                          ↓
 ┌─────────────────────────────────────────────────────────┐
-│  STAGE 3: Clarificare (OPTIONAL, ~30s)                  │
+│  STAGE 3: Clarification (OPTIONAL, ~30s)                │
 │  - Re-extraction: BS-RoFormer (reduce RVC artifacts)    │
 │  - FFmpeg Filters:                                      │
 │    ├─ highpass=f=100 (remove rumble)                    │
@@ -306,7 +219,7 @@ Place in: `RVCWebUI/assets/weights/`
 └─────────────────────────────────────────────────────────┘
 ```
 
-### **Processing Times:**
+### **Processing Times (RTX 3070 8GB):**
 
 | Stage | Time | VRAM Usage |
 |-------|------|------------|
@@ -322,48 +235,23 @@ Place in: `RVCWebUI/assets/weights/`
 
 ### **Auto Pipeline Workflow:**
 
-```
-Upload Full Song
-    ↓
-BS-RoFormer Separation
-    ↓
-RVC Conversion (with Applio Features)
-    ↓
-Save Instrumental
-    ↓
-"Go to Final Mix" Button
-    ↓
-Auto-Load in Final Mix Tab
-    ↓
-Adjust Volumes
-    ↓
-Create Final Mix
-    ↓
-Download Result
-```
+1. Upload full song
+2. Enable Applio Features (recommended for singing)
+3. Select RVC model
+4. Click "Start Auto Pipeline" (~50-60s)
+5. Click "Go to Final Mix"
+6. Adjust volumes (Vocal 1.2x, Instrumental 1.0x)
+7. Click "Create Final Mix"
+8. Download result
 
-### **Applio Features Explained:**
+### **Applio Features:**
 
 | Feature | What It Does | When to Use |
 |---------|--------------|-------------|
-| **Autotune** | Snaps F0 to nearest musical note | Singing (0.3-0.5 recommended) |
+| **Autotune** | Snaps F0 to nearest musical note | Singing (0.3-0.5) |
 | **Clean Audio** | Spectral noise reduction | Speech only (0.4-0.6) |
-| **Volume Envelope** | Matches dynamics of original | Always (1.0 recommended) |
+| **Volume Envelope** | Matches dynamics of original | Always (1.0) |
 | **High-Pass Filter** | Removes frequencies below 48Hz | Always ON |
-
-### **RVC Rescue Post-Processing:**
-
-Applied automatically in Auto Pipeline:
-
-```
-1. EQ → Cut harsh 2.5kHz (-6dB), restore warmth 150Hz (+3dB)
-2. Compressor → Smooth dynamics (3:1 ratio)
-3. Reverb → Recreate musical space (50ms + 120ms echoes)
-4. Limiter → Prevent clipping (-1dB ceiling)
-5. Loudness → -14 LUFS (streaming standard)
-```
-
-**Quality Improvement:** 5/10 → 8/10 (+60%)
 
 ---
 
@@ -384,24 +272,6 @@ Applied automatically in Auto Pipeline:
 - **Audio Cover:** Transform existing track style
 - **Repaint:** Regenerate sections (30-60s)
 - **50+ Genre Presets:** Hip-Hop, Pop, EDM, Manele, etc.
-- **Vocal Languages:** EN, RO, ZH, JA, KO, FR, DE, ES, IT, PT, RU
-
----
-
-## 🎚️ Features Comparison
-
-### **RVC Tab vs Pipeline Tab:**
-
-| Feature | RVC Tab | Pipeline Tab |
-|---------|---------|--------------|
-| **Purpose** | Quick voice conversion | Full production workflow |
-| **Applio Features** | ✅ Full control | ✅ Enabled by default |
-| **Stage 3 Clarify** | ❌ No | ✅ Optional (default OFF) |
-| **Mix Final** | ✅ Manual (adjust volumes) | ✅ Automatic |
-| **Outputs** | 2 files (vocal, mix) | 5 files (all stems) |
-| **Best For** | Simple conversions | Complete covers |
-
-**Recommendation:** Use **RVC Tab** for quality (no Stage 3), use **Pipeline Tab** for full workflow.
 
 ---
 
@@ -429,6 +299,36 @@ Applied automatically in Auto Pipeline:
 
 ---
 
+## 💻 GPU Memory Management
+
+Complete GPU VRAM monitoring and optimization for NVIDIA RTX 3070 8GB.
+
+### **Features:**
+- 🔍 Real-time VRAM monitoring
+- 🧹 Automatic model unloading
+- 🧠 FP16 inference context
+- 📊 Dynamic batch size calculation
+- 🧹 GPU cleanup endpoint
+- 🖥️ Frontend GPUMonitor component
+
+### **API Endpoints:**
+
+```bash
+GET  /gpu/info          # Get GPU VRAM information
+GET  /gpu/cleanup       # Manual GPU VRAM cleanup
+GET  /gpu/models        # List loaded models in VRAM
+POST /gpu/unload/{name} # Unload specific model from VRAM
+POST /gpu/unload-all    # Unload all models from VRAM
+GET  /gpu/can-load/{name}  # Check if model can be loaded
+```
+
+### **Files:**
+- `core/modules/gpu_memory.py` - VRAM management core
+- `backend/endpoints/gpu_info.py` - 6 API endpoints
+- `frontend/src/components/GPUMonitor.jsx` - React frontend component
+
+---
+
 ## 🔧 API Reference
 
 ### **Main Endpoints:**
@@ -446,109 +346,7 @@ Applied automatically in Auto Pipeline:
 | `GET` | `/hardware` | 8000 | GPU info |
 | `GET` | `/vram_usage` | 8000 | Current VRAM |
 
-### **Example: Auto Pipeline**
-
-```bash
-curl -X POST http://localhost:8000/rvc/auto_pipeline \
-  -F "file=@song.mp3" \
-  -F "rvc_model_name=FlorinSalam.pth" \
-  -F "pitch_shift=0" \
-  -F "f0_method=harvest" \
-  -F "index_rate=0.40" \
-  -F "protect=0.55" \
-  -F "enable_autotune=true" \
-  -F "autotune_strength=0.4" \
-  -F "enable_highpass=true" \
-  -F "enable_volume_envelope=true"
-```
-
----
-
-## 📝 Changelog
-
-### **v2.0.0 (March 2026) - CURRENT**
-
-**NEW:**
-- 🎵 Pipeline v2.3 - 4 stages: Separation → RVC → Clarify → Mix
-- 🎛️ Applio Features: Autotune, Clean Audio, Volume Envelope, High-Pass
-- 🎚️ Mix Final with volume boost: Vocal 1.2x, Instrumental 1.0x
-- 🔊 Commercial loudness: -10 LUFS (like Spotify/YouTube)
-- ✨ Stage 3 optimized: No lowpass/afftdn (too aggressive)
-- 🎤 RVC optimized for SINGING: harvest, 0.40 index, 0.55 protect
-
-**IMPROVED:**
-- 5 download outputs: Vocals, Instrumental, RVC Raw, Vocal Clarified, Mix Final
-- Stage 3 optional (default OFF) - RVC Tab is better now
-
----
-
-### **v1.9.0 (March 2026)**
-
-**NEW:**
-- 🎛️ Applio Features integration
-- 🎤 RVC Rescue Post-Processing
-- 🎯 Default params for SINGING (not speech)
-
-**IMPROVED:**
-- Quality: singing 9/10, speech 9/10 (from 8/10)
-- RVC v2 support: 768-dim, 48kHz, RMVPE++
-
----
-
-### **v1.8.4 (March 2026)**
-
-**NEW:**
-- 🎚️ RVC Rescue Post-Processing: fixes RVC damage, adds reverb
-- EQ: Cut harsh 2.5kHz, restore warmth 150Hz
-- Compressor: Smooth dynamics, Reverb: musical space
-
-**IMPROVED:**
-- Quality: 5/10 → 8/10 (+60%) after RVC Rescue
-
----
-
-### **v1.8.3 (March 2026)**
-
-**NEW:**
-- 🔗 RVC Final Mix Integration
-- 💾 Auto Pipeline saves instrumental
-- 🎚️ Final Mix tab: auto-load, volume control
-
-**IMPROVED:**
-- Instrumental saved as 320kbps MP3, 48kHz
-
----
-
-### **v1.8.2 (March 2026)**
-
-**NEW:**
-- 📺 YouTube Cover Generator
-- 🎤 RVC v2 Support
-- ✨ Enhanced Pipeline
-
-**IMPROVED:**
-- RVC Scripts: pipeline_loader.py, inference_rvc_v2.py
-
----
-
-### **v1.8.1 (March 2026)**
-
-**FIXED:**
-- RVC Separation Endpoint
-- BS-RoFormer model loading
-
----
-
-### **v1.8 (March 2026)**
-
-**NEW:**
-- ✂️ Separate Tab
-- 🎚️ Mix Tab
-- 💾 Presets Tab
-
-**IMPROVED:**
-- RVC Voice API on port 8002
-- START_ALL.bat launches 4 services
+**📖 Full API Documentation:** [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
 
@@ -576,58 +374,6 @@ curl -X POST http://localhost:8000/rvc/auto_pipeline \
 - [ ] ⏹️ Chord Detection → export PDF/JSON
 - [ ] ⏹️ Drum Pattern Extraction → export MIDI
 - [ ] ⏹️ Formant Shifting (male↔female without pitch change)
-
----
-
-## 💻 GPU Memory Management - VocalForge v1.9.0
-
-### Overview
-Complete GPU VRAM monitoring and optimization for NVIDIA RTX 3070 8GB.
-
-### Features
-- 🔍 Real-time VRAM monitoring
-- 🧹 Automatic model unloading
-- 🧠 FP16 inference context
-- 📊 Dynamic batch size calculation
-- 🧹 GPU cleanup endpoint
-- 🖥️ Frontend GPUMonitor component
-
-### API Endpoints
-```bash
-GET  /gpu/info          # Get GPU VRAM information
-GET  /gpu/cleanup       # Manual GPU VRAM cleanup
-GET  /gpu/models        # List loaded models in VRAM
-POST /gpu/unload/{name} # Unload specific model from VRAM
-POST /gpu/unload-all    # Unload all models from VRAM
-GET  /gpu/can-load/{name}  # Check if model can be loaded
-```
-
-### Files
-- `core/modules/gpu_memory.py` - VRAM management core
-- `backend/endpoints/gpu_info.py` - 6 API endpoints
-- `frontend/src/components/GPUMonitor.jsx` - React frontend component
-- `backend/main.py` - GPU router integrated
-
-### Optimized For
-- NVIDIA RTX 3070 8GB VRAM
-- CUDA 11.8
-- PyTorch with CUDA support
-
-### Terminal Wrappers
-```batch
-run.bat "command"           # Universal wrapper
-run_ps1.bat "command"       # PowerShell wrapper
-wt -p PowerShell "command"  # Windows Terminal
-```
-
-### Testing
-```bash
-# Test GPU info
-curl http://localhost:8000/gpu/info
-
-# Test cleanup
-curl http://localhost:8000/gpu/cleanup
-```
 
 ---
 
@@ -684,28 +430,44 @@ uv run acestep-api --host 0.0.0.0 --port 8001
 
 ---
 
+## 📞 Support
+
+- **🐛 Issues:** [GitHub Issues](https://github.com/iulicafarafrica/VocalForge/issues)
+- **💬 Discussions:** [GitHub Discussions](https://github.com/iulicafarafrica/VocalForge/discussions)
+- **📺 Demo:** [YouTube](https://www.youtube.com/watch?v=8XSwCM7bM1A)
+
+---
+
 ## 📄 License
 
-**MIT License** - See [LICENSE](LICENSE) file for details.
+**MIT License** — See [LICENSE](LICENSE) file for details.
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **ACE-Step Team** - Music generation model
-- **RVC-WebUI / Applio** - Voice conversion
-- **audio-separator** - BS-RoFormer implementation
-- **Demucs** - Stem separation
-- **FFmpeg** - Audio processing
+- **ACE-Step Team** — Music generation model
+- **RVC-WebUI / Applio** — Voice conversion
+- **audio-separator** — BS-RoFormer implementation
+- **Demucs** — Stem separation
+- **FFmpeg** — Audio processing
 
 ---
 
-## 📞 Support
+## 📝 Changelog
 
-- **Issues:** [GitHub Issues](https://github.com/iulicafarafrica/VocalForge/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/iulicafarafrica/VocalForge/discussions)
-- **Demo:** [YouTube](https://www.youtube.com/watch?v=8XSwCM7bM1A)
+**📖 Full Changelog:** [CHANGELOG.md](CHANGELOG.md)
+
+### **Recent Versions:**
+
+- **v2.0.0** (March 2026) — Pipeline v2.3, Applio Features, Mix Final
+- **v1.9.0** (March 2026) — Applio Features, RVC Rescue
+- **v1.8.4** (March 2026) — RVC Rescue Post-Processing
+- **v1.8.3** (March 2026) — RVC Final Mix Integration
+- **v1.8.2** (March 2026) — YouTube Cover Generator, RVC v2
 
 ---
 
-**Made with ❤️ by VocalForge Team**
+<p align="center">
+  <strong>Made with ❤️ by VocalForge Team</strong>
+</p>
