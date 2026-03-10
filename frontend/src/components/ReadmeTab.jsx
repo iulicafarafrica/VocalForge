@@ -1,7 +1,7 @@
 import {
   Sliders, Sparkles, Mic2, FolderOpen, Monitor, FileText,
   CheckCircle, Wrench, Zap, Trash2, ChevronRight, Server, Globe,
-  Cpu, HardDrive, Package, BookOpen, Download, Terminal, Play
+  Cpu, HardDrive, Package, BookOpen, Download, Terminal, Play, Activity
 } from "lucide-react";
 
 const s = {

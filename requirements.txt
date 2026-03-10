@@ -1,19 +1,20 @@
 # =============================================================================
-# VocalForge v1.7 - Complete Python Requirements
+# VocalForge v2.0.0 - Complete Python Requirements
 # =============================================================================
 # AI Music Production Application with:
-# - Vocal Pitch Correction (Auto-Tune style)
+# - Pipeline v2.3 (4 stages: Separation → RVC → Clarify → Mix)
 # - ACE-Step Music Generation
-# - Vocal2BGM (Vocal to Full Song)
-# - Stem Separation (Demucs)
+# - RVC Voice Conversion with Applio Features
+# - Stem Separation (BS-RoFormer, Demucs)
 # - Audio Processing & Analysis
+# - GPU Memory Management
 # =============================================================================
 
 # -----------------------------------------------------------------------------
 # STEP 1: Install PyTorch with CUDA (REQUIRED - run this FIRST)
 # -----------------------------------------------------------------------------
 # For CUDA 12.1 (RTX 3070, 4070, 4080, 4090):
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
 # For CUDA 11.8 (older GPUs like RTX 20xx, GTX 10xx):
 # pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
@@ -27,41 +28,75 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 # pip install -r requirements.txt
 
 # =============================================================================
-# CORE DEPENDENCIES
+# CORE FRAMEWORK (FastAPI Backend)
 # =============================================================================
-
-# FastAPI Web Framework
 fastapi>=0.110.0
 uvicorn[standard]>=0.27.0
 python-multipart>=0.0.9
 python-dotenv>=1.0.0
 httpx>=0.24.0
 requests>=2.31.0
+pydantic>=2.0.0
+aiofiles>=23.0.0
 
-# Audio Processing
+# =============================================================================
+# AUDIO PROCESSING (Core Libraries)
+# =============================================================================
 librosa>=0.10.0
 soundfile>=0.12.0
 pydub>=0.25.0
 scipy>=1.11.0
-
-# Machine Learning / Numeric
 numpy>=1.24.0
-torch>=2.1.0
+
+# =============================================================================
+# STEM SEPARATION (BS-RoFormer, Demucs)
+# =============================================================================
+demucs>=4.0.0
+audio-separator>=0.10.0
+
+# =============================================================================
+# YOUTUBE DOWNLOAD
+# =============================================================================
+yt-dlp>=2023.0.0
+
+# =============================================================================
+# RVC VOICE CONVERSION
+# =============================================================================
+# Pitch Detection & F0 Extraction
+praat-parselmouth>=0.4.3
+pyworld>=0.3.3
+torchcrepe>=0.0.20
+
+# FAISS Index for RVC retrieval
+faiss-cpu>=1.7.4
+
+# Applio Features (Autotune, Clean Audio, Volume Envelope, HPF)
+noisereduce>=3.0.0
+
+# =============================================================================
+# AUDIO ANALYSIS (BPM, Key, Chords)
+# =============================================================================
+# Beat tracking
+madmom>=0.16.1
+
+# Key & chord detection
+essentia-tensorflow>=2.1
+
+# =============================================================================
+# QUALITY METRICS (UTMOS, SDR, PESQ, STOI)
+# =============================================================================
+pystoi>=0.3.3
+pesq>=0.0.4
+
+# =============================================================================
+# UTILITIES
+# =============================================================================
+tqdm>=4.66.0
+colorama>=0.4.6
 
 # =============================================================================
 # OPTIONAL DEPENDENCIES (for advanced features)
 # =============================================================================
-
-# Demucs Stem Separation (if you want to use stem separation feature)
-# demucs>=4.0.0
-
-# Pitch detection alternatives (more accurate than librosa's default)
-# praat-parselmouth>=0.4.3
-# pyworld>=0.3.3
-
-# Progress bars and logging
-# tqdm>=4.66.0
-# colorama>=0.4.6
 
 # Development & Testing
 # pytest>=7.4.0
@@ -69,26 +104,59 @@ torch>=2.1.0
 # black>=23.0.0
 # ruff>=0.1.0
 
+# Additional pitch processing
+# resampy>=0.4.0
+# audioread>=3.0.0
+
 # =============================================================================
-# SYSTEM REQUIREMENTS (install separately)
+# SYSTEM REQUIREMENTS (install separately via setup.bat)
 # =============================================================================
 # 1. FFmpeg - Required for audio encoding/decoding
 #    Windows: winget install ffmpeg
 #    Or download from: https://ffmpeg.org/download.html
 #
-# 2. CUDA Toolkit (if not using pip PyTorch with CUDA)
+# 2. Git LFS - Required for large model files (>100MB)
+#    Windows: winget install Git.Git.LFS
+#
+# 3. Visual C++ Redistributable - Required for some Python wheels
+#    Windows: winget install Microsoft.VCRedist.2015+.x64
+#
+# 4. CUDA Toolkit (optional, PyTorch includes bundled CUDA)
 #    CUDA 12.1: https://developer.nvidia.com/cuda-12-1-0-download-archive
 #    CUDA 11.8: https://developer.nvidia.com/cuda-11-8-0-download-archive
-#
-# 3. Git LFS (for large file support)
-#    winget install Git.Git.LFS
 
 # =============================================================================
 # VERIFICATION
 # =============================================================================
 # After installation, verify everything works:
+
+# Test PyTorch
 # python -c "import torch; print(f'PyTorch: {torch.__version__}')"
-# python -c "import librosa; print(f'Librosa: {librosa.__version__}')"
-# python -c "import fastapi; print(f'FastAPI: {fastapi.__version__}')"
 # python -c "import torch; print(f'CUDA: {torch.cuda.is_available()}')"
-python-dotenv 
+
+# Test Audio Libraries
+# python -c "import librosa; print(f'Librosa: {librosa.__version__}')"
+# python -c "import soundfile; print(f'SoundFile: {soundfile.__version__}')"
+
+# Test FastAPI
+# python -c "import fastapi; print(f'FastAPI: {fastapi.__version__}')"
+
+# Test Stem Separation
+# python -c "import demucs; print('Demucs: OK')"
+# python -c "import audio_separator; print('Audio-Separator: OK')"
+
+# Test RVC Dependencies
+# python -c "import praat_parselmouth; print('Parselmouth: OK')"
+# python -c "import pyworld; print('PyWorld: OK')"
+# python -c "import faiss; print('FAISS: OK')"
+
+# Test Audio Analysis
+# python -c "import madmom; print('Madmom: OK')"
+# python -c "import essentia; print('Essentia: OK')"
+
+# Test Quality Metrics
+# python -c "import pystoi; print('PySTOI: OK')"
+# python -c "import pesq; print('PESQ: OK')"
+
+# Test FFmpeg (system command)
+# ffmpeg -version

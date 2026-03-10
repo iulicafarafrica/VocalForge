@@ -442,5 +442,84 @@ TOTAL: 7% (1/14 features)
 
 ---
 
-**Last Updated:** 2026-03-08  
+**Last Updated:** 2026-03-08
 **Next Review:** 2026-03-15
+
+---
+
+## 🧠 AUDIO AI ENGINEERING SKILL BASE
+
+**Source:** `audioskillz.txt` (Combined v3.0)
+**Status:** ACTIVE
+**Total Sections:** 15
+
+### Quick Reference
+
+#### 1. ACE-Step Models
+| Model | Steps | Duration | Use |
+|-------|-------|----------|-----|
+| turbo | 8 | ~1 min | Fast generation |
+| turbo-shift3 | 8 | ~1 min | Fast, shifted |
+| base | 50 | ~3 min | All features |
+| sft | 50 | ~3 min | High quality |
+
+#### 2. RVC Best Settings for SINGING
+- **f0_method:** harvest (best pitch accuracy)
+- **index_rate:** 0.40 (preserves timbre)
+- **protect:** 0.55 (protects breath/air)
+- **Quality:** 8/10 with Rescue post-processing
+
+#### 3. Applio Features (v1.9.0)
+- **Autotune:** Snap F0 to notes (strength 0.0-1.0)
+- **Clean Audio:** Noise reduction (speech only)
+- **Volume Envelope:** RMS matching
+- **High-Pass Filter:** Remove rumble <48Hz
+
+#### 4. Vocal Production Chain
+```
+Input → HPF(100Hz) → EQ(cut 400-600Hz) → Compressor → De-esser → Reverb → Output
+```
+
+#### 5. EQ Settings
+- **HPF:** 100Hz, 12dB/oct
+- **Low-mid cut:** 400-600Hz, -3dB, Q=1.4
+- **High boost:** 10kHz, +2dB, Q=0.7
+
+#### 6. Loudness Standards
+| Platform | LUFS | dBTP |
+|----------|------|------|
+| Spotify | -14 | -1 |
+| YouTube | -14 | -2 |
+| Apple Music | -16 | -1 |
+| Club/DJ | -9 to -6 | -1 |
+
+#### 7. Quality Metrics
+| Metric | Good Value | Use |
+|--------|------------|-----|
+| SDR | >12dB | Distortion level |
+| SIR | >15dB | Interference ratio |
+| PESQ | >2.5 | Perceptual quality |
+| STOI | >0.85 | Speech intelligibility |
+| UTMOS | >3.5 | Neural quality score |
+
+#### 8. Pipeline v2.3 Stages
+1. Stem Separation (Demucs/BS-RoFormer)
+2. RVC Voice Conversion
+3. Clarify (RVC Rescue + Applio)
+4. Final Mix
+
+#### 9. DiT Architecture
+- **VAE:** 8x8 compression (Music-DCAE)
+- **DiT:** 24 layers, 3.5B params
+- **Flow Matching:** Continuous ODE
+- **Turbo:** Distilled 8-step student
+
+#### 10. VocalForge Known Issue
+⚠️ **RVC is trained on SPEECH, not SINGING**
+- Destroys harmony, vibrato, dynamics
+- RVC Rescue improves: 5/10 → 8/10
+- Best case: acceptable trade-off
+
+---
+
+**Full skill documentation:** `D:\VocalForge\.qwen\skills\audio-engineer\audioskillz.txt`
