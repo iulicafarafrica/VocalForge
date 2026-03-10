@@ -85,7 +85,6 @@ Stage 4: Mix Final → vocal + instrumental together
 
 ### **Key Capabilities:**
 
-- ✅ **YouTube Cover Generator** — Download → Separate → Convert → Mix
 - ✅ **RVC v2 Support** — 768-dim, 48kHz, RMVPE++
 - ✅ **50+ Genre Presets** — Hip-Hop, Pop, EDM, Manele, etc.
 - ✅ **Vocal Languages** — EN, RO, ZH, JA, KO, FR, DE, ES, IT, PT, RU
@@ -464,7 +463,7 @@ uv run acestep-api --host 0.0.0.0 --port 8001
 - **v1.9.0** (March 2026) — Applio Features, RVC Rescue
 - **v1.8.4** (March 2026) — RVC Rescue Post-Processing
 - **v1.8.3** (March 2026) — RVC Final Mix Integration
-- **v1.8.2** (March 2026) — YouTube Cover Generator, RVC v2
+- **v1.8.2** (March 2026) — RVC v2 Support
 
 ---
 
