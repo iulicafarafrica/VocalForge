@@ -2138,7 +2138,7 @@ async def acestep_stats():
 
 @app.post("/ace_generate")
 async def ace_generate(
-    prompt: str = Form(...),                    # music style/genre description
+    prompt: str = Form(""),                     # music style/genre description (optional for custom mode)
     lyrics: str = Form(""),                     # song lyrics (optional)
     duration: float = Form(30.0),               # seconds (15-240), -1=auto
     guidance_scale: float = Form(7.0),          # CFG scale (optimal for turbo)
@@ -2216,7 +2216,8 @@ async def ace_generate(
     t_start = time.time()
     use_random = seed < 0
     actual_seed = seed if seed >= 0 else random.randint(0, 2**31)
-    print(f"[ACE {job_id[:8]}] Generating: prompt='{prompt[:60]}' | duration={duration}s | steps={infer_steps} | model={dit_model}")
+    prompt_display = prompt[:60] if prompt else "(custom mode with tags)"
+    print(f"[ACE {job_id[:8]}] Generating: prompt='{prompt_display}' | duration={duration}s | steps={infer_steps} | model={dit_model}")
 
     try:
         async with httpx.AsyncClient(timeout=300.0) as client:
