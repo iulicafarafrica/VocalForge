@@ -807,37 +807,53 @@ export default function AceStepTab({
       if (!customTags.trim() && !prompt.trim()) { addLog("[ERR] Enter tags or prompt for Custom mode"); return; }
     }
 
+    // ── OPTIMIZATIONS FOR CUSTOM MODE ──────────────────────────────────────
+    // Custom mode doesn't need LLM Chain-of-Thought (we have reference audio)
+    const isCustom = taskType === "custom";
+    const effectiveThinking = isCustom ? false : thinking;
+    const effectiveUseCotMetas = isCustom ? false : useCotMetas;
+    const effectiveUseCotCaption = isCustom ? false : useCotCaption;
+    const effectiveUseCotLanguage = isCustom ? false : useCotLanguage;
+
+    // Custom mode: limit duration to 60s max (avoid timeout)
+    const effectiveDuration = isCustom ? Math.min(duration, 60) : duration;
+
+    // Turbo models: limit to 8 steps max (they're distilled for 8 steps)
+    const isTurbo = tensorModel.includes("turbo");
+    const effectiveSteps = isTurbo ? Math.min(inferSteps, 8) : inferSteps;
+
     setProcessing(true);
     setProgress(5);
     setProgressLabel("Submitting to ACE-Step...");
     setResult(null);
-    
+
     // Log generation parameters to console AND app logs
     const modelInfo = TENSOR_MODELS.find(m => m.id === tensorModel);
     const modelName = modelInfo?.name || 'Unknown';
-    const steps = modelInfo?.steps || 'N/A';
-    
+
     console.log(`[ACE-Step] === GENERATION START ===`);
     console.log(`[ACE-Step] Model: ${tensorModel} (${modelName})`);
-    console.log(`[ACE-Step] Steps: ${steps} | CFG: ${guidanceScale} | Duration: ${duration}s`);
+    console.log(`[ACE-Step] Steps: ${effectiveSteps} | CFG: ${guidanceScale} | Duration: ${effectiveDuration}s`);
     console.log(`[ACE-Step] Task Type: ${taskType} | Prompt: "${prompt.slice(0, 50)}..."`);
+    console.log(`[ACE-Step] Thinking (LLM): ${effectiveThinking}`);
     console.log(`[ACE-Step] =========================`);
-    
+
     // Also show in app Logs Panel
-    addLog(`🎵 Model: ${modelName} (${steps} steps)`);
-    addLog(`🎛 CFG: ${guidanceScale} | Duration: ${duration}s | Lang: ${vocalLanguage}`);
+    addLog(`🎵 Model: ${modelName} (${effectiveSteps} steps)`);
+    addLog(`🎛 CFG: ${guidanceScale} | Duration: ${effectiveDuration}s | Lang: ${vocalLanguage}`);
+    if (isCustom) addLog(`🎨 Custom Mode: LLM disabled (using reference audio)`);
     if (bpm > 0) addLog(`🥁 BPM: ${bpm}`);
     if (keyScale) addLog(`🎹 Key: ${keyScale}`);
-    
-    addLog(`[OK] ACE-Step: generating ${duration}s | "${prompt.slice(0, 50)}..."`);
+
+    addLog(`[OK] ACE-Step: generating ${effectiveDuration}s | "${prompt.slice(0, 50)}..."`);
 
     const fd = new FormData();
     fd.append("prompt", prompt);
     fd.append("lyrics", lyrics);
-    fd.append("duration", duration);
+    fd.append("duration", effectiveDuration);  // Use optimized duration
     fd.append("guidance_scale", guidanceScale);
     fd.append("seed", seed);
-    fd.append("infer_steps", inferSteps);
+    fd.append("infer_steps", effectiveSteps);  // Use optimized steps
     fd.append("dit_model", tensorModel);  // DiT model selection
     fd.append("vocal_language", vocalLanguage);  // Vocal language
     fd.append("instrumental", lyrics.trim() === "" || vocalLanguage === "unknown");
@@ -897,7 +913,7 @@ export default function AceStepTab({
       fd.append("lm_top_p", lmTopP);
     }
     fd.append("lm_negative_prompt", "");
-    fd.append("thinking", thinking);
+    fd.append("thinking", effectiveThinking);  // Disable LLM for custom mode
     fd.append("infer_method", inferMethod);
     if (tensorModel.includes("base") || tensorModel.includes("sft")) {
       fd.append("shift", shift);
@@ -910,13 +926,13 @@ export default function AceStepTab({
     // Tiled decode (always enabled by default for VRAM optimization)
     fd.append("use_tiled_decode", useTiledDecode);
 
-    // Expert/advanced params
+    // Expert/advanced params (disable CoT for custom mode)
     fd.append("use_adg", false);
     fd.append("cfg_interval_start", 0.0);
     fd.append("cfg_interval_end", 1.0);
-    fd.append("use_cot_metas", true);
-    fd.append("use_cot_caption", true);
-    fd.append("use_cot_language", true);
+    fd.append("use_cot_metas", effectiveUseCotMetas);  // Disable for custom
+    fd.append("use_cot_caption", effectiveUseCotCaption);  // Disable for custom
+    fd.append("use_cot_language", effectiveUseCotLanguage);  // Disable for custom
     fd.append("allow_lm_batch", true);
     fd.append("get_lrc", false);
 
