@@ -842,12 +842,12 @@ export default function AceStepTab({
     fd.append("vocal_language", vocalLanguage);  // Vocal language
     fd.append("instrumental", lyrics.trim() === "" || vocalLanguage === "unknown" ? "true" : "false");
 
-    // BPM: always send if set in main UI
-    if (bpm && bpm > 0) {
+    // BPM: always send if set in main UI (but NOT for custom mode - use auto-detected)
+    if (bpm && bpm > 0 && taskType !== "custom") {
       fd.append("bpm", bpm);
     }
-    // Key scale: always send if set in main UI
-    if (keyScale && keyScale.trim()) {
+    // Key scale: always send if set in main UI (but NOT for custom mode - use auto-detected)
+    if (keyScale && keyScale.trim() && taskType !== "custom") {
       fd.append("key_scale", keyScale);
     }
 
@@ -875,6 +875,12 @@ export default function AceStepTab({
       if (customKey && customKey.trim()) {
         fd.append("key_scale", customKey);
       }
+    }
+
+    // Debug: Log FormData entries
+    console.log("[FormData] Entries:");
+    for (let [key, value] of fd.entries()) {
+      console.log(`  ${key}: ${value instanceof File ? value.name : value}`);
     }
 
     // Advanced ACE-Step parameters
