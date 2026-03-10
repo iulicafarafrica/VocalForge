@@ -45,35 +45,35 @@
 
 ## 🔥 What's New in v2.0.0
 
-### **🎵 Pipeline v2.3 - 4 Stage-uri Complete**
+### **🎵 Pipeline v2.3 - 4 Complete Stages**
 
 ```
 Stage 1: BS-RoFormer Separation → vocals + instrumental
 Stage 2: RVC Voice Conversion → converted vocals
-Stage 3: Clarificare (opțional) → clean vocals
+Stage 3: Clarification (optional) → clean vocals
 Stage 4: Mix Final → vocal + instrumental together
 ```
 
 ### **🎛️ Applio Features Integration**
 
-- **🎵 Autotune** — Snap F0 la note muzicale (0.0-1.0 strength)
-- **🧹 Clean Audio** — Noise reduction pentru speech (0.0-1.0 strength)
-- **📊 Volume Envelope** — RMS matching (păstrează dinamica originală)
+- **🎵 Autotune** — Snap F0 to musical notes (0.0-1.0 strength)
+- **🧹 Clean Audio** — Noise reduction for speech (0.0-1.0 strength)
+- **📊 Volume Envelope** — RMS matching (preserves original dynamics)
 - **🔊 High-Pass Filter** — Remove rumble below 48Hz (always recommended)
 
-### **🎚️ Mix Final cu Volume Boost**
+### **🎚️ Mix Final with Volume Boost**
 
-- **Vocal:** 1.2x (+1.6dB) — mai prezent în mix
-- **Instrumental:** 1.0x (0dB) — volum original
-- **Loudness:** -10 LUFS (commercial, ca Spotify/YouTube)
+- **Vocal:** 1.2x (+1.6dB) — more present in mix
+- **Instrumental:** 1.0x (0dB) — original volume
+- **Loudness:** -10 LUFS (commercial, like Spotify/YouTube)
 
-### **✨ Stage 3 Optimizat**
+### **✨ Stage 3 Optimized**
 
-- **Fără** `lowpass=f=8000` (taia prea mult din "air" și "sparkle")
-- **Fără** `afftdn` (spectral denoise distrugea armonicele naturale)
-- **Doar:** `highpass` + `deesser` + `loudnorm` + `acompressor`
+- **Removed** `lowpass=f=8000` (cut too much "air" and "sparkle")
+- **Removed** `afftdn` (spectral denoise destroyed natural harmonics)
+- **Only:** `highpass` + `deesser` + `loudnorm` + `acompressor`
 
-### **🎤 RVC Optimizat pentru SINGING**
+### **🎤 RVC Optimized for SINGING**
 
 | Parametru | Before (Speech) | After (Singing) |
 |-----------|-----------------|-----------------|
@@ -87,7 +87,7 @@ Stage 4: Mix Final → vocal + instrumental together
 
 ## 🎯 Core Features
 
-### **8 Module Principale:**
+### **8 Main Modules:**
 
 | Icon | Feature | Description |
 |------|---------|-------------|
