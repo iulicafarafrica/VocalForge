@@ -840,7 +840,7 @@ export default function AceStepTab({
     fd.append("infer_steps", inferSteps);
     fd.append("dit_model", tensorModel);  // DiT model selection
     fd.append("vocal_language", vocalLanguage);  // Vocal language
-    fd.append("instrumental", lyrics.trim() === "" || vocalLanguage === "unknown" ? "true" : "false");
+    fd.append("instrumental", lyrics.trim() === "" || vocalLanguage === "unknown");
 
     // BPM: always send if set in main UI (but NOT for custom mode - use auto-detected)
     if (bpm && bpm > 0 && taskType !== "custom") {
@@ -850,6 +850,8 @@ export default function AceStepTab({
     if (keyScale && keyScale.trim() && taskType !== "custom") {
       fd.append("key_scale", keyScale);
     }
+    // Time signature (optional)
+    fd.append("time_signature", "");
 
     // New params
     fd.append("task_type", taskType);
@@ -884,6 +886,8 @@ export default function AceStepTab({
     }
 
     // Advanced ACE-Step parameters
+    fd.append("lm_model", "acestep-5Hz-lm-0.6B");
+    fd.append("lm_backend", "pt");
     fd.append("lm_temperature", lmTemperature);
     fd.append("lm_cfg_scale", lmCfgScale);
     if (lmTopK > 0) {
@@ -892,7 +896,8 @@ export default function AceStepTab({
     if (lmTopP < 1.0) {
       fd.append("lm_top_p", lmTopP);
     }
-    fd.append("thinking", thinking ? "true" : "false");
+    fd.append("lm_negative_prompt", "");
+    fd.append("thinking", thinking);
     fd.append("infer_method", inferMethod);
     if (tensorModel.includes("base") || tensorModel.includes("sft")) {
       fd.append("shift", shift);
@@ -903,7 +908,17 @@ export default function AceStepTab({
     fd.append("audio_format", audioFormat);
 
     // Tiled decode (always enabled by default for VRAM optimization)
-    fd.append("use_tiled_decode", useTiledDecode ? "true" : "false");
+    fd.append("use_tiled_decode", useTiledDecode);
+
+    // Expert/advanced params
+    fd.append("use_adg", false);
+    fd.append("cfg_interval_start", 0.0);
+    fd.append("cfg_interval_end", 1.0);
+    fd.append("use_cot_metas", true);
+    fd.append("use_cot_caption", true);
+    fd.append("use_cot_language", true);
+    fd.append("allow_lm_batch", true);
+    fd.append("get_lrc", false);
 
     // Fake progress animation
     const progressSteps = [
