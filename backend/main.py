@@ -230,7 +230,7 @@ app.include_router(rvc_conversion_router)
 from endpoints.gpu_info import router as gpu_router
 app.include_router(gpu_router)
 
-# Include Vocal Pipeline router
+# Include Pipeline router (Vocal Pipeline v2.3)
 from endpoints.pipeline import router as pipeline_router
 app.include_router(pipeline_router)
 
@@ -989,9 +989,8 @@ async def demucs_separate(
     t_start = time.time()
 
     try:
-        # Save uploaded file - keep original extension
-        original_ext = os.path.splitext(file.filename)[1] or ".wav"
-        in_path = os.path.join(job_dir, f"input{original_ext}")
+        # Save uploaded file
+        in_path = os.path.join(job_dir, "input.wav")
         raw_bytes = await file.read()
         with open(in_path, "wb") as f_out:
             f_out.write(raw_bytes)
@@ -2138,14 +2137,14 @@ async def acestep_stats():
 
 @app.post("/ace_generate")
 async def ace_generate(
-    prompt: str = Form(""),                     # music style/genre description (optional for custom mode)
+    prompt: str = Form(...),                    # music style/genre description
     lyrics: str = Form(""),                     # song lyrics (optional)
     duration: float = Form(30.0),               # seconds (15-240), -1=auto
     guidance_scale: float = Form(7.0),          # CFG scale (optimal for turbo)
     seed: int = Form(-1),                       # -1 = random
     infer_steps: int = Form(27),                # diffusion steps (27 optimal for turbo)
     # Music parameters
-    bpm: int = Form(0),                         # 0 = auto
+    bpm: float = Form(0),                       # 0 = auto, float pentru BPM detectat (e.g. 119.7)
     key_scale: str = Form(""),                  # e.g. "C major"
     time_signature: str = Form(""),             # e.g. "4"
     # Generation options
@@ -2160,15 +2159,11 @@ async def ace_generate(
     lm_top_k: int = Form(0),
     lm_top_p: float = Form(0.92),
     lm_negative_prompt: str = Form(""),
-    # Task type + audio2audio + custom
-    task_type: str = Form("text2music"),        # text2music, audio2audio, cover, custom
-    mode: str = Form(""),                       # custom mode (special)
-    source_audio: UploadFile = File(None),      # source audio for audio2audio/cover/custom (alias: audio_prompt)
+    # Task type + audio2audio
+    task_type: str = Form("text2music"),        # text2music, audio2audio, cover, repaint
+    source_audio: UploadFile = File(None),      # source audio for audio2audio/cover
     source_audio_strength: float = Form(0.5),   # 0=ignore source, 1=copy source
     negative_prompt: str = Form(""),            # alias for lm_negative_prompt
-    # Custom mode parameters (tags only - audio uses source_audio)
-    ref_audio_strength: float = Form(0.7),      # 0.0-1.0 for custom mode
-    tags: str = Form(""),                       # genre/style tags for custom mode
     # DiT model selection
     dit_model: str = Form("acestep-v15-turbo"), # acestep-v15-turbo or acestep-v15-turbo-shift3
     # Expert / advanced
@@ -2188,6 +2183,10 @@ async def ace_generate(
     # VRAM & Performance
     batch_size: int = Form(1),                # 1=save VRAM, 2+=faster but more VRAM
     use_tiled_decode: bool = Form(True),      # VAE decode optimization
+    # Custom mode extra fields (ignored by backend, accepted to avoid 422)
+    mode: str = Form(""),
+    ref_audio_strength: float = Form(0.5),
+    tags: str = Form(""),
 ):
     """
     Generate music with ACE-Step v1.5.
@@ -2215,8 +2214,7 @@ async def ace_generate(
     t_start = time.time()
     use_random = seed < 0
     actual_seed = seed if seed >= 0 else random.randint(0, 2**31)
-    prompt_display = prompt[:60] if prompt else "(custom mode with tags)"
-    print(f"[ACE {job_id[:8]}] Generating: prompt='{prompt_display}' | duration={duration}s | steps={infer_steps} | model={dit_model}")
+    print(f"[ACE {job_id[:8]}] Generating: prompt='{prompt[:60]}' | duration={duration}s | steps={infer_steps} | model={dit_model}")
 
     try:
         async with httpx.AsyncClient(timeout=300.0) as client:
@@ -2286,7 +2284,6 @@ async def ace_generate(
 
             # ── Optimizări pentru audio cover ──────────────────────────────────
             is_cover = task_type in ("audio2audio", "cover")
-            is_custom = mode == "custom" or task_type == "custom"
             effective_duration = duration  # folosim durata exactă setată de utilizator
             # Asigură-te că durata este pozitivă, altfel -1 pentru auto
             if effective_duration <= 0:
@@ -2337,16 +2334,8 @@ async def ace_generate(
             if neg:
                 task_payload["lm_negative_prompt"] = neg
 
-            # Custom mode: add reference audio parameters
-            if is_custom:
-                task_payload["mode"] = "custom"
-                if tags:
-                    task_payload["tags"] = tags
-                task_payload["ref_audio_strength"] = ref_audio_strength
-                print(f"[ACE {job_id[:8]}] Custom mode: ref_strength={ref_audio_strength}, tags='{tags[:60]}'")
-
-            # Audio2audio/cover/custom: save source audio in system temp
-            if (task_type in ("audio2audio", "cover") or is_custom) and source_audio and source_audio.filename:
+            # Audio2audio/cover: save source audio in system temp
+            if task_type in ("audio2audio", "cover") and source_audio and source_audio.filename:
                 src_bytes = await source_audio.read()
                 import tempfile as _tmpmod
                 suffix = ".wav"
@@ -2379,13 +2368,9 @@ async def ace_generate(
 
                 # Audio cover: use reference_audio_path to preserve vocal
                 # Audio2audio: use src_audio_path for style transfer
-                # Custom: use audio_prompt_path for reference structure
                 if task_type == "cover":
                     task_payload["reference_audio_path"] = src_path  # Preserve vocal
                     print(f"[ACE {job_id[:8]}] Audio cover: reference={source_audio.filename}")
-                elif is_custom:
-                    task_payload["audio_prompt_path"] = src_path
-                    print(f"[ACE {job_id[:8]}] Custom mode: reference={source_audio.filename}")
                 else:
                     task_payload["src_audio_path"] = src_path
                     print(f"[ACE {job_id[:8]}] Audio2audio: source={source_audio.filename}")
