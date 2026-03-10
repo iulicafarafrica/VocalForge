@@ -840,7 +840,7 @@ export default function AceStepTab({
     fd.append("infer_steps", inferSteps);
     fd.append("dit_model", tensorModel);  // DiT model selection
     fd.append("vocal_language", vocalLanguage);  // Vocal language
-    fd.append("instrumental", lyrics.trim() === "" || vocalLanguage === "unknown");
+    fd.append("instrumental", lyrics.trim() === "" || vocalLanguage === "unknown" ? "true" : "false");
 
     // BPM: always send if set in main UI
     if (bpm && bpm > 0) {
@@ -886,7 +886,7 @@ export default function AceStepTab({
     if (lmTopP < 1.0) {
       fd.append("lm_top_p", lmTopP);
     }
-    fd.append("thinking", thinking);
+    fd.append("thinking", thinking ? "true" : "false");
     fd.append("infer_method", inferMethod);
     if (tensorModel.includes("base") || tensorModel.includes("sft")) {
       fd.append("shift", shift);
@@ -897,7 +897,7 @@ export default function AceStepTab({
     fd.append("audio_format", audioFormat);
 
     // Tiled decode (always enabled by default for VRAM optimization)
-    fd.append("use_tiled_decode", useTiledDecode);
+    fd.append("use_tiled_decode", useTiledDecode ? "true" : "false");
 
     // Fake progress animation
     const progressSteps = [
