@@ -24,6 +24,21 @@ SKILL_*.md
 FILE_CREATION_GUIDE.md
 TERMINAL_WRAPPERS_STATUS.md
 
+# All Qwen-related .md files (except README.md and project docs)
+*.md
+!README.md
+!CHANGELOG.md
+!QUICKSTART.md
+!CONTRIBUTING.md
+!LICENSE.md
+!GPU_MEMORY_README.md
+!RTX3070_OPTIMIZATION_GUIDE.md
+!VocalForge_Architecture_Documentation.md
+!GITHUB_RELEASE_NOTES.md
+!GITHUB_BACKUP_GUIDE.md
+!CLEANUP_README.md
+!extension_readme.md
+
 # ======================
 # Personal Files
 # ======================
