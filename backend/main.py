@@ -2163,11 +2163,10 @@ async def ace_generate(
     # Task type + audio2audio + custom
     task_type: str = Form("text2music"),        # text2music, audio2audio, cover, custom
     mode: str = Form(""),                       # custom mode (special)
-    source_audio: UploadFile = File(None),      # source audio for audio2audio/cover/custom
+    source_audio: UploadFile = File(None),      # source audio for audio2audio/cover/custom (alias: audio_prompt)
     source_audio_strength: float = Form(0.5),   # 0=ignore source, 1=copy source
     negative_prompt: str = Form(""),            # alias for lm_negative_prompt
-    # Custom mode parameters
-    audio_prompt: UploadFile = File(None),      # reference audio for custom mode
+    # Custom mode parameters (tags only - audio uses source_audio)
     ref_audio_strength: float = Form(0.7),      # 0.0-1.0 for custom mode
     tags: str = Form(""),                       # genre/style tags for custom mode
     # DiT model selection
@@ -2347,9 +2346,8 @@ async def ace_generate(
                 print(f"[ACE {job_id[:8]}] Custom mode: ref_strength={ref_audio_strength}, tags='{tags[:60]}'")
 
             # Audio2audio/cover/custom: save source audio in system temp
-            if (task_type in ("audio2audio", "cover") or is_custom) and (source_audio or audio_prompt) and (source_audio or audio_prompt).filename:
-                src_file = source_audio if source_audio else audio_prompt
-                src_bytes = await src_file.read()
+            if (task_type in ("audio2audio", "cover") or is_custom) and source_audio and source_audio.filename:
+                src_bytes = await source_audio.read()
                 import tempfile as _tmpmod
                 suffix = ".wav"
                 fd, src_path = _tmpmod.mkstemp(prefix="ace_src_", suffix=suffix)
@@ -2357,7 +2355,7 @@ async def ace_generate(
 
                 try:
                     import torchaudio as _torchaudio
-                    fd2, raw_path = _tmpmod.mkstemp(prefix="ace_raw_", suffix=os.path.splitext(src_file.filename)[1] or ".wav")
+                    fd2, raw_path = _tmpmod.mkstemp(prefix="ace_raw_", suffix=os.path.splitext(source_audio.filename)[1] or ".wav")
                     os.close(fd2)
                     try:
                         with open(raw_path, "wb") as f_raw:
@@ -2365,7 +2363,7 @@ async def ace_generate(
                         _wav, _sr = _torchaudio.load(raw_path)
                         src_duration_s = _wav.shape[-1] / _sr
                         _torchaudio.save(src_path, _wav, _sr)
-                        print(f"[ACE {job_id[:8]}] Source audio: {src_file.filename} ({src_duration_s:.1f}s)")
+                        print(f"[ACE {job_id[:8]}] Source audio: {source_audio.filename} ({src_duration_s:.1f}s)")
                     finally:
                         try:
                             os.unlink(raw_path)
@@ -2387,7 +2385,7 @@ async def ace_generate(
                     print(f"[ACE {job_id[:8]}] Audio cover: reference={source_audio.filename}")
                 elif is_custom:
                     task_payload["audio_prompt_path"] = src_path
-                    print(f"[ACE {job_id[:8]}] Custom mode: reference={src_file.filename}")
+                    print(f"[ACE {job_id[:8]}] Custom mode: reference={source_audio.filename}")
                 else:
                     task_payload["src_audio_path"] = src_path
                     print(f"[ACE {job_id[:8]}] Audio2audio: source={source_audio.filename}")

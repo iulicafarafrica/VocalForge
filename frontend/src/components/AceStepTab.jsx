@@ -863,7 +863,7 @@ export default function AceStepTab({
     // Custom mode (reference audio)
     if (taskType === "custom" && customReferenceAudio) {
       fd.append("mode", "custom");
-      fd.append("audio_prompt", customReferenceAudio);
+      fd.append("source_audio", customReferenceAudio);  // Use source_audio (same as audio2audio)
       fd.append("ref_audio_strength", customRefStrength);
       if (customTags) {
         fd.append("tags", customTags);
