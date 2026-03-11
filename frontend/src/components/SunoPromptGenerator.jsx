@@ -1,245 +1,133 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 
 const API = "http://localhost:8000";
 
-// Genres will be loaded from ACE-Step API
-const DEFAULT_GENRES = {
-  'Hip-Hop': { subgenres: { 'Trap': {}, 'Drill': {}, 'Lo-Fi': {} } },
-  'Electronic': { subgenres: { 'House': {}, 'Techno': {}, 'Trance': {} } },
-  'Rock': { subgenres: { 'Alternative': {}, 'Indie': {}, 'Metal': {} } },
-  'Pop': { subgenres: { 'Synth Pop': {}, 'Dance Pop': {} } },
-  'R&B': { subgenres: { 'Soul': {}, 'Funk': {} } },
-  'Jazz': { subgenres: { 'Blues': {}, 'Swing': {} } },
-  'Classical': { subgenres: { 'Orchestral': {}, 'Cinematic': {} } },
-  'Country': { subgenres: { 'Folk': {}, 'Americana': {} } },
-  'Reggae': { subgenres: { 'Dancehall': {}, 'Dub': {} } },
-  'Punk': { subgenres: { 'Hardcore': {}, 'Ska': {} } },
+// ── Genres with Subgenres (like ACE-Step) ────────────────────────────────────
+const GENRE_CATEGORIES = {
+  'Romanian': [
+    'Manele', 'Manele Clasice', 'Manele Moderne', 'Manele de Dragoste',
+    'Manele Trap', 'Manele de Petrecere', 'Manele Orientale',
+    'Muzică Populară', 'Folclor', 'Doină', 'Muzică Lăutărească', 'Taraf',
+    'Sârbă', 'Hora', 'Brâu', 'Bătătură', 'Muzică de Nuntă', 'Muzică de Restaurant',
+    'Muzică Ușoară Românească', 'Cântec Bătrânesc', 'Etno Românesc',
+    'Pop Românesc', 'Rock Românesc', 'Hip-Hop Românesc', 'Trap Românesc',
+    'Muzică Balcanică', 'Muzică Orientală', 'Colinde', 'Cântec Patriotic',
+    'Indie / Alternativă România',
+  ],
+  'Hip-Hop': [
+    'Hip-Hop', 'Trap', 'Atlanta Trap', 'Melodic Trap', 'Hard Trap', 'EDM Trap',
+    'Drill', 'UK Drill', 'NY Drill', 'Afro Drill',
+    'Melodic Rap', 'Emo Rap', 'Cloud Rap', 'Phonk', 'Drift Phonk', 'Memphis Rap',
+    'Boom Bap', 'Gangsta Rap', 'G-Funk', 'Crunk', 'Trap Soul',
+    'Mumble Rap', 'Rage Rap', 'Pluggnb', 'SoundCloud Rap', 'Hyphy',
+    'Chopped & Screwed', 'Trap Metal', 'Latin Trap', 'Afrotrap',
+    'Grime', 'Trap EDM', 'Lo-fi Hip-Hop', 'Jazz Rap', 'Conscious Rap',
+    'Trap Beats', 'Plugg', 'Detroit Rap', 'Trap Flamenco',
+  ],
+  'Electronic': [
+    'House', 'Deep House', 'Tech House', 'Progressive House', 'Electro House',
+    'Big Room', 'Future House', 'Bass House', 'Jackin House', 'Chicago House',
+    'Funky House', 'Soulful House', 'Vocal House', 'Disco House', 'Italo House',
+    'Acid House', 'Ghetto House', 'Juke', 'Footwork', 'Afro House', 'Amapiano',
+    'Techno', 'Trance', 'Dubstep', 'Drum & Bass', 'Ambient', 'EDM',
+    'Synthwave', 'Chillout', 'Dark Ambient', 'Hardstyle', 'Psytrance',
+  ],
+  'Rock': [
+    'Alternative Rock', 'Hard Rock', 'Indie Rock', 'Pop Punk', 'Grunge',
+    'Post-Rock', 'Garage Rock', 'Psychedelic Rock',
+  ],
+  'Pop': [
+    'Pop', 'Synth Pop', 'Dance Pop', 'K-Pop', 'J-Pop', 'Electropop', 'Indie Pop', 'Dream Pop',
+  ],
+  'R&B': [
+    'R&B', 'Soul', 'Neo-Soul', 'Funk', 'Motown', 'Quiet Storm', 'Trap Soul',
+  ],
+  'Jazz': [
+    'Jazz', 'Smooth Jazz', 'Jazz Fusion', 'Bebop', 'Cool Jazz', 'Swing', 'Blues',
+  ],
+  'Latin': [
+    'Reggaeton', 'Latin Pop', 'Salsa', 'Timba', 'Bachata', 'Merengue', 'Cumbia', 'Mambo',
+  ],
+  'Metal': [
+    'Heavy Metal', 'Metalcore', 'Death Metal', 'Black Metal', 'Power Metal',
+    'Doom Metal', 'Symphonic Metal', 'Deathcore', 'Industrial Metal',
+    'Groove Metal', 'Gothic Metal', 'Progressive Metal', 'Nu Metal',
+    'Folk Metal', 'Sludge Metal', 'Post-Metal', 'Djent',
+  ],
+  'Other': [
+    'Classical', 'Country', 'Bluegrass', 'Reggae', 'Dancehall', 'Dub',
+    'Disco', 'Folk', 'Ambient', 'Ska', 'Rocksteady',
+  ],
 };
 
+// ── Styles ───────────────────────────────────────────────────────────────────
 const STYLES = [
-  'Upbeat', 'Energetic', 'Slow', 'Emotional', 'Aggressive', 'Melancholic', 'Atmospheric', 'Epic', 'Dark',
-  'Happy', 'Sad', 'Chill', 'Ambient', 'Fast', 'Heavy', 'Driving', 'Groovy', 'Soothing', 'Dreamy', 'Intense',
-  'Romantic', 'Mysterious', 'Euphoric', 'Uplifting', 'Nostalgic', 'Funky', 'Raw', 'Polished'
+  'Upbeat', 'Energetic', 'Emotional', 'Dark', 'Happy', 'Sad', 'Chill',
+  'Aggressive', 'Melancholic', 'Atmospheric', 'Epic', 'Romantic', 'Funky'
 ];
 
+// ── BPM Options ──────────────────────────────────────────────────────────────
 const BPMS = ['80 BPM', '100 BPM', '120 BPM', '140 BPM', '160 BPM', '180 BPM', '200 BPM'];
 
+// ── Tags ─────────────────────────────────────────────────────────────────────
 const TAGS = [
-  '[Intro]', '[Verse]', '[Pre-Chorus]', '[Chorus]', '[Bridge]', '[Guitar Solo]', '[Drop]', '[Build-up]',
-  '[Breakdown]', '[Outro]', '[Fast Tempo]', '[Slow Tempo]', '[Upbeat]', '[Acoustic]', '[Epic]', '[Intimate]',
-  '[Female Vocals]', '[Male Vocals]', '[Instrumental]', '[Bass Drop]', '[Beat Drop]', '[Vocalization]',
-  '[Choir]', '[Orchestral]', '[Synth Solo]', '[Drum Fill]', '[Fade Out]', '[Acapella]', '[End]'
+  '[Intro]', '[Verse]', '[Pre-Chorus]', '[Chorus]', '[Bridge]', '[Outro]',
+  '[Drop]', '[Build-up]', '[Breakdown]', '[Fast Tempo]', '[Slow Tempo]'
 ];
-
-const TOOLTIPS = {
-  // Styles
-  'Upbeat': 'Positive, cheerful, and fast-paced.',
-  'Energetic': 'High-intensity, lively, and driving.',
-  'Slow': 'Unrushed, relaxed, and deliberate pace.',
-  'Emotional': 'Expressive, deeply feeling, and moving.',
-  'Aggressive': 'Fierce, intense, and forceful.',
-  'Melancholic': 'Sorrowful, pensive, and sad.',
-  'Atmospheric': 'Focuses on mood, texture, and spatial audio.',
-  'Epic': 'Grand, monumental, and cinematic.',
-  'Dark': 'Ominous, gloomy, or brooding tone.',
-  'Happy': 'Joyful, bright, and positive.',
-  'Sad': 'Sorrowful, downbeat, and expressing grief.',
-  'Chill': 'Relaxing, laid-back, and easygoing.',
-  'Ambient': 'Background-focused, texture-heavy, no strict beat.',
-  'Fast': 'Quick tempo, rapid delivery.',
-  'Heavy': 'Thick texture, often loud, distorted, or bass-heavy.',
-  'Driving': 'Relentless forward momentum in rhythm.',
-  'Groovy': 'Rhythmic feel that strongly invites dancing or movement.',
-  'Soothing': 'Calming, gentle, and peaceful.',
-  'Dreamy': 'Ethereal, surreal, and smooth.',
-  'Intense': 'Extreme emotion or volume; highly focused.',
-  'Romantic': 'Expressing love or deep affection.',
-  'Mysterious': 'Enigmatic, suspenseful, and secretive.',
-  'Euphoric': 'Intensely happy, soaring, and ecstatic.',
-  'Uplifting': 'Inspiring hope, elevation, and optimism.',
-  'Nostalgic': 'Evocative of the past, sentimental.',
-  'Funky': 'Syncopated, bass-forward, and bouncy.',
-  'Raw': 'Unpolished, authentic, and gritty.',
-  'Polished': 'Clean, highly produced, and perfect.',
-  // Tags
-  '[Intro]': 'The opening section of the song before the main vocals.',
-  '[Verse]': 'The main storytelling section; melody is often consistent while lyrics change.',
-  '[Pre-Chorus]': 'Builds tension and transitions from the verse to the chorus.',
-  '[Chorus]': 'The memorable, repeating core message and melody of the song.',
-  '[Bridge]': 'A contrasting section to introduce new musical ideas, often near the end.',
-  '[Guitar Solo]': 'An instrumental section featuring a lead guitar.',
-  '[Drop]': 'The climax of an electronic track, featuring heavy bass and beats.',
-  '[Build-up]': 'A section of rising tension and increasing speed, usually before a drop.',
-  '[Breakdown]': 'A stripped-back section where most instruments drop out to rebuild energy.',
-  '[Outro]': 'The closing, fading section of the song.',
-  '[Fast Tempo]': 'Instruction to suddenly increase the speed of the song.',
-  '[Slow Tempo]': 'Instruction to suddenly decrease the speed or stretch out the timing.',
-  '[Upbeat]': 'Instruction to shift to a happier, bouncy rhythm.',
-  '[Acoustic]': 'Instruction to switch to non-electronic, organic instruments.',
-  '[Epic]': 'Instruction to shift to a massive, cinematic arrangement.',
-  '[Intimate]': 'Instruction to bring the vocals closer and quiet the instruments.',
-  '[Female Vocals]': 'Request female singer.',
-  '[Male Vocals]': 'Request male singer.',
-  '[Instrumental]': 'Request a section (or whole song) without any vocals.',
-  '[Bass Drop]': 'A sudden, heavy impact of sub-bass frequencies.',
-  '[Beat Drop]': 'The moment the full rhythm section kicks in.',
-  '[Vocalization]': 'Non-lyrical singing (e.g., "oohs", "aahs").',
-  '[Choir]': 'A group of voices singing in harmony.',
-  '[Orchestral]': 'Instruction to bring in classical string and brass sections.',
-  '[Synth Solo]': 'An instrumental section featuring an electronic synthesizer.',
-  '[Drum Fill]': 'A short flourish played on the drums to fill a gap.',
-  '[Fade Out]': 'Instruction to gradually lower the volume to end the song.',
-  '[Acapella]': 'Vocals only, completely without instrumental backing.',
-  '[End]': 'Hard stop to officially terminate the song generation.'
-};
-
-const HELP_DATA = {
-  genres: {
-    title: "Genres",
-    description: "Genres define the foundational sound and instrumental arrangement. Suno understands a wide variety of global genres. Combining them can lead to unique fusion styles.",
-    url: "https://help.suno.com/",
-    examples: [
-      { title: "Synthwave Banger", template: "Synthwave, 80s, Electronic, Retrowave, Driving" },
-      { title: "Acoustic Ballad", template: "Acoustic, Indie Folk, Intimate, Emotional, Guitar" }
-    ]
-  },
-  metal: {
-    title: "Metal Subgenres",
-    description: "Highly specific subgenres in Metal dictate the vocal style (e.g. growls vs clean singing), guitar tuning, and drumming patterns.",
-    url: "https://help.suno.com/",
-    examples: [
-      { title: "Epic Symphonic Metal", template: "Symphonic Metal, Operatic Female Vocals, Orchestral, Epic" },
-      { title: "Aggressive Deathcore", template: "Deathcore, Breakdowns, Deep Growls, Blast Beats, Heavy" }
-    ]
-  },
-  styles: {
-    title: "Styles (Tone & Vibe)",
-    description: "Styles act as adjectives to shape the mood, feeling, and energy of the chosen genres.",
-    url: "https://help.suno.com/"
-  },
-  bpm: {
-    title: "BPM (Beats Per Minute)",
-    description: "Setting a specific BPM helps guide Suno's internal tempo generator.",
-    url: "https://help.suno.com/"
-  },
-  tags: {
-    title: "Structure Tags",
-    description: "Metatags like [Verse], [Chorus], or [Drop] tell Suno's AI how to structure the song flow.",
-    url: "https://help.suno.com/",
-    examples: [
-      { title: "Standard Pop Structure", template: "[Intro]\n(Instrumental build up)\n\n[Verse 1]\nWalking down the neon street...\n\n[Chorus]\nElectric love in the night!" },
-      { title: "EDM Drop Structure", template: "[Intro]\nAtmospheric pads\n\n[Build-up]\nFaster drums, rising tension\n\n[Drop]\nHeavy bassline, energetic" }
-    ]
-  }
-};
 
 export default function PromptGenerator({ addLog }) {
   const [text, setText] = useState('');
-  const [selectedGenres, setSelectedGenres] = useState([]);
-  const [selectedStyles, setSelectedStyles] = useState([]);
-  const [selectedBpm, setSelectedBpm] = useState(null);
-  const [genreFilter, setGenreFilter] = useState('');
-  const [result, setResult] = useState(null);
-  const [activeHelp, setActiveHelp] = useState(null);
-  const [expandedSections, setExpandedSections] = useState({});
-  const [copied, setCopied] = useState(false);
-  const [genrePresets, setGenrePresets] = useState(DEFAULT_GENRES);
   const [selectedGenreCat, setSelectedGenreCat] = useState('Hip-Hop');
   const [selectedSubgenres, setSelectedSubgenres] = useState([]);
+  const [selectedStyles, setSelectedStyles] = useState([]);
+  const [selectedBpm, setSelectedBpm] = useState(null);
+  const [result, setResult] = useState(null);
+  const [copied, setCopied] = useState(false);
   const textareaRef = useRef(null);
 
-  // Load genre presets from ACE-Step API
-  useEffect(() => {
-    const loadGenres = async () => {
-      try {
-        const res = await fetch(`${API}/acestep_genre_presets`);
-        const data = await res.json();
-        if (data?.genres) {
-          // Exclude certain genres as in AceStepTab
-          const EXCLUDED = ["EDM", "Hip Hop", "Pop", "Classical", "Afrobeat", "Instrumental", "Other"];
-          const filtered = Object.fromEntries(
-            Object.entries(data.genres).filter(([k]) => !EXCLUDED.includes(k))
-          );
-          setGenrePresets(filtered);
-          const firstGenre = Object.keys(filtered)[0];
-          if (firstGenre) setSelectedGenreCat(firstGenre);
-        }
-      } catch (err) {
-        console.error("Failed to load genres:", err);
-      }
-    };
-    loadGenres();
-  }, []);
-
-  const toggleGenre = (genre) => {
-    setSelectedGenres((prev) =>
-      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre]
-    );
+  const toggleSubgenre = (s) => {
+    setSelectedSubgenres(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
   };
 
-  const toggleStyle = (style) => {
-    setSelectedStyles((prev) =>
-      prev.includes(style) ? prev.filter((s) => s !== style) : [...prev, style]
-    );
-  };
-
-  const toggleBpm = (bpm) => {
-    setSelectedBpm((prev) => (prev === bpm ? null : bpm));
-  };
-
-  const toggleSection = (section) => {
-    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
-  };
-
-  const insertTag = (tag) => {
-    if (!textareaRef.current) return;
-
-    let tagToInsert = tag;
-    if (tag === '[Verse]') {
-      const verseMatches = text.match(/\[Verse \d+\]/gi) || [];
-      const nextVerseNum = verseMatches.length + 1;
-      tagToInsert = `[Verse ${nextVerseNum}]`;
-    }
-
-    const start = textareaRef.current.selectionStart;
-    const end = textareaRef.current.selectionEnd;
-    const newText = text.substring(0, start) + tagToInsert + text.substring(end);
-    setText(newText);
-
-    setTimeout(() => {
-      if (textareaRef.current) {
-        textareaRef.current.selectionStart = textareaRef.current.selectionEnd = start + tagToInsert.length;
-        textareaRef.current.focus();
-      }
-    }, 0);
+  const toggleStyle = (s) => {
+    setSelectedStyles(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
   };
 
   const handleGenerate = async () => {
+    if (!text.trim()) return;
+    setResult(null);
+
     try {
-      const response = await fetch(`${API}/suno/prompt/generate`, {
+      const res = await fetch(`${API}/suno/prompt/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          text,
-          genres: selectedGenres,
+          text: text,
+          genres: selectedSubgenres,
           styles: selectedStyles,
-          bpm: selectedBpm
-        })
+          bpm: selectedBpm,
+        }),
       });
-      const data = await response.json();
+      
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(err);
+      }
+      
+      const data = await res.json();
       setResult(data);
-      setCopied(false);
-      addLog?.(`[Prompt Generator] Generated prompt: ${data.style_prompt}`);
-    } catch (error) {
-      console.error("Error generating prompt:", error);
-      addLog?.(`[ERR] Prompt Generator: ${error.message}`);
+      addLog?.(`[Prompt Gen] Generated: ${data.style_prompt}`);
+    } catch (e) {
+      console.error(e);
+      addLog?.(`[ERR] Prompt Gen: ${e.message}`);
+      setResult({ error: e.message });
     }
   };
 
   const handleCopy = () => {
-    if (result?.lyrics_formatted) {
-      const fullPrompt = `${result.style_prompt}\n\n${result.lyrics_formatted}`;
-      navigator.clipboard.writeText(fullPrompt).then(() => {
+    if (result?.style_prompt) {
+      const full = `${result.style_prompt}\n\n${result.lyrics_formatted || text}`;
+      navigator.clipboard.writeText(full).then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       });
@@ -248,503 +136,366 @@ export default function PromptGenerator({ addLog }) {
 
   const handleSendToSuno = () => {
     if (!result) return;
-    // Store in localStorage for Suno tab to pick up
     localStorage.setItem('suno_prompt_from_generator', JSON.stringify({
       prompt: result.style_prompt,
-      lyrics: result.lyrics_formatted
+      lyrics: result.lyrics_formatted || text,
     }));
-    addLog?.(`[Prompt Generator] Sent to Suno tab`);
-    alert(`✅ Prompt sent to Suno tab!\n\nStyle: ${result.style_prompt}\n\nOpen the Suno AI tab and paste in Custom Mode.`);
-  };
-
-  const renderChips = (items, selected, toggleFn, sectionId, isInsert = false) => {
-    const isExpanded = expandedSections[sectionId];
-    const filteredItems = items.filter(i => i.toLowerCase().includes(genreFilter.toLowerCase()));
-    const displayCount = 10;
-
-    let itemsToDisplay = [];
-    if (isExpanded) {
-      itemsToDisplay = filteredItems;
-    } else {
-      const isSelected = (item) => Array.isArray(selected) ? selected.includes(item) : selected === item;
-      const selectedFiltered = filteredItems.filter(i => isSelected(i));
-      const unselectedFiltered = filteredItems.filter(i => !isSelected(i));
-      const remainingSlots = Math.max(0, displayCount - selectedFiltered.length);
-      itemsToDisplay = [...selectedFiltered, ...unselectedFiltered.slice(0, remainingSlots)];
-    }
-
-    return (
-      <>
-        <div className="chip-container" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
-          {itemsToDisplay.map(item => {
-            const isSelected = Array.isArray(selected) ? selected.includes(item) : selected === item;
-            return (
-              <button
-                key={item}
-                className={`chip ${isInsert ? 'tag-chip' : ''} ${isSelected ? 'active' : ''}`}
-                onClick={() => isInsert ? insertTag(item) : toggleFn(item)}
-                title={TOOLTIPS[item] || (isInsert ? "Click to insert at cursor position" : "Toggle selection")}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: 999,
-                  border: isSelected ? '1px solid #f59e0b' : '1px solid #374151',
-                  background: isSelected ? '#f59e0b22' : 'transparent',
-                  color: isSelected ? '#f59e0b' : '#6b7280',
-                  fontSize: 11,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-              >
-                {item}
-              </button>
-            );
-          })}
-        </div>
-        {filteredItems.length > displayCount && (
-          <button
-            className="show-more-btn"
-            onClick={() => toggleSection(sectionId)}
-            style={{
-              padding: '4px 10px',
-              borderRadius: 6,
-              border: '1px solid #374151',
-              background: 'transparent',
-              color: '#9ca3af',
-              fontSize: 10,
-              cursor: 'pointer',
-              marginBottom: 16
-            }}
-          >
-            {isExpanded ? 'Show Less ⬆' : `Show More (${filteredItems.length - itemsToDisplay.length}) ⬇`}
-          </button>
-        )}
-      </>
-    );
+    addLog?.(`[Prompt Gen] Sent to Suno tab`);
+    alert(`✅ Prompt sent to Suno tab!\n\nOpen Suno AI tab and paste in Custom Mode.`);
   };
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', color: '#e5e7eb', padding: 20 }}>
+    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '24px' }}>
+
       {/* Header */}
-      <div style={{ marginBottom: 28 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
+      <div style={{
+        background: "linear-gradient(135deg, #1a1a2e, #0f0f1a)",
+        borderRadius: 12,
+        padding: "20px 24px",
+        marginBottom: 24,
+        border: "1px solid #2a2a4a",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div style={{
-            width: 42, height: 42, borderRadius: 12,
-            background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 20, boxShadow: '0 0 20px #f59e0b44'
+            width: 48, height: 48, borderRadius: 10,
+            background: "linear-gradient(135deg, #ffd166, #06d6a0)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 24, boxShadow: "0 4px 15px rgba(255,209,102,0.3)",
           }}>🎸</div>
-          <div style={{ flex: 1 }}>
-            <h2 style={{ fontSize: 22, fontWeight: 900, color: 'white', margin: 0, letterSpacing: 1 }}>
+          <div>
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: "#e0e0ff", margin: 0 }}>
               Prompt Generator
             </h2>
-            <p style={{ fontSize: 12, color: '#6b7280', margin: 0 }}>
-              Create structured prompts for AI music generation
+            <p style={{ fontSize: 12, color: "#8888aa", margin: "4px 0 0 0" }}>
+              Create professional prompts for AI music generation
             </p>
           </div>
         </div>
       </div>
 
-      {/* Filter */}
-      <div style={{ marginBottom: 24 }}>
-        <input
-          type="text"
-          placeholder="Search tags, genres, and styles..."
-          value={genreFilter}
-          onChange={(e) => setGenreFilter(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '12px 16px',
-            borderRadius: 10,
-            border: '1px solid #374151',
-            background: '#111827',
-            color: 'white',
-            fontSize: 13,
-            boxSizing: 'border-box',
-            outline: 'none'
-          }}
-        />
-      </div>
-
-      {/* Genre Categories & Subgenres (from ACE-Step) */}
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: 'white', margin: 0 }}>🎼 Genre & Subgenre</h3>
-          <button
-            onClick={() => setActiveHelp('genres')}
-            style={{
-              width: 20, height: 20, borderRadius: '50%',
-              border: '1px solid #6b7280', background: 'transparent',
-              color: '#6b7280', fontSize: 12, cursor: 'pointer'
-            }}
-          >?</button>
+      {/* Genre Categories */}
+      <div style={{
+        background: "#111122",
+        borderRadius: 10,
+        padding: "18px 20px",
+        marginBottom: 20,
+        border: "1px solid #2a2a4a",
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+          <span style={{ color: "#8888aa", fontSize: 13, fontWeight: 700 }}>🎵 GENRE & SUBGENRE</span>
+          <span style={{ color: "#666688", fontSize: 11 }}>{selectedSubgenres.length} selected</span>
         </div>
-        
-        {/* Genre Category Buttons */}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
-          {Object.keys(genrePresets).map((genreCat) => {
-            const subgenres = genrePresets[genreCat]?.subgenres || {};
-            const isActive = selectedGenreCat === genreCat;
-            return (
-              <button
-                key={genreCat}
-                onClick={() => {
-                  setSelectedGenreCat(genreCat);
-                  setSelectedSubgenres([]);
-                }}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: 6,
-                  border: isActive ? '1px solid #9b2de0' : '1px solid #2a2a4a',
-                  background: isActive ? '#9b2de022' : '#0a0a1a',
-                  color: isActive ? '#c77dff' : '#444466',
-                  fontSize: 11,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4
-                }}
-              >
-                {genreCat}
-                <span style={{
-                  background: isActive ? '#9b2de033' : '#1a1a2e',
-                  color: isActive ? '#c77dff' : '#333355',
-                  borderRadius: 10,
-                  padding: '1px 5px',
-                  fontSize: 10,
-                  fontWeight: 800
-                }}>{Object.keys(subgenres).length}</span>
-              </button>
-            );
-          })}
+
+        {/* Category Buttons */}
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
+          {Object.keys(GENRE_CATEGORIES).map(cat => (
+            <button
+              key={cat}
+              onClick={() => { setSelectedGenreCat(cat); setSelectedSubgenres([]); }}
+              style={{
+                padding: "8px 14px",
+                borderRadius: 8,
+                background: selectedGenreCat === cat ? "#00e5ff22" : "#0a0a1a",
+                border: `1px solid ${selectedGenreCat === cat ? "#00e5ff" : "#2a2a4a"}`,
+                color: selectedGenreCat === cat ? "#00e5ff" : "#666688",
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              {cat}
+              <span style={{
+                marginLeft: 6,
+                background: selectedGenreCat === cat ? "#00e5ff44" : "#1a1a2e",
+                color: selectedGenreCat === cat ? "#00e5ff" : "#444466",
+                borderRadius: 10,
+                padding: "2px 6px",
+                fontSize: 9,
+                fontWeight: 800,
+              }}>{GENRE_CATEGORIES[cat].length}</span>
+            </button>
+          ))}
         </div>
 
         {/* Subgenre Buttons */}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', maxHeight: 140, overflowY: 'auto' }}>
-          {Object.entries(genrePresets[selectedGenreCat]?.subgenres || {}).map(([subName, preset]) => {
-            const key = `${selectedGenreCat}|${subName}`;
-            const isSelected = selectedSubgenres.includes(key);
-            return (
-              <button
-                key={key}
-                onClick={() => {
-                  setSelectedSubgenres((prev) =>
-                    prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
-                  );
-                  // Also add to selectedGenres for prompt generation
-                  setSelectedGenres((prev) =>
-                    prev.includes(subName) ? prev.filter((g) => g !== subName) : [...prev, subName]
-                  );
-                }}
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: 6,
-                  border: isSelected ? '1px solid #9b2de0' : '1px solid #2a2a4a',
-                  background: isSelected ? '#9b2de022' : '#0a0a1a',
-                  color: isSelected ? '#c77dff' : '#6666aa',
-                  fontSize: 11,
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap'
-                }}
-                title={preset?.caption || subName}
-              >
-                {subName}
-                {preset?.bpm > 0 && <span style={{ marginLeft: 4, opacity: 0.8 }}>♩{preset.bpm}</span>}
-              </button>
-            );
-          })}
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {GENRE_CATEGORIES[selectedGenreCat].map(sub => (
+            <button
+              key={sub}
+              onClick={() => toggleSubgenre(sub)}
+              style={{
+                padding: "8px 14px",
+                borderRadius: 8,
+                background: selectedSubgenres.includes(sub) ? "#00e5ff22" : "#0a0a1a",
+                border: `1px solid ${selectedSubgenres.includes(sub) ? "#00e5ff" : "#2a2a4a"}`,
+                color: selectedSubgenres.includes(sub) ? "#00e5ff" : "#666688",
+                fontSize: 11,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              {sub}
+            </button>
+          ))}
         </div>
-      </div>
-
-      {/* Genres (Additional) */}
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: 'white', margin: 0 }}>Additional Genres</h3>
-        </div>
-        {renderChips(Object.keys(genrePresets), selectedGenres, toggleGenre, 'additionalGenres')}
       </div>
 
       {/* Styles */}
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: 'white', margin: 0 }}>Select Styles (Tone/Vibe)</h3>
-          <button
-            onClick={() => setActiveHelp('styles')}
-            style={{
-              width: 20, height: 20, borderRadius: '50%',
-              border: '1px solid #6b7280', background: 'transparent',
-              color: '#6b7280', fontSize: 12, cursor: 'pointer'
-            }}
-          >?</button>
+      <div style={{
+        background: "#111122",
+        borderRadius: 10,
+        padding: "18px 20px",
+        marginBottom: 20,
+        border: "1px solid #2a2a4a",
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+          <span style={{ color: "#8888aa", fontSize: 13, fontWeight: 700 }}>🎨 STYLES (TONE/VIBE)</span>
+          <span style={{ color: "#666688", fontSize: 11 }}>{selectedStyles.length} selected</span>
         </div>
-        {renderChips(STYLES, selectedStyles, toggleStyle, 'styles')}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          {STYLES.map(s => (
+            <button key={s} onClick={() => toggleStyle(s)}
+              style={{
+                padding: "8px 14px",
+                borderRadius: 8,
+                background: selectedStyles.includes(s) ? "#c77dff22" : "#0a0a1a",
+                border: `1px solid ${selectedStyles.includes(s) ? "#c77dff" : "#2a2a4a"}`,
+                color: selectedStyles.includes(s) ? "#c77dff" : "#666688",
+                fontSize: 11,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}>
+              {s}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* BPM */}
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: 'white', margin: 0 }}>Select BPM (Tempo)</h3>
-          <button
-            onClick={() => setActiveHelp('bpm')}
-            style={{
-              width: 20, height: 20, borderRadius: '50%',
-              border: '1px solid #6b7280', background: 'transparent',
-              color: '#6b7280', fontSize: 12, cursor: 'pointer'
-            }}
-          >?</button>
+      <div style={{
+        background: "#111122",
+        borderRadius: 10,
+        padding: "18px 20px",
+        marginBottom: 20,
+        border: "1px solid #2a2a4a",
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+          <span style={{ color: "#8888aa", fontSize: 13, fontWeight: 700 }}>⏱️ BPM (TEMPO)</span>
+          <span style={{ color: selectedBpm ? "#ffd166" : "#666688", fontSize: 12, fontFamily: "monospace" }}>
+            {selectedBpm || "None"}
+          </span>
         </div>
-        {renderChips(BPMS, selectedBpm, toggleBpm, 'bpm')}
+        <div style={{ display: "flex", gap: 8 }}>
+          {BPMS.map(b => (
+            <button key={b} onClick={() => setSelectedBpm(selectedBpm === b ? null : b)}
+              style={{
+                flex: 1,
+                padding: "10px",
+                borderRadius: 8,
+                background: selectedBpm === b ? "#ffd16622" : "#0a0a1a",
+                border: `1px solid ${selectedBpm === b ? "#ffd166" : "#2a2a4a"}`,
+                color: selectedBpm === b ? "#ffd166" : "#666688",
+                fontSize: 11,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}>
+              {b}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Tags */}
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: 'white', margin: 0 }}>Insert Tags</h3>
-          <button
-            onClick={() => setActiveHelp('tags')}
-            style={{
-              width: 20, height: 20, borderRadius: '50%',
-              border: '1px solid #6b7280', background: 'transparent',
-              color: '#6b7280', fontSize: 12, cursor: 'pointer'
-            }}
-          >?</button>
+      <div style={{
+        background: "#111122",
+        borderRadius: 10,
+        padding: "18px 20px",
+        marginBottom: 20,
+        border: "1px solid #2a2a4a",
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+          <span style={{ color: "#8888aa", fontSize: 13, fontWeight: 700 }}>🏷️ STRUCTURE TAGS</span>
         </div>
-        {renderChips(TAGS, [], insertTag, 'tags', true)}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          {TAGS.map(t => (
+            <button key={t} onClick={() => {
+              const current = text;
+              const pos = textareaRef.current?.selectionStart || 0;
+              const newText = current.slice(0, pos) + t + '\n' + current.slice(pos);
+              setText(newText);
+            }}
+              style={{
+                padding: "8px 14px",
+                borderRadius: 8,
+                background: "#0a0a1a",
+                border: "1px solid #2a2a4a",
+                color: "#8888aa",
+                fontSize: 11,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}>
+              {t}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Lyrics Textarea */}
-      <div style={{ marginBottom: 20 }}>
-        <label style={{ fontSize: 12, color: '#9ca3af', display: 'block', marginBottom: 8, fontWeight: 600 }}>
-          📝 Lyrics / Song Text
-        </label>
+      {/* Lyrics Input */}
+      <div style={{
+        background: "#111122",
+        borderRadius: 10,
+        padding: "18px 20px",
+        marginBottom: 20,
+        border: "1px solid #2a2a4a",
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <span style={{ color: "#8888aa", fontSize: 13, fontWeight: 700 }}>📝 LYRICS / PROMPT</span>
+          <span style={{ color: "#666688", fontSize: 11 }}>{text.length} chars</span>
+        </div>
         <textarea
           ref={textareaRef}
-          placeholder="Enter lyrics here. Click tags above to insert them at the cursor..."
           value={text}
           onChange={(e) => setText(e.target.value)}
-          rows={12}
+          placeholder="Enter your lyrics or prompt here..."
+          rows={10}
           style={{
-            width: '100%',
-            padding: 14,
-            borderRadius: 10,
-            border: '1px solid #374151',
-            background: '#0d1117',
-            color: 'white',
+            width: "100%",
+            background: "#0a0a1a",
+            border: "1px solid #2a2a4a",
+            borderRadius: 8,
+            padding: "14px 16px",
+            color: "#e0e0ff",
             fontSize: 13,
-            boxSizing: 'border-box',
-            resize: 'vertical',
-            fontFamily: 'monospace',
-            lineHeight: 1.6
+            fontFamily: "monospace",
+            resize: "vertical",
+            outline: "none",
+            boxSizing: "border-box",
+          }}
+          onFocus={(e) => {
+            e.target.style.borderColor = "#00e5ff";
+            e.target.style.boxShadow = "0 0 0 2px #00e5ff22";
+          }}
+          onBlur={(e) => {
+            e.target.style.borderColor = "#2a2a4a";
+            e.target.style.boxShadow = "none";
           }}
         />
       </div>
 
-      {/* Action Buttons */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
-        <button
-          onClick={handleGenerate}
-          style={{
-            flex: 1,
-            padding: '14px 20px',
-            borderRadius: 10,
-            border: 'none',
-            background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
-            color: 'white',
-            fontWeight: 700,
-            fontSize: 14,
-            cursor: 'pointer',
-            boxShadow: '0 4px 20px #f59e0b44'
-          }}
-        >
-          🎵 Generate Prompt
-        </button>
-        <button
-          onClick={() => setText('[Instrumental]')}
-          style={{
-            padding: '14px 20px',
-            borderRadius: 10,
-            border: '1px solid #374151',
-            background: '#1f2937',
-            color: '#9ca3af',
-            fontWeight: 600,
-            fontSize: 13,
-            cursor: 'pointer'
-          }}
-        >
-          🎸 [Instrumental]
-        </button>
-      </div>
+      {/* Generate Button */}
+      <button
+        onClick={handleGenerate}
+        disabled={!text.trim()}
+        style={{
+          width: "100%",
+          padding: "16px",
+          borderRadius: 10,
+          border: "none",
+          background: text.trim()
+            ? "linear-gradient(135deg, #ffd166, #06d6a0)"
+            : "#2a2a4a",
+          color: text.trim() ? "#0a0a1a" : "#666688",
+          fontWeight: 800,
+          fontSize: 15,
+          cursor: text.trim() ? "pointer" : "not-allowed",
+          transition: "all 0.2s",
+          marginBottom: 20,
+        }}
+      >
+        {text.trim() ? "✨ Generate Prompt" : "Enter text to generate"}
+      </button>
 
-      {/* Results */}
+      {/* Result */}
       {result && (
         <div style={{
-          background: 'linear-gradient(135deg, #0d1117 0%, #111827 100%)',
-          border: '1px solid #f59e0b33',
-          borderRadius: 14,
-          padding: 20,
-          marginBottom: 20
+          background: result.error ? "#ef444422" : "#111122",
+          borderRadius: 10,
+          padding: "18px 20px",
+          marginBottom: 20,
+          border: result.error ? "1px solid #ef444444" : "1px solid #00e5ff44",
         }}>
-          <div style={{ marginBottom: 16 }}>
-            <h3 style={{ fontSize: 13, fontWeight: 700, color: '#f59e0b', marginBottom: 8, textTransform: 'uppercase' }}>
-              🎨 Style Prompt
-            </h3>
-            <p style={{ fontSize: 13, color: '#e5e7eb', background: '#1f2937', padding: 12, borderRadius: 8 }}>
-              {result.style_prompt}
-            </p>
-          </div>
-
-          <div style={{ marginBottom: 16 }}>
-            <h3 style={{ fontSize: 13, fontWeight: 700, color: '#f59e0b', marginBottom: 8, textTransform: 'uppercase' }}>
-              📝 Formatted Lyrics
-            </h3>
-            <pre style={{
-              fontSize: 12,
-              color: '#e5e7eb',
-              background: '#1f2937',
-              padding: 12,
-              borderRadius: 8,
-              whiteSpace: 'pre-wrap',
-              fontFamily: 'monospace',
-              margin: 0
-            }}>
-              {result.lyrics_formatted}
-            </pre>
-          </div>
-
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              onClick={handleCopy}
-              style={{
-                flex: 1,
-                padding: '10px 16px',
-                borderRadius: 8,
-                border: 'none',
-                background: copied ? '#059669' : '#374151',
-                color: 'white',
-                fontWeight: 600,
-                fontSize: 12,
-                cursor: 'pointer'
-              }}
-            >
-              {copied ? '✅ Copied!' : '📋 Copy to Clipboard'}
-            </button>
-            <button
-              onClick={handleSendToSuno}
-              style={{
-                flex: 1,
-                padding: '10px 16px',
-                borderRadius: 8,
-                border: '1px solid #a855f744',
-                background: '#a855f711',
-                color: '#a855f7',
-                fontWeight: 600,
-                fontSize: 12,
-                cursor: 'pointer'
-              }}
-            >
-              🚀 Send to Suno Tab
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Help Modal */}
-      {activeHelp && HELP_DATA[activeHelp] && (
-        <div
-          onClick={() => setActiveHelp(null)}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0, 0, 0, 0.8)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: 'linear-gradient(135deg, #0d1117 0%, #111827 100%)',
-              border: '1px solid #374151',
-              borderRadius: 16,
-              padding: 24,
-              maxWidth: 500,
-              width: '90%',
-              maxHeight: '80vh',
-              overflow: 'auto',
-              position: 'relative'
-            }}
-          >
-            <button
-              onClick={() => setActiveHelp(null)}
-              style={{
-                position: 'absolute',
-                top: 12,
-                right: 12,
-                width: 28,
-                height: 28,
-                borderRadius: '50%',
-                border: '1px solid #374151',
-                background: 'transparent',
-                color: '#9ca3af',
-                fontSize: 18,
-                cursor: 'pointer'
-              }}
-            >×</button>
-
-            <h2 style={{ fontSize: 18, fontWeight: 700, color: 'white', marginBottom: 12 }}>
-              {HELP_DATA[activeHelp].title}
-            </h2>
-            <p style={{ fontSize: 13, color: '#9ca3af', marginBottom: 16, lineHeight: 1.6 }}>
-              {HELP_DATA[activeHelp].description}
-            </p>
-
-            {HELP_DATA[activeHelp].examples && (
-              <div style={{ marginBottom: 16 }}>
-                <h3 style={{ fontSize: 14, fontWeight: 600, color: '#f59e0b', marginBottom: 10 }}>Examples</h3>
-                {HELP_DATA[activeHelp].examples.map((ex, i) => (
-                  <div key={i} style={{ marginBottom: 12 }}>
-                    <strong style={{ fontSize: 12, color: '#e5e7eb' }}>{ex.title}:</strong>
-                    <pre style={{
-                      fontSize: 11,
-                      color: '#9ca3af',
-                      background: '#1f2937',
-                      padding: 10,
-                      borderRadius: 6,
-                      whiteSpace: 'pre-wrap',
-                      fontFamily: 'monospace',
-                      margin: '6px 0 0 0'
-                    }}>
-                      {ex.template}
-                    </pre>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <a
-                href={HELP_DATA[activeHelp].url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  padding: '6px 12px',
-                  borderRadius: 6,
-                  border: '1px solid #374151',
-                  background: 'transparent',
-                  color: '#6b7280',
-                  fontSize: 11,
-                  textDecoration: 'none'
-                }}
-              >
-                📖 Official Suno Help
-              </a>
+          {result.error ? (
+            <div style={{ color: "#ef4444", fontSize: 13 }}>
+              ❌ Error: {result.error}
             </div>
-          </div>
+          ) : (
+            <>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                <span style={{ color: "#00e5ff", fontSize: 13, fontWeight: 700 }}>✅ GENERATED PROMPT</span>
+              </div>
+
+              {/* Style Prompt */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ color: "#8888aa", fontSize: 11, marginBottom: 6 }}>🎨 STYLE</div>
+                <div style={{
+                  background: "#0a0a1a",
+                  borderRadius: 8,
+                  padding: "12px 14px",
+                  color: "#e0e0ff",
+                  fontSize: 13,
+                  border: "1px solid #2a2a4a",
+                }}>
+                  {result.style_prompt}
+                </div>
+              </div>
+
+              {/* Lyrics */}
+              {result.lyrics_formatted && (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ color: "#8888aa", fontSize: 11, marginBottom: 6 }}>📝 LYRICS</div>
+                  <pre style={{
+                    background: "#0a0a1a",
+                    borderRadius: 8,
+                    padding: "12px 14px",
+                    color: "#e0e0ff",
+                    fontSize: 12,
+                    fontFamily: "monospace",
+                    whiteSpace: "pre-wrap",
+                    border: "1px solid #2a2a4a",
+                    margin: 0,
+                  }}>
+                    {result.lyrics_formatted}
+                  </pre>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  onClick={handleCopy}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    borderRadius: 8,
+                    border: "none",
+                    background: copied ? "#06d6a0" : "#2a2a4a",
+                    color: "white",
+                    fontWeight: 700,
+                    fontSize: 13,
+                    cursor: "pointer",
+                  }}
+                >
+                  {copied ? "✅ Copied!" : "📋 Copy"}
+                </button>
+                <button
+                  onClick={handleSendToSuno}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    borderRadius: 8,
+                    border: "1px solid #c77dff",
+                    background: "#c77dff22",
+                    color: "#c77dff",
+                    fontWeight: 700,
+                    fontSize: 13,
+                    cursor: "pointer",
+                  }}
+                >
+                  🚀 Send to Suno
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

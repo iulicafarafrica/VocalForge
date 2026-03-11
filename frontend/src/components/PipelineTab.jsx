@@ -3,10 +3,9 @@ import React, { useState, useRef, useEffect } from 'react';
 const API = 'http://localhost:8000';
 
 const STAGES = [
-  { key: 'stage1_separation', label: 'Stage 1', desc: 'BS-RoFormer — Separare vocala',       icon: '🎵', color: '#6366f1' },
-  { key: 'stage2_rvc',        label: 'Stage 2', desc: 'RVC — Voice Conversion',              icon: '🎤', color: '#8b5cf6' },
-  { key: 'stage3_clarify',    label: 'Stage 3', desc: 'ACE-Step — Refinement',               icon: '✨', color: '#a855f7' },
-  { key: 'stage4_mix',        label: 'Stage 4', desc: 'Mix Final — Vocal + Instrumental',    icon: '🎚️', color: '#ec4899' },
+  { key: 'stage1_separation', label: 'Stage 1', desc: 'BS-RoFormer — Separare vocala',    icon: '🎵', color: '#6366f1' },
+  { key: 'stage2_rvc',        label: 'Stage 2', desc: 'RVC — Voice Conversion',           icon: '🎤', color: '#8b5cf6' },
+  { key: 'stage4_mix',        label: 'Stage 3', desc: 'Mix Final — Vocal + Instrumental', icon: '🎚️', color: '#ec4899' },
 ];
 
 const STATUS_COLOR = { pending: '#444', running: '#f59e0b', done: '#10b981', error: '#ef4444', skipped: '#6b7280' };
@@ -19,19 +18,23 @@ export default function PipelineTab() {
   const [rvcPitch, setRvcPitch]     = useState(0);
   const [rvcProtect, setRvcProtect] = useState(0.55);
 
-  // Stage 2 options
-  const [enableAutotune, setEnableAutotune]               = useState(true);
-  const [autotuneStrength, setAutotuneStrength]           = useState(0.4);
-  const [enableHighpass, setEnableHighpass]               = useState(true);
-  const [enableVolumeEnvelope, setEnableVolumeEnvelope]   = useState(true);
+  // RVC Advanced Settings
+  const [f0Method, setF0Method]         = useState('harvest');
+  const [indexRate, setIndexRate]       = useState(0.40);
+  const [filterRadius, setFilterRadius] = useState(3);
+  const [rmsMixRate, setRmsMixRate]     = useState(0.25);
 
-  // Stage 3 & 4 toggles
-  const [enableStage3, setEnableStage3] = useState(true);
+  // Vocal Chain Preset
+  const [vocalPreset, setVocalPreset]   = useState('studio_radio');
+
+  // Stage 2 options (Applio - disabled for music)
+  const [enableAutotune, setEnableAutotune]             = useState(false);
+  const [autotuneStrength, setAutotuneStrength]         = useState(0.0);
+  const [enableHighpass, setEnableHighpass]             = useState(false);
+  const [enableVolumeEnvelope, setEnableVolumeEnvelope] = useState(false);
+
+  // Stage 3 (Mix) - always enabled
   const [enableStage4, setEnableStage4] = useState(true);
-
-  // ACE-Step params
-  const [aceStrength, setAceStrength] = useState(0.4);
-  const [aceSteps, setAceSteps]       = useState(24);
 
   const [jobId, setJobId]     = useState(null);
   const [progress, setProgress] = useState(0);
@@ -90,14 +93,16 @@ export default function PipelineTab() {
     form.append('rvc_model', rvcModel);
     form.append('rvc_pitch', rvcPitch);
     form.append('rvc_protect', rvcProtect);
+    form.append('f0_method', f0Method);
+    form.append('index_rate', indexRate.toString());
+    form.append('filter_radius', filterRadius.toString());
+    form.append('rms_mix_rate', rmsMixRate.toString());
+    form.append('vocal_chain_preset', vocalPreset);
     form.append('enable_autotune', enableAutotune);
     form.append('autotune_strength', autotuneStrength);
     form.append('enable_highpass', enableHighpass);
     form.append('enable_volume_envelope', enableVolumeEnvelope);
-    form.append('enable_stage3', enableStage3);
     form.append('enable_stage4', enableStage4);
-    form.append('ace_strength', aceStrength);
-    form.append('ace_steps', aceSteps);
 
     try {
       const res = await fetch(`${API}/pipeline/run`, { method: 'POST', body: form });
@@ -134,17 +139,24 @@ export default function PipelineTab() {
       color: '#8b5cf6',
     },
     {
-      label: 'ACE Strength', val: aceStrength, set: setAceStrength, min: 0.1, max: 0.8, step: 0.05,
-      display: aceStrength.toFixed(2),
-      desc: 'Cat de mult rafineaza ACE-Step. Mai mic = mai aproape de vocea RVC.',
-      example: '0.2 = curata artefacte  ·  0.4 = balanced  ·  0.7 = heavy regen',
-      color: '#a855f7',
+      label: 'Index Rate', val: indexRate, set: setIndexRate, min: 0, max: 1, step: 0.05,
+      display: indexRate.toFixed(2),
+      desc: 'How much of target voice timbre to use (lower = more original character)',
+      example: '0.40 = preserves singing style  ·  0.75 = speech default',
+      color: '#10b981',
     },
     {
-      label: 'ACE Steps', val: aceSteps, set: setAceSteps, min: 8, max: 60, step: 4,
-      display: `${aceSteps} steps`,
-      desc: 'Pasi de difuziune. Mai multi = calitate mai buna dar mai lent.',
-      example: '8 = turbo  ·  24 = recomandat  ·  60 = calitate maxima',
+      label: 'Filter Radius', val: filterRadius, set: setFilterRadius, min: 0, max: 7, step: 1,
+      display: filterRadius.toString(),
+      desc: 'Median filtering for pitch smoothing (reduces vibrato artifacts)',
+      example: '3 = default  ·  5 = smoother  ·  0 = no filtering',
+      color: '#f59e0b',
+    },
+    {
+      label: 'RMS Mix Rate', val: rmsMixRate, set: setRmsMixRate, min: 0, max: 1, step: 0.05,
+      display: rmsMixRate.toFixed(2),
+      desc: 'Blend ratio between original and converted volume envelopes',
+      example: '0.25 = preserve dynamics  ·  0.50 = balanced  ·  1.0 = full converted',
       color: '#ec4899',
     },
   ];
@@ -153,7 +165,7 @@ export default function PipelineTab() {
     <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto', color: '#e5e7eb', fontFamily: 'sans-serif' }}>
       <h2 style={{ fontSize: '22px', marginBottom: '4px', color: 'white' }}>🎙️ Vocal Pipeline</h2>
       <p style={{ color: '#888', fontSize: '13px', marginBottom: '24px' }}>
-        BS RoFormer → RVC Voice Conversion → ACE-Step Refinement → Mix & Master (-14 LUFS)
+        BS RoFormer → RVC Voice Conversion → Mix & Master (-14 LUFS)
       </p>
 
       {/* Stage cards */}
@@ -228,8 +240,42 @@ export default function PipelineTab() {
             )}
           </div>
 
-          {/* Sliders 2x2 */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+          {/* F0 Method */}
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ fontSize: '13px', color: '#9ca3af', display: 'block', marginBottom: '6px' }}>🎵 F0 Method (Pitch Extraction)</label>
+            <select value={f0Method} onChange={e => setF0Method(e.target.value)}
+              style={{ width: '100%', background: '#1f2937', color: 'white', border: '1px solid #374151',
+                borderRadius: '8px', padding: '8px 12px', fontSize: '13px' }}>
+              <option value="harvest">🎤 harvest — Best for singing (slow, accurate)</option>
+              <option value="rmvpe">🎙️ rmvpe — Best for speech (fast, good quality)</option>
+              <option value="crepe">🔬 crepe — High quality (very slow, GPU intensive)</option>
+              <option value="pm">⚡ pm — Fastest (poor quality, testing only)</option>
+              <option value="dio">📊 dio — Fast (decent quality)</option>
+            </select>
+            <p style={{ fontSize: '10px', color: '#6b7280', marginTop: '6px', fontStyle: 'italic' }}>
+              Recomandat: <strong>harvest</strong> pentru muzică, <strong>rmvpe</strong> pentru vorbire
+            </p>
+          </div>
+
+          {/* Vocal Chain Preset */}
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ fontSize: '13px', color: '#9ca3af', display: 'block', marginBottom: '6px' }}>🎤 Vocal Chain Preset</label>
+            <select value={vocalPreset} onChange={e => setVocalPreset(e.target.value)}
+              style={{ width: '100%', background: '#1f2937', color: 'white', border: '1px solid #374151',
+                borderRadius: '8px', padding: '8px 12px', fontSize: '13px' }}>
+              <option value="studio_radio">🎙️ Studio Radio — Clar, compresat (pop/manele)</option>
+              <option value="natural">🎤 Natural — Minimal procesare (acoustic/folk)</option>
+              <option value="arena">🏟️ Arena — Mult reverb (concert/live)</option>
+              <option value="radio">📻 Radio — Foarte compresat (commercial)</option>
+              <option value="balanced">🎵 Balanced — Echilibrat (all-round)</option>
+            </select>
+            <p style={{ fontSize: '10px', color: '#6b7280', marginTop: '6px', fontStyle: 'italic' }}>
+              Recomandat: <strong>Studio Radio</strong> pentru muzică românească
+            </p>
+          </div>
+
+          {/* Sliders 3x2 Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
             {sliders.map(({ label, val, set, min, max, step, display, desc, example, color }) => (
               <div key={label} style={{ background: '#0d1117', borderRadius: '8px', padding: '12px', border: '1px solid #1f2937' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
@@ -272,23 +318,9 @@ export default function PipelineTab() {
               </label>
             </div>
 
-            {/* Stage 3 */}
-            <div style={{ background: '#0d1117', borderRadius: '8px', padding: '12px', border: `1px solid ${enableStage3 ? '#a855f744' : '#1f2937'}` }}>
-              <h4 style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '10px', fontWeight: 'bold' }}>✨ ACE-Step (Stage 3)</h4>
-              <label style={{ display: 'flex', alignItems: 'center', fontSize: '11px', color: '#e5e7eb', marginBottom: '8px', cursor: 'pointer' }}>
-                <input type="checkbox" checked={enableStage3} onChange={e => setEnableStage3(e.target.checked)}
-                  style={{ marginRight: '8px', accentColor: '#a855f7' }} />
-                Enable (+30-60s)
-              </label>
-              <p style={{ fontSize: '10px', color: '#6b7280', margin: 0, lineHeight: 1.4 }}>
-                Curata artefacte RVC cu diffusion.
-                {!enableStage3 && <><br /><span style={{ color: '#f59e0b' }}>OFF — mai rapid</span></>}
-              </p>
-            </div>
-
-            {/* Stage 4 */}
+            {/* Stage 4 (Mix) */}
             <div style={{ background: '#0d1117', borderRadius: '8px', padding: '12px', border: `1px solid ${enableStage4 ? '#ec489944' : '#1f2937'}` }}>
-              <h4 style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '10px', fontWeight: 'bold' }}>🎚️ Mix & Master (Stage 4)</h4>
+              <h4 style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '10px', fontWeight: 'bold' }}>🎚️ Mix & Master</h4>
               <label style={{ display: 'flex', alignItems: 'center', fontSize: '11px', color: '#e5e7eb', marginBottom: '8px', cursor: 'pointer' }}>
                 <input type="checkbox" checked={enableStage4} onChange={e => setEnableStage4(e.target.checked)}
                   style={{ marginRight: '8px', accentColor: '#ec4899' }} />
@@ -334,14 +366,13 @@ export default function PipelineTab() {
           <h3 style={{ fontSize: '13px', color: '#9ca3af', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '1px' }}>
             📁 Descarca Fisierele
           </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '20px' }}>
             {[
-              { key: 'vocals',       label: '🎵 Vocals Separat',         color: '#6366f1' },
-              { key: 'instrumental', label: '🎸 Instrumental',           color: '#6366f1' },
-              { key: 'rvc_raw',      label: '🎤 RVC Raw',                color: '#8b5cf6' },
-              { key: 'final',        label: '✨ Vocal Rafinat (ACE)',    color: '#a855f7' },
-              { key: 'final_mix',    label: '🎚️ Mix Final WAV',        color: '#ec4899' },
-              { key: 'final_mix_mp3', label: '🎧 Mix Final MP3 320k',   color: '#f43f5e' },
+              { key: 'vocals',       label: '🎵 Vocals Separat',       color: '#6366f1' },
+              { key: 'instrumental', label: '🎸 Instrumental',         color: '#6366f1' },
+              { key: 'rvc_raw',      label: '🎤 RVC Converted',        color: '#8b5cf6' },
+              { key: 'final_mix',    label: '🎚️ Mix Final WAV',      color: '#ec4899' },
+              { key: 'final_mix_mp3', label: '🎧 Mix Final MP3 320k', color: '#f43f5e' },
             ].map(({ key, label, color }) => (
               <a key={key} href={`${API}/pipeline/download/${jobId}/${key}`}
                 style={{
@@ -357,6 +388,61 @@ export default function PipelineTab() {
                 {!outputs[key] && <div style={{ fontSize: '10px', color: '#555', marginTop: '3px' }}>not available</div>}
               </a>
             ))}
+          </div>
+
+          {/* Audio Players */}
+          <h3 style={{ fontSize: '13px', color: '#9ca3af', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            🎧 Preview Audio
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {outputs.final_mix && (
+              <div style={{ background: '#0d1117', borderRadius: '10px', padding: '16px', border: '1px solid #ec489944' }}>
+                <div style={{ fontSize: '12px', color: '#ec4899', fontWeight: 'bold', marginBottom: '8px' }}>
+                  🎚️ Mix Final — Spotify Ready
+                </div>
+                <audio controls style={{ width: '100%', marginBottom: '8px' }}>
+                  <source src={`${API}/pipeline/download/${jobId}/final_mix`} type="audio/wav" />
+                  Your browser does not support the audio element.
+                </audio>
+                <div style={{ fontSize: '10px', color: '#6b7280' }}>-14 LUFS · True Peak -1dB · 48kHz/16bit</div>
+              </div>
+            )}
+            {outputs.rvc_raw && (
+              <div style={{ background: '#0d1117', borderRadius: '10px', padding: '16px', border: '1px solid #8b5cf644' }}>
+                <div style={{ fontSize: '12px', color: '#8b5cf6', fontWeight: 'bold', marginBottom: '8px' }}>
+                  🎤 RVC Converted
+                </div>
+                <audio controls style={{ width: '100%', marginBottom: '8px' }}>
+                  <source src={`${API}/pipeline/download/${jobId}/rvc_raw`} type="audio/wav" />
+                  Your browser does not support the audio element.
+                </audio>
+                <div style={{ fontSize: '10px', color: '#6b7280' }}>Voce convertită prin RVC</div>
+              </div>
+            )}
+            {outputs.vocals && (
+              <div style={{ background: '#0d1117', borderRadius: '10px', padding: '16px', border: '1px solid #6366f144' }}>
+                <div style={{ fontSize: '12px', color: '#6366f1', fontWeight: 'bold', marginBottom: '8px' }}>
+                  🎵 Vocals Separat (BS-RoFormer)
+                </div>
+                <audio controls style={{ width: '100%', marginBottom: '8px' }}>
+                  <source src={`${API}/pipeline/download/${jobId}/vocals`} type="audio/wav" />
+                  Your browser does not support the audio element.
+                </audio>
+                <div style={{ fontSize: '10px', color: '#6b7280' }}>Separare vocal/instrumental SDR 12.97</div>
+              </div>
+            )}
+            {outputs.instrumental && (
+              <div style={{ background: '#0d1117', borderRadius: '10px', padding: '16px', border: '1px solid #6366f144' }}>
+                <div style={{ fontSize: '12px', color: '#6366f1', fontWeight: 'bold', marginBottom: '8px' }}>
+                  🎸 Instrumental
+                </div>
+                <audio controls style={{ width: '100%', marginBottom: '8px' }}>
+                  <source src={`${API}/pipeline/download/${jobId}/instrumental`} type="audio/wav" />
+                  Your browser does not support the audio element.
+                </audio>
+                <div style={{ fontSize: '10px', color: '#6b7280' }}>Pista instrumentală pentru mix final</div>
+              </div>
+            )}
           </div>
 
           {outputs.final_mix && (

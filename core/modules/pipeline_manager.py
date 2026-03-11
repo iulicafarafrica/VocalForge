@@ -43,11 +43,12 @@ class PipelineJob:
     input_path: str
     rvc_model: str
     rvc_pitch: int           = 0
-    rvc_protect: float       = 0.33
+    rvc_protect: float       = 0.55  # Changed from 0.33 — better for singing
     ace_strength: float      = 0.4
     ace_steps: int           = 24
     sep_model: str           = "bs_roformer_1297"
-    enable_stage3: bool      = True
+    vocal_chain_preset: str  = "studio_radio"
+    enable_stage3: bool      = False  # Changed from True — disabled by default
     enable_stage4: bool      = True
 
     vocals_path: Optional[str]         = None
@@ -68,15 +69,17 @@ class PipelineJob:
 _jobs: dict[str, PipelineJob] = {}
 
 
-def create_job(input_path, rvc_model, rvc_pitch=0, rvc_protect=0.33,
+def create_job(input_path, rvc_model, rvc_pitch=0, rvc_protect=0.55,
                ace_strength=0.4, ace_steps=24, sep_model="bs_roformer_1297",
-               enable_stage3=True, enable_stage4=True):
+               vocal_chain_preset="studio_radio",
+               enable_stage3=False, enable_stage4=True):
     job_id = str(uuid.uuid4())[:8]
     job = PipelineJob(
         job_id=job_id, input_path=input_path, rvc_model=rvc_model,
         rvc_pitch=rvc_pitch, rvc_protect=rvc_protect,
         ace_strength=ace_strength, ace_steps=ace_steps,
-        sep_model=sep_model, enable_stage3=enable_stage3, enable_stage4=enable_stage4,
+        sep_model=sep_model, vocal_chain_preset=vocal_chain_preset,
+        enable_stage3=enable_stage3, enable_stage4=enable_stage4,
     )
     _jobs[job_id] = job
     (AUDIO_DIR / job_id).mkdir(parents=True, exist_ok=True)
@@ -154,8 +157,8 @@ async def run_stage2_rvc(job: PipelineJob) -> bool:
                 data.add_field("model_name",    job.rvc_model)
                 data.add_field("pitch_shift",   str(job.rvc_pitch))
                 data.add_field("protect",       str(job.rvc_protect))
-                data.add_field("f0_method",     "rmvpe")
-                data.add_field("index_rate",    "0.75")
+                data.add_field("f0_method",     "harvest")  # Changed from rmvpe — better for singing
+                data.add_field("index_rate",    "0.40")     # Changed from 0.75 — preserves timbre
                 data.add_field("filter_radius", "3")
                 data.add_field("rms_mix_rate",  "0.25")
                 data.add_field("emotion",       "neutral")
@@ -278,6 +281,9 @@ async def run_stage4_mix(job: PipelineJob) -> bool:
                 vocal_path=vocal_source,
                 instrumental_path=job.instrumental_path,
                 output_path=output_wav,
+                vocal_gain_db=0.0,
+                inst_gain_db=0.0,
+                vocal_chain_preset=job.vocal_chain_preset,
             )
         )
         if not os.path.exists(output_wav):

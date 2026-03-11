@@ -6,9 +6,10 @@ BS RoFormer → RVC → ACE-Step → Mix & Master
 import asyncio
 import json
 import os
+import re
 import aiofiles
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks
-from fastapi.responses import StreamingResponse, FileResponse
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks, Request
+from fastapi.responses import StreamingResponse
 from pathlib import Path
 
 from core.modules.pipeline_manager import (
@@ -25,16 +26,23 @@ async def start_pipeline(
     file: UploadFile = File(...),
     rvc_model: str   = Form(...),
     rvc_pitch: int   = Form(0),
-    rvc_protect: float  = Form(0.33),
+    rvc_protect: float  = Form(0.55),
+    # RVC Advanced Settings
+    f0_method: str      = Form("harvest", description="harvest (singing), rmvpe (speech), crepe, pm, dio"),
+    index_rate: float   = Form(0.40, description="0.40 preserves singing style, 0.75 for speech"),
+    filter_radius: int  = Form(3, description="Median filter radius 0-7"),
+    rms_mix_rate: float = Form(0.25, description="RMS mix rate 0.0-1.0"),
+    # Vocal Chain Preset
+    vocal_chain_preset: str = Form("studio_radio", description="studio_radio, natural, arena, radio, balanced"),
     ace_strength: float = Form(0.4),
     ace_steps: int      = Form(24),
-    enable_stage3: bool = Form(True),
+    enable_stage3: bool = Form(False),  # Changed to False — ACE-Step disabled
     enable_stage4: bool = Form(True),
-    # Applio features (forwarded to RVC but accepted here to avoid 422)
-    enable_autotune: bool        = Form(True),
-    autotune_strength: float     = Form(0.4),
-    enable_highpass: bool        = Form(True),
-    enable_volume_envelope: bool = Form(True),
+    # Applio features — DISABLED for music (designed for speech)
+    enable_autotune: bool        = Form(False),
+    autotune_strength: float     = Form(0.0),
+    enable_highpass: bool        = Form(False),
+    enable_volume_envelope: bool = Form(False),
 ):
     AUDIO_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -52,6 +60,7 @@ async def start_pipeline(
         rvc_protect=rvc_protect,
         ace_strength=ace_strength,
         ace_steps=ace_steps,
+        vocal_chain_preset=vocal_chain_preset,
         enable_stage3=enable_stage3,
         enable_stage4=enable_stage4,
     )
@@ -136,7 +145,9 @@ async def stream_progress(job_id: str):
 
 # ── GET /pipeline/download/{job_id}/{file_type} ───────────────────────────────
 @router.get("/download/{job_id}/{file_type}")
-async def download_file(job_id: str, file_type: str):
+async def download_file(job_id: str, file_type: str, request: Request):
+    from starlette.responses import StreamingResponse
+    
     job = get_job(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job negasit")
@@ -158,7 +169,50 @@ async def download_file(job_id: str, file_type: str):
     ext      = os.path.splitext(path)[1]
     media    = "audio/mpeg" if ext == ".mp3" else "audio/wav"
     filename = f"{job_id}_{file_type}{ext}"
-    return FileResponse(path, media_type=media, filename=filename)
+    
+    # Support range requests for audio seeking
+    file_size = os.path.getsize(path)
+    range_header = request.headers.get("range")
+    
+    if range_header:
+        # Parse range header
+        range_match = re.search(r"bytes=(\d+)-(\d*)", range_header)
+        if range_match:
+            start = int(range_match.group(1))
+            end = int(range_match.group(2)) if range_match.group(2) else file_size - 1
+            end = min(end, file_size - 1)
+            
+            # Stream the requested range
+            def iterfile():
+                with open(path, "rb") as f:
+                    f.seek(start)
+                    remaining = end - start + 1
+                    chunk_size = 1024 * 1024  # 1MB chunks
+                    while remaining > 0:
+                        chunk = f.read(min(chunk_size, remaining))
+                        if not chunk:
+                            break
+                        remaining -= len(chunk)
+                        yield chunk
+            
+            headers = {
+                "Content-Range": f"bytes {start}-{end}/{file_size}",
+                "Accept-Ranges": "bytes",
+                "Content-Length": str(end - start + 1),
+                "Content-Type": media,
+            }
+            return StreamingResponse(iterfile(), status_code=206, headers=headers, media_type=media)
+    else:
+        # No range request - send full file
+        headers = {
+            "Accept-Ranges": "bytes",
+            "Content-Length": str(file_size),
+            "Content-Type": media,
+        }
+        def iterfile():
+            with open(path, "rb") as f:
+                yield from f
+        return StreamingResponse(iterfile(), headers=headers, media_type=media)
 
 
 # ── GET /pipeline/models ──────────────────────────────────────────────────────

@@ -16,6 +16,96 @@ import soundfile as sf
 import librosa
 
 
+# ── Vocal Chain Presets ──────────────────────────────────────────────────────
+VOCAL_CHAIN_PRESETS = {
+    "studio_radio": {
+        "name": "Studio Radio",
+        "volume_boost": 3.0,
+        "eq_mud": -2.0,       # 350Hz cut (remove mud)
+        "eq_presence": 2.0,   # 3kHz boost (clarity)
+        "eq_deess": -2.0,     # 8kHz cut (de-esser)
+        "eq_air": 1.0,        # 12kHz boost (air)
+        "comp_threshold": -18,
+        "comp_ratio": 2.5,
+        "comp_makeup": 2,
+        "reverb_delay1": 35,
+        "reverb_delay2": 45,
+        "reverb_decay1": 0.18,
+        "reverb_decay2": 0.12,
+        "reverb_in": 0.85,
+        "reverb_out": 0.75,
+    },
+    "natural": {
+        "name": "Natural",
+        "volume_boost": 2.0,
+        "eq_mud": 0.0,
+        "eq_presence": 1.0,
+        "eq_deess": -1.0,
+        "eq_air": 0.5,
+        "comp_threshold": -16,
+        "comp_ratio": 1.5,
+        "comp_makeup": 1,
+        "reverb_delay1": 25,
+        "reverb_delay2": 35,
+        "reverb_decay1": 0.12,
+        "reverb_decay2": 0.08,
+        "reverb_in": 0.90,
+        "reverb_out": 0.85,
+    },
+    "arena": {
+        "name": "Arena",
+        "volume_boost": 4.0,
+        "eq_mud": -1.0,
+        "eq_presence": 3.0,
+        "eq_deess": -3.0,
+        "eq_air": 2.0,
+        "comp_threshold": -20,
+        "comp_ratio": 3.0,
+        "comp_makeup": 3,
+        "reverb_delay1": 80,
+        "reverb_delay2": 100,
+        "reverb_decay1": 0.35,
+        "reverb_decay2": 0.25,
+        "reverb_in": 0.75,
+        "reverb_out": 0.65,
+    },
+    "radio": {
+        "name": "Radio",
+        "volume_boost": 5.0,
+        "eq_mud": -3.0,
+        "eq_presence": 4.0,
+        "eq_deess": -3.0,
+        "eq_air": 1.0,
+        "comp_threshold": -22,
+        "comp_ratio": 4.0,
+        "comp_makeup": 4,
+        "reverb_delay1": 20,
+        "reverb_delay2": 30,
+        "reverb_decay1": 0.12,
+        "reverb_decay2": 0.08,
+        "reverb_in": 0.88,
+        "reverb_out": 0.80,
+    },
+    "balanced": {
+        "name": "Balanced",
+        "volume_boost": 3.0,
+        "eq_mud": -1.0,
+        "eq_presence": 1.0,
+        "eq_deess": -1.0,
+        "eq_air": 0.5,
+        "comp_threshold": -16,
+        "comp_ratio": 2.0,
+        "comp_makeup": 2,
+        "reverb_delay1": 30,
+        "reverb_delay2": 40,
+        "reverb_decay1": 0.15,
+        "reverb_decay2": 0.10,
+        "reverb_in": 0.88,
+        "reverb_out": 0.80,
+    },
+}
+
+
 def get_rms_db(path: str) -> float:
     """Measure RMS level in dBFS."""
     y, sr = librosa.load(path, sr=None, mono=True)
@@ -52,17 +142,18 @@ def mix_and_master(
     instrumental_path: str,
     output_path: str,
     vocal_gain_db: float = 0.0,
-    inst_gain_db: float = -1.5,
+    inst_gain_db: float = 0.0,
     reverb_wet: float = 0.15,
     target_lufs: float = -14,
     true_peak_db: float = -1,
+    vocal_chain_preset: str = "studio_radio",
 ) -> str:
     """
     Full professional mix + master via FFmpeg.
 
-    Vocal chain:  HPF 80Hz → EQ (warmth/cut/air) → Comp 3:1 → Deesser → Room reverb → Limiter
+    Vocal chain:  HPF 80Hz → EQ (warmth/cut/air) → Comp → Deesser → Reverb → Limiter
     Inst chain:   Gain trim → Low shelf → Mid cut → Comp 2:1
-    Master:       amix (vocal 1.2 weight) → loudnorm -14 LUFS / -1dB TP
+    Master:       amix → loudnorm -14 LUFS / -1dB TP
     Export:       WAV 48kHz/16bit  +  MP3 320k
 
     Returns output_path on success, raises RuntimeError on failure.
@@ -70,14 +161,18 @@ def mix_and_master(
     out_dir = os.path.dirname(output_path)
     os.makedirs(out_dir, exist_ok=True)
 
+    # ── Get preset settings ───────────────────────────────────────────────────
+    preset = VOCAL_CHAIN_PRESETS.get(vocal_chain_preset, VOCAL_CHAIN_PRESETS["studio_radio"])
+    print(f"[Stage4] Using vocal chain preset: {preset['name']}")
+
     # ── Auto-balance via RMS ─────────────────────────────────────────────────
     vocal_rms = get_rms_db(vocal_path)
     inst_rms  = get_rms_db(instrumental_path)
     rms_diff  = inst_rms - vocal_rms
-    # Vocal should sit ~3 dB above instrumental in raw RMS before mix
-    auto_inst_adjust = rms_diff - 3.0
+    # Commercial mix: vocal ~1-2 dB above instrumental
+    auto_inst_adjust = rms_diff - 1.0  # Less aggressive (was -1.5)
     final_inst_gain  = inst_gain_db - max(0.0, auto_inst_adjust)
-    final_inst_gain  = max(-14.0, min(0.0, final_inst_gain))
+    final_inst_gain  = max(-3.0, min(3.0, final_inst_gain))  # Tighter limits
 
     print(f"[Stage4] Vocal RMS={vocal_rms:.1f} dBFS  Inst RMS={inst_rms:.1f} dBFS")
     print(f"[Stage4] Inst gain after auto-balance: {final_inst_gain:.1f} dB")
@@ -86,33 +181,32 @@ def mix_and_master(
     matched_inst = match_duration(vocal_path, instrumental_path, out_dir)
 
     # ── FFmpeg filter_complex ────────────────────────────────────────────────
-    reverb_dry = 1.0 - reverb_wet
-
+    # Build vocal chain from preset
     vocal_chain = (
-        f"volume={vocal_gain_db:.1f}dB,"
+        f"volume={vocal_gain_db + preset['volume_boost']:.1f}dB,"
         "highpass=f=80:poles=2,"
-        "equalizer=f=150:width_type=q:width=1.5:g=1.5,"    # warmth
-        "equalizer=f=2500:width_type=q:width=1.2:g=-4,"    # cut boxiness
-        "equalizer=f=4000:width_type=q:width=1.0:g=-2,"    # cut harshness
-        "equalizer=f=10000:width_type=q:width=2.0:g=1,"    # air
-        "acompressor=threshold=-16dB:ratio=3:attack=20:release=150:makeup=3,"
-        "equalizer=f=6000:width_type=q:width=2.0:g=-3,"    # deesser approx
-        f"aecho=in_gain={reverb_dry:.2f}:out_gain={reverb_dry:.2f}"
-        f":delays=60|80:decays={reverb_wet:.2f}|{reverb_wet * 0.7:.2f},"
+        f"equalizer=f=350:width_type=q:width=1.4:g={preset['eq_mud']:.1f},"  # Remove mud
+        "equalizer=f=1500:width_type=q:width=1.5:g=1.5,"  # Warmth
+        f"equalizer=f=3000:width_type=q:width=1.0:g={preset['eq_presence']:.1f},"  # Presence
+        f"equalizer=f=8000:width_type=q:width=2.0:g={preset['eq_deess']:.1f},"  # De-esser
+        f"equalizer=f=12000:width_type=q:width=2.0:g={preset['eq_air']:.1f},"  # Air
+        f"acompressor=threshold={preset['comp_threshold']:.0f}dB:ratio={preset['comp_ratio']:.1f}:attack=20:release=150:makeup={preset['comp_makeup']},"
+        f"aecho=in_gain={preset['reverb_in']:.2f}:out_gain={preset['reverb_out']:.2f}"
+        f":delays={preset['reverb_delay1']}|{preset['reverb_delay2']}:decays={preset['reverb_decay1']}|{preset['reverb_decay2']},"
         "alimiter=limit=-1dB:attack=5:release=50"
     )
 
     inst_chain = (
-        f"volume={final_inst_gain:.1f}dB,"
-        "equalizer=f=80:width_type=q:width=1.0:g=1,"
-        "equalizer=f=3000:width_type=q:width=1.5:g=-1,"
-        "acompressor=threshold=-20dB:ratio=2:attack=30:release=200:makeup=1"
+        f"volume={final_inst_gain + 2.0:.1f}dB,"  # +2dB boost to instrumental
+        "equalizer=f=80:width_type=q:width=1.0:g=3,"  # More low-end boost (+3dB)
+        "equalizer=f=3000:width_type=q:width=1.5:g=1,"  # +1dB presence boost
+        "acompressor=threshold=-18dB:ratio=1.5:attack=30:release=200:makeup=2"  # More makeup gain
     )
 
     filter_complex = (
         f"[0:a]{vocal_chain}[voc];"
         f"[1:a]{inst_chain}[ins];"
-        "[voc][ins]amix=inputs=2:duration=first:weights=1.2 1[mix];"
+        "[voc][ins]amix=inputs=2:duration=first:weights=0.95 1.05[mix];"  # Balanced mix
         f"[mix]loudnorm=I={int(target_lufs)}:TP={int(true_peak_db)}:LRA=11[out]"
     )
 

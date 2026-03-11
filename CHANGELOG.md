@@ -1,6 +1,81 @@
 
 ---
 
+## [2.0.0] - 2026-03-10
+
+### 🎉 MAJOR RELEASE: Prompt Generator + Suno AI Integration
+
+#### 🆕 NEW FEATURES
+
+**Prompt Generator Tab**
+- ✅ 164 subgenres across 10 categories
+- ✅ 30 Romanian subgenres (Manele, Folclor, Doină, Hora, etc.)
+- ✅ 13 styles (Upbeat, Energetic, Emotional, Dark, etc.)
+- ✅ BPM selector (80-200 BPM)
+- ✅ Structure tags ([Intro], [Verse], [Chorus], etc.)
+- ✅ Clean ACE-Step style UI design
+- ✅ One-click copy to clipboard
+- ✅ Send to Suno AI tab integration
+
+**Vocal Chain Presets (5)**
+- ✅ 🎙️ Studio Radio — Clar, compresat (pop/manele)
+- ✅ 🎤 Natural — Minimal procesare (acoustic/folk)
+- ✅ 🏟️ Arena — Mult reverb (concert/live)
+- ✅ 📻 Radio — Foarte compresat (commercial)
+- ✅ 🎵 Balanced — Echilibrat (all-round)
+- ✅ Each preset adjusts: EQ, compression, reverb, de-essing
+
+**Suno AI Integration**
+- ✅ Local suno-api integration (port 8080)
+- ✅ Cookie-based authentication
+- ✅ /suno/health endpoint for connection status
+- ✅ Automatic retry logic (3 attempts)
+- ✅ Full genre/style/BPM support from ACE-Step
+
+**Pipeline Improvements**
+- ✅ Vocal/Instrumental mix balance fixed (+3dB vocal boost)
+- ✅ Reverb optimized (35-45ms delays, natural room sound)
+- ✅ Stage 3 (ACE-Step) disabled by default (faster pipeline)
+- ✅ RVC settings optimized for singing:
+  - f0_method: harvest (best for pitch accuracy)
+  - index_rate: 0.40 (preserves original timbre)
+  - protect: 0.55 (protects breath/air sounds)
+
+**UI/UX Improvements**
+- ✅ Removed "Voice Mix RVC" tab (redundant with Pipeline)
+- ✅ Prompt Generator clean design (matching ACE-Step style)
+- ✅ Pipeline Tab: RVC advanced settings (f0_method, index_rate, etc.)
+- ✅ Audio players in Pipeline Tab output
+
+#### 🔧 TECHNICAL CHANGES
+
+**Backend:**
+- `backend/endpoints/suno_prompt.py` — New prompt generation endpoint
+- `backend/endpoints/pipeline.py` — Added vocal_chain_preset parameter
+- `core/modules/mix_master.py` — 5 vocal chain presets, improved reverb
+- `core/modules/pipeline_manager.py` — vocal_chain_preset support
+- `backend/main.py` — RVC advanced settings defaults
+
+**Frontend:**
+- `frontend/src/components/SunoPromptGenerator.jsx` — Complete rewrite
+- `frontend/src/components/PipelineTab.jsx` — RVC advanced settings UI
+- `frontend/src/App.jsx` — Removed RVC tab, added Prompt Gen tab
+
+**Configuration:**
+- `.gitignore` — suno-api/ folder excluded
+- `suno-api/` — Local Suno API with cookie authentication
+
+#### 📊 STATISTICS
+
+- **Total subgenres:** 164
+- **Romanian subgenres:** 30
+- **Vocal chain presets:** 5
+- **Styles:** 13
+- **BPM options:** 7
+- **Structure tags:** 11
+
+---
+
 ## [2.0.0] - 2026-03-08
 
 ### 🎉 MAJOR RELEASE: Pipeline v2.0 with Diffusion Refinement

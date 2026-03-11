@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { BookOpen, Sliders, Sparkles, Layers, FolderOpen, Monitor, FileText, Music2, Mic2, Activity, Zap, Radio, Guitar } from "lucide-react";
+import { BookOpen, Sliders, Sparkles, Layers, FolderOpen, Monitor, FileText, Music2, Activity, Zap, Radio, Guitar } from "lucide-react";
 import "./index.css";
 import ModelsTab from "./components/ModelsTab";
 import NotesTab from "./components/NotesTab";
@@ -8,7 +8,6 @@ import DemucsTab from "./components/DemucsTab";
 import AceStepTab from "./components/AceStepTab";
 import RepaintLegoComplete from "./components/RepaintLegoComplete";
 import ReadmeTab from "./components/ReadmeTab";
-import RVCConversion from "./components/RVCConversion";
 import AudioAnalysisTab from "./components/AudioAnalysisTab";
 import PipelineTab from "./components/PipelineTab";
 import SunoTab from "./components/SunoTab";
@@ -20,7 +19,6 @@ const TABS = [
   { id: "Readme",  Icon: BookOpen,   label: "ReadMe", color: "#00e5ff" },
   { id: "Demucs",  Icon: Sliders,    label: "Stem Separation", color: "#00e5ff" },
   { id: "ACEStep", Icon: Music2,     label: "ACE-Step", color: "#ff6b9d" },
-  { id: "RVC", Icon: Mic2, label: "Voice Mix RVC", color: "#ff6b9d" },
   { id: "Pipeline", Icon: Zap, label: "Vocal Pipeline", color: "#a855f7" },
   { id: "Suno", Icon: Radio, label: "Suno AI", color: "#f59e0b" },
   { id: "SunoPrompt", Icon: Guitar, label: "Prompt Gen.", color: "#10b981" },
@@ -217,10 +215,6 @@ export default function App() {
             advancedSettings={advancedSettings}
             setAdvancedSettings={setAdvancedSettings}
           />
-        </div>
-
-        <div style={{ display: tab === "RVC" ? "block" : "none" }}>
-          <RVCConversion addLog={addLog} tracks={tracks} setTracks={setTracks} />
         </div>
 
         <div style={{ display: tab === "Pipeline" ? "block" : "none" }}>

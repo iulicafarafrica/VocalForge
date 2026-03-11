@@ -38,11 +38,25 @@
 
 | Version | Features | Quality |
 |---------|----------|---------|
-| **v2.0.0** | Pipeline v2.3, GPU Memory Management | Testing |
+| **v2.0.0** | Pipeline v2.3, Prompt Generator, Suno AI Integration, Vocal Chain Presets | Production |
 | **v1.9.0** | Applio Features (Autotune, Clean Audio, Volume Envelope, HPF) | 9/10 |
 | **v1.8.4** | RVC Rescue Post-Processing | 8/10 |
 | **v1.8.3** | RVC Final Mix Integration | - |
 | **v1.8.2** | RVC v2 Support | - |
+
+### **🆕 NEW: Prompt Generator (v2.0.0)**
+
+- **🎵 164 Subgenres** across 10 categories (30 Romanian: Manele, Folclor, Doină, etc.)
+- **🎨 13 Styles** (Upbeat, Energetic, Emotional, Dark, etc.)
+- **⏱️ BPM Selector** (80-200 BPM)
+- **🏷️ Structure Tags** ([Intro], [Verse], [Chorus], etc.)
+- **🎤 5 Vocal Chain Presets:**
+  - 🎙️ Studio Radio — Clar, compresat (pop/manele)
+  - 🎤 Natural — Minimal procesare (acoustic/folk)
+  - 🏟️ Arena — Mult reverb (concert/live)
+  - 📻 Radio — Foarte compresat (commercial)
+  - 🎵 Balanced — Echilibrat (all-round)
+- **🚀 Send to Suno** — One-click transfer to Suno AI tab
 
 ### **🎵 Pipeline v2.3 - 4 Complete Stages**
 
@@ -80,18 +94,20 @@ Stage 4: Mix Final → vocal + instrumental together
 
 ## 🎯 Features
 
-### **8 Main Modules:**
+### **10 Main Modules:**
 
 | Icon | Feature | Description |
 |------|---------|-------------|
 | 🎚️ | **Stem Separation** | BS-RoFormer SDR 12.97, Demucs, 4-6 stems |
 | 🎵 | **ACE-Step v1.5** | Text→Music, Audio Cover, Repaint |
 | 🎤 | **Voice Mix RVC** | Auto Pipeline, Final Mix, Applio Features |
+| 🎸 | **Prompt Generator** | 164 subgenres, 5 vocal presets, Send to Suno |
 | 🖌️ | **Repaint** | Regenerate sections (30-60s) |
 | 📊 | **Audio Analysis** | BPM, Key, Time Signature detection |
 | 📁 | **Tracks Manager** | View, play, download, delete files |
 | 💻 | **Models Manager** | Upload, list, delete RVC models |
 | 📝 | **Notes** | Personal notes with auto-save |
+| 🌞 | **Suno AI** | Generate music with Suno (local cookie) |
 
 ### **Key Capabilities:**
 
