@@ -253,6 +253,9 @@ ace-step-ui-ref/
 # ======================
 *.cache/
 .cache/
+VocalForgeMVSep/
+er-suno-prompt/
+suno-api/
 nul
 $null
 CON
