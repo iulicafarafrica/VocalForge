@@ -2264,9 +2264,9 @@ async def ace_generate(
     use_adg: bool = Form(False),
     cfg_interval_start: float = Form(0.0),
     cfg_interval_end: float = Form(1.0),
-    use_cot_metas: bool = Form(True),
-    use_cot_caption: bool = Form(True),
-    use_cot_language: bool = Form(True),
+    use_cot_metas: bool = Form(False),   # False = respect user BPM/key/prompt
+    use_cot_caption: bool = Form(False),  # False = don't overwrite style prompt
+    use_cot_language: bool = Form(False), # False = use vocal_language param directly
     allow_lm_batch: bool = Form(True),
     get_lrc: bool = Form(False),
     # Vocal options
@@ -2364,17 +2364,15 @@ async def ace_generate(
                     print(f"[ACE {job_id[:8]}] ⚠️ Model init error (may already be loaded): {init_err}")
             
             # Step 1: Submit generation task with correct ACE-Step schema
-            # Build prompt with metadata (BPM, key, time signature)
-            full_prompt = prompt
-            meta_parts = []
-            if bpm and bpm > 0:
-                meta_parts.append(f"BPM: {bpm}")
-            if key_scale:
-                meta_parts.append(f"Key: {key_scale}")
-            if time_signature:
-                meta_parts.append(f"Time: {time_signature}/4")
-            if meta_parts:
-                full_prompt = full_prompt + "\n" + ", ".join(meta_parts) if full_prompt else ", ".join(meta_parts)
+            # ACE-Step API: prompt = style/emotion/instruments ONLY
+            # bpm, key_scale, time_signature = dedicated numeric params
+            # tags param does NOT exist in ACE-Step API
+            # CRITICAL: Add BPM to prompt text for Text→Music (LM ignores use_cot_caption=False)
+            full_prompt = prompt.strip() if prompt else ""
+            if bpm and bpm > 0 and task_type == "text2music":
+                full_prompt = f"{bpm} bpm, {full_prompt}"
+
+            print(f"[ACE] full_prompt: {full_prompt[:150]}")
 
             # ── Optimizări pentru audio cover ──────────────────────────────────
             is_cover = task_type in ("audio2audio", "cover")
@@ -2386,7 +2384,10 @@ async def ace_generate(
 
             task_payload = {
                 "prompt": full_prompt,
-                "bpm": bpm if bpm and bpm > 0 else None,
+
+                # CRITICAL: For Text→Music, don't send bpm as param (ACE-Step overwrites it)
+                # BPM is already in prompt text: "124 bpm, future house..."
+                "bpm": None if task_type == "text2music" else (bpm if bpm and bpm > 0 else None),
                 "key_scale": key_scale if key_scale else "",
                 "time_signature": time_signature if time_signature else "",
                 "lyrics": "" if instrumental else (lyrics.strip() if lyrics.strip() else ""),
@@ -2411,7 +2412,7 @@ async def ace_generate(
                 "cfg_interval_start": cfg_interval_start,
                 "cfg_interval_end": cfg_interval_end,
                 # Pentru audio2audio/cover: nu lăsa LM să modifice durata specificată de utilizator
-                "use_cot_metas": False if is_cover else use_cot_metas,
+
                 "use_cot_caption": use_cot_caption,
                 "use_cot_language": use_cot_language,
                 "allow_lm_batch": allow_lm_batch,

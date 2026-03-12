@@ -115,13 +115,13 @@ function savePresetsToStorage(presets) {
 const GENRE_PRESETS = [
   // ── Hip-Hop & Rap ──────────────────────────────────────────────────────────
   { label: "Hip-Hop", cat: "Hip-Hop", prompt: "hip hop, boom bap drums, sampled beats, lyrical rap, classic hip hop production, East Coast flow, punchy kicks, soul or jazz samples, Nas Jay-Z Wu-Tang style: clear articulate delivery, confident baritone flow, wordplay and multisyllabic rhymes, no auto-tune, raw mic presence", bpm: 92, negativePrompt: "orchestral, EDM four-on-the-floor, cheesy pop chorus, country twang, metal distortion" },
-  { label: "Trap (general)", cat: "Hip-Hop", prompt: "trap music, booming 808 sub-bass, rapid hi-hat rolls and triplets, dark atmospheric synths, snare hits on the three, menacing mood, modern trap production, Southern hip hop influence, 140 BPM range, Migos Metro Boomin style: triplet flow, ad-libs and hooks, catchy repetitive phrases, auto-tune on hooks, aggressive delivery", bpm: 140, negativePrompt: "jazz swing, orchestral, acoustic guitar, reggae skank, smooth R&B crooning" },
+  { label: "Trap (general)", cat: "Hip-Hop", prompt: "trap music, booming 808 sub-bass, rapid hi-hat rolls and triplets, dark atmospheric synths, snare hits on the three, menacing mood, modern trap production, Southern hip hop influence, Migos Metro Boomin style: triplet flow, ad-libs and hooks, catchy repetitive phrases, auto-tune on hooks, aggressive delivery", bpm: 140, negativePrompt: "jazz swing, orchestral, acoustic guitar, reggae skank, smooth R&B crooning" },
   { label: "Atlanta Trap", cat: "Hip-Hop", prompt: "Atlanta trap, classic Southern trap, heavy 808 bass lines, fast hi-hat rolls and triplets, dark minor key, street anthem vibe, punchy snares, synth melodies, trap house energy, T.I. Gucci Mane Young Jeezy style: deep raspy voice, slow menacing flow, street bravado, gruff delivery, ad-libs and growls", bpm: 138, negativePrompt: "bright pop chords, orchestral strings, jazz piano, reggae one-drop" },
   { label: "Melodic Trap", cat: "Hip-Hop", prompt: "melodic trap, emotional auto-tune vocals, catchy melodic hooks, smooth 808 bass, atmospheric pads and synths, sing-rap flow, radio-friendly trap, Future Travis Scott style: heavy auto-tune, slurred melodic delivery, sing-song hooks, emotional and hazy tone, crooning over 808s", bpm: 135, negativePrompt: "harsh screaming, metal guitars, orchestral, jazz improvisation, raw boom bap" },
   { label: "Hard / Dark Trap", cat: "Hip-Hop", prompt: "hard trap, dark trap, aggressive distorted 808 bass, menacing atmosphere, heavy hi-hats, dark synths, street and gritty, no melody focus, pure aggression, 21 Savage Metro Boomin style: deadpan monotone delivery, cold sparse flow, minimal melody, menacing low voice, trap ad-libs", bpm: 142, negativePrompt: "uplifting major key, pop chorus, jazz chords, orchestral, reggae" },
   { label: "EDM / Festival Trap", cat: "Hip-Hop", prompt: "EDM trap, festival trap, big room drops, 808 bass with electronic build-ups, energetic festival energy, hybrid trap and EDM, crowd hype, RL Grime Baauer style: aggressive vocal chops, build and drop energy, minimal vocals or chopped samples, festival anthem feel", bpm: 140, negativePrompt: "acoustic folk, jazz trio, lo-fi chill, orchestral waltz" },
   { label: "Drill", cat: "Hip-Hop", prompt: "drill music, dark sliding 808s, aggressive trap drums, menacing atmosphere, UK or Chicago drill, cold and gritty, Chief Keef Pop Smoke style: deep gravelly voice, slow menacing flow, ad-libs and skips, street slang delivery, aggressive tone", bpm: 143, negativePrompt: "bright pop, jazz, reggae groove, uplifting chords, orchestral" },
-  { label: "UK Drill", cat: "Hip-Hop", prompt: "UK drill beat, 140-145 BPM, dark and menacing vibe, heavy sliding 808 bass, rapid fire hi-hats with rolls, hard snappy snares, dark synth stabs, aggressive trap-style drums, minor key, gritty and street, instrumental hip hop, Headie One Digga D style: British accent", bpm: 142, negativePrompt: "happy major key, disco funk, reggae skank, smooth jazz, bright pop chords, orchestral" },
+  { label: "UK Drill", cat: "Hip-Hop", prompt: "UK drill beat, dark and menacing vibe, heavy sliding 808 bass, rapid fire hi-hats with rolls, hard snappy snares, dark synth stabs, aggressive trap-style drums, minor key, gritty and street, instrumental hip hop, Headie One Digga D style: British accent", bpm: 142, negativePrompt: "happy major key, disco funk, reggae skank, smooth jazz, bright pop chords, orchestral" },
   { label: "NY Drill", cat: "Hip-Hop", prompt: "New York drill, dark piano samples, heavy 808 bass, aggressive rap, Brooklyn drill sound, Pop Smoke Fivio Foreign style: deep booming voice, slow heavy flow, Brooklyn accent, ad-libs and grunts, menacing presence", bpm: 145, negativePrompt: "bright pop harmony, liquid DnB, funky disco, reggae skank" },
   { label: "Afro Drill", cat: "Hip-Hop", prompt: "afro drill, afrobeats percussion, dark 808 bass, melodic trap, African rhythms meets drill, Asake Burna Boy style: smooth Afropop vocals, melodic singing mixed with rap, Nigerian inflection, catchy hooks, danceable delivery", bpm: 128, negativePrompt: "metal screaming, orchestral, harsh industrial, dark ambient" },
   { label: "Melodic Rap", cat: "Hip-Hop", prompt: "melodic rap, auto-tune vocals, emotional trap beats, melodic hooks, modern rap production, Lil Uzi Vert Roddy Ricch style: high melodic voice, sing-rap blend, catchy hooks, emotional and catchy, auto-tune melodies", bpm: 132, negativePrompt: "raw boom bap, orchestral, jazz improvisation, harsh screaming" },
@@ -144,7 +144,7 @@ const GENRE_PRESETS = [
   { label: "Trap Metal", cat: "Hip-Hop", prompt: "trap metal, aggressive metal guitars, heavy 808 bass, screaming vocals, industrial trap, Ghostemane Scarlxrd style: screamed and growled vocals, aggressive rap-scream blend, dark intense delivery, metal and trap fusion", bpm: 140, negativePrompt: "smooth R&B, reggae groove, jazz swing, pop ballad" },
   { label: "Latin Trap", cat: "Hip-Hop", prompt: "latin trap, reggaeton meets trap, Spanish rap, 808 bass, dembow rhythm, urban Latino sound, Bad Bunny Anuel AA style: Spanish flow, melodic rap and singing, Puerto Rican accent, catchy hooks, perreo energy", bpm: 95, negativePrompt: "orchestral symphony, jazz improvisation, metal screaming" },
   { label: "Afrotrap", cat: "Hip-Hop", prompt: "afrotrap, African trap music, afrobeats percussion, French rap, 808 bass, MHD style: French and African flow, melodic rap, Afrobeats vocal style, catchy hooks, Paris street sound", bpm: 118, negativePrompt: "dark ambient, metal distortion, orchestral epic, slow ballad" },
-  { label: "Grime", cat: "Hip-Hop", prompt: "grime music, UK urban, fast BPM 140, aggressive MCing, electronic beats, London underground, Skepta Stormzy Dizzee Rascal style: fast British flow, aggressive delivery, UK accent, rapid bars, clash energy", bpm: 140, negativePrompt: "smooth jazz, reggae skank, orchestral, pop ballad" },
+  { label: "Grime", cat: "Hip-Hop", prompt: "grime music, UK urban, aggressive MCing, electronic beats, London underground, Skepta Stormzy Dizzee Rascal style: fast British flow, aggressive delivery, UK accent, rapid bars, clash energy", bpm: 140, negativePrompt: "smooth jazz, reggae skank, orchestral, pop ballad" },
   { label: "Trap EDM", cat: "Hip-Hop", prompt: "trap EDM, festival trap, electronic trap, big room drops, 808 bass, energetic dance trap, RL Grime Flosstradamus style: vocal chops and samples, build-drop format, minimal full vocals, festival anthem", bpm: 150, negativePrompt: "acoustic folk, jazz trio, orchestral waltz, reggae one-drop" },
   { label: "Lo-fi Hip-Hop", cat: "Hip-Hop", prompt: "lo-fi hip hop, chill beats, vinyl crackle, jazz samples, relaxing study music, mellow rap beats, Nujabes J Dilla style: instrumental focus, sampled vocal chops, warm dusty texture, no clear lead vocal", bpm: 72, negativePrompt: "aggressive distortion, EDM drop, metal, bright polished mix" },
   { label: "Jazz Rap", cat: "Hip-Hop", prompt: "jazz rap, jazz samples, hip hop drums, lyrical rap, Tribe Called Quest style: smooth intelligent flow, jazz cadence, laid-back delivery, positive vibes, conversational and clever", bpm: 88, negativePrompt: "EDM four-on-the-floor, trap hi-hat spam, metal, dubstep" },
@@ -185,11 +185,11 @@ const GENRE_PRESETS = [
   { label: "Cântec Patriotic", cat: "Romanian", prompt: "Romanian patriotic song, march, choir, orchestra, solemn, military fanfare style: choir or strong martial voice, solemn unified singing, grave delivery", bpm: 100, negativePrompt: "trap 808, EDM drop, reggae groove, autotune pop" },
   { label: "Indie / Alternativă România", cat: "Romanian", prompt: "Romanian alternative music, Romanian indie, guitar, modern production, Romanian lyrics, Coma The Mono style: introspective or experimental voice, alternative singing, personal delivery, contemplative tone", bpm: 108, negativePrompt: "trap hi-hat spam, EDM drop, metal screaming, cheesy pop chorus" },
   // ── House ─────────────────────────────────────────────────────────────────
-  { label: "House", cat: "House", prompt: "house music, four-on-the-floor kick, deep bass, synthesizer, Chicago house, dance floor energy, 120-130 BPM, Frankie Knuckles Larry Heard style: soulful sampled or diva vocals, chopped phrases, warm and uplifting, classic house vocal stabs", bpm: 124, negativePrompt: "trap 808, metal distortion, orchestral epic, reggae one-drop, country" },
-  { label: "Deep House", cat: "House", prompt: "deep house, warm sub bass, smooth groove, atmospheric pads, underground club, 120-125 BPM, Kerri Chandler Moodymann style: deep soulful vocals or pads, soft and intimate, delayed and filtered, late-night vibe", bpm: 122, negativePrompt: "aggressive drop, metal screaming, trap hats, EDM big room, harsh distortion" },
+  { label: "House", cat: "House", prompt: "house music, four-on-the-floor kick, deep bass, synthesizer, Chicago house, dance floor energy, Frankie Knuckles Larry Heard style: soulful sampled or diva vocals, chopped phrases, warm and uplifting, classic house vocal stabs", bpm: 124, negativePrompt: "trap 808, metal distortion, orchestral epic, reggae one-drop, country" },
+  { label: "Deep House", cat: "House", prompt: "deep house, warm sub bass, smooth groove, atmospheric pads, underground club, Kerri Chandler Moodymann style: deep soulful vocals or pads, soft and intimate, delayed and filtered, late-night vibe", bpm: 122, negativePrompt: "aggressive drop, metal screaming, trap hats, EDM big room, harsh distortion" },
   { label: "Tech House", cat: "House", prompt: "tech house, driving bassline, minimal percussion, hypnotic groove, techno meets house, 2024 sound, loop-based, Fisher John Summit style: minimal vocal chops or talk-singing, repetitive hooks, tech and punchy", bpm: 126, negativePrompt: "orchestral strings, smooth jazz, ballad, reggae skank, country" },
-  { label: "Dark Afro House", cat: "House", prompt: "Dark Afro House backing track at 124 BPM, massive deep sub-bass foundation, strong four-on-the-four kick drum, hypnotic tribal percussion with shakers and congas, dark atmospheric pads, minimal melodic content to leave space for lead melody, warehouse underground groove, rhythmic foundation only, mysterious atmosphere, ritual drums", bpm: 124, negativePrompt: "metal distortion, trap 808 dominance, EDM supersaw drop, harsh industrial" },
-  { label: "Melodic House", cat: "House", prompt: "melodic house, emotional arpeggiated melodies, progressive build, atmospheric synths, euphoric drops, 120-125 BPM, Tale Of Us Stephan Bodzin style: ethereal vocal pads or soft female vocals, emotional and cinematic, no harsh lead", bpm: 122, negativePrompt: "harsh screaming, trap 808 spam, metal, aggressive dubstep, dark industrial" },
+  { label: "Dark Afro House", cat: "House", prompt: "Dark Afro House backing track, massive deep sub-bass foundation, strong four-on-the-four kick drum, hypnotic tribal percussion with shakers and congas, dark atmospheric pads, minimal melodic content to leave space for lead melody, warehouse underground groove, rhythmic foundation only, mysterious atmosphere, ritual drums", bpm: 124, negativePrompt: "metal distortion, trap 808 dominance, EDM supersaw drop, harsh industrial" },
+  { label: "Melodic House", cat: "House", prompt: "melodic house, emotional arpeggiated melodies, progressive build, atmospheric synths, euphoric drops, Tale Of Us Stephan Bodzin style: ethereal vocal pads or soft female vocals, emotional and cinematic, no harsh lead", bpm: 122, negativePrompt: "harsh screaming, trap 808 spam, metal, aggressive dubstep, dark industrial" },
   { label: "Progressive House", cat: "House", prompt: "progressive house, long builds, layered synths, epic breakdown, festival energy, Deadmau5 Eric Prydz style: melodic synth leads, vocal chops in builds, anthemic and emotional, big room feel", bpm: 126, negativePrompt: "trap hi-hat rolls, reggae one-drop, smooth jazz, country, lo-fi bedroom" },
   { label: "Electro House", cat: "House", prompt: "electro house, heavy bass drops, distorted synths, energetic, big room, festival crowd, Dimitri Vegas Martin Garrix style: aggressive vocal chops, build-drop vocals, festival shout-along, high energy", bpm: 128, negativePrompt: "smooth jazz, orchestral waltz, reggae groove, acoustic ballad" },
   { label: "Future House", cat: "House", prompt: "future house, metallic bass, funky groove, modern production, Don Diablo style: catchy vocal hooks, clean and punchy, sing-along melody, radio-friendly", bpm: 126, negativePrompt: "classical orchestra, smooth jazz, country, dark ambient drone" },
@@ -197,13 +197,13 @@ const GENRE_PRESETS = [
   { label: "Slap House", cat: "House", prompt: "slap house, punchy slap bass, emotional drop, Portuguese house, Imanbek style: emotional melodic vocals, often female, powerful chorus, sad or euphoric, vocal-driven drop", bpm: 122, negativePrompt: "metal distortion, harsh screaming, trap 808 spam, orchestral epic" },
   { label: "Bass House", cat: "House", prompt: "bass house, heavy distorted bass, aggressive drops, club energy, DJ Snake Joyryde style: vocal chops and growls, aggressive and distorted, minimal singing, impact focus", bpm: 128, negativePrompt: "smooth jazz, orchestral ballad, reggae one-drop, acoustic folk" },
   { label: "Funky House", cat: "House", prompt: "funky house, disco samples, funky bass line, groovy percussion, dance floor, retro vibes, Daft Punk Basement Jaxx style: disco or funk vocal samples, pitched and filtered, catchy and groovy, talk-box or robotic feel", bpm: 124, negativePrompt: "metal screaming, dark trap, orchestral epic, harsh distortion" },
-  { label: "UK Garage", cat: "House", prompt: "UK garage, 2-step rhythm, shuffled beats, 130-135 BPM, London sound, Craig David Artful Dodger style: smooth R&B-style vocals, fast skippy flow, soulful and melodic, British accent", bpm: 132, negativePrompt: "metal distortion, orchestral epic, country, reggae one-drop" },
+  { label: "UK Garage", cat: "House", prompt: "UK garage, 2-step rhythm, shuffled beats, London sound, Craig David Artful Dodger style: smooth R&B-style vocals, fast skippy flow, soulful and melodic, British accent", bpm: 132, negativePrompt: "metal distortion, orchestral epic, country, reggae one-drop" },
   { label: "Acid House", cat: "House", prompt: "acid house, Roland TB-303 squelchy bass, Chicago underground, psychedelic dance, Phuture Larry Heard style: minimal or sampled vocals, repetitive and hypnotic, raw and underground", bpm: 125, negativePrompt: "orchestral strings, smooth jazz, ballad, country, glossy pop chorus" },
   { label: "Minimal House", cat: "House", prompt: "minimal house, stripped back, hypnotic repetition, subtle groove, underground Berlin sound, Ricardo Villalobos style: sparse or no vocals, texture and groove focus, whispered or chopped minimal phrases", bpm: 124, negativePrompt: "big room drop, trap 808 dominance, orchestral epic, cheesy pop" },
   { label: "Organic House", cat: "House", prompt: "organic house, acoustic instruments, ethnic percussion, bongos congas, violin kalimba, deep meditative, WhoMadeWho Jan Blomqvist style: soft male vocals, indie-electronic feel, intimate and organic, breathy delivery", bpm: 120, negativePrompt: "harsh distortion, trap 808 spam, metal screaming, EDM drop" },
   { label: "Soulful House", cat: "House", prompt: "soulful house, gospel vocals, piano chords, warm bass, emotional, classic New York house, Frankie Knuckles Masters at Work style: powerful soul or gospel vocals, emotional and uplifting, diva or male soul, full vocal performance", bpm: 122, negativePrompt: "trap 808 dominance, metal, EDM big room drop, harsh industrial" },
   { label: "Chicago House", cat: "House", prompt: "Chicago house, classic 808 drums, organ stabs, original house music sound, Frankie Knuckles Ron Hardy style: soulful diva vocals, piano house, raw and warm, classic vocal hooks", bpm: 122, negativePrompt: "EDM supersaw drop, trap hi-hat spam, metal distortion, orchestral epic" },
-  { label: "Brazilian Bass", cat: "House", prompt: "Brazilian bass, heavy bassline, Latin percussion, festival house, Alok style, 120-124 BPM: Portuguese or Latin vocal samples, catchy and festive, vocal chops in drops", bpm: 122, negativePrompt: "metal screaming, smooth jazz, orchestral waltz, dark ambient" },
+  { label: "Brazilian Bass", cat: "House", prompt: "Brazilian bass, heavy bassline, Latin percussion, festival house, Alok style: Portuguese or Latin vocal samples, catchy and festive, vocal chops in drops", bpm: 122, negativePrompt: "metal screaming, smooth jazz, orchestral waltz, dark ambient" },
   { label: "Amapiano House", cat: "House", prompt: "amapiano house, log drum, South African amapiano, piano riffs, deep bass, 2024 global trend, Kabza De Small DJ Maphorisa style: South African vocal samples or singing, repetitive catchy phrases, lounge and street vibe", bpm: 115, negativePrompt: "metal distortion, trap 808 dominance, EDM drop, harsh industrial" },
   { label: "Peak Time / Driving House", cat: "House", prompt: "peak time house, driving energy, main room, relentless groove, festival peak hour, Charlotte de Witte Carl Cox style: minimal vocals or techno vocal stabs, driving and relentless, no soft singing", bpm: 128, negativePrompt: "slow ballad, smooth jazz, acoustic folk, reggae one-drop" },
   // ── Dembow ────────────────────────────────────────────────────────────────
@@ -216,7 +216,7 @@ const GENRE_PRESETS = [
   { label: "Reggaeton Romántico", cat: "Dembow", prompt: "reggaeton romántico, romantic Spanish lyrics, smooth dembow, sensual vibes, Bad Bunny style: warm romantic voice, melodic singing, slow intimate flow, light auto-tune, emotional delivery", bpm: 88, negativePrompt: "aggressive metal, harsh screaming, EDM drop, dark industrial" },
   { label: "Trap Latino", cat: "Dembow", prompt: "trap latino, Spanish trap, 808 bass, dembow influence, urban Latin, Anuel AA style: deep or auto-tune voice, trap flow in Spanish, cold street delivery, melodic hooks", bpm: 140, negativePrompt: "orchestral, smooth jazz, reggae one-drop, country" },
   { label: "Cumbia Urbana", cat: "Dembow", prompt: "cumbia urbana, cumbia meets reggaeton, Colombian urban, accordion, dembow rhythm, Silvestre Dangond style: warm Colombian voice, vallenato-cumbia singing, romantic or festive delivery, clear melody", bpm: 95, negativePrompt: "metal distortion, EDM drop, harsh industrial, orchestral epic" },
-  { label: "Moombahton", cat: "Dembow", prompt: "moombahton, reggaeton slowed to 108 BPM, Dutch house meets dembow, bass heavy, tropical, Dillon Francis style: vocal chops and samples, slow heavy singing, repetitive hooks", bpm: 108, negativePrompt: "orchestral, metal screaming, smooth jazz, fast punk" },
+  { label: "Moombahton", cat: "Dembow", prompt: "moombahton, reggaeton slowed to, Dutch house meets dembow, bass heavy, tropical, Dillon Francis style: vocal chops and samples, slow heavy singing, repetitive hooks", bpm: 108, negativePrompt: "orchestral, metal screaming, smooth jazz, fast punk" },
   { label: "Bachata Urbana", cat: "Dembow", prompt: "bachata urbana, modern bachata, guitar, dembow influence, romantic Spanish, Romeo Santos style: strong romantic voice, bachata singing with melisma, sensual delivery, trillo and emotion", bpm: 120, negativePrompt: "metal distortion, trap 808 spam, EDM drop, harsh screaming" },
   { label: "Salsa Urbana", cat: "Dembow", prompt: "salsa urbana, salsa meets reggaeton, brass, piano, urban Latin, Marc Anthony style: strong salsa voice, belting and power, classic Latin delivery, coros and soneos", bpm: 180, negativePrompt: "trap 808, EDM four-on-the-floor, metal, dark ambient" },
   { label: "Guaracha", cat: "Dembow", prompt: "guaracha, Colombian guaracha, fast tempo, synth bass, party energy, Michael Brun style: energetic voice, fast festive singing, hooks in Spanish, club delivery", bpm: 125, negativePrompt: "classical orchestra, smooth jazz ballad, dark ambient, country" },
@@ -656,6 +656,9 @@ export default function AceStepTab({
   const [useTiledDecode, setUseTiledDecode] = useState(true);
   const [batchSize, setBatchSize] = useState(1);
   const [thinking, setThinking] = useState(false);
+  const [useCotMetas, setUseCotMetas] = useState(false);     // OFF = respect user BPM/Key
+  const [useCotCaption, setUseCotCaption] = useState(false);  // OFF = use exact user prompt
+  const [useCotLanguage, setUseCotLanguage] = useState(false); // OFF = use vocal_language param
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   // ── Clean Temp Files ──────────────────────────────────────────────────────
@@ -811,6 +814,7 @@ export default function AceStepTab({
     // Custom mode doesn't need LLM Chain-of-Thought (we have reference audio)
     const isCustom = taskType === "custom";
     const effectiveThinking = isCustom ? false : thinking;
+    const isAudio2Audio = taskType === "audio2audio";
     const effectiveUseCotMetas = isCustom ? false : useCotMetas;
     const effectiveUseCotCaption = isCustom ? false : useCotCaption;
     const effectiveUseCotLanguage = isCustom ? false : useCotLanguage;
@@ -884,7 +888,9 @@ export default function AceStepTab({
       fd.append("source_audio", customReferenceAudio);  // Use source_audio (same as audio2audio)
       fd.append("ref_audio_strength", customRefStrength);
       if (customTags) {
-        fd.append("tags", customTags);
+        // tags param doesn't exist in ACE-Step API - merge into prompt
+        const currentPrompt = fd.get("prompt") || "";
+        fd.set("prompt", customTags + (currentPrompt ? ", " + currentPrompt : ""));
       }
       // Auto-detect BPM/Key from reference and send if available
       if (customBpm && customBpm > 0) {
@@ -930,7 +936,6 @@ export default function AceStepTab({
     fd.append("use_adg", false);
     fd.append("cfg_interval_start", 0.0);
     fd.append("cfg_interval_end", 1.0);
-    fd.append("use_cot_metas", effectiveUseCotMetas);  // Disable for custom
     fd.append("use_cot_caption", effectiveUseCotCaption);  // Disable for custom
     fd.append("use_cot_language", effectiveUseCotLanguage);  // Disable for custom
     fd.append("allow_lm_batch", true);
@@ -1227,7 +1232,9 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                 { id: "audio2audio", icon: "🎵", label: "Audio Cover" },
                 { id: "custom", icon: "🎨", label: "Custom" },
               ].map(t => (
-                <button key={t.id} onClick={() => setTaskType(t.id)} style={{
+                <button key={t.id} onClick={() => {
+                  setTaskType(t.id);
+                }} style={{
                   flex: 1, padding: "10px 8px", borderRadius: 8, fontSize: 12, fontWeight: 700,
                   background: taskType === t.id ? "#7209b722" : "#0a0a1a",
                   border: `1px solid ${taskType === t.id ? "#9b2de0" : "#2a2a4a"}`,
@@ -1238,6 +1245,35 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                 </button>
               ))}
             </div>
+
+
+            {/* CoT Controls */}
+            {taskType !== "custom" && (
+              <div style={{ marginTop: 12, padding: "12px 14px", borderRadius: 8, background: "#07071a", border: "1px solid #1a1a3a" }}>
+                <div style={{ fontSize: 11, color: "#444466", fontWeight: 700, marginBottom: 10, letterSpacing: 1, textTransform: "uppercase" }}>
+                  🧠 AI Chain-of-Thought
+                </div>
+                {[
+                  { key: "cotMetas", state: useCotMetas, setter: setUseCotMetas, label: "CoT Metas", icon: "🥁", desc: "AI detects and overwrites BPM, Key, Time Signature. OFF = respects your settings." },
+                  { key: "cotCaption", state: useCotCaption, setter: setUseCotCaption, label: "CoT Caption", icon: "🎨", desc: "AI rewrites and expands your style prompt. OFF = uses your exact text." },
+                  { key: "cotLanguage", state: useCotLanguage, setter: setUseCotLanguage, label: "CoT Language", icon: "🌐", desc: "AI detects language from lyrics. OFF = uses your Vocal Language setting." },
+                ].map(({ key, state, setter, label, icon, desc }) => (
+                  <div key={key} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 8, paddingBottom: 8, borderBottom: key !== "cotLanguage" ? "1px solid #12122a" : "none" }}>
+                    <div onClick={() => setter(v => !v)} style={{ width: 36, height: 20, borderRadius: 999, flexShrink: 0, marginTop: 2, background: state ? "#9b2de0" : "#1a1a3a", position: "relative", cursor: "pointer", transition: "background 0.2s" }}>
+                      <div style={{ position: "absolute", top: 2, left: state ? 18 : 2, width: 14, height: 14, borderRadius: "50%", background: state ? "#fff" : "#444466", transition: "left 0.2s" }} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                        <span style={{ fontSize: 13 }}>{icon}</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: state ? "#c77dff" : "#444466" }}>{label}</span>
+                        <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 999, fontWeight: 700, background: state ? "#9b2de022" : "#12122a", color: state ? "#c77dff" : "#333355", border: `1px solid ${state ? "#9b2de044" : "#1a1a3a"}` }}>{state ? "ON" : "OFF"}</span>
+                      </div>
+                      <div style={{ fontSize: 11, color: "#333355", lineHeight: 1.4 }}>{desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Audio source upload (only for audio2audio) */}
             {taskType === "audio2audio" && (
