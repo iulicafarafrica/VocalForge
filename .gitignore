@@ -284,3 +284,4 @@ LPT[0-9]
 !presets_rvc.json
 !lora_config.json
 !eslint.config.js
+.aider*
