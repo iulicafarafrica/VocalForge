@@ -20,5 +20,14 @@ echo   - ACE-Step API          : http://localhost:8001
 echo   - RVC Voice Conversion  : http://localhost:8002
 echo   - Suno-API (optional)   : http://localhost:8080
 echo.
+echo RAM Management:
+echo   - LLM disabled by default (ACESTEP_INIT_LLM=false)
+echo   - Expected RAM: ~2-4GB per generation
+echo   - To free RAM: Run RESTART_ACESTEP.bat
+echo.
+echo Cleanup Scripts:
+echo   - CLEAN_CONDA.bat      - Clean conda cache
+echo   - RESTART_ACESTEP.bat  - Restart ACE-Step API
+echo.
 echo Press any key to exit...
 pause >nul
