@@ -2175,7 +2175,11 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
               {!resultBpm && result && (
                 <div style={{ color: "#333355", fontSize: 10, marginBottom: 6, fontFamily: "monospace" }}>⏳ Detecting BPM & Key...</div>
               )}
-              <audio controls src={result.url} style={{ width: "100%", marginBottom: 8 }} />
+              <audio controls src={result.url} preload="metadata" style={{ width: "100%", marginBottom: 8 }} onLoadedMetadata={(e) => {
+                console.log('[Audio] Metadata loaded:', e.target.duration, 'seconds');
+              }} onError={(e) => {
+                console.error('[Audio] Error loading:', e);
+              }} />
               <div style={{ display: "flex", gap: 8 }}>
                 <button
                   onClick={async () => {

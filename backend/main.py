@@ -217,18 +217,21 @@ import re
 async def serve_track(filename: str, request: Request):
     """Serve audio files with HTTP Range support for seeking."""
     file_path = os.path.join(OUTPUT_DIR, filename)
-    
+
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found")
-    
+
     file_size = os.path.getsize(file_path)
     ext = filename.rsplit(".", 1)[-1].lower()
     media_types = {"mp3": "audio/mpeg", "wav": "audio/wav", "flac": "audio/flac", "m4a": "audio/mp4"}
     media_type = media_types.get(ext, "audio/mpeg")
-    
+
+    # Log for debugging
+    print(f"[TRACK] Serving: {filename} | Size: {file_size} bytes | Type: {media_type}")
+
     # Support range requests for audio seeking
     range_header = request.headers.get("range")
-    
+
     if range_header:
         # Parse range header
         range_match = re.search(r"bytes=(\d+)-(\d*)", range_header)
@@ -236,7 +239,7 @@ async def serve_track(filename: str, request: Request):
             start = int(range_match.group(1))
             end = int(range_match.group(2)) if range_match.group(2) else file_size - 1
             end = min(end, file_size - 1)
-            
+
             # Stream the requested range
             def iterfile():
                 with open(file_path, "rb") as f:
@@ -249,7 +252,7 @@ async def serve_track(filename: str, request: Request):
                             break
                         remaining -= len(chunk)
                         yield chunk
-            
+
             headers = {
                 "Content-Range": f"bytes {start}-{end}/{file_size}",
                 "Accept-Ranges": "bytes",
@@ -259,17 +262,17 @@ async def serve_track(filename: str, request: Request):
             }
             return StreamingResponse(iterfile(), status_code=206, headers=headers, media_type=media_type)
     else:
-        # No range request - send full file
+        # No range request - send full file with proper headers for duration detection
         headers = {
             "Accept-Ranges": "bytes",
             "Content-Length": str(file_size),
             "Content-Type": media_type,
-            "Cache-Control": "no-cache",
+            "Cache-Control": "public, max-age=31536000",  # Allow caching for faster metadata load
         }
-        def iterfile():
-            with open(file_path, "rb") as f:
-                yield from f
-        return StreamingResponse(iterfile(), headers=headers, media_type=media_type)
+
+        # Use FileResponse for better compatibility with audio players
+        from fastapi.responses import FileResponse
+        return FileResponse(file_path, media_type=media_type, headers=headers)
 
 # Include ACE-Step Advanced router
 app.include_router(acestep_advanced_router)
