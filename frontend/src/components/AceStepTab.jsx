@@ -673,6 +673,7 @@ export default function AceStepTab({
       color: "#06d6a0", 
       steps: 8, 
       cfg: false, 
+      cfgScale: "8",  // Optimized for 8 steps (distilled)
       features: "Standard",
       vram: "~4-5GB",
       quality: "9/10"
@@ -684,6 +685,7 @@ export default function AceStepTab({
       color: "#ffd166", 
       steps: 20, 
       cfg: true, 
+      cfgScale: "7.0",
       features: "Standard",
       vram: "~5-6GB",
       quality: "9/10"
@@ -695,6 +697,7 @@ export default function AceStepTab({
       color: "#c77dff", 
       steps: 50, 
       cfg: true, 
+      cfgScale: "7.0",
       features: "Standard",
       vram: "~6-7GB",
       quality: "9/10"
@@ -706,6 +709,7 @@ export default function AceStepTab({
       color: "#00e5ff", 
       steps: 50, 
       cfg: true, 
+      cfgScale: "7.0",
       features: "Standard",
       vram: "~7-8GB",
       quality: "9/10"
@@ -717,6 +721,7 @@ export default function AceStepTab({
       color: "#118ab2", 
       steps: 50, 
       cfg: true, 
+      cfgScale: "7.0",
       features: "Lego, Complete, Extract",
       vram: "~7-8GB",
       quality: "8/10"
@@ -2252,8 +2257,12 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                     <div style={{ color: "#6666aa", fontSize: 10 }}>Steps</div>
                   </div>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ color: modelInfo.color, fontSize: 16, fontWeight: 900 }}>{modelInfo.cfg ? '7.0' : '❌'}</div>
-                    <div style={{ color: "#6666aa", fontSize: 10 }}>CFG</div>
+                    <div style={{ color: modelInfo.color, fontSize: 16, fontWeight: 900 }}>
+                      {modelInfo.cfg ? modelInfo.cfgScale : '⚡'}
+                    </div>
+                    <div style={{ color: "#6666aa", fontSize: 10 }}>
+                      {modelInfo.cfg ? 'CFG Scale' : 'Distilled'}
+                    </div>
                   </div>
                   <div style={{ textAlign: "center" }}>
                     <div style={{ color: modelInfo.color, fontSize: 16, fontWeight: 900 }}>{modelInfo.vram}</div>
