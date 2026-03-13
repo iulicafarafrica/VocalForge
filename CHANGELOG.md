@@ -1,6 +1,50 @@
 
 ---
 
+## [Unreleased] - 2026-03-13
+
+### 🎨 MAJOR UI REDESIGN: ACE-Step 3-Column Layout
+
+**New 3-Column Grid Layout**
+- ✅ Changed from 2-column to **3-column layout** for better organization
+- ✅ **LEFT COLUMN**: Task Type + Music Prompt + Genre Presets
+- ✅ **CENTER COLUMN**: Lyrics + Generation Settings (Duration, Guidance, Steps, BPM/Key, Seed) + Generate Button + Result
+- ✅ **RIGHT COLUMN**: Advanced Settings (always visible, no accordion)
+
+**Layout Changes**
+- ✅ Removed header with "🎵 ACE-Step v1.5" title and subtitle
+- ✅ Removed "Generate complete songs from text — beats SUNO in quality" text
+- ✅ Status badge now at top (Online/Offline indicator with Refresh button)
+- ✅ Container width increased from 900px to 1600px for better use of screen space
+
+**Advanced Settings Improvements**
+- ✅ **Always visible** in right column (removed accordion/collapsible)
+- ✅ **AI Chain-of-Thought moved** from Task Type to Advanced Settings section
+- ✅ CoT Controls now in dedicated section with proper styling
+- ✅ Includes: CoT Metas, CoT Caption, CoT Language toggles
+
+**Task Type Card Updates**
+- ✅ Removed AI Chain-of-Thought section (moved to Advanced Settings)
+- ✅ Cleaner, more compact design
+- ✅ Audio upload for Audio Cover mode
+- ✅ Reference audio upload for Custom mode
+
+**Music Prompt Repositioned**
+- ✅ Moved after Task Type in LEFT column
+- ✅ Full-width genre presets with better organization
+- ✅ Scrollable subgenre buttons (max-height 160px)
+
+**Button Text Updated**
+- ✅ "🎵 Generate with ACE-Step" → "🎵 Generate Music" (shorter, cleaner)
+
+**User Experience Improvements**
+- ✅ Better visual hierarchy with 3 distinct columns
+- ✅ Advanced settings always accessible without clicking to expand
+- ✅ Logical flow: Task Type → Music Style → Lyrics → Settings → Generate
+- ✅ More efficient use of screen real estate
+
+---
+
 ## [Unreleased] - 2026-03-12
 
 ### 📚 NEW: Lyrics Library Feature

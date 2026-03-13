@@ -887,7 +887,7 @@ export default function AceStepTab({
   const [useCotMetas, setUseCotMetas] = useState(false);     // OFF = respect user BPM/Key
   const [useCotCaption, setUseCotCaption] = useState(false);  // OFF = use exact user prompt
   const [useCotLanguage, setUseCotLanguage] = useState(false); // OFF = use vocal_language param
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  // Advanced settings are always visible in the 3rd column
 
   // ── Clean Temp Files ──────────────────────────────────────────────────────
   const [cleaningTemp, setCleaningTemp] = useState(false);
@@ -1459,7 +1459,7 @@ export default function AceStepTab({
   };
 
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto" }}>
+    <div style={{ maxWidth: 1600, margin: "0 auto" }}>
       {/* Preset Manager Modal */}
       <PresetManager
         open={showPresets}
@@ -1562,14 +1562,10 @@ export default function AceStepTab({
         </div>
       )}
 
-      {/* Header */}
-      <div style={{ textAlign: "center", marginBottom: 24 }}>
-        <div style={{ fontSize: 40, marginBottom: 6 }}>🎵</div>
-        <div style={{ fontSize: 22, fontWeight: 900, color: "#e0e0ff", marginBottom: 4, letterSpacing: 1 }}>ACE-Step v1.5</div>
-        <div style={{ color: "#444466", fontSize: 13 }}>Generate complete songs from text — beats SUNO in quality</div>
-
+      {/* Status bar */}
+      <div style={{ marginBottom: 16 }}>
         {/* Status badge */}
-        <div style={{ marginTop: 10, display: "flex", justifyContent: "center", gap: 8, alignItems: "center" }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: 8, alignItems: "center" }}>
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 6,
             background: aceOnline === true ? "#06d6a011" : aceOnline === false ? "#e6394611" : "#ffd16611",
@@ -1616,152 +1612,10 @@ export default function AceStepTab({
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
 
-        {/* LEFT */}
+        {/* LEFT COLUMN */}
         <div>
-
-          {/* Music Prompt */}
-          <div style={S.card}>
-            <span style={S.label}>🎼 Music Style / Prompt</span>
-            <textarea
-              value={prompt}
-              onChange={e => setPrompt(e.target.value)}
-              placeholder={"Describe the music you want...\n\nExamples:\n• pop music, upbeat, catchy chorus, modern production\n• hip hop trap beat, 808 bass, dark atmosphere\n• romantic Romanian ballad, piano, emotional"}
-              style={{
-                width: "100%", minHeight: 100, background: "#080812",
-                border: "1px solid #2a2a4a", borderRadius: 8,
-                color: "#e0e0ff", fontSize: 13, fontFamily: "monospace",
-                padding: "12px", resize: "vertical", outline: "none", lineHeight: 1.6,
-                boxSizing: "border-box",
-              }}
-              onFocus={e => e.target.style.borderColor = "#ffd166"}
-              onBlur={e => e.target.style.borderColor = "#2a2a4a"}
-            />
-
-            {/* Presets după gen (complet): JSON (BPM+caption+negative) + Hip-Hop, Românesc, House, Dembow */}
-            <div style={{ marginTop: 14, padding: "10px 0", borderTop: "1px solid #2a2a4a" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
-                <span style={{ color: "#9b2de0", fontSize: 11, fontWeight: 700 }}>
-                  🎚 Genres and Subgenres
-                </span>
-                <button
-                  type="button"
-                  onClick={loadGenrePresets}
-                  disabled={genrePresetsLoading}
-                  style={{
-                    background: "#9b2de022", border: "1px solid #9b2de044", color: "#c77dff",
-                    borderRadius: 6, padding: "2px 8px", fontSize: 10, cursor: genrePresetsLoading ? "wait" : "pointer", fontWeight: 600,
-                  }}
-                >
-                  {genrePresetsLoading ? "Loading..." : "↻ Reload"}
-                </button>
-              </div>
-              {genrePresetsLoading && genrePresetsData === null && (
-                <div style={{ color: "#6666aa", fontSize: 11 }}>Loading genre presets...</div>
-              )}
-              {(() => {
-                const EXCLUDED_GENRE_KEYS = ["EDM", "Hip Hop", "Hip-Hop", "Pop", "Classical", "Afrobeat", "Instrumental", "Other"];
-const apiGenres = genrePresetsData?.genres || {};
-const filteredApiGenres = Object.fromEntries(
-  Object.entries(apiGenres).filter(([k]) => !EXCLUDED_GENRE_KEYS.includes(k))
-);
-const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
-                const genreKeys = Object.keys(allGenres);
-                const currentGenre = genreKeys.length && (genreKeys.includes(genreCatFull) ? genreCatFull : genreKeys[0]);
-                if (genreKeys.length === 0) return null;
-                return (
-                  <>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 8 }}>
-                      {genreKeys.map((gKey) => {
-                        const g = allGenres[gKey];
-                        const subgenres = g?.subgenres ? Object.keys(g.subgenres) : [];
-                        const active = currentGenre === gKey;
-                        const isRapid = Object.prototype.hasOwnProperty.call(QUICK_GENRES, gKey);
-                        return (
-                          <button
-                            key={gKey}
-                            onClick={() => setGenreCatFull(gKey)}
-                            style={{
-                              background: active ? "#9b2de022" : "#0a0a1a",
-                              border: `1px solid ${active ? "#9b2de0" : "#2a2a4a"}`,
-                              color: active ? "#c77dff" : "#444466",
-                              borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 700,
-                              cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
-                            }}
-                            title={isRapid ? "Full preset (caption + default negative per category)" : "Preset from JSON (BPM + caption + negative)"}
-                          >
-                            {gKey}
-                            <span style={{
-                              background: active ? "#9b2de033" : "#1a1a2e",
-                              color: active ? "#c77dff" : "#333355",
-                              borderRadius: 10, padding: "1px 5px", fontSize: 10, fontWeight: 800,
-                            }}>{subgenres.length}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    
-                    {/* Category Info Card - Compact */}
-                    {(() => {
-                      const meta = getCategoryMeta(currentGenre);
-                      return (
-                        <div style={{
-                          marginTop: 12,
-                          padding: "8px 12px",
-                          background: `${meta.color}22`,
-                          border: `1px solid ${meta.color}44`,
-                          borderRadius: 6,
-                          marginBottom: 12,
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                        }}>
-                          <span style={{ fontSize: 20 }}>{meta.icon}</span>
-                          <div>
-                            <div style={{ color: meta.color, fontSize: 13, fontWeight: 700 }}>
-                              {currentGenre}
-                            </div>
-                            <div style={{ color: "#6666aa", fontSize: 11 }}>
-                              {meta.description}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                    
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5, maxHeight: 160, overflowY: "auto", paddingRight: 2 }}>
-                      {Object.entries(allGenres[currentGenre]?.subgenres || {}).map(([subName, preset]) => {
-                        const key = `${currentGenre}|${subName}`;
-                        const isSelected = selectedGenreSubgenre === key;
-                        return (
-                          <button
-                            key={key}
-                            onClick={() => {
-                              applyGenrePreset(preset);
-                              setSelectedGenreSubgenre(key);
-                            }}
-                            style={{
-                              background: isSelected ? "#9b2de022" : "#0a0a1a",
-                              border: `1px solid ${isSelected ? "#9b2de0" : "#2a2a4a"}`,
-                              color: isSelected ? "#c77dff" : "#6666aa",
-                              borderRadius: 6, padding: "4px 10px", fontSize: 11, cursor: "pointer",
-                              whiteSpace: "nowrap",
-                            }}
-                            title={preset.caption ? String(preset.caption).slice(0, 120) + "…" : subName}
-                          >
-                            {subName}
-                            {preset.bpm > 0 && <span style={{ marginLeft: 4, opacity: 0.8 }}>♩{preset.bpm}</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
-
-          </div>
 
           {/* ── Task Type: text2music vs audio2audio vs custom ── */}
           <div style={S.card}>
@@ -1786,34 +1640,6 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
               ))}
             </div>
 
-
-            {/* CoT Controls */}
-            {taskType !== "custom" && (
-              <div style={{ marginTop: 12, padding: "12px 14px", borderRadius: 8, background: "#07071a", border: "1px solid #1a1a3a" }}>
-                <div style={{ fontSize: 11, color: "#444466", fontWeight: 700, marginBottom: 10, letterSpacing: 1, textTransform: "uppercase" }}>
-                  🧠 AI Chain-of-Thought
-                </div>
-                {[
-                  { key: "cotMetas", state: useCotMetas, setter: setUseCotMetas, label: "CoT Metas", icon: "🥁", desc: "AI detects and overwrites BPM, Key, Time Signature. OFF = respects your settings." },
-                  { key: "cotCaption", state: useCotCaption, setter: setUseCotCaption, label: "CoT Caption", icon: "🎨", desc: "AI rewrites and expands your style prompt. OFF = uses your exact text." },
-                  { key: "cotLanguage", state: useCotLanguage, setter: setUseCotLanguage, label: "CoT Language", icon: "🌐", desc: "AI detects language from lyrics. OFF = uses your Vocal Language setting." },
-                ].map(({ key, state, setter, label, icon, desc }) => (
-                  <div key={key} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 8, paddingBottom: 8, borderBottom: key !== "cotLanguage" ? "1px solid #12122a" : "none" }}>
-                    <div onClick={() => setter(v => !v)} style={{ width: 36, height: 20, borderRadius: 999, flexShrink: 0, marginTop: 2, background: state ? "#9b2de0" : "#1a1a3a", position: "relative", cursor: "pointer", transition: "background 0.2s" }}>
-                      <div style={{ position: "absolute", top: 2, left: state ? 18 : 2, width: 14, height: 14, borderRadius: "50%", background: state ? "#fff" : "#444466", transition: "left 0.2s" }} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                        <span style={{ fontSize: 13 }}>{icon}</span>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: state ? "#c77dff" : "#444466" }}>{label}</span>
-                        <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 999, fontWeight: 700, background: state ? "#9b2de022" : "#12122a", color: state ? "#c77dff" : "#333355", border: `1px solid ${state ? "#9b2de044" : "#1a1a3a"}` }}>{state ? "ON" : "OFF"}</span>
-                      </div>
-                      <div style={{ fontSize: 11, color: "#333355", lineHeight: 1.4 }}>{desc}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
 
             {/* Audio source upload (only for audio2audio) */}
             {taskType === "audio2audio" && (
@@ -2024,6 +1850,148 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
             )}
           </div>
 
+          {/* Music Prompt */}
+          <div style={S.card}>
+            <span style={S.label}>🎼 Music Style / Prompt</span>
+            <textarea
+              value={prompt}
+              onChange={e => setPrompt(e.target.value)}
+              placeholder={"Describe the music you want...\n\nExamples:\n• pop music, upbeat, catchy chorus, modern production\n• hip hop trap beat, 808 bass, dark atmosphere\n• romantic Romanian ballad, piano, emotional"}
+              style={{
+                width: "100%", minHeight: 100, background: "#080812",
+                border: "1px solid #2a2a4a", borderRadius: 8,
+                color: "#e0e0ff", fontSize: 13, fontFamily: "monospace",
+                padding: "12px", resize: "vertical", outline: "none", lineHeight: 1.6,
+                boxSizing: "border-box",
+              }}
+              onFocus={e => e.target.style.borderColor = "#ffd166"}
+              onBlur={e => e.target.style.borderColor = "#2a2a4a"}
+            />
+
+            {/* Presets după gen (complet): JSON (BPM+caption+negative) + Hip-Hop, Românesc, House, Dembow */}
+            <div style={{ marginTop: 14, padding: "10px 0", borderTop: "1px solid #2a2a4a" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
+                <span style={{ color: "#9b2de0", fontSize: 11, fontWeight: 700 }}>
+                  🎚 Genres and Subgenres
+                </span>
+                <button
+                  type="button"
+                  onClick={loadGenrePresets}
+                  disabled={genrePresetsLoading}
+                  style={{
+                    background: "#9b2de022", border: "1px solid #9b2de044", color: "#c77dff",
+                    borderRadius: 6, padding: "2px 8px", fontSize: 10, cursor: genrePresetsLoading ? "wait" : "pointer", fontWeight: 600,
+                  }}
+                >
+                  {genrePresetsLoading ? "Loading..." : "↻ Reload"}
+                </button>
+              </div>
+              {genrePresetsLoading && genrePresetsData === null && (
+                <div style={{ color: "#6666aa", fontSize: 11 }}>Loading genre presets...</div>
+              )}
+              {(() => {
+                const EXCLUDED_GENRE_KEYS = ["EDM", "Hip Hop", "Hip-Hop", "Pop", "Classical", "Afrobeat", "Instrumental", "Other"];
+const apiGenres = genrePresetsData?.genres || {};
+const filteredApiGenres = Object.fromEntries(
+  Object.entries(apiGenres).filter(([k]) => !EXCLUDED_GENRE_KEYS.includes(k))
+);
+const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
+                const genreKeys = Object.keys(allGenres);
+                const currentGenre = genreKeys.length && (genreKeys.includes(genreCatFull) ? genreCatFull : genreKeys[0]);
+                if (genreKeys.length === 0) return null;
+                return (
+                  <>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 8 }}>
+                      {genreKeys.map((gKey) => {
+                        const g = allGenres[gKey];
+                        const subgenres = g?.subgenres ? Object.keys(g.subgenres) : [];
+                        const active = currentGenre === gKey;
+                        const isRapid = Object.prototype.hasOwnProperty.call(QUICK_GENRES, gKey);
+                        return (
+                          <button
+                            key={gKey}
+                            onClick={() => setGenreCatFull(gKey)}
+                            style={{
+                              background: active ? "#9b2de022" : "#0a0a1a",
+                              border: `1px solid ${active ? "#9b2de0" : "#2a2a4a"}`,
+                              color: active ? "#c77dff" : "#444466",
+                              borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 700,
+                              cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
+                            }}
+                            title={isRapid ? "Full preset (caption + default negative per category)" : "Preset from JSON (BPM + caption + negative)"}
+                          >
+                            {gKey}
+                            <span style={{
+                              background: active ? "#9b2de033" : "#1a1a2e",
+                              color: active ? "#c77dff" : "#333355",
+                              borderRadius: 10, padding: "1px 5px", fontSize: 10, fontWeight: 800,
+                            }}>{subgenres.length}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    
+                    {/* Category Info Card - Compact */}
+                    {(() => {
+                      const meta = getCategoryMeta(currentGenre);
+                      return (
+                        <div style={{
+                          marginTop: 12,
+                          padding: "8px 12px",
+                          background: `${meta.color}22`,
+                          border: `1px solid ${meta.color}44`,
+                          borderRadius: 6,
+                          marginBottom: 12,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                        }}>
+                          <span style={{ fontSize: 20 }}>{meta.icon}</span>
+                          <div>
+                            <div style={{ color: meta.color, fontSize: 13, fontWeight: 700 }}>
+                              {currentGenre}
+                            </div>
+                            <div style={{ color: "#6666aa", fontSize: 11 }}>
+                              {meta.description}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                    
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5, maxHeight: 160, overflowY: "auto", paddingRight: 2 }}>
+                      {Object.entries(allGenres[currentGenre]?.subgenres || {}).map(([subName, preset]) => {
+                        const key = `${currentGenre}|${subName}`;
+                        const isSelected = selectedGenreSubgenre === key;
+                        return (
+                          <button
+                            key={key}
+                            onClick={() => {
+                              applyGenrePreset(preset);
+                              setSelectedGenreSubgenre(key);
+                            }}
+                            style={{
+                              background: isSelected ? "#9b2de022" : "#0a0a1a",
+                              border: `1px solid ${isSelected ? "#9b2de0" : "#2a2a4a"}`,
+                              color: isSelected ? "#c77dff" : "#6666aa",
+                              borderRadius: 6, padding: "4px 10px", fontSize: 11, cursor: "pointer",
+                              whiteSpace: "nowrap",
+                            }}
+                            title={preset.caption ? String(preset.caption).slice(0, 120) + "…" : subName}
+                          >
+                            {subName}
+                            {preset.bpm > 0 && <span style={{ marginLeft: 4, opacity: 0.8 }}>♩{preset.bpm}</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+
+          </div>
+
           {/* Lyrics */}
           <div style={S.card}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
@@ -2097,12 +2065,12 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
 
         </div>
 
-        {/* RIGHT */}
+        {/* CENTER */}
         <div>
 
-          {/* Generation Settings */}
+          {/* Lyrics */}
           <div style={S.card}>
-            <span style={S.label}>⚙ Generation Settings</span>
+            <span style={S.label}>📝 Lyrics (Optional)</span>
 
             {/* Duration */}
             <div style={{ marginBottom: 14 }}>
@@ -2538,7 +2506,7 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                 letterSpacing: 1,
                 boxShadow: aceOnline && prompt.trim() && !processing ? "0 0 20px #ffd16644" : "none",
               }}>
-              {processing ? `⚙ ${progressLabel || "Generating..."}` : "🎵 Generate with ACE-Step"}
+              {processing ? `⚙ ${progressLabel || "Generating..."}` : "🎵 Generate Music"}
             </button>
 
             {processing && (
@@ -2649,43 +2617,18 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
           )}
 
         </div>
-      </div>
 
-      {/* ════════════════════���══════════════════════════════════════════════
-          Advanced Settings Panel
-          Based on ACE-Step v1.5 API documentation
-      ═══════════════════════════════════════════════════════════════════ */}
-      <div style={{ marginTop: 20 }}>
-        <button
-          onClick={() => setShowAdvanced(v => !v)}
-          style={{
-            width: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            background: "linear-gradient(135deg, #0d0d22, #0a0a1a)",
-            border: "1px solid #2a2a4a",
-            borderRadius: showAdvanced ? "12px 12px 0 0" : 12,
-            padding: "14px 18px",
-            cursor: "pointer",
-            color: "#8888aa",
-            transition: "all 0.2s",
-          }}
-        >
-          <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 10 }}>
-            <span>⚙️</span> Advanced Settings
-          </span>
-          <span style={{ fontSize: 14, transition: "transform 0.2s", transform: showAdvanced ? "rotate(180deg)" : "none" }}>▼</span>
-        </button>
-
-        {showAdvanced && (
+        {/* RIGHT COLUMN — Advanced Settings */}
+        <div>
           <div style={{
             background: "linear-gradient(180deg, #0a0a1a, #080812)",
             border: "1px solid #2a2a4a",
-            borderTop: "none",
-            borderRadius: "0 0 12px 12px",
+            borderRadius: 12,
             padding: 20,
           }}>
+            <div style={{ color: "#8888aa", fontSize: 13, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+              <span>⚙️</span> Advanced Settings
+            </div>
             {/* Model Selection */}
             <div style={{ marginBottom: 20 }}>
               <div style={{ color: "#ffd166", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>
@@ -2887,6 +2830,34 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
               </div>
             </div>
 
+            {/* CoT Controls */}
+            {taskType !== "custom" && (
+              <div style={{ marginBottom: 20, padding: "12px 14px", borderRadius: 8, background: "#07071a", border: "1px solid #1a1a3a" }}>
+                <div style={{ fontSize: 11, color: "#444466", fontWeight: 700, marginBottom: 10, letterSpacing: 1, textTransform: "uppercase" }}>
+                  🧠 AI Chain-of-Thought
+                </div>
+                {[
+                  { key: "cotMetas", state: useCotMetas, setter: setUseCotMetas, label: "CoT Metas", icon: "🥁", desc: "AI detects and overwrites BPM, Key, Time Signature. OFF = respects your settings." },
+                  { key: "cotCaption", state: useCotCaption, setter: setUseCotCaption, label: "CoT Caption", icon: "🎨", desc: "AI rewrites and expands your style prompt. OFF = uses your exact text." },
+                  { key: "cotLanguage", state: useCotLanguage, setter: setUseCotLanguage, label: "CoT Language", icon: "🌐", desc: "AI detects language from lyrics. OFF = uses your Vocal Language setting." },
+                ].map(({ key, state, setter, label, icon, desc }) => (
+                  <div key={key} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 8, paddingBottom: 8, borderBottom: key !== "cotLanguage" ? "1px solid #12122a" : "none" }}>
+                    <div onClick={() => setter(v => !v)} style={{ width: 36, height: 20, borderRadius: 999, flexShrink: 0, marginTop: 2, background: state ? "#9b2de0" : "#1a1a3a", position: "relative", cursor: "pointer", transition: "background 0.2s" }}>
+                      <div style={{ position: "absolute", top: 2, left: state ? 18 : 2, width: 14, height: 14, borderRadius: "50%", background: state ? "#fff" : "#444466", transition: "left 0.2s" }} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                        <span style={{ fontSize: 13 }}>{icon}</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: state ? "#c77dff" : "#444466" }}>{label}</span>
+                        <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 999, fontWeight: 700, background: state ? "#9b2de022" : "#12122a", color: state ? "#c77dff" : "#333355", border: `1px solid ${state ? "#9b2de044" : "#1a1a3a"}` }}>{state ? "ON" : "OFF"}</span>
+                      </div>
+                      <div style={{ fontSize: 11, color: "#333355", lineHeight: 1.4 }}>{desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Thinking Mode */}
             <div>
               <label style={{ display: "flex", alignItems: "center", gap: 10, color: "#ffd166", fontSize: 12, cursor: "pointer" }}>
@@ -2948,9 +2919,8 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
               )}
             </div>
           </div>
-        )}
+        </div>
       </div>
-
     </div>
   );
 }

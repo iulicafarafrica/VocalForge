@@ -109,33 +109,58 @@ export default function App() {
         position: "sticky", top: 0, zIndex: 100,
       }}>
         {/* Logo row */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "18px 0 10px", gap: 14 }}>
-          <div style={{ position: "relative" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "16px 0 10px", gap: 16 }}>
+          {/* Icon mark */}
+          <div style={{ position: "relative", flexShrink: 0 }}>
+            {/* Outer glow ring */}
             <div style={{
-              width: 48, height: 48, borderRadius: "50%",
-              background: "linear-gradient(135deg, #7209b7, #00e5ff)",
+              position: "absolute", inset: -4, borderRadius: "50%",
+              background: "conic-gradient(from 180deg, #7209b7, #00e5ff, #06d6a0, #7209b7)",
+              opacity: 0.35, filter: "blur(6px)",
+            }} />
+            {/* Main circle */}
+            <div style={{
+              position: "relative",
+              width: 46, height: 46, borderRadius: "50%",
+              background: "linear-gradient(145deg, #0d0d22, #12122e)",
+              border: "1.5px solid #7209b755",
               display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: "0 0 20px #7209b766, 0 0 40px #00e5ff33",
+              boxShadow: "0 0 0 1px #00e5ff22, inset 0 1px 0 #ffffff11",
             }}>
-              <span style={{ fontSize: 24 }}>🎤</span>
-            </div>
-            <div style={{ position: "absolute", top: "50%", left: -8, transform: "translateY(-50%)", display: "flex", flexDirection: "column", gap: 3 }}>
-              {[10, 16, 10].map((h, i) => (
-                <div key={i} style={{ width: 3, height: h, background: "#00e5ff", borderRadius: 2, opacity: 0.7 }} />
-              ))}
-            </div>
-            <div style={{ position: "absolute", top: "50%", right: -8, transform: "translateY(-50%)", display: "flex", flexDirection: "column", gap: 3 }}>
-              {[10, 16, 10].map((h, i) => (
-                <div key={i} style={{ width: 3, height: h, background: "#7209b7", borderRadius: 2, opacity: 0.7 }} />
-              ))}
+              {/* Waveform bars */}
+              <div style={{ display: "flex", alignItems: "center", gap: 2.5 }}>
+                {[5, 11, 18, 13, 7, 16, 9].map((h, i) => (
+                  <div key={i} style={{
+                    width: 2.5, height: h,
+                    borderRadius: 2,
+                    background: i % 2 === 0
+                      ? "linear-gradient(180deg, #00e5ff, #7209b7)"
+                      : "linear-gradient(180deg, #06d6a0, #00e5ff)",
+                    opacity: 0.9,
+                  }} />
+                ))}
+              </div>
             </div>
           </div>
-          <div>
-            <div style={{ fontSize: 28, fontWeight: 900, letterSpacing: 2 }}>
-              <span style={{ color: "#06d6a0" }}>Vocal</span><span style={{ color: "#7209b7" }}>Forge</span>
+
+          {/* Wordmark */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 0, lineHeight: 1 }}>
+              <span style={{
+                fontSize: 26, fontWeight: 800, letterSpacing: "-0.5px",
+                background: "linear-gradient(90deg, #06d6a0, #00e5ff)",
+                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              }}>Vocal</span>
+              <span style={{
+                fontSize: 26, fontWeight: 800, letterSpacing: "-0.5px",
+                background: "linear-gradient(90deg, #9b2de0, #c77dff)",
+                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              }}>Forge</span>
             </div>
-            <div style={{ color: "#444466", fontSize: 11, letterSpacing: 1 }}>AI Audio Studio</div>
-            <div style={{ color: "#ffffff", fontSize: 10, letterSpacing: 0.5, marginTop: 2 }}>made by HSK</div>
+            <div style={{
+              fontSize: 10, letterSpacing: "0.25em", textTransform: "uppercase",
+              color: "#3a3a5c", fontWeight: 600,
+            }}>AI Audio Studio</div>
           </div>
         </div>
 

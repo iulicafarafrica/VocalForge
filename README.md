@@ -44,6 +44,30 @@
 | **v1.8.3** | RVC Final Mix Integration | - |
 | **v1.8.2** | RVC v2 Support | - |
 
+### **🔧 Latest Updates (2026-03-13)**
+
+**ACE-Step 3-Column Layout Redesign** 🎨
+- ✅ **New 3-column grid layout** for better organization and workflow
+- ✅ **LEFT COLUMN**: Task Type + Music Prompt + Genre Presets (164 subgenres)
+- ✅ **CENTER COLUMN**: Lyrics + Generation Settings + Generate Button + Result
+- ✅ **RIGHT COLUMN**: Advanced Settings (always visible, no accordion)
+- ✅ **Removed header** — Cleaner UI without "ACE-Step v1.5" title and subtitle
+- ✅ **Status badge at top** — Online/Offline indicator with Refresh button
+- ✅ **Container width increased** — 900px → 1600px for better screen usage
+
+**Advanced Settings Improvements**
+- ✅ **Always visible** in right column (removed collapsible accordion)
+- ✅ **AI Chain-of-Thought moved** from Task Type to Advanced Settings
+- ✅ **CoT Controls section** with proper styling and descriptions
+- ✅ Includes: CoT Metas, CoT Caption, CoT Language toggles
+
+**User Experience Improvements**
+- ✅ Better visual hierarchy with 3 distinct functional columns
+- ✅ Advanced settings always accessible without extra clicks
+- ✅ Logical flow: Task Type → Music Style → Lyrics → Settings → Generate
+- ✅ More efficient use of screen real estate
+- ✅ "Generate Music" button text (shorter, cleaner)
+
 ### **🔧 Latest Updates (2026-03-12)**
 
 **Lyrics Library Feature** 📚
