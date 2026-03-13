@@ -2095,8 +2095,8 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
             <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
               <button onClick={() => setLyrics("")} style={{ background: "#e6394611", color: "#e63946", border: "1px solid #e6394633", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>🗑 Clear</button>
               <button onClick={() => setLyrics("[verse]\n\n[chorus]\n\n[verse]\n\n[chorus]\n\n[bridge]\n\n[chorus]")} style={{ background: "#7209b711", color: "#9b2de0", border: "1px solid #7209b733", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>📋 Template</button>
-              <button onClick={() => setShowLyricsSaveInput(true)} style={{ background: "#06d6a011", color: "#06d6a0", border: "1px solid #06d6a033", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>💾 Save</button>
-              <button onClick={() => setShowLyricsLibrary(true)} style={{ background: "#ffd16611", color: "#ffd166", border: "1px solid #ffd16633", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>📂 Library ({lyricsLibrary.length})</button>
+              <button onClick={() => setShowLyricsSaveInput(true)} style={{ background: "#06d6a011", color: "#06d6a0", border: "1px solid #06d6a033", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>💾 Save Lyrics</button>
+              <button onClick={() => setShowLyricsLibrary(true)} style={{ background: "#ffd16611", color: "#ffd166", border: "1px solid #ffd16633", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>📂 Lyrics Library ({lyricsLibrary.length})</button>
             </div>
           </div>
 
