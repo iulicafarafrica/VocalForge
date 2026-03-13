@@ -649,7 +649,7 @@ export default function AceStepTab({
   const [lmTopK, setLmTopK] = useState(0);
   const [lmTopP, setLmTopP] = useState(0.9);
   const [instrumental, setInstrumental] = useState(false);
-  const [vocalLanguage, setVocalLanguage] = useState("ro");
+  const [vocalLanguage, setVocalLanguage] = useState("en");  // Default: English
   const [audioFormat, setAudioFormat] = useState("wav");  // Default: WAV (uncompressed)
   const [inferMethod, setInferMethod] = useState("ode");
   const [shift, setShift] = useState(3.0);
