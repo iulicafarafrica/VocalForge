@@ -741,6 +741,13 @@ export default function AceStepTab({
     }
   }, [tensorModel, modelInfo]);
 
+  // Auto-adjust guidanceScale when model changes (CFG)
+  useEffect(() => {
+    if (modelInfo && modelInfo.cfgScale) {
+      setGuidanceScale(parseFloat(modelInfo.cfgScale));
+    }
+  }, [tensorModel, modelInfo]);
+
   // Task type model compatibility
   const taskTypeModelSupport = {
     text2music: {
