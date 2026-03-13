@@ -2187,19 +2187,24 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                 borderRadius: 8,
                 padding: 12,
                 marginBottom: 8,
-                maxWidth: "100%",
-                overflow: "hidden",
               }}>
-                {/* Spectrum Visualizer */}
-                <div style={{ width: "100%", height: 80, marginBottom: 12 }}>
+                {/* Spectrum Visualizer - Only shows when audio is playing */}
+                <div style={{ 
+                  width: "100%", 
+                  height: 80, 
+                  marginBottom: 12,
+                  background: "#080812",
+                  borderRadius: 4,
+                  overflow: "hidden",
+                }}>
                   <AudioVisualizer
                     audioRef={audioRef}
-                    width={600}
+                    width={window.innerWidth - 100}  // Responsive width
                     height={80}
                     barWidth={3}
                     gap={2}
                     barColor="#06d6a0"
-                    backgroundColor="transparent"
+                    backgroundColor="#080812"
                     roundedBars
                   />
                 </div>
@@ -2212,10 +2217,13 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                   preload="metadata"
                   style={{ width: "100%" }}
                   onLoadedMetadata={(e) => {
-                    console.log('[Audio] Metadata loaded:', e.target.duration, 'seconds');
+                    console.log('[Audio] Duration:', e.target.duration, 's');
+                  }}
+                  onPlay={() => {
+                    console.log('[Audio] Playing - visualizer should show');
                   }}
                   onError={(e) => {
-                    console.error('[Audio] Error loading:', e);
+                    console.error('[Audio] Error:', e);
                   }}
                 />
               </div>
