@@ -758,13 +758,13 @@ export default function AceStepTab({
   }, [tensorModel]);
 
   // Auto-adjust guidanceScale when model changes (CFG)
-  // Turbo models: default 3.5, Base/SFT models: default 7.0
+  // Turbo models: CFG 1.0 (forced/disabled), Base/SFT models: CFG 7.0
   useEffect(() => {
     const currentModel = TENSOR_MODELS.find(m => m.id === tensorModel);
     if (currentModel) {
       // Set default guidance scale based on model type
-      // Turbo (no CFG): 3.5 | SFT/Base (with CFG): 7.0
-      setGuidanceScale(currentModel.cfg ? 7.0 : 3.5);
+      // Turbo (no CFG): 1.0 (forced) | SFT/Base (with CFG): 7.0
+      setGuidanceScale(currentModel.cfg ? 7.0 : 1.0);
     }
   }, [tensorModel]);
 
