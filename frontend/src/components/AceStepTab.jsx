@@ -114,11 +114,22 @@ function savePresetsToStorage(presets) {
 
 const GENRE_PRESETS = [
   // ── Hip-Hop & Rap ──────────────────────────────────────────────────────────
+  // Actualizat 2026: mici ajustări + 6 subgenuri noi (distorted rage, jerk trap etc.)
   { label: "Hip-Hop", cat: "Hip-Hop", prompt: "hip hop, boom bap drums, sampled beats, lyrical rap, classic hip hop production, East Coast flow, punchy kicks, soul or jazz samples, Nas Jay-Z Wu-Tang style: clear articulate delivery, confident baritone flow, wordplay and multisyllabic rhymes, no auto-tune, raw mic presence", bpm: 92, negativePrompt: "orchestral, EDM four-on-the-floor, cheesy pop chorus, country twang, metal distortion" },
-  { label: "Trap (general)", cat: "Hip-Hop", prompt: "trap music, booming 808 sub-bass, rapid hi-hat rolls and triplets, dark atmospheric synths, snare hits on the three, menacing mood, modern trap production, Southern hip hop influence, Migos Metro Boomin style: triplet flow, ad-libs and hooks, catchy repetitive phrases, auto-tune on hooks, aggressive delivery", bpm: 140, negativePrompt: "jazz swing, orchestral, acoustic guitar, reggae skank, smooth R&B crooning" },
+  { label: "Trap (general)", cat: "Hip-Hop", prompt: "trap music 2026, booming 808 sub-bass, rapid hi-hat rolls and triplets, dark atmospheric synths, menacing mood, modern trap production, Southern influence, Migos Metro Boomin style: triplet flow, ad-libs and hooks, catchy repetitive phrases, auto-tune on hooks, aggressive delivery", bpm: 140, negativePrompt: "jazz swing, orchestral, acoustic guitar, reggae skank, smooth R&B crooning" },
+  { label: "Jersey Club Rap", cat: "Hip-Hop", prompt: "jersey club rap footwork influenced 2026, fast stuttering kicks, high-energy bounce, Jersey club edits meets rap flows, sexwave osamason side-projects style: rapid chopped vocals, groovy percussion, viral TikTok dance/club weapon, aggressive underground bounce", bpm: 140, negativePrompt: "slow melodic trap, deep atmospheric pads, orchestral strings, smooth jazz, chill lo-fi" },
+  { label: "Hyperpop Rap / Digicore", cat: "Hip-Hop", prompt: "hyperpop rap digicore glitchcore 2026, chaotic glitchy production, high-pitched auto-tune vocals, emo lyrics over distorted beats, 100 gecs midwxst glaive quinn ericdoa brakence style: pixelated synths, stuttering effects, emotional overstimulated delivery, internet underground viral energy, TikTok-ready hooks", bpm: 140, negativePrompt: "clean trap 808, boom bap drums, orchestral epic, smooth R&B crooning, slow ballad" },
+  { label: "Corridos Tumbados", cat: "Hip-Hop", prompt: "corridos tumbados latin trap evolution 2026, narrative corridos with heavy 808 trap beats, street storytelling, Natanael Cano Peso Pluma Fuerza Regida Junior H style: Mexican regional influence, auto-tune melodic hooks, belic romantic or aggressive delivery, viral Latin urban sound", bpm: 130, negativePrompt: "classic reggaeton dembow, orchestral symphony, smooth jazz, pure boom bap, metal distortion" },
   { label: "Atlanta Trap", cat: "Hip-Hop", prompt: "Atlanta trap, classic Southern trap, heavy 808 bass lines, fast hi-hat rolls and triplets, dark minor key, street anthem vibe, punchy snares, synth melodies, trap house energy, T.I. Gucci Mane Young Jeezy style: deep raspy voice, slow menacing flow, street bravado, gruff delivery, ad-libs and growls", bpm: 138, negativePrompt: "bright pop chords, orchestral strings, jazz piano, reggae one-drop" },
+  { label: "AI Voice Rap / Synth Rap", cat: "Hip-Hop", prompt: "AI voice synth rap underground 2026, artificial intelligence generated vocals, fake celebrity mimicry, robotic processed flows, fake Travis Scott AI Kanye SoundCloud style: uncanny valley delivery, glitchy synth layers, meme/viral experimental rap, controversial digital sound", bpm: 145, negativePrompt: "human raw vocals, organic production, orchestral epic, smooth jazz, conscious lyrics" },
   { label: "Melodic Trap", cat: "Hip-Hop", prompt: "melodic trap, emotional auto-tune vocals, catchy melodic hooks, smooth 808 bass, atmospheric pads and synths, sing-rap flow, radio-friendly trap, Future Travis Scott style: heavy auto-tune, slurred melodic delivery, sing-song hooks, emotional and hazy tone, crooning over 808s", bpm: 135, negativePrompt: "harsh screaming, metal guitars, orchestral, jazz improvisation, raw boom bap" },
   { label: "Hard / Dark Trap", cat: "Hip-Hop", prompt: "hard trap, dark trap, aggressive distorted 808 bass, menacing atmosphere, heavy hi-hats, dark synths, street and gritty, no melody focus, pure aggression, 21 Savage Metro Boomin style: deadpan monotone delivery, cold sparse flow, minimal melody, menacing low voice, trap ad-libs", bpm: 142, negativePrompt: "uplifting major key, pop chorus, jazz chords, orchestral, reggae" },
+  { label: "Distorted Rage Rap", cat: "Hip-Hop", prompt: "distorted rage rap 2026, extreme aggressive 808, noisy chaotic production, high-pitched screams and baby voice, Che Osamason 2slimey Glokk40Spaz style: manic intensity, unhinged flow, noise/hyperpop influence, underground internet rap energy", bpm: 150, negativePrompt: "clean melodic hooks, smooth autotune, orchestral, jazz swing" },
+  { label: "Jerk Trap / Hoodtrap", cat: "Hip-Hop", prompt: "jerk trap hoodtrap 2026, fast manic Atlanta underground bounce, quirky unhinged delivery, Glokk40Spaz Tezzus Zukenee style: exaggerated Thugga vibes, high-speed flow, chaotic ad-libs, street energy", bpm: 145, negativePrompt: "slow melodic trap, conscious lyrics, orchestral epic, smooth R&B" },
+  { label: "Futuristic Trap", cat: "Hip-Hop", prompt: "futuristic trap 2026, sci-fi synths, heavy distorted 808, modern underground sound, Drippy Shorty Red Pluto style: experimental beats, dark aggressive atmosphere, high-energy trap evolution", bpm: 140, negativePrompt: "classic boom bap, jazz samples, lo-fi chill, orchestral" },
+  { label: "UK Underground Rap", cat: "Hip-Hop", prompt: "UK underground rap 2026, creative indie-electro hybrid, witty flows, fakemink EsDeeKid Jim Legxacy style: British accent, experimental production, genre-blending, high-quality underground vibe", bpm: 130, negativePrompt: "mainstream trap hats, rage screaming, orchestral, country" },
+  { label: "Indie Trap Hybrid", cat: "Hip-Hop", prompt: "indie trap hybrid 2026, guitar-driven trap, folk-indie meets alternative rap, witty aeter style: bedroom production, emotional introspective, genre-breaking indie-electronic fusion", bpm: 110, negativePrompt: "hard trap 808, rage distortion, metal guitars, pop chorus" },
+  { label: "Trap Choirs", cat: "Hip-Hop", prompt: "trap choirs 2026, layered vocal harmonies, choir-like ad-libs peste trap beat, experimental vocal production, modern hip-hop trend style: atmospheric stacked vocals, emotional depth, innovative soundscapes", bpm: 135, negativePrompt: "raw single vocal, boom bap drums, orchestral symphony, smooth jazz" },
   { label: "EDM / Festival Trap", cat: "Hip-Hop", prompt: "EDM trap, festival trap, big room drops, 808 bass with electronic build-ups, energetic festival energy, hybrid trap and EDM, crowd hype, RL Grime Baauer style: aggressive vocal chops, build and drop energy, minimal vocals or chopped samples, festival anthem feel", bpm: 140, negativePrompt: "acoustic folk, jazz trio, lo-fi chill, orchestral waltz" },
   { label: "Drill", cat: "Hip-Hop", prompt: "drill music, dark sliding 808s, aggressive trap drums, menacing atmosphere, UK or Chicago drill, cold and gritty, Chief Keef Pop Smoke style: deep gravelly voice, slow menacing flow, ad-libs and skips, street slang delivery, aggressive tone", bpm: 143, negativePrompt: "bright pop, jazz, reggae groove, uplifting chords, orchestral" },
   { label: "UK Drill", cat: "Hip-Hop", prompt: "UK drill beat, dark and menacing vibe, heavy sliding 808 bass, rapid fire hi-hats with rolls, hard snappy snares, dark synth stabs, aggressive trap-style drums, minor key, gritty and street, instrumental hip hop, Headie One Digga D style: British accent", bpm: 142, negativePrompt: "happy major key, disco funk, reggae skank, smooth jazz, bright pop chords, orchestral" },
@@ -154,9 +165,21 @@ const GENRE_PRESETS = [
   { label: "Detroit Rap", cat: "Hip-Hop", prompt: "Detroit rap, gritty production, dark samples, aggressive flow, Big Sean Eminem style: fast technical flow, punchlines, double-time verses, confident delivery, Motor City swag", bpm: 98, negativePrompt: "smooth jazz, reggae groove, orchestral, pop ballad" },
   { label: "Trap Flamenco", cat: "Hip-Hop", prompt: "trap flamenco, Spanish guitar meets 808 bass, flamenco percussion, dark trap, fusion sound, Rosalía C. Tangana style: Spanish flamenco vocal runs, melismatic singing, emotional and dramatic delivery, trap flow with traditional ornamentation", bpm: 132, negativePrompt: "metal screaming, harsh industrial, smooth jazz, orchestral waltz" },
 // ── Romanian (Românesc) ────────────────────────────────────────────────────
+  // ... (păstrezi toate cele ~30 originale din fișierul tău)
+  // + cele 10 adăugiri noi propuse anterior (manele etno/house/viral, pop dance etc.)
   { label: "Manele", cat: "Romanian", prompt: "Romanian manele, accordion, oriental synth, Balkan rhythm, party music, Turkish hicaz scale, čoček rhythm, Adrian Minune Florin Salam style: strong expressive voice, singing with passion and power, oriental ornamentation, emotional delivery, shouts and catchy refrains", bpm: 112, negativePrompt: "trap 808 dominance, metal distortion, EDM drop, dubstep, harsh industrial" },
   { label: "Manele Clasice", cat: "Romanian", prompt: "classic manele, traditional lăutărească, accordion, violin, clarinet, Turkish influences, traditional lăutari style: natural voice no autotune, authentic lăutari singing, traditional phrasing, vibrato and trills, virtuoso violin accompaniment", bpm: 100, negativePrompt: "electronic synth lead, trap hats, EDM, autotune, modern pop production" },
   { label: "Manele Moderne", cat: "Romanian", prompt: "modern manele, electronic synth, oriental accordion, current Balkan rhythm, 2020 production, Connect-R Guță style: clear modern voice, polished production singing, melodic hooks, confident delivery, pop and urban influences", bpm: 118, negativePrompt: "metal screaming, dark ambient, orchestral epic, harsh distortion" },
+  { label: "Manele Etno Fusion", cat: "Romanian", prompt: "manele etno fusion 2026, oriental-folcloric modern, acordeon tradițional peste beat club, petrecere virală TikTok, Nelu Popa Florin Salam Subcarpați mix style: voce pasională puternică, refren exploziv catchy, influențe lăutărești cu synth și bass heavy", bpm: 122, negativePrompt: "trap pur fără etno, autotune robotic, metal distortion, slow doina melancolică" },
+  { label: "Manele House Club", cat: "Romanian", prompt: "manele house club 2026, remix electronic petrecere, voce manea peste bass drop și four-on-the-floor, Sorinel Pustiu Vali Vijelie Connect-R club style: energie maximă club/wedding after, synth lead catchy, vibe festival românesc non-stop", bpm: 128, negativePrompt: "folclor acustic lent, ballad romantică, orchestral epic, jazz smooth" },
+  { label: "Manele Viral TikTok", cat: "Romanian", prompt: "manele viral TikTok 2026, hituri scurte explozive, refrene pentru dans challenge, manele moderne cu beat rapid, Florin Salam Denis Spaniolu Misha Miller style: voce puternică hook addictiv, producție glossy scurtă, energie dans viral Reels/TikTok", bpm: 130, negativePrompt: "balade lungi introspective, folclor tradițional pur, metal screaming, ambient drone" },
+  { label: "Pop Dance Românesc 2026", cat: "Romanian", prompt: "pop dance românesc 2026, hituri radio internaționale, synth upbeat catchy, female/male vocal strong & glossy, Inna Alexandra Stan Misha Miller Andra style: producție high-end export, refren viral dancefloor, vibe global radio-friendly", bpm: 124, negativePrompt: "manele oriental dominant, hard trap românesc, metal guitars, dark ambient" },
+  { label: "Urban Pop RO Modern", cat: "Romanian", prompt: "urban pop românesc 2026, R&B trap light fusion, melodic hooks emoționale, voce smooth & auto-tune subtil, Andra Alina Eremia Killa Fonic Theo Rose style: vibe city romantic-urban, producție curată modernă, refrene catchy pentru streaming", bpm: 105, negativePrompt: "shout manele petrecere, folclor tradițional, orchestral symphony, rage rap" },
+  { label: "Trap Pop Românesc", cat: "Romanian", prompt: "trap pop românesc 2026, melodic trap cu influențe pop, 808 bass + synth catchy, rap-singing blend, Nane Rava Rels B Killa Fonic style: flow românesc melodic, auto-tune pe hook, vibe stradal dar radio-friendly", bpm: 135, negativePrompt: "boom bap old school, manele accordion dominant, orchestral epic, smooth jazz" },
+  { label: "Retro Manele Remix 90s-2000s", cat: "Romanian", prompt: "retro manele remix 2026, revival 90s-2000s manele clasice cu producție modernă, Nicolae Guță Adrian Copilul Minune remix style: voce nostalgică pasională, beat updatat club, refrene iconice reluate viral", bpm: 110, negativePrompt: "trap 808 agresiv, metal distortion, EDM big room drop, lo-fi chill" },
+  { label: "Manele Drill Fusion", cat: "Romanian", prompt: "manele drill fusion 2026, sliding 808 + acordeon oriental, flow agresiv românesc peste drill beat, Rares Eazy Nane drill-manele style: mix rap dur + refren manea catchy, vibe stradal urban românesc dark", bpm: 142, negativePrompt: "pop glossy curat, folclor lent, orchestral strings, smooth R&B" },
+  { label: "Etno Electronic RO", cat: "Romanian", prompt: "etno electronic românesc 2026, folclor reinterpretat electronic, cobză/violin peste synth și beat modern, Subcarpați Zdob și Zdub Damian Drăghici style: voce puternică etno, producție hybrid dance-electronic, energie alternativă festival", bpm: 125, negativePrompt: "manele synth pur, trap hi-hat spam, metal screaming, cheesy pop" },
+  { label: "Melodic Rap Românesc", cat: "Romanian", prompt: "melodic rap românesc 2026, auto-tune melodic peste trap/pop beat, flow emoțional catchy, Killa Fonic Rava Ian style: voce înaltă melodică, refrene virale streaming, vibe urban tânăr românesc", bpm: 140, negativePrompt: "raw boom bap old school, manele shouts, orchestral epic, dark ambient" },
   { label: "Manele de Dragoste", cat: "Romanian", prompt: "manele love ballads, oriental ballad, slow tempo, romantic synth, sentimental lyrics, Nicolae Guță style: warm emotional voice, slow melancholic singing, long melodic phrases, intimate and romantic tone", bpm: 92, negativePrompt: "aggressive trap, metal, EDM drop, harsh screaming" },
   { label: "Manele Trap", cat: "Romanian", prompt: "manele trap, 808 bass, hi-hat rolls, oriental accordion, trap beats, Romanian urban, Rares Eazy style: mixed rap and singing, Romanian trap flow, auto-tune on hooks, urban delivery, manele verses and refrain", bpm: 135, negativePrompt: "orchestral symphony, smooth jazz, classical, reggae one-drop" },
   { label: "Manele de Petrecere", cat: "Romanian", prompt: "party manele, fast rhythm, high energy, accordion, drums, wedding or club, Florin Salam style: strong projected voice, energetic powerful singing, party shouts and refrains, festive delivery", bpm: 120, negativePrompt: "slow ballad, ambient drone, metal, dark trap" },
@@ -194,28 +217,66 @@ const GENRE_PRESETS = [
   { label: "Colinde", cat: "Romanian", prompt: "Romanian carols, Christmas music, choir, tradition, holiday atmosphere, carolers style: clean voice or choir, traditional carol singing, warm solemn tone", bpm: 88, negativePrompt: "trap beats, EDM, metal, aggressive rap, dubstep" },
   { label: "Cântec Patriotic", cat: "Romanian", prompt: "Romanian patriotic song, march, choir, orchestra, solemn, military fanfare style: choir or strong martial voice, solemn unified singing, grave delivery", bpm: 100, negativePrompt: "trap 808, EDM drop, reggae groove, autotune pop" },
   { label: "Indie / Alternativă România", cat: "Romanian", prompt: "Romanian alternative music, Romanian indie, guitar, modern production, Romanian lyrics, Coma The Mono style: introspective or experimental voice, alternative singing, personal delivery, contemplative tone", bpm: 108, negativePrompt: "trap hi-hat spam, EDM drop, metal screaming, cheesy pop chorus" },
-  // ── House ─────────────────────────────────────────────────────────────────
-  { label: "House", cat: "House", prompt: "house music, four-on-the-floor kick, deep bass, synthesizer, Chicago house, dance floor energy, Frankie Knuckles Larry Heard style: soulful sampled or diva vocals, chopped phrases, warm and uplifting, classic house vocal stabs", bpm: 124, negativePrompt: "trap 808, metal distortion, orchestral epic, reggae one-drop, country" },
-  { label: "Deep House", cat: "House", prompt: "deep house, warm sub bass, smooth groove, atmospheric pads, underground club, Kerri Chandler Moodymann style: deep soulful vocals or pads, soft and intimate, delayed and filtered, late-night vibe", bpm: 122, negativePrompt: "aggressive drop, metal screaming, trap hats, EDM big room, harsh distortion" },
-  { label: "Tech House", cat: "House", prompt: "tech house, driving bassline, minimal percussion, hypnotic groove, techno meets house, 2024 sound, loop-based, Fisher John Summit style: minimal vocal chops or talk-singing, repetitive hooks, tech and punchy", bpm: 126, negativePrompt: "orchestral strings, smooth jazz, ballad, reggae skank, country" },
-  { label: "Dark Afro House", cat: "House", prompt: "Dark Afro House backing track, massive deep sub-bass foundation, strong four-on-the-four kick drum, hypnotic tribal percussion with shakers and congas, dark atmospheric pads, minimal melodic content to leave space for lead melody, warehouse underground groove, rhythmic foundation only, mysterious atmosphere, ritual drums", bpm: 124, negativePrompt: "metal distortion, trap 808 dominance, EDM supersaw drop, harsh industrial" },
-  { label: "Melodic House", cat: "House", prompt: "melodic house, emotional arpeggiated melodies, progressive build, atmospheric synths, euphoric drops, Tale Of Us Stephan Bodzin style: ethereal vocal pads or soft female vocals, emotional and cinematic, no harsh lead", bpm: 122, negativePrompt: "harsh screaming, trap 808 spam, metal, aggressive dubstep, dark industrial" },
-  { label: "Progressive House", cat: "House", prompt: "progressive house, long builds, layered synths, epic breakdown, festival energy, Deadmau5 Eric Prydz style: melodic synth leads, vocal chops in builds, anthemic and emotional, big room feel", bpm: 126, negativePrompt: "trap hi-hat rolls, reggae one-drop, smooth jazz, country, lo-fi bedroom" },
-  { label: "Electro House", cat: "House", prompt: "electro house, heavy bass drops, distorted synths, energetic, big room, festival crowd, Dimitri Vegas Martin Garrix style: aggressive vocal chops, build-drop vocals, festival shout-along, high energy", bpm: 128, negativePrompt: "smooth jazz, orchestral waltz, reggae groove, acoustic ballad" },
-  { label: "Future House", cat: "House", prompt: "future house, metallic bass, funky groove, modern production, Don Diablo style: catchy vocal hooks, clean and punchy, sing-along melody, radio-friendly", bpm: 126, negativePrompt: "classical orchestra, smooth jazz, country, dark ambient drone" },
-  { label: "Tropical House", cat: "House", prompt: "tropical house, steel drums, marimba, laid-back groove, summer vibes, Kygo style: soft male or female vocals, relaxed and sunny, melodic and catchy, no aggression", bpm: 110, negativePrompt: "aggressive trap, metal screaming, dubstep, harsh industrial, dark ambient" },
-  { label: "Slap House", cat: "House", prompt: "slap house, punchy slap bass, emotional drop, Portuguese house, Imanbek style: emotional melodic vocals, often female, powerful chorus, sad or euphoric, vocal-driven drop", bpm: 122, negativePrompt: "metal distortion, harsh screaming, trap 808 spam, orchestral epic" },
-  { label: "Bass House", cat: "House", prompt: "bass house, heavy distorted bass, aggressive drops, club energy, DJ Snake Joyryde style: vocal chops and growls, aggressive and distorted, minimal singing, impact focus", bpm: 128, negativePrompt: "smooth jazz, orchestral ballad, reggae one-drop, acoustic folk" },
-  { label: "Funky House", cat: "House", prompt: "funky house, disco samples, funky bass line, groovy percussion, dance floor, retro vibes, Daft Punk Basement Jaxx style: disco or funk vocal samples, pitched and filtered, catchy and groovy, talk-box or robotic feel", bpm: 124, negativePrompt: "metal screaming, dark trap, orchestral epic, harsh distortion" },
-  { label: "UK Garage", cat: "House", prompt: "UK garage, 2-step rhythm, shuffled beats, London sound, Craig David Artful Dodger style: smooth R&B-style vocals, fast skippy flow, soulful and melodic, British accent", bpm: 132, negativePrompt: "metal distortion, orchestral epic, country, reggae one-drop" },
-  { label: "Acid House", cat: "House", prompt: "acid house, Roland TB-303 squelchy bass, Chicago underground, psychedelic dance, Phuture Larry Heard style: minimal or sampled vocals, repetitive and hypnotic, raw and underground", bpm: 125, negativePrompt: "orchestral strings, smooth jazz, ballad, country, glossy pop chorus" },
-  { label: "Minimal House", cat: "House", prompt: "minimal house, stripped back, hypnotic repetition, subtle groove, underground Berlin sound, Ricardo Villalobos style: sparse or no vocals, texture and groove focus, whispered or chopped minimal phrases", bpm: 124, negativePrompt: "big room drop, trap 808 dominance, orchestral epic, cheesy pop" },
-  { label: "Organic House", cat: "House", prompt: "organic house, acoustic instruments, ethnic percussion, bongos congas, violin kalimba, deep meditative, WhoMadeWho Jan Blomqvist style: soft male vocals, indie-electronic feel, intimate and organic, breathy delivery", bpm: 120, negativePrompt: "harsh distortion, trap 808 spam, metal screaming, EDM drop" },
-  { label: "Soulful House", cat: "House", prompt: "soulful house, gospel vocals, piano chords, warm bass, emotional, classic New York house, Frankie Knuckles Masters at Work style: powerful soul or gospel vocals, emotional and uplifting, diva or male soul, full vocal performance", bpm: 122, negativePrompt: "trap 808 dominance, metal, EDM big room drop, harsh industrial" },
-  { label: "Chicago House", cat: "House", prompt: "Chicago house, classic 808 drums, organ stabs, original house music sound, Frankie Knuckles Ron Hardy style: soulful diva vocals, piano house, raw and warm, classic vocal hooks", bpm: 122, negativePrompt: "EDM supersaw drop, trap hi-hat spam, metal distortion, orchestral epic" },
-  { label: "Brazilian Bass", cat: "House", prompt: "Brazilian bass, heavy bassline, Latin percussion, festival house, Alok style: Portuguese or Latin vocal samples, catchy and festive, vocal chops in drops", bpm: 122, negativePrompt: "metal screaming, smooth jazz, orchestral waltz, dark ambient" },
-  { label: "Amapiano House", cat: "House", prompt: "amapiano house, log drum, South African amapiano, piano riffs, deep bass, 2024 global trend, Kabza De Small DJ Maphorisa style: South African vocal samples or singing, repetitive catchy phrases, lounge and street vibe", bpm: 115, negativePrompt: "metal distortion, trap 808 dominance, EDM drop, harsh industrial" },
-  { label: "Peak Time / Driving House", cat: "House", prompt: "peak time house, driving energy, main room, relentless groove, festival peak hour, Charlotte de Witte Carl Cox style: minimal vocals or techno vocal stabs, driving and relentless, no soft singing", bpm: 128, negativePrompt: "slow ballad, smooth jazz, acoustic folk, reggae one-drop" },
+    // ── House & Electronic ─────────────────────────────────────────────────────
+  // Actualizat Martie 2026: prompturi revizuite + adăugiri noi bazate pe trenduri reale
+  // (Afro House dominant, UKG/Speed Garage revival, Jazz fusion, Big Room comeback, Afro Tech etc.)
+  // Sursa: Splice Sounds 2026, IMS Report, Beatport, Stereofox
+
+  { label: "House", cat: "House & Electronic", prompt: "classic house 2026, four-on-the-floor kick, deep groovy bass, soulful synth stabs, Chicago roots meets modern polish, Frankie Knuckles Larry Heard influence: warm uplifting vibe, chopped vocal phrases or diva hooks, dancefloor essential timeless energy", bpm: 124, negativePrompt: "trap 808 slides, metal guitars, orchestral epic outside context, reggae one-drop, lo-fi cassette hiss" },
+
+  { label: "Deep House", cat: "House & Electronic", prompt: "deep house 2026, warm sub bass, smooth hypnotic groove, atmospheric pads and chords, underground late-night feel, Kerri Chandler Moodymann modern style: soulful filtered vocals or instrumental layers, delayed effects, intimate club journey", bpm: 122, negativePrompt: "aggressive festival drops, trap hi-hat rolls, big room supersaw, harsh distortion, speed garage bounce" },
+
+  { label: "Tech House", cat: "House & Electronic", prompt: "tech house 2026, driving bassline, minimal percussive groove, hypnotic loops, Fisher John Summit Fisher 2026 style: punchy tech rhythm, subtle vocal chops or talk-singing, repetitive hooks, club weapon focus, less melody more groove", bpm: 126, negativePrompt: "orchestral strings lead, smooth jazz piano, melodic emotional builds, reggae skank, country twang" },
+
+  { label: "Dark Afro House", cat: "House & Electronic", prompt: "dark afro house 2026, massive deep sub-bass, four-on-the-floor kick, hypnotic tribal percussion shakers congas, dark atmospheric pads, minimal melody for lead space, warehouse ritual groove, mysterious underground vibe", bpm: 124, negativePrompt: "metal distortion, trap 808 dominance, EDM supersaw festival drop, harsh industrial noise" },
+
+  { label: "Melodic House", cat: "House & Electronic", prompt: "melodic house 2026, emotional arpeggiated synths, progressive builds, atmospheric layers, euphoric cinematic drops, Tale Of Us Stephan Bodzin Afterlife style: ethereal vocal pads or soft processed vocals, emotional journey, no harsh leads", bpm: 122, negativePrompt: "harsh screaming, trap 808 spam, aggressive dubstep wobble, dark industrial, big room cheese" },
+
+  { label: "Progressive House", cat: "House & Electronic", prompt: "progressive house 2026, long epic builds, layered melodic synths, anthemic breakdowns, festival mainstage energy, Deadmau5 Eric Prydz modern style: soaring leads, vocal chops in builds, emotional cinematic feel", bpm: 126, negativePrompt: "trap hi-hat triplets, reggae one-drop, smooth jazz chords, lo-fi bedroom chill, country" },
+
+  { label: "Electro House", cat: "House & Electronic", prompt: "electro house 2026, heavy distorted bass drops, energetic synths, festival crowd hype, Dimitri Vegas Martin Garrix vintage-modern style: aggressive vocal chops, build-drop structure, high-energy shout-along", bpm: 128, negativePrompt: "smooth jazz pads, orchestral waltz, reggae groove, acoustic ballad, deep minimal" },
+
+  { label: "Future House", cat: "House & Electronic", prompt: "future house 2026, metallic funky bass, groovy modern production, Don Diablo Tchami style: clean punchy drops, catchy vocal hooks, sing-along melodies, radio-friendly festival bounce", bpm: 126, negativePrompt: "classical orchestra, smooth jazz piano, country twang, dark ambient drone" },
+
+  { label: "Tropical House", cat: "House & Electronic", prompt: "tropical house 2026, steel drums marimba vibes, laid-back sunny groove, Kygo Lost Frequencies style: soft relaxed vocals, melodic catchy hooks, summer chill-dance feel, no aggression", bpm: 110, negativePrompt: "aggressive trap, metal screaming, dubstep wobble, harsh industrial, dark ambient" },
+
+  { label: "Slap House", cat: "House & Electronic", prompt: "slap house 2026, punchy slap bass, emotional vocal-driven drops, Imanbek Ofenbach style: powerful melodic vocals often female, sad-euphoric chorus, Portuguese house influence, club radio crossover", bpm: 122, negativePrompt: "metal distortion, harsh screaming, trap 808 spam, orchestral epic" },
+
+  { label: "Bass House", cat: "House & Electronic", prompt: "bass house 2026, heavy distorted bass, aggressive club drops, DJ Snake Joyryde Jauz style: vocal growls and chops, impact-focused, minimal singing, raw energy", bpm: 128, negativePrompt: "smooth jazz, orchestral ballad, reggae one-drop, acoustic folk" },
+
+  { label: "Funky House", cat: "House & Electronic", prompt: "funky house 2026, disco-funk samples, groovy bassline, retro-modern dancefloor, Daft Punk Basement Jaxx Jamiroquai influence: pitched filtered vocals, talk-box robotic feel, catchy groovy percussion", bpm: 124, negativePrompt: "metal screaming, dark trap, orchestral epic, harsh distortion" },
+
+  { label: "UK Garage", cat: "House & Electronic", prompt: "UK garage 2026, 2-step shuffled rhythm, bass-heavy groove, soulful R&B vocals, Craig David Artful Dodger MJ Cole revival style: skippy beats, melodic hooks, British accent vibe, underground club energy", bpm: 132, negativePrompt: "metal distortion, orchestral epic, country twang, reggae one-drop" },
+
+  { label: "Acid House", cat: "House & Electronic", prompt: "acid house 2026, squelchy Roland TB-303 basslines, psychedelic underground Chicago vibe, Phuture Larry Heard modern style: repetitive hypnotic loops, minimal sampled vocals, raw energy", bpm: 125, negativePrompt: "orchestral strings, smooth jazz, ballad, country, glossy pop chorus" },
+
+  { label: "Minimal House", cat: "House & Electronic", prompt: "minimal house 2026, stripped-back hypnotic repetition, subtle groove focus, underground Berlin sound, Ricardo Villalobos Rhadoo style: sparse textures, no big drops, whispered chopped phrases", bpm: 124, negativePrompt: "big room festival drop, trap 808 dominance, orchestral epic, cheesy pop" },
+
+  { label: "Organic House", cat: "House & Electronic", prompt: "organic house 2026, acoustic ethnic percussion bongos congas violin kalimba, deep meditative groove, WhoMadeWho Jan Blomqvist &ME style: soft breathy male vocals, indie-electronic intimate feel, organic textures", bpm: 120, negativePrompt: "harsh distortion, trap 808 spam, metal screaming, big room EDM drop" },
+
+  { label: "Soulful House", cat: "House & Electronic", prompt: "soulful house 2026, gospel diva vocals, warm piano chords, emotional uplifting groove, Frankie Knuckles Masters at Work modern revival style: powerful soulful performance, feel-good dancefloor energy", bpm: 122, negativePrompt: "trap 808 dominance, metal guitars, EDM big room drop, harsh industrial" },
+
+  { label: "Chicago House", cat: "House & Electronic", prompt: "classic Chicago house 2026, 808 drums organ stabs, raw warm original sound, Frankie Knuckles Ron Hardy influence: soulful diva vocals, piano stabs, vocal hooks timeless", bpm: 122, negativePrompt: "EDM supersaw drop, trap hi-hat spam, metal distortion, orchestral epic" },
+
+  { label: "Afro House", cat: "House & Electronic", prompt: "afro house 2026, massive global surge, kwaito-influenced deep groove, tribal percussion log drum, soulful vocals, Black Coffee Keinemusik &Me Thandi Draai style: hypnotic rhythms, warm sub bass, dancefloor ritual energy, Splice Sound of the Year vibe", bpm: 120, negativePrompt: "big room supersaw drops, trap hats spam, harsh industrial, orchestral epic" },
+
+  { label: "UK Garage Revival", cat: "House & Electronic", prompt: "UK garage revival 2026, phoenix rising, 2-step shuffled beats, heavy bass groove, soulful vocal chops, PinkPantheress salute MPH Holy Goof style: skippy rhythm, London underground energy, catchy melodic hooks, viral club weapon", bpm: 130, negativePrompt: "strict four-on-the-floor, trap 808 dominance, orchestral epic, dark ambient drone" },
+
+  { label: "Speed Garage", cat: "House & Electronic", prompt: "speed garage 2026, fast rowdy UKG variant, aggressive basslines, hype vocal stabs, Bassline/Speed Garage style: pounding shuffled beats, club momentum, underground peak energy, viral TikTok/club weapon", bpm: 135, negativePrompt: "slow deep pads, melodic emotional builds, smooth jazz, acoustic folk" },
+
+  { label: "Jazz House", cat: "House & Electronic", prompt: "jazz house 2026, melodic jazz fusion groove, rich chords live feel, no heavy drops, Kerri Chandler Moodymann Thandi Draai style: soulful piano/sax samples, warm sub bass, musical groove priority, late-night intimate vibe", bpm: 122, negativePrompt: "festival big room drops, trap hi-hats, aggressive bass, metal distortion" },
+
+  { label: "Afro Tech", cat: "House & Electronic", prompt: "afro tech 2026, afro house meets tech, tribal percussion log drum, deep driving groove, Black Coffee &Me Keinemusik style: hypnotic rhythms, soulful vocals, global dancefloor energy, minimal leads", bpm: 124, negativePrompt: "pure four-on-the-floor, big room supersaw, orchestral strings, chill lo-fi" },
+
+  { label: "Big Room House Revival", cat: "House & Electronic", prompt: "big room house revival 2026, massive festival drops, heavy bass, anthemic builds, Dimitri Vegas Martin Garrix vintage-modern style: crowd hype vocal chops, explosive energy, mainstage comeback roar", bpm: 128, negativePrompt: "minimal stripped loops, deep atmospheric pads, jazz improvisation, slow ballad" },
+
+  { label: "Jersey Club House", cat: "House & Electronic", prompt: "jersey club house fusion 2026, stuttering kick patterns, bed squeak samples, high-energy bounce, Jersey/Berlin revival style: fast chopped vocals, groovy percussion, viral TikTok/club weapon hybrid", bpm: 140, negativePrompt: "smooth melodic pads, orchestral epic, trap 808 slides, ambient drone" },
+
+  { label: "Desert House", cat: "House & Electronic", prompt: "desert house 2026, Middle Eastern exotic melodies, deep groovy house, Arodes Bedouin style: atmospheric ethnic percussion, warm synths, hypnotic cinematic desert vibe", bpm: 120, negativePrompt: "hard festival drops, trap hats spam, metal guitars, fast techno" },
+
+  { label: "Melodic Techno", cat: "House & Electronic", prompt: "melodic techno 2026, emotional driving beats, atmospheric synths, progressive builds, Tale Of Us Afterlife Anyma style: cinematic layers, hypnotic groove, festival/underground crossover, soaring leads", bpm: 124, negativePrompt: "big room cheese, trap influence, harsh distortion, smooth jazz" },
+
+  { label: "Hardgroove", cat: "House & Electronic", prompt: "hardgroove 2026, aggressive tech house variant, pounding basslines, raw club energy, European underground style: minimal yet forceful groove, industrial edge, warehouse weapon sound", bpm: 130, negativePrompt: "melodic emotional pads, jazz fusion, slow organic house, chill lo-fi" },
   // ── Rock & Metal ───────────────────────────────────────────────────────────
   // Creată Martie 2026 | Include revival-uri, modern metalcore, nu-metal, post-hardcore etc.
   { label: "Classic Rock", cat: "Rock & Metal", prompt: "classic rock, 70s-80s guitar-driven, powerful riffs, anthemic choruses, Led Zeppelin AC/DC Guns N' Roses style: raw energetic vocals, crunchy guitar tones, driving drums, timeless rock energy", bpm: 120, negativePrompt: "autotune, trap 808, EDM drop, orchestral strings, lo-fi chill" },
@@ -243,6 +304,18 @@ const GENRE_PRESETS = [
   { label: "Dembow", cat: "Reggae", prompt: "dembow, Dominican urban music, syncopated rhythm, reggaeton influence, Caribbean bass, street sound, El Alfa style: strong Dominican voice, fast energetic flow, shouts and ad-libs, festive delivery, mixed singing and rap", bpm: 108, negativePrompt: "orchestral symphony, smooth jazz, metal distortion, EDM four-on-the-floor" },
   { label: "Reggaeton", cat: "Reggae", prompt: "reggaeton, dembow rhythm, perreo, urban Latino, 808 bass, Spanish rap, Puerto Rico sound, Daddy Yankee Don Omar style: strong baritone voice, classic reggaeton flow, melodic hooks, confident delivery, perreo energy", bpm: 92, negativePrompt: "metal screaming, orchestral epic, smooth jazz, country, EDM drop" },
   { label: "Perreo", cat: "Reggae", prompt: "perreo, sensual reggaeton, dembow beat, slow grinding rhythm, urban Latino, club dance, Bad Bunny J Balvin style: relaxed or melodic voice, sensual singing, perreo flow, auto-tune on hooks, club delivery", bpm: 92, negativePrompt: "metal distortion, aggressive screaming, orchestral, dark ambient" },
+  { label: "Hyper-Fast Dembow 150+", cat: "Reggae", prompt: "hyper-fast dembow 150+ BPM 2026, turbo speed rhythm, aggressive rapid-fire percussion, El Alfa late era Chimbala Shadow Blow style: high-energy shouts, fast Dominican flow, viral TikTok dance challenge, non-stop club adrenaline, heavy bass drops", bpm: 152, negativePrompt: "slow perreo, romantic ballad, orchestral strings, smooth jazz, chill lo-fi" },
+  
+  { label: "Nu-Metalcore / Trap-Metal 2.0", cat: "Rock & Metal", prompt: "nu-metalcore trap-metal 2.0 2026, heavy riffs meets trap/R&B/pop influence, sultry cleans + crushing breakdowns, Spiritbox Bad Omens Sleep Token style: emotional melodic choruses, aggressive verses, modern production glossy yet heavy, baddiecore crossover vibe", bpm: 140, negativePrompt: "pure old-school nu-metal, raw thrash, orchestral epic, slow doom" },
+
+  { label: "Djent / Prog Metalcore", cat: "Rock & Metal", prompt: "djent prog metalcore 2026, polyrhythmic low-tuned riffs, complex grooves, technical breakdowns, Periphery Meshuggah modern influence style: progressive structures, soaring cleans + heavy djent chugs, atmospheric layers, genre-pushing virtuosity", bpm: 130, negativePrompt: "simple 4/4 rock, melodic pop hooks, trap 808 dominance, smooth jazz" },
+
+  { label: "Hyperpop Metal / Glitch Metal", cat: "Rock & Metal", prompt: "hyperpop metal glitch metal 2026, chaotic glitchy production meets heavy riffs, high-pitched distorted vocals, 100 gecs metal hybrid style: noisy electronic layers, stuttering effects, emo/aggressive delivery, underground viral internet fusion", bpm: 145, negativePrompt: "clean melodic singing, orchestral symphony, slow atmospheric, traditional thrash" },
+
+  { label: "Post-Black Metal / Atmospheric Black", cat: "Rock & Metal", prompt: "post-black metal atmospheric black 2026, shoegaze-infused black metal, dreamy walls of sound, emotional intensity, Deafheaven Alcest modern style: reverb-heavy guitars, soaring cleans + shrieks, cinematic atmosphere, accessible yet raw post-black vibe", bpm: 150, negativePrompt: "brutal raw black metal, fast thrash blasts, trap influence, pop chorus" },
+  { label: "Rkt 2026 / Turra Agresiva", cat: "Reggae", prompt: "rkt 2026 turra agresiva, fast Argentine dembow evolution, heavy bass aggressive bounce, La Joaqui Callejero Fino L-Gante remix style: provocative energetic female/male flow, party chants raw, TikTok viral street energy, trap-influenced hooks", bpm: 105, negativePrompt: "slow romantic reggaeton, melodic autotune heavy, orchestral epic, smooth R&B crooning" },
+  { label: "Afro-Dembow / Afro-Perreo", cat: "Reggae", prompt: "afro-dembow afro-perreo 2026, afrobeats percussion meets dembow rhythm, log drum tribal groove, Burna Boy Rema MHD fusion style: melodic African-Latin singing mixed with rap, danceable global crossover, catchy hooks, sensual yet energetic perreo vibe", bpm: 110, negativePrompt: "pure trap 808 dominance, metal screaming, orchestral symphony, slow emo rap" },
+  { label: "Afro-Latin Fusion", cat: "Reggae", prompt: "afro-latin fusion 2026, African rhythms + reggaeton/dembow hybrid, heavy percussion log drum, global dance vibe, Peso Pluma Burna Boy Feid influence: melodic hooks, percussive groove, crossover energy, festival/street party sound", bpm: 105, negativePrompt: "dark trap metal, orchestral epic, boom bap raw, ambient drone" },
   { label: "Dembow Dominicano", cat: "Reggae", prompt: "Dominican dembow, Dominican Republic urban, fast dembow rhythm, street rap, Caribbean energy, El Alfa Tokischa style: strong expressive voice, fast Dominican flow, shouts and ad-libs, provocative delivery", bpm: 108, negativePrompt: "smooth jazz, orchestral waltz, EDM supersaw, country" },
   { label: "Mambo Urbano", cat: "Reggae", prompt: "mambo urbano, mambo meets reggaeton, brass section, dembow rhythm, Latin urban fusion, Marc Anthony style: strong salsa voice, powerful singing with trillo, romantic Latin delivery, belting and melisma", bpm: 100, negativePrompt: "trap 808 spam, metal screaming, dark ambient, EDM drop" },
   { label: "Dancehall", cat: "Reggae", prompt: "dancehall, Jamaican rhythm, reggae influence, digital riddim, Caribbean energy, Vybz Kartel Popcaan style: toasting and sing-jay, Jamaican accent, fast rhythmic flow, ad-libs and patois, aggressive or melodic delivery", bpm: 95, negativePrompt: "orchestral symphony, smooth jazz ballad, metal screaming, EDM drop" },
@@ -260,6 +333,15 @@ const GENRE_PRESETS = [
   { label: "Electro-Reggaeton", cat: "Reggae", prompt: "electro reggaeton 2026, Latin electronic fusion, synth drops, festival reggaeton, Alok Deorro Latin electronic style: vocal chops, build-drop energy, electronic-Latin hybrid, party anthem feel", bpm: 110, negativePrompt: "acoustic bachata, slow romantic, jazz swing, dark trap" },
   { label: "Dembow Hard", cat: "Reggae", prompt: "hard dembow 2026, fast aggressive rhythm, heavy dembow kick, street dembow, Tokischa Rochy RD style: raw energetic shouting, fast Dominican flow, provocative lyrics, club street energy", bpm: 110, negativePrompt: "slow reggaeton, romantic bachata, smooth salsa, trap 808" },
   { label: "Dembow Moderno 2026", cat: "Reggae", prompt: "modern dembow 2025-2026, crisp production, heavy bass, viral hooks, El Alfa Chimbala Shadow Blow style: high energy Dominican vocals, fast flow, party shouts, current urban Dominican sound", bpm: 115, negativePrompt: "old school 2000s reggaeton, slow perreo, bachata guitar, trap hats" },
+  
+  // ── Afrobeats / Afropop ────────────────────────────────────────────────────────
+// Actualizat Martie 2026: dominant global, Amapiano fusion masiv, log drum mai subtil în mainstream, artiști noi + crossover cu Afro-house / pop
+{ label: "Afrobeats", cat: "Afrobeats / Afropop", prompt: "afrobeats 2026, infectious groovy percussion, log drum tuned bass, upbeat danceable rhythms, soulful melodic vocals, global party energy, Wizkid Burna Boy Rema Asake Tyla Davido style: catchy multilingual hooks, high-life guitar licks or shimmering synths, celebratory uplifting vibe, streaming radio crossover shine", bpm: 108, negativePrompt: "dark trap 808 slides, aggressive rage screams, orchestral epic without groove, boom bap raw drums, metal distortion" },
+{ label: "Amapiano Fusion", cat: "Afrobeats / Afropop", prompt: "amapiano afrobeats fusion 2026, deep rolling log drums, warm piano chords, hypnotic South African-Nigerian groove, soulful vocal chops, Kabza De Small DJ Maphorisa Asake Davido Tyla style: laid-back yet infectious bounce, atmospheric pads, jazzy subtle elements, township-to-global dancefloor ritual", bpm: 113, negativePrompt: "fast trap hi-hat triplets, hyperpop glitch chaos, heavy metal guitars, slow ambient drone, pure reggaeton dembow" },
+{ label: "Afro-fusion Pop", cat: "Afrobeats / Afropop", prompt: "afro-fusion pop 2026, afrobeats meets mainstream pop/R&B, polished glossy production, emotional or party melodic hooks, Tyla Ayra Starr Qing Madi Seyi Vibez Rema style: smooth auto-tune touches, tropical percussion layers, major key uplift, viral TikTok/Reels ready crossover sound", bpm: 105, negativePrompt: "dark phonk cowbell, drill sliding 808 aggression, lo-fi vinyl crackle, orchestral symphony heavy" },
+{ label: "Afro House Crossover", cat: "Afrobeats / Afropop", prompt: "afro house 2026, four-on-the-floor kick meets afrobeats percussion, deep sub bass, hypnotic tribal grooves, soulful vocals or chants, Black Coffee Keinemusik &Me Tyla Burna Boy influence: warm organic textures, congas shakers log drum hybrid, uplifting yet deep warehouse / festival energy", bpm: 120, negativePrompt: "trap hi-hat spam, big room supersaw drops, harsh industrial noise, pure trap 808 dominance" },
+{ label: "Alté / Soulful Afrobeats", cat: "Afrobeats / Afropop", prompt: "alté soulful afrobeats 2026, slower mid-tempo groove, introspective emotional vocals, R&B funk lo-fi influences, Odunsi Cruel Santino Lady Donli Fireboy DML Omah Lay style: minimalist production, nostalgic textures, conversational delivery, heartfelt storytelling over groovy bass", bpm: 100, negativePrompt: "high-energy festival drops, aggressive rage elements, hyperpop maximalism, fast jungle breaks" },
+{ label: "Naija Street Afrobeats", cat: "Afrobeats / Afropop", prompt: "naija street afrobeats 2026, raw energetic Lagos street vibe, punchy percussion, catchy slang-heavy hooks, Shoday Ayo Maff Zerry DL Famous Pluto style: youthful confident delivery, viral challenge energy, gritty yet melodic, club and TikTok weapon", bpm: 110, negativePrompt: "smooth orchestral pads, deep ambient chill, metal distortion, slow doina melancholy" },
 ];
 
 // Valori implicite per categorie pentru preset-uri complete (negative prompt, BPM etc.) — ca în JSON
@@ -268,28 +350,75 @@ const DEFAULT_CAT_META = {
     lm_negative_prompt: "orchestral symphony, smooth jazz, four-on-the-floor EDM, cheesy pop chorus, country twang",
     bpm: 0,
     instrumental: false,
+    // Visual metadata
+    icon: "🎤",
+    color: "#ffd166",
+    description: "Rap, trap, boom bap, drill",
+    featuredArtists: "Nas, Migos, Nirvana",
+    order: 1,
   },
   "Romanian": {
     lm_negative_prompt: "trap 808 dominance, dubstep, metal distortion, EDM drops, autotune pop",
     bpm: 0,
     instrumental: false,
-  },
-  "House": {
-    lm_negative_prompt: "metal guitars, trap hats, rap vocals, orchestral, reggae one-drop, lo-fi cassette",
-    bpm: 0,
-    instrumental: false,
+    // Visual metadata
+    icon: "🇷🇴",
+    color: "#00e5ff",
+    description: "Manele, folclor, pop românesc",
+    featuredArtists: "Florin Salam, Maria Tănase, Inna",
+    order: 2,
   },
   "Rock & Metal": {
     lm_negative_prompt: "trap 808 dominance, autotune pop, EDM drops, smooth jazz ballad, lo-fi chill, orchestral waltz outside symphonic metal",
     bpm: 0,
     instrumental: false,
+    // Visual metadata
+    icon: "🎸",
+    color: "#e63946",
+    description: "Classic rock, metalcore, death metal",
+    featuredArtists: "Led Zeppelin, Metallica, Linkin Park",
+    order: 3,
   },
-  "Dembow": {
+  "House": {
+    lm_negative_prompt: "metal guitars, trap hats, rap vocals, orchestral, reggae one-drop, lo-fi cassette",
+    bpm: 0,
+    instrumental: false,
+    // Visual metadata
+    icon: "🏠",
+    color: "#06d6a0",
+    description: "Deep house, techno, progressive",
+    featuredArtists: "Frankie Knuckles, Daft Punk, Carl Cox",
+    order: 4,
+  },
+  "Reggae": {
     lm_negative_prompt: "metal, rock distortion, orchestral symphony, jazz swing, ambient drone",
     bpm: 0,
     instrumental: false,
+    // Visual metadata
+    icon: "🇯🇲",
+    color: "#118ab2",
+    description: "Reggaeton, dembow, dancehall",
+    featuredArtists: "Daddy Yankee, El Alfa, Vybz Kartel",
+    order: 5,
+  },
+  "default": {
+    icon: "🎵",
+    color: "#6666aa",
+    description: "Selectează un gen",
+    featuredArtists: "",
+    order: 99,
   },
 };
+
+// Sorted categories by 'order' property
+const SORTED_CATEGORIES = Object.keys(DEFAULT_CAT_META)
+  .filter(k => k !== "default")
+  .sort((a, b) => DEFAULT_CAT_META[a].order - DEFAULT_CAT_META[b].order);
+
+// Helper to get category metadata
+function getCategoryMeta(category) {
+  return DEFAULT_CAT_META[category] || DEFAULT_CAT_META.default;
+}
 
 // Sub-presete rapide ca preset-uri COMPLETE (caption + negative + BPM etc.), ca cele din JSON
 function buildQuickGenres() {
@@ -1361,6 +1490,39 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                         );
                       })}
                     </div>
+                    
+                    {/* Category Info Card with metadata */}
+                    {(() => {
+                      const meta = getCategoryMeta(currentGenre);
+                      return (
+                        <div style={{
+                          marginTop: 12,
+                          padding: 12,
+                          background: `${meta.color}22`,
+                          border: `1px solid ${meta.color}44`,
+                          borderRadius: 8,
+                          marginBottom: 12,
+                        }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                            <span style={{ fontSize: 24 }}>{meta.icon}</span>
+                            <div>
+                              <div style={{ color: meta.color, fontSize: 14, fontWeight: 700 }}>
+                                {currentGenre}
+                              </div>
+                              <div style={{ color: "#6666aa", fontSize: 12 }}>
+                                {meta.description}
+                              </div>
+                            </div>
+                          </div>
+                          {meta.featuredArtists && (
+                            <div style={{ color: "#444466", fontSize: 11, fontFamily: "monospace" }}>
+                              🎧 Ex: {meta.featuredArtists}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+                    
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 5, maxHeight: 160, overflowY: "auto", paddingRight: 2 }}>
                       {Object.entries(allGenres[currentGenre]?.subgenres || {}).map(([subName, preset]) => {
                         const key = `${currentGenre}|${subName}`;
