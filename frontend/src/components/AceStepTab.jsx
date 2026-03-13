@@ -402,7 +402,7 @@ const DEFAULT_CAT_META = {
     instrumental: false,
     icon: "🎧",
     color: "#06d6a0",
-    description: "House, techno, EDM, afro house, melodic, progressive",
+    description: "House, techno, EDM, afro house, melodic, progressive, ethno, desert",
     order: 4,
   },
   "Reggae": {
@@ -420,7 +420,7 @@ const DEFAULT_CAT_META = {
     instrumental: false,
     icon: "🌍",
     color: "#ffd166",
-    description: "Afrobeats, amapiano, afro-fusion, alté, naija street",
+    description: "Afrobeats, amapiano, afro-fusion, alté, naija street, Afro-Latin",
     order: 6,
   },
   "Oriental Traditional": {
