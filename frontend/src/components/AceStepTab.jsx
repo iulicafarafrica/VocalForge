@@ -174,11 +174,9 @@ const GENRE_PRESETS = [
   { label: "Trap Beats", cat: "Hip-Hop", prompt: "trap instrumental 2026, 808 sub-bass heavy, hi-hat triplets, dark synth textures, Metro Boomin style: no vocals, pure beat-focused production, punchy dynamic master", bpm: 140, negativePrompt: "orchestral, jazz piano solo, acoustic strumming, reggae skank, vocal-focused", instrumental: true },
   { label: "Plugg", cat: "Hip-Hop", prompt: "plugg 2026, melodic trap, dreamy synth pads, slow atmospheric tempo, ethereal vibe, minimal lyrical content, dreamy auto-tune master", bpm: 122, negativePrompt: "aggressive screaming, metal, orchestral, raw boom bap, hard drill" },
   { label: "Detroit Rap", cat: "Hip-Hop", prompt: "Detroit rap 2026, gritty production, dark samples, high-tempo punchlines, Big Sean style: technical flow, double-time verses, confident delivery, crisp punchy master", bpm: 98, negativePrompt: "smooth jazz, reggae groove, orchestral, pop ballad, lo-fi chill" },
-  { label: "Trap Flamenco", cat: "Hip-Hop", prompt: "trap flamenco 2026, Spanish acoustic guitar fused with 808 bass, Rosalía style: melismatic vocal runs, flamenco rhythmic patterns, trap flow, emotional dramatic master", bpm: 132, negativePrompt: "metal screaming, harsh industrial, smooth jazz, orchestral waltz, pure club EDM" }
-  
+  { label: "Trap Flamenco", cat: "Hip-Hop", prompt: "trap flamenco 2026, Spanish acoustic guitar fused with 808 bass, Rosalía style: melismatic vocal runs, flamenco rhythmic patterns, trap flow, emotional dramatic master", bpm: 132, negativePrompt: "metal screaming, harsh industrial, smooth jazz, orchestral waltz, pure club EDM" },
+
   // ── Romanian (Românesc) ────────────────────────────────────────────────────
-  // ... (păstrezi toate cele ~30 originale din fișierul tău)
-  // + cele 10 adăugiri noi propuse anterior (manele etno/house/viral, pop dance etc.)
   { label: "Manele", cat: "Romanian", prompt: "Romanian manele, accordion, oriental synth, Balkan rhythm, party music, Turkish hicaz scale, čoček rhythm, Adrian Minune Florin Salam style: strong expressive voice, singing with passion and power, oriental ornamentation, emotional delivery, shouts and catchy refrains", bpm: 112, negativePrompt: "trap 808 dominance, metal distortion, EDM drop, dubstep, harsh industrial" },
   { label: "Manele Clasice", cat: "Romanian", prompt: "classic manele, traditional lăutărească, accordion, violin, clarinet, Turkish influences, traditional lăutari style: natural voice no autotune, authentic lăutari singing, traditional phrasing, vibrato and trills, virtuoso violin accompaniment", bpm: 100, negativePrompt: "electronic synth lead, trap hats, EDM, autotune, modern pop production" },
   { label: "Manele Moderne", cat: "Romanian", prompt: "modern manele, electronic synth, oriental accordion, current Balkan rhythm, 2020 production, Connect-R Guță style: clear modern voice, polished production singing, melodic hooks, confident delivery, pop and urban influences", bpm: 118, negativePrompt: "metal screaming, dark ambient, orchestral epic, harsh distortion" },
@@ -927,6 +925,12 @@ export default function AceStepTab({
   const [lyricsSaveName, setLyricsSaveName] = useState("");
   const [showLyricsSaveInput, setShowLyricsSaveInput] = useState(false);
 
+  // ── Styles ────────────────────────────────────────────────────────────────
+  const S = {
+    card: { background: "linear-gradient(135deg,#0d0d22,#0a0a1a)", border: "1px solid #1e1e3a", borderRadius: 12, padding: 18, marginBottom: 14 },
+    label: { color: "#6666aa", fontSize: 11, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8, display: "block" },
+  };
+
   const TENSOR_MODELS = [
     { 
       id: "acestep-v15-turbo", 
@@ -1461,11 +1465,6 @@ export default function AceStepTab({
     } finally {
       setCleaningTemp(false);
     }
-  };
-
-  const S = {
-    card: { background: "linear-gradient(135deg,#0d0d22,#0a0a1a)", border: "1px solid #1e1e3a", borderRadius: 12, padding: 18, marginBottom: 14 },
-    label: { color: "#6666aa", fontSize: 11, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8, display: "block" },
   };
 
   return (
@@ -2960,5 +2959,8 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
       </div>
 
     </div>
+  </div>
+    </div>
+      </div>
   );
 }
