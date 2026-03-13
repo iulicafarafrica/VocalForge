@@ -1,57 +1,40 @@
 @echo off
-title ACE-Step API Restarter - VocalForge
+title VocalForge - Restart ACE-Step
+color 0A
+
 echo.
-echo ============================================
-echo   ACE-Step API Restarter
-echo   VocalForge v2.0.0
-echo ============================================
-echo.
-echo This will restart ACE-Step API to free RAM.
-echo.
-echo Estimated RAM recovery: 10-20 GB
-echo.
-echo The ACE-Step API process will be stopped and restarted.
-echo Your current generation queue will be cleared.
-echo.
-pause
-echo.
-echo ============================================
-echo   Restarting ACE-Step API...
-echo ============================================
+echo  ============================================
+echo   RESTART ACE-Step API (RAM Cleanup)
+echo  ============================================
 echo.
 
-echo [1/3] Stopping ACE-Step API process...
-taskkill /F /FI "WINDOWTITLE eq ACE-Step*" 2>nul
-if %ERRORLEVEL% EQU 0 (
-    echo [OK] ACE-Step API stopped
-) else (
-    echo [INFO] No ACE-Step API process found
+:: ---- Kill ACE-Step process pe portul 8001 ----
+echo  [>>] Opresc ACE-Step pe portul 8001...
+for /f "tokens=5" %%a in ('netstat -aon ^| find ":8001" ^| find "LISTENING"') do (
+    echo  [>>] Killing PID %%a...
+    taskkill /PID %%a /F >nul 2>&1
 )
-echo.
 
-echo [2/3] Waiting for process to terminate...
+:: ---- Asteapta sa se elibereze portul ----
 timeout /t 3 /nobreak >nul
-echo [OK] Process terminated
+echo  [OK] ACE-Step oprit.
+
+:: ---- Curata RAM ----
+echo  [>>] Curatare RAM...
+timeout /t 2 /nobreak >nul
+
+:: ---- Reporneste ACE-Step cu LLM dezactivat ----
+echo  [>>] Repornesc ACE-Step...
 echo.
 
-echo [3/3] Starting ACE-Step API...
-start "ACE-Step API" cmd.exe /k "cd /d D:\VocalForge\ace-step && call .venv\Scripts\activate.bat && python acestep/api_server.py --host 0.0.0.0 --port 8001"
-echo [OK] ACE-Step API started in new window
-echo.
+start "ACE-Step API" cmd /k "cd /d D:\VocalForge\ace-step && call .venv\Scripts\activate.bat && set ACESTEP_INIT_LLM=false && set ACESTEP_NO_INIT=1 && set ACESTEP_OFFLOAD_TO_CPU=true && set ACESTEP_VAE_ON_CPU=0 && set XFORMERS_FORCE_DISABLE_TRITON=1 && python acestep/api_server.py --host 0.0.0.0 --port 8001"
 
-echo ============================================
-echo   RESTART COMPLETE!
-echo ============================================
 echo.
-echo ACE-Step API is restarting...
-echo RAM should be freed within 30-60 seconds.
+echo  [OK] ACE-Step repornit!
 echo.
-echo To verify:
-echo   1. Open Task Manager
-echo   2. Check Python processes
-echo   3. RAM should drop from ~16GB to ~1GB
+echo  Asteapta 10-15 secunde pana se incarca...
+echo  Modelul se incarca la primul request.
 echo.
-timeout /t 5 /nobreak >nul
-start http://localhost:8001/health
+echo  RAM ar trebui sa fie acum la ~20-30%%
 echo.
 pause

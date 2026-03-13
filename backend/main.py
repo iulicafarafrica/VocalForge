@@ -2494,7 +2494,7 @@ async def ace_generate(
                 "lm_top_k": lm_top_k if lm_top_k > 0 else None,
                 "lm_top_p": lm_top_p,
                 "lm_repetition_penalty": 1.0,  # ACE-Step default
-                "lm_negative_prompt": neg if neg else "NO USER INPUT",
+                "lm_negative_prompt": neg,
                 
                 # Chain-of-Thought (disabled for text2music to respect user input)
                 "constrained_decoding": True,  # ACE-Step default
@@ -2516,7 +2516,7 @@ async def ace_generate(
                 # Reference audio (for cover/repaint)
                 "reference_audio_path": None,
                 "src_audio_path": None,
-                "audio_cover_strength": 1.0,
+                "audio_cover_strength": 0.7,
                 "cover_noise_strength": 0.0,  # For cover/repaint tasks
                 
                 # Repainting (for repaint task type)
@@ -2539,10 +2539,6 @@ async def ace_generate(
             
             print(f"[ACE {job_id[:8]}] Payload: bpm={task_payload['bpm']}, key={task_payload['key_scale']}, use_cot_caption={task_payload['use_cot_caption']}")
             
-            # Add negative prompt if provided
-            if neg:
-                task_payload["lm_negative_prompt"] = neg
-
             # Audio2audio/cover: save source audio in system temp
             if task_type in ("audio2audio", "cover") and source_audio and source_audio.filename:
                 src_bytes = await source_audio.read()
@@ -2794,7 +2790,7 @@ async def ace_generate(
 # ── Run ────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     print("=" * 52)
-    print("  VocalForge v1.7 — Backend Starting")
+    print("  VocalForge v1.9 — Backend Starting")
     print(f"  Device : {hw['device']}")
     print(f"  VRAM   : {hw['vram_gb']} GB")
     print(f"  Models : {MODELS_DIR}")
