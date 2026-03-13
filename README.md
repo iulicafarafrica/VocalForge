@@ -44,6 +44,30 @@
 | **v1.8.3** | RVC Final Mix Integration | - |
 | **v1.8.2** | RVC v2 Support | - |
 
+### **🔧 Latest Updates (2026-03-12)**
+
+**ACE-Step Official Parameters**
+- ✅ All LM parameters aligned with official ACE-Step v1.5 API:
+  - `lm_temperature`: 0.85 (official default)
+  - `lm_cfg_scale`: 2.5 (official default)
+  - `lm_top_p`: 0.9 (official default)
+- ✅ Advanced settings 100% compliant with documentation
+
+**Model Configuration**
+- ✅ Default model changed to `acestep-v15-sft` (high quality, 50 steps)
+- ✅ Default inference steps: 50 (optimized for SFT)
+- ✅ Repaint/Lego/Complete endpoints updated to SFT defaults
+- ✅ Coming soon: Multi-model selector UI (Turbo/SFT/Base)
+
+**Backup Script**
+- ✅ `backup_project.bat` now excludes 90% of unnecessary files
+- ✅ Fixed date parsing bug (no more 'nul' folders)
+- ✅ Backup size reduced from GBs to ~50-100MB
+
+**Git Cleanup**
+- ✅ Excluded from GitHub: `VocalForgeMVSep/`, `er-suno-prompt/`, `suno-api/`
+- ✅ Cleaner repository structure
+
 ### **🆕 NEW: Prompt Generator (v2.0.0)**
 
 - **🎵 164 Subgenres** across 10 categories (30 Romanian: Manele, Folclor, Doină, etc.)

@@ -1,6 +1,39 @@
 
 ---
 
+## [Unreleased] - 2026-03-12
+
+### 🔧 TECHNICAL IMPROVEMENTS
+
+**ACE-Step Official Parameters Alignment**
+- ✅ Updated LM parameters to official ACE-Step v1.5 defaults:
+  - `lm_temperature`: 0.8 → 0.85 (official default)
+  - `lm_cfg_scale`: 2.2 → 2.5 (official default)
+  - `lm_top_p`: 0.92 → 0.9 (official default)
+- ✅ All advanced settings now 100% compliant with ACE-Step API documentation
+
+**Model Configuration**
+- ✅ Changed default model from `acestep-v15-turbo` to `acestep-v15-sft`
+- ✅ Updated default inference steps: 27 → 50 (for SFT model)
+- ✅ Repaint/Lego/Complete endpoints updated to SFT defaults
+- ✅ Preparation for multi-model selector UI feature
+
+**Backup Script Improvements**
+- ✅ `backup_project.bat`: Added comprehensive excludes:
+  - `ace-step/`, `RVCWebUI/`, `.qwen/`, `storage/`
+  - `local/`, `assets/`, `unused/`, `test_output/`
+  - `*.log`, `*.tmp`, `*.png`, `*.pdf`, `proiect*.txt`
+  - `qwen_*.py`, `qwen_*.bat`, `SESSION_*.md`
+- ✅ Fixed date/time parsing to avoid 'nul' folder creation
+- ✅ Backup size reduced by ~90% (excludes large AI models)
+
+**Git Cleanup**
+- ✅ Excluded folders from GitHub:
+  - `VocalForgeMVSep/`, `er-suno-prompt/`, `suno-api/`
+- ✅ Added `.aider/` files to `.gitignore`
+
+---
+
 ## [2.0.0] - 2026-03-10
 
 ### 🎉 MAJOR RELEASE: Prompt Generator + Suno AI Integration
