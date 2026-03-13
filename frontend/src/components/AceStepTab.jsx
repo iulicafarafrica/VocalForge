@@ -911,7 +911,7 @@ export default function AceStepTab({
     modal: {
       background: "linear-gradient(135deg,#0d0d22,#0a0a1a)",
       border: "1px solid #2a2a4a", borderRadius: 16,
-      width: "min(560px, 95vw)", maxHeight: "85vh",
+      width: "min(800px, 95vw)", maxHeight: "85vh",
       display: "flex", flexDirection: "column",
       boxShadow: "0 20px 60px rgba(0,0,0,0.8)",
     },
@@ -1459,7 +1459,7 @@ export default function AceStepTab({
   };
 
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto" }}>
+    <div style={{ maxWidth: 1400, margin: "0 auto" }}>
       {/* Preset Manager Modal */}
       <PresetManager
         open={showPresets}
@@ -1616,7 +1616,7 @@ export default function AceStepTab({
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
 
         {/* LEFT */}
         <div>
