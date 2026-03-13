@@ -2187,26 +2187,30 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                 borderRadius: 8,
                 padding: 12,
                 marginBottom: 8,
+                maxWidth: "100%",
+                overflow: "hidden",
               }}>
                 {/* Spectrum Visualizer */}
-                <AudioVisualizer
-                  audioRef={audioRef}
-                  width={800}
-                  height={80}
-                  barWidth={3}
-                  gap={2}
-                  barColor="#06d6a0"
-                  backgroundColor="#080812"
-                  roundedBars
-                />
-                
+                <div style={{ width: "100%", height: 80, marginBottom: 12 }}>
+                  <AudioVisualizer
+                    audioRef={audioRef}
+                    width={600}
+                    height={80}
+                    barWidth={3}
+                    gap={2}
+                    barColor="#06d6a0"
+                    backgroundColor="transparent"
+                    roundedBars
+                  />
+                </div>
+
                 {/* Audio Controls */}
                 <audio
                   ref={audioRef}
                   controls
                   src={result.url}
                   preload="metadata"
-                  style={{ width: "100%", marginTop: 12 }}
+                  style={{ width: "100%" }}
                   onLoadedMetadata={(e) => {
                     console.log('[Audio] Metadata loaded:', e.target.duration, 'seconds');
                   }}
