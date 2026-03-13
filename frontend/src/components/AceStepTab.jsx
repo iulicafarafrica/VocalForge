@@ -1514,7 +1514,7 @@ export default function AceStepTab({
             <div style={{ marginTop: 14, padding: "10px 0", borderTop: "1px solid #2a2a4a" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
                 <span style={{ color: "#9b2de0", fontSize: 11, fontWeight: 700 }}>
-                  🎚 PRESETS BY GENRE (FULL) — caption + negative prompt + BPM (JSON genres + built-in)
+                  🎚 Genres and Subgenres
                 </span>
                 <button
                   type="button"
