@@ -371,92 +371,76 @@ const GENRE_PRESETS = [
 ];
 
 // ── Default Category Metadata ──────────────────────────────────────────────────
-// Folosit pentru UI: iconițe, culori tematice, descrieri scurte, ordine în dropdown etc.
-// Extins Martie 2026 cu trenduri reale (rock/metal revival, indie surge, pop dominant etc.)
+// Metadata compact pentru UI: iconițe, culori, descrieri scurte
 const DEFAULT_CAT_META = {
   "Hip-Hop": {
     lm_negative_prompt: "orchestral symphony, smooth jazz, four-on-the-floor EDM, cheesy pop chorus, country twang",
     bpm: 0,
     instrumental: false,
-    // Visual metadata
-    icon: "🎤🔥",
-    color: "#c77dff",          // mov energic, urban/rap vibe
-    description: "De la boom bap clasic la trap rage, melodic, drill, phonk și jerk – 808 heavy, flows agresive sau emoționale, underground la mainstream.",
-    featuredArtists: "Playboi Carti, Travis Scott, 21 Savage, Glokk40Spaz, Osamason, Killa Fonic, Rava",
+    icon: "🎤",
+    color: "#c77dff",
+    description: "Trap, drill, phonk, boom bap",
     order: 1,
   },
   "Romanian": {
     lm_negative_prompt: "trap 808 dominance, dubstep, metal distortion, EDM drops, autotune pop",
     bpm: 0,
     instrumental: false,
-    // Visual metadata
-    icon: "🇷🇴🎶",
-    color: "#ff4757",          // roșu pasional românesc
-    description: "Manele etno/house/viral, trap pop RO, melodic rap românesc, folclor modern, muzică de petrecere/nuntă – de la stradal la radio-friendly.",
-    featuredArtists: "Florin Salam, Killa Fonic, Rava, Ian, Andra, Inna, Connect-R",
+    icon: "🇷🇴",
+    color: "#ff4757",
+    description: "Manele, trap RO, folclor",
     order: 2,
   },
   "Rock & Metal": {
     lm_negative_prompt: "trap 808 dominance, autotune pop, EDM drops, smooth jazz ballad, lo-fi chill, orchestral waltz outside symphonic metal",
     bpm: 0,
     instrumental: false,
-    // Visual metadata
-    icon: "🎸🤘",
-    color: "#e63946",          // roșu intens rock/metal
-    description: "Revival masiv 2026: alternative rock, nu-metal nostalgia, post-hardcore, industrial metal, shoegaze, hybrid cu electronic/hip-hop.",
-    featuredArtists: "Bring Me The Horizon, Sleep Token, Spiritbox, Bad Omens, Gojira, Korn revival wave",
+    icon: "🎸",
+    color: "#e63946",
+    description: "Rock, metalcore, nu-metal",
     order: 3,
   },
   "House & Electronic": {
     lm_negative_prompt: "metal guitars, trap hats, rap vocals, orchestral, reggae one-drop, lo-fi cassette",
     bpm: 0,
     instrumental: false,
-    // Visual metadata
-    icon: "🔊🎧",
-    color: "#06d6a0",          // verde fresh, dance/electronic energy
-    description: "Four-on-the-floor grooves, deep house, tech house, afro house, melodic techno, UKG revival, bass house – festival la underground.",
-    featuredArtists: "Black Coffee, Fisher, Tale Of Us, Keinemusik, &ME, salute, Kordhell",
+    icon: "🎧",
+    color: "#06d6a0",
+    description: "House, techno, EDM",
     order: 4,
   },
   "Reggae": {
     lm_negative_prompt: "metal, rock distortion, orchestral symphony, jazz swing, ambient drone",
     bpm: 0,
     instrumental: false,
-    // Visual metadata
     icon: "🇯🇲",
     color: "#118ab2",
     description: "Reggaeton, dembow, dancehall",
-    featuredArtists: "Daddy Yankee, El Alfa, Vybz Kartel",
     order: 5,
   },
   "Phonk variants 2026": {
     lm_negative_prompt: "orchestral symphony, smooth jazz ballad, clean pop vocals, acoustic guitar, lo-fi chill",
     bpm: 0,
     instrumental: false,
-    // Visual metadata
-    icon: "🚗💨",
-    color: "#9b2de0",          // violet dark drift
-    description: "Cowbell heavy, distorted 808, drift edits – Brazilian phonk, aggressive drift, funk brasil montagem, viral gym/car sound.",
-    featuredArtists: "Kordhell, Pharmacist, DJ Smokey, Montagem creators",
+    icon: "🚗",
+    color: "#9b2de0",
+    description: "Drift phonk, Brazilian phonk",
     order: 6,
   },
   "Drum & Bass / Jungle": {
     lm_negative_prompt: "slow ballad, orchestral strings, smooth R&B, reggae skank, acoustic folk",
     bpm: 0,
     instrumental: false,
-    // Visual metadata
-    icon: "🥁⚡",
-    color: "#4ecdc4",          // turcoaz rapid/fast breaks
-    description: "170+ bpm rolling breaks, heavy sub bass – liquid soulful, neurofunk dark, jump-up energy, festival/headphone intensity.",
-    featuredArtists: "Sub Focus, Wilkinson, Chase & Status, Bou, Shy FX, SLUMBERJACK",
+    icon: "🥁",
+    color: "#4ecdc4",
+    description: "170+ BPM, liquid, neurofunk",
     order: 7,
   },
   "default": {
     icon: "🎵",
     color: "#8888aa",
-    description: "Gen variat – alege un preset sau explorează!",
-    featuredArtists: "",
-    order: 999,
+    description: "Alege un gen",
+    order: 99,
   },
 };
 
@@ -1541,34 +1525,30 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                       })}
                     </div>
                     
-                    {/* Category Info Card with metadata */}
+                    {/* Category Info Card - Compact */}
                     {(() => {
                       const meta = getCategoryMeta(currentGenre);
                       return (
                         <div style={{
                           marginTop: 12,
-                          padding: 12,
+                          padding: "8px 12px",
                           background: `${meta.color}22`,
                           border: `1px solid ${meta.color}44`,
-                          borderRadius: 8,
+                          borderRadius: 6,
                           marginBottom: 12,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
                         }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                            <span style={{ fontSize: 24 }}>{meta.icon}</span>
-                            <div>
-                              <div style={{ color: meta.color, fontSize: 14, fontWeight: 700 }}>
-                                {currentGenre}
-                              </div>
-                              <div style={{ color: "#6666aa", fontSize: 12 }}>
-                                {meta.description}
-                              </div>
+                          <span style={{ fontSize: 20 }}>{meta.icon}</span>
+                          <div>
+                            <div style={{ color: meta.color, fontSize: 13, fontWeight: 700 }}>
+                              {currentGenre}
+                            </div>
+                            <div style={{ color: "#6666aa", fontSize: 11 }}>
+                              {meta.description}
                             </div>
                           </div>
-                          {meta.featuredArtists && (
-                            <div style={{ color: "#444466", fontSize: 11, fontFamily: "monospace" }}>
-                              🎧 Ex: {meta.featuredArtists}
-                            </div>
-                          )}
                         </div>
                       );
                     })()}
