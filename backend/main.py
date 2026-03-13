@@ -100,9 +100,9 @@ for _ffp in _FFMPEG_COMMON:
         break
 
 # ── Audio format configuration ────────────────────────────────────────────────
-# Default output format: mp3 (smaller file size, better compatibility)
-# Change to "wav" if you need uncompressed audio
-OUTPUT_FORMAT = "mp3"  # "mp3" or "wav"
+# Default output format: wav (uncompressed, highest quality)
+# Change to "mp3" if you need smaller file size
+OUTPUT_FORMAT = "wav"  # "wav" or "mp3"
 MP3_BITRATE = "320k"   # Quality: 128k, 192k, 256k, 320k
 
 # ── Logging configuration ────────────────────────────────────────────────────────
