@@ -42,7 +42,7 @@ export default function App() {
   const [aceLyrics, setAceLyrics] = useState("");
   const [aceDuration, setAceDuration] = useState(30);
   const [aceGuidanceScale, setAceGuidanceScale] = useState(7.0);
-  const [aceInferSteps, setAceInferSteps] = useState(27);  // 27 steps optimal for turbo model
+  const [aceInferSteps, setAceInferSteps] = useState(50);  // 50 steps for high quality (SFT model)
   const [aceSeed, setAceSeed] = useState(-1);
   const [aceGenreCat, setAceGenreCat] = useState("Hip-Hop");
   const [aceResult, setAceResult] = useState(null);

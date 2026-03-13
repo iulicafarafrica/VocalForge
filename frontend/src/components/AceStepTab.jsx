@@ -666,7 +666,7 @@ export default function AceStepTab({
   const [cleanResult, setCleanResult] = useState(null);
 
   // Default DIT Model (no UI selection)
-  const tensorModel = "acestep-v15-turbo";
+  const tensorModel = "acestep-v15-sft";
 
   const TENSOR_MODELS = [
     { id: "acestep-v15-merge", name: "🎯 Merge SFT+Turbo", desc: "8 steps │ Best of both worlds", color: "#06d6a0", steps: 8, cfg: false, features: "Turbo speed + SFT quality" },
@@ -813,10 +813,12 @@ export default function AceStepTab({
     // ── OPTIMIZATIONS FOR CUSTOM MODE ──────────────────────────────────────
     // Custom mode doesn't need LLM Chain-of-Thought (we have reference audio)
     const isCustom = taskType === "custom";
+    const isText2Music = taskType === "text2music";
     const effectiveThinking = isCustom ? false : thinking;
     const isAudio2Audio = taskType === "audio2audio";
     const effectiveUseCotMetas = isCustom ? false : useCotMetas;
-    const effectiveUseCotCaption = isCustom ? false : useCotCaption;
+    // CRITICAL: Disable CoT caption for text2music to respect user BPM/prompt
+    const effectiveUseCotCaption = (isCustom || isText2Music) ? false : useCotCaption;
     const effectiveUseCotLanguage = isCustom ? false : useCotLanguage;
 
     // Custom mode: limit duration to 60s max (avoid timeout)
@@ -840,12 +842,14 @@ export default function AceStepTab({
     console.log(`[ACE-Step] Steps: ${effectiveSteps} | CFG: ${guidanceScale} | Duration: ${effectiveDuration}s`);
     console.log(`[ACE-Step] Task Type: ${taskType} | Prompt: "${prompt.slice(0, 50)}..."`);
     console.log(`[ACE-Step] Thinking (LLM): ${effectiveThinking}`);
+    console.log(`[ACE-Step] use_cot_caption: ${effectiveUseCotCaption}`);
     console.log(`[ACE-Step] =========================`);
 
     // Also show in app Logs Panel
     addLog(`🎵 Model: ${modelName} (${effectiveSteps} steps)`);
     addLog(`🎛 CFG: ${guidanceScale} | Duration: ${effectiveDuration}s | Lang: ${vocalLanguage}`);
     if (isCustom) addLog(`🎨 Custom Mode: LLM disabled (using reference audio)`);
+    if (isText2Music) addLog(`📝 Text-to-Music: CoT caption disabled (respecting BPM/prompt)`);
     if (bpm > 0) addLog(`🥁 BPM: ${bpm}`);
     if (keyScale) addLog(`🎹 Key: ${keyScale}`);
 
@@ -936,8 +940,9 @@ export default function AceStepTab({
     fd.append("use_adg", false);
     fd.append("cfg_interval_start", 0.0);
     fd.append("cfg_interval_end", 1.0);
-    fd.append("use_cot_caption", effectiveUseCotCaption);  // Disable for custom
-    fd.append("use_cot_language", effectiveUseCotLanguage);  // Disable for custom
+    fd.append("use_cot_caption", effectiveUseCotCaption);  // Disable for custom/text2music
+    fd.append("use_cot_language", effectiveUseCotLanguage);  // Disable for custom/text2music
+    fd.append("constrained_decoding", true);  // ACE-Step default
     fd.append("allow_lm_batch", true);
     fd.append("get_lrc", false);
 

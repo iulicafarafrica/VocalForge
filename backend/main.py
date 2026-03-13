@@ -50,6 +50,13 @@ BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
 if BACKEND_DIR not in sys.path:
     sys.path.insert(0, BACKEND_DIR)
 
+# Import ACE-Step constants for official API compatibility
+ACE_STEP_DIR = os.path.join(os.path.dirname(BACKEND_DIR), "AceStepCoduriDeSogiranta", "acestep")
+if ACE_STEP_DIR not in sys.path:
+    sys.path.insert(0, ACE_STEP_DIR)
+
+from constants import DEFAULT_DIT_INSTRUCTION, TASK_INSTRUCTIONS
+
 # Fix Windows asyncio ConnectionResetError (WinError 10054)
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -2236,7 +2243,7 @@ async def ace_generate(
     duration: float = Form(30.0),               # seconds (15-240), -1=auto
     guidance_scale: float = Form(7.0),          # CFG scale (optimal for turbo)
     seed: int = Form(-1),                       # -1 = random
-    infer_steps: int = Form(27),                # diffusion steps (27 optimal for turbo)
+    infer_steps: int = Form(50),                # diffusion steps (50 for sft/base, 8 for turbo)
     # Music parameters
     bpm: float = Form(0),                       # 0 = auto, float pentru BPM detectat (e.g. 119.7)
     key_scale: str = Form(""),                  # e.g. "C major"
@@ -2248,10 +2255,10 @@ async def ace_generate(
     # LM parameters
     lm_model: str = Form("acestep-5Hz-lm-0.6B"),
     lm_backend: str = Form("pt"),               # pt or vllm
-    lm_temperature: float = Form(0.8),
-    lm_cfg_scale: float = Form(2.2),
+    lm_temperature: float = Form(0.85),         # 0.85 default (official ACE-Step)
+    lm_cfg_scale: float = Form(2.5),            # 2.5 default (official ACE-Step)
     lm_top_k: int = Form(0),
-    lm_top_p: float = Form(0.92),
+    lm_top_p: float = Form(0.9),                # 0.9 default (official ACE-Step)
     lm_negative_prompt: str = Form(""),
     # Task type + audio2audio
     task_type: str = Form("text2music"),        # text2music, audio2audio, cover, repaint
@@ -2259,7 +2266,7 @@ async def ace_generate(
     source_audio_strength: float = Form(0.5),   # 0=ignore source, 1=copy source
     negative_prompt: str = Form(""),            # alias for lm_negative_prompt
     # DiT model selection
-    dit_model: str = Form("acestep-v15-turbo"), # acestep-v15-turbo or acestep-v15-turbo-shift3
+    dit_model: str = Form("acestep-v15-sft"), # acestep-v15-sft (high quality) or acestep-v15-turbo (fast)
     # Expert / advanced
     use_adg: bool = Form(False),
     cfg_interval_start: float = Form(0.0),
@@ -2365,67 +2372,126 @@ async def ace_generate(
             
             # Step 1: Submit generation task with correct ACE-Step schema
             # ACE-Step API: prompt = style/emotion/instruments ONLY
-            # bpm, key_scale, time_signature = dedicated numeric params
-            # tags param does NOT exist in ACE-Step API
-            # CRITICAL: Add BPM to prompt text for Text→Music (LM ignores use_cot_caption=False)
-            full_prompt = prompt.strip() if prompt else ""
-            if bpm and bpm > 0 and task_type == "text2music":
-                full_prompt = f"{bpm} bpm, {full_prompt}"
-
-            print(f"[ACE] full_prompt: {full_prompt[:150]}")
+            # CRITICAL: For Text-to-Music, disable CoT to respect user BPM/key/prompt
+            
+            # Negative prompt: use lm_negative_prompt or alias negative_prompt
+            neg = (lm_negative_prompt or negative_prompt or "").strip()
 
             # ── Optimizări pentru audio cover ──────────────────────────────────
-            is_cover = task_type in ("audio2audio", "cover")
             effective_duration = duration  # folosim durata exactă setată de utilizator
             # Asigură-te că durata este pozitivă, altfel -1 pentru auto
             if effective_duration <= 0:
                 effective_duration = -1
             print(f"[ACE {job_id[:8]}] Duration: {effective_duration}s | task_type={task_type} | vocal_language={vocal_language}")
 
+            # ── ACE-STEP OFFICIAL API PAYLOAD (Text-to-Music) ─────────────────
+            # Based on ACE-Step v1.5 official API documentation
+            # https://github.com/ace-step/ACE-Step-1.5
+            # GenerateMusicRequest model from acestep/api/http/release_task_models.py
+            
+            # For Text-to-Music: disable CoT to respect user BPM/key/prompt
+            effective_use_cot_caption = False if task_type == "text2music" else use_cot_caption
+            effective_use_cot_language = False if task_type == "text2music" else use_cot_language
+            
             task_payload = {
-                "prompt": full_prompt,
-
-                # CRITICAL: For Text→Music, don't send bpm as param (ACE-Step overwrites it)
-                # BPM is already in prompt text: "124 bpm, future house..."
-                "bpm": None if task_type == "text2music" else (bpm if bpm and bpm > 0 else None),
-                "key_scale": key_scale if key_scale else "",
-                "time_signature": time_signature if time_signature else "",
-                "lyrics": "" if instrumental else (lyrics.strip() if lyrics.strip() else ""),
-                "audio_duration": effective_duration,
+                # Core parameters (ACE-Step official - GenerateMusicRequest)
+                "prompt": prompt.strip() if prompt else "",
+                "global_caption": "",  # For lego SFT (empty for text2music)
+                "lyrics": "" if instrumental else (lyrics.strip() if lyrics else ""),
+                
+                # Thinking/Sample modes
+                "thinking": thinking,
+                "sample_mode": False,  # Auto-generate via LM (not used)
+                "sample_query": "",  # Description for sample mode
+                "use_format": False,  # Use format_sample() to enhance input
+                
+                # Model selection
+                "model": dit_model,
+                "task_type": task_type,
+                
+                # BPM/Key as dedicated parameters (ACE-Step respects these)
+                "bpm": int(bpm) if (bpm and bpm > 0) else None,
+                "key_scale": key_scale.strip() if key_scale else "",
+                "time_signature": time_signature.strip() if time_signature else "",
+                
+                # Vocal settings
+                "vocal_language": vocal_language if not instrumental and vocal_language != "unknown" else "en",
+                
+                # Duration & quality
+                "audio_duration": effective_duration if effective_duration > 0 else None,
                 "inference_steps": infer_steps,
                 "guidance_scale": guidance_scale,
+                
+                # Seed
                 "use_random_seed": use_random,
                 "seed": actual_seed,
-                "audio_format": audio_format if audio_format in ("mp3", "flac", "wav") else "wav",
-                "task_type": task_type,
-                "model": dit_model,
-                # Vocal language as separate parameter (ACE-Step official API)
-                "vocal_language": vocal_language if not instrumental and vocal_language != "unknown" else "en",
-                # Advanced params
+                
+                # Audio format
+                "audio_format": audio_format if audio_format in ("mp3", "flac", "wav") else "mp3",
+                
+                # Inference method
                 "infer_method": infer_method,
                 "shift": shift,
+                "timesteps": None,  # Custom timesteps (override inference_steps)
+                
+                # VRAM & performance
+                "batch_size": batch_size,
+                "use_tiled_decode": use_tiled_decode,
+                
+                # LLM parameters
+                "lm_model_path": None,  # Auto-selected based on VRAM
+                "lm_backend": "pt",  # or "vllm"
                 "lm_temperature": lm_temperature,
                 "lm_cfg_scale": lm_cfg_scale,
-                "lm_top_k": lm_top_k,
+                "lm_top_k": lm_top_k if lm_top_k > 0 else None,
                 "lm_top_p": lm_top_p,
+                "lm_repetition_penalty": 1.0,  # ACE-Step default
+                "lm_negative_prompt": neg if neg else "NO USER INPUT",
+                
+                # Chain-of-Thought (disabled for text2music to respect user input)
+                "constrained_decoding": True,  # ACE-Step default
+                "constrained_decoding_debug": False,
+                "use_cot_caption": effective_use_cot_caption,
+                "use_cot_language": effective_use_cot_language,
+                "is_format_caption": False,
+                "allow_lm_batch": allow_lm_batch,
+                
+                # Track metadata (optional)
+                "track_name": None,
+                "track_classes": None,  # ["drums", "bass", ...]
+                
+                # Advanced (ACE-Step official)
                 "use_adg": use_adg,
                 "cfg_interval_start": cfg_interval_start,
                 "cfg_interval_end": cfg_interval_end,
-                # Pentru audio2audio/cover: nu lăsa LM să modifice durata specificată de utilizator
-
-                "use_cot_caption": use_cot_caption,
-                "use_cot_language": use_cot_language,
-                "allow_lm_batch": allow_lm_batch,
-                # Thinking mode (5Hz LM for audio code generation)
-                "thinking": thinking,
-                # ── Optimizări VRAM (RTX 3070 8GB) ───────────────────────────
-                # batch_size: from user (default 1 to save VRAM)
-                "batch_size": batch_size,
-                # use_tiled_decode: from user (VRAM optimization for VAE decode)
-                "use_tiled_decode": use_tiled_decode,
+                
+                # Reference audio (for cover/repaint)
+                "reference_audio_path": None,
+                "src_audio_path": None,
+                "audio_cover_strength": 1.0,
+                "cover_noise_strength": 0.0,  # For cover/repaint tasks
+                
+                # Repainting (for repaint task type)
+                "repainting_start": 0.0,
+                "repainting_end": None,
+                
+                # Audio codes (for code-control generation)
+                "audio_code_string": "",
+                
+                # Chunking
+                "chunk_mask_mode": "auto",  # "explicit" or "auto"
+                
+                # Analysis modes
+                "analysis_only": False,
+                "full_analysis_only": False,
+                
+                # Instruction
+                "instruction": DEFAULT_DIT_INSTRUCTION,
             }
-            # Negative prompt: use lm_negative_prompt or alias negative_prompt
-            neg = (lm_negative_prompt or negative_prompt or "").strip()
+            
+            print(f"[ACE {job_id[:8]}] Payload: bpm={task_payload['bpm']}, key={task_payload['key_scale']}, use_cot_caption={task_payload['use_cot_caption']}")
+            
+            # Add negative prompt if provided
             if neg:
                 task_payload["lm_negative_prompt"] = neg
 

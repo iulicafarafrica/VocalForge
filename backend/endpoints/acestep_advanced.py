@@ -282,10 +282,10 @@ async def repaint_audio(
     lyrics: str = Form(""),
     guidance_scale: float = Form(9.0),
     seed: int = Form(-1),
-    infer_steps: int = Form(8),  # diffusion steps (8 optimal for turbo model)
+    infer_steps: int = Form(50),  # diffusion steps (50 optimal for sft/base models)
     key_scale: str = Form(""),
     audio_format: str = Form("mp3"),
-    dit_model: str = Form("acestep-v15-turbo"),
+    dit_model: str = Form("acestep-v15-sft"),
     instruction: str = Form(""),
     audio_cover_strength: float = Form(1.0),
 ):
@@ -433,9 +433,9 @@ async def lego_generation(
     end_time: float = Form(-1.0),
     guidance_scale: float = Form(9.0),
     seed: int = Form(-1),
-    infer_steps: int = Form(8),  # diffusion steps (8 optimal for turbo model)
+    infer_steps: int = Form(50),  # diffusion steps (50 optimal for sft/base models)
     audio_format: str = Form("mp3"),
-    dit_model: str = Form("acestep-v15-turbo"),
+    dit_model: str = Form("acestep-v15-sft"),
     instruction: str = Form(""),
 ):
     """
@@ -572,9 +572,9 @@ async def complete_track(
     prompt: str = Form(""),
     guidance_scale: float = Form(9.0),
     seed: int = Form(-1),
-    infer_steps: int = Form(8),  # diffusion steps (8 optimal for turbo model)
+    infer_steps: int = Form(50),  # diffusion steps (50 optimal for sft/base models)
     audio_format: str = Form("mp3"),
-    dit_model: str = Form("acestep-v15-turbo"),
+    dit_model: str = Form("acestep-v15-sft"),
     instruction: str = Form(""),
 ):
     """
