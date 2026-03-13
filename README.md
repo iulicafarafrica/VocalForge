@@ -1,22 +1,31 @@
-# 🎵 VocalForge v2.0.0
+# 🎵 VocalForge
 
-> **AI-Powered Music Production Studio** — Transform your voice, generate music, and create professional tracks with cutting-edge AI.
+<div align="center">
+
+**AI-Powered Music Production Studio**
+
+*Transform your voice, generate music, and create professional tracks with cutting-edge AI*
 
 [![Version](https://img.shields.io/badge/Version-2.0.0-blue?style=for-the-badge)]()
-[![Status](https://img.shields.io/badge/Status-Production%20Ready-green?style=for-the-badge)]()
-[![Python](https://img.shields.io/badge/Python-3.10%2B-green?style=for-the-badge&logo=python)]()
+[![Python](https://img.shields.io/badge/Python-3.10+-green?style=for-the-badge&logo=python)]()
 [![GPU](https://img.shields.io/badge/GPU-NVIDIA%20CUDA-orange?style=for-the-badge&logo=nvidia)]()
 [![License](https://img.shields.io/badge/License-MIT-red?style=for-the-badge)]()
 
-**📺 Watch Demo:** [YouTube](https://www.youtube.com/watch?v=8XSwCM7bM1A)
+[📺 Watch Demo](https://www.youtube.com/watch?v=8XSwCM7bM1A) • [📋 Changelog](#-changelog) • [🗺️ Roadmap](#-roadmap)
+
+</div>
 
 ---
 
-## 🎬 Overview
+## 📖 Overview
 
 ### What is VocalForge?
 
+<div align="center">
+  
 **AI-Powered Music Production Studio**
+
+</div>
 
 - 🎤 Transform any voice with AI-powered RVC models
 - 🎵 Generate complete songs from text prompts with ACE-Step v1.5
@@ -42,7 +51,11 @@
 
 ### Quick Start
 
+<div align="center">
+  
 **Get running in under 5 minutes**
+
+</div>
 
 ```bash
 git clone https://github.com/iulicafarafrica/VocalForge.git
@@ -71,7 +84,7 @@ START_ALL.bat    # Launch all services
 - Output: vocals.wav + instrumental.wav
 - Gain Staging: Normalize to -1dB peak, -16 LUFS
 
-↓
+<div align="center">↓</div>
 
 ### Stage 2: RVC Voice Conversion
 - ⏱ ~15s | 💾 4-6GB VRAM
@@ -80,7 +93,7 @@ START_ALL.bat    # Launch all services
 - Params: harvest / 0.40 index / 0.55 protect (optimized for singing)
 - VRAM: Auto-unload RVC after conversion
 
-↓
+<div align="center">↓</div>
 
 ### Stage 3: Clarification (Optional)
 - ⏱ ~30s | 💾 2-3GB VRAM
@@ -88,7 +101,7 @@ START_ALL.bat    # Launch all services
 - FFmpeg: highpass=f=100, deesser, loudnorm=-10 LUFS, acompressor
 - Output: final_clear_vocals.wav — disabled by default for speed
 
-↓
+<div align="center">↓</div>
 
 ### Stage 4: Mix Final
 - ⏱ ~5s | 💾 <1GB VRAM
@@ -98,11 +111,12 @@ START_ALL.bat    # Launch all services
 
 ### Output Files (5 downloads)
 
-- 🎵 Vocals (separated)
-- 🎸 Instrumental
-- 🎤 RVC Raw (before clarification)
-- ✨ Vocal Clarified (Stage 3)
-- 🎚️ Mix Final (vocal + instrumental)
+<div align="center">
+
+| 🎵 Vocals (separated) | 🎸 Instrumental | 🎤 RVC Raw | ✨ Vocal Clarified | 🎚️ Mix Final |
+|----------------------|-----------------|------------|-------------------|--------------|
+
+</div>
 
 ---
 
@@ -146,9 +160,13 @@ START_ALL.bat    # Launch all services
 4. Limiter → -1dB ceiling, prevent clipping
 5. Loudnorm → -14 LUFS (Spotify/YouTube standard)
 
+<div align="center">
+
 | Raw RVC | RVC + Rescue |
 |---------|--------------|
 | 5/10 | 8/10 ✅ |
+
+</div>
 
 ### Prompt Generator (v2.0.0)
 
@@ -258,10 +276,16 @@ cd ace-step && uv sync && cd ..
 
 **TESTED HARDWARE**
 
-- ✅ Dev hardware: RTX 3070 8GB
-- ✅ Tested: RTX 3060 12GB
-- ✅ Tested: RTX 2080 Ti 11GB
-- ⚠️ Light mode: GTX 1060 6GB
+<div align="center">
+
+| Hardware | Status |
+|----------|--------|
+| ✅ Dev hardware | RTX 3070 8GB |
+| ✅ Tested | RTX 3060 12GB |
+| ✅ Tested | RTX 2080 Ti 11GB |
+| ⚠️ Light mode | GTX 1060 6GB |
+
+</div>
 
 ---
 
@@ -501,17 +525,10 @@ cd ace-step && uv sync && cd ..
 
 ---
 
-## 📄 License
-
-MIT License — see [LICENSE](LICENSE) for details.
-
-## 🙏 Acknowledgments
-
-- **ACE-Step Team** — Music generation model
-- **RVC Project** — Voice conversion technology
-- **Applio** — Advanced audio processing features
-- **BS-RoFormer** — State-of-the-art stem separation
-
----
+<div align="center">
 
 **Made with ❤️ by iulicafarafrica**
+
+[MIT License](LICENSE)
+
+</div>
