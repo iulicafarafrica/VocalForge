@@ -2187,11 +2187,12 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                 borderRadius: 8,
                 padding: 12,
                 marginBottom: 8,
+                maxWidth: "100%",
               }}>
                 {/* Spectrum Visualizer - Only shows when audio is playing */}
                 <div style={{ 
                   width: "100%", 
-                  height: 80, 
+                  height: 60, 
                   marginBottom: 12,
                   background: "#080812",
                   borderRadius: 4,
@@ -2199,8 +2200,8 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                 }}>
                   <AudioVisualizer
                     audioRef={audioRef}
-                    width={window.innerWidth - 100}  // Responsive width
-                    height={80}
+                    width={500}  // Fixed width that fits in container
+                    height={60}
                     barWidth={3}
                     gap={2}
                     barColor="#06d6a0"
