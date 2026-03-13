@@ -686,8 +686,8 @@ export default function AceStepTab({
       name: "⚡ SFT-Turbo 0.5", 
       desc: "Hybrid │ ~2 min │ Balanced", 
       color: "#ffd166", 
-      steps: 20,  // Estimated hybrid steps
-      cfg: true,  // ✅ CFG support (estimated)
+      steps: 32,  // Hybrid steps (between turbo 8 and sft 50)
+      cfg: true,  // ✅ CFG support
       features: "Text2Music, Cover, Repaint",
       vram: "~5-6GB",
       quality: "High",
