@@ -2752,11 +2752,18 @@ async def ace_generate(
 
                     print(f"[ACE {job_id[:8]}] Done in {t_sec}s — {duration_sec}s audio ({out_size_mb}MB)")
 
-                    # Auto-unload ACE-Step model to free RAM
-                    # Note: ACE-Step doesn't have /v1/unload endpoint, so we skip it
-                    # RAM will be freed when ACE-Step process is restarted
-                    print(f"[ACE {job_id[:8]}] ℹ️ Model stays loaded in ACE-Step (restart API to free RAM)")
-                    print(f"[ACE {job_id[:8]}] ℹ️ To free RAM: Restart ACE-Step API or run CLEAN_CONDA.bat")
+                    # RAM Management: Force garbage collection to prevent memory leaks
+                    # This fixes the issue where RAM usage grows from 2GB → 13GB → 21GB → 32GB+ freeze
+                    import gc
+                    import torch
+                    
+                    gc.collect()  # Force garbage collection
+                    torch.cuda.empty_cache()  # Clear CUDA cache
+                    print(f"[ACE {job_id[:8]}] 🧹 RAM cleanup: gc.collect() + torch.cuda.empty_cache()")
+                    
+                    # Note: ACE-Step model stays loaded in RAM (no /v1/unload endpoint)
+                    # With ACESTEP_INIT_LLM=false, RAM usage should stay at ~2-4GB per generation
+                    # If RAM still grows, restart ACE-Step API after 3-4 generations
 
                     return {
                         "status": "ok",

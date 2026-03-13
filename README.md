@@ -564,6 +564,39 @@ D:\VocalForge\
 
 ---
 
+## ⚙️ RAM Management
+
+### **Memory Optimization (v2.0.1+)**
+
+**Default Configuration:**
+- `ACESTEP_INIT_LLM=false` — LLM disabled to save RAM
+- `gc.collect()` + `torch.cuda.empty_cache()` — Auto cleanup after each generation
+- **Expected RAM usage:** ~2-4GB per generation (stable)
+
+**If you need lyrics generation:**
+1. Set `ACESTEP_INIT_LLM=true` in `ace-step/.env`
+2. **Warning:** RAM usage will grow to ~13-16GB per generation
+3. **Workaround:** Restart ACE-Step API after 3-4 generations
+
+**Manual RAM Cleanup:**
+```bash
+# Windows
+D:\VocalForge\RESTART_ACESTEP.bat
+
+# Or manually:
+# 1. Ctrl+C in ACE-Step terminal
+# 2. start_acestep.bat
+```
+
+**Symptoms of RAM leak:**
+- Gen 1: RAM 2GB → 13GB
+- Gen 2: RAM 13GB → 21GB
+- Gen 3: RAM 21GB → 32GB+ → **System freeze**
+
+**Solution:** Keep `ACESTEP_INIT_LLM=false` (default) for stable RAM usage.
+
+---
+
 ## 🤝 Contributing
 
 ### **How to Contribute:**
