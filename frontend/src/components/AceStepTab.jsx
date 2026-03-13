@@ -12,6 +12,16 @@ function saveSeedsToStorage(seeds) {
   try { localStorage.setItem(SEEDS_KEY, JSON.stringify(seeds)); } catch {}
 }
 
+// ── Lyrics Library helpers ──────────────────────────────────────────────────────
+const LYRICS_KEY = "acestep_lyrics_library_v1";
+function loadLyricsLibrary() {
+  try { const s = localStorage.getItem(LYRICS_KEY); if (s) return JSON.parse(s); } catch {}
+  return [];
+}
+function saveLyricsToStorage(lyrics) {
+  try { localStorage.setItem(LYRICS_KEY, JSON.stringify(lyrics)); } catch {}
+}
+
 // ── Preset helpers ─────────────────────────────────────────────────────────────
 const PRESETS_KEY = "acestep_presets_v1";
 
@@ -223,6 +233,14 @@ const GENRE_PRESETS = [
 { label: "Afro House", cat: "House & Electronic", prompt: "afro house 2026, deep hypnotic grooves, kwaito log drum influences, soulful tribal percussion, atmospheric pads & chants, Black Coffee &Me Keinemusik THEMBA Boddhi Satva AMÉMÉ style: organic warm textures, uplifting ritual energy, global festival late-night dancefloor", bpm: 123, negativePrompt: "trap hi-hat triplets spam, big room supersaw drops, rage distorted 808, phonk cowbell heavy, slow ambient drone" },
 { label: "Deep House", cat: "House & Electronic", prompt: "deep house 2026, soulful groovy basslines, warm chords pads, vocal chops melodic journeys, Adriatique Bedouin &ME Arodes Francis Mercier style: emotional immersive club vibe, organic textures, progressive builds without aggression", bpm: 124, negativePrompt: "hard techno kicks, trap 808 slides, neurofunk razor bass, hyperpop glitch, orchestral epic" },
 { label: "Tech House", cat: "House & Electronic", prompt: "tech house 2026, driving bassline, minimal percussive groove, hypnotic loops, Fisher John Summit Mau P Chris Lake style: punchy tech rhythm, subtle vocal chops or talk-singing, repetitive hooks, club weapon focus, less melody more groove", bpm: 126, negativePrompt: "orchestral strings lead, smooth jazz piano, melodic emotional builds, reggae skank, country twang" },
+
+{ label: "Melodic Afro-Tech", cat: "House & Electronic", prompt: "sophisticated melodic afro house 2026, Maz & Antdot style, lush analog synth plucks, driving organic percussion, deep melodic bass progression, emotive melodic breakdowns, brazilian-influenced rhythms, high-fidelity spatial textures, professional club master", bpm: 123, negativePrompt: "aggressive industrial techno, distorted vocals, chaotic noise, cheap casio sounds, trap hi-hat triplets" },
+{ label: "Ancestral / Dark Afro", cat: "House & Electronic", prompt: "raw ancestral soul 2026, Boddhi Satva & Shimza style, heavy djembe patterns, deep sub-bass drones, spiritual african chanting, polyrhythmic complexity, dark warehouse afro energy, driving floor-focused rhythm, ritualistic atmosphere", bpm: 122, negativePrompt: "bright cheesy pop chords, electric guitar solos, thin drum samples, jazz scatting, EDM risers" },
+{ label: "Organic Sunset Afro", cat: "House & Electronic", prompt: "organic afro house 2026, Keinemusik &Me Adam Port style: soft percussive layers, warm rhodes chords, soulful vocal whispers, atmospheric bird sounds, sunset beach club vibe, elegant minimalist groove, wooden percussion textures", bpm: 120, negativePrompt: "distorted 808, heavy metal, aggressive stabs, neurofunk bass, plastic digital sounds" },
+{ label: "Ethno / Desert House", cat: "House & Electronic", prompt: "ethno afro house 2026, Bedouin & Sabo style, middle-eastern instrumentation, oud and ney flute melodies, hypnotic slow-burn afro groove, spiritual ritual percussion, organic foley, sunset festival atmosphere, deep mystical journey", bpm: 118, negativePrompt: "heavy metal guitars, hyperpop vocals, jump-up dnb bass, glitchy digital artifacts, radio pop" },
+{ label: "Amapiano Hybrid", cat: "House & Electronic", prompt: "afro house amapiano fusion 2026, deep soulful house, log drum bass accents, shaker loops, jazzy piano chords, South African house energy, smooth transition between afro-tech and amapiano, warm sub-bass, log drum texture", bpm: 115, negativePrompt: "aggressive saw leads, industrial noise, trance arpeggios, high-pitched screeching, rock drums" },
+
+{ label: "Naija Street Afrobeats", cat: "Afrobeats / Afropop", prompt: "naija street afrobeats 2026, raw energetic Lagos street vibe, punchy percussion, catchy slang-heavy hooks, Shoday Ayo Maff Zerry DL Famous Pluto style: youthful confident delivery, viral challenge energy, gritty yet melodic, club and TikTok weapon", bpm: 110, negativePrompt: "smooth orchestral pads, deep ambient chill, metal distortion, slow doina melancholy" },
 { label: "Melodic House", cat: "House & Electronic", prompt: "melodic house 2026, emotional progressive synths, lush pads & driving bass, Anyma Tale Of Us CamelPhat Afterlife style: cinematic festival journeys, atmospheric melodic drops, uplifting yet introspective energy", bpm: 122, negativePrompt: "hard techno aggression, trap 808 dominance, big room supersaw, rage screaming, phonk cowbell" },
 { label: "Progressive House", cat: "House & Electronic", prompt: "progressive house 2026, long epic builds, layered melodic synths, anthemic breakdowns, festival mainstage energy, Deadmau5 Eric Prydz modern style: soaring leads, vocal chops in builds, emotional cinematic feel", bpm: 126, negativePrompt: "trap hi-hat triplets, reggae one-drop, smooth jazz chords, lo-fi bedroom chill, country" },
 { label: "Electro House", cat: "House & Electronic", prompt: "electro house 2026, heavy distorted bass drops, energetic synths, festival crowd hype, Dimitri Vegas Martin Garrix vintage-modern style: aggressive vocal chops, build-drop structure, high-energy shout-along", bpm: 128, negativePrompt: "smooth jazz pads, orchestral waltz, reggae groove, acoustic ballad, deep minimal" },
@@ -351,19 +369,22 @@ const GENRE_PRESETS = [
   
   // ── Afrobeats / Afropop ────────────────────────────────────────────────────────
 // Actualizat Martie 2026: dominant global, Amapiano fusion masiv, log drum mai subtil în mainstream, artiști noi + crossover cu Afro-house / pop
-{ label: "Afrobeats", cat: "Afrobeats / Afropop", prompt: "afrobeats 2026, infectious groovy percussion, log drum tuned bass, upbeat danceable rhythms, soulful melodic vocals, global party energy, Wizkid Burna Boy Rema Asake Tyla Davido style: catchy multilingual hooks, high-life guitar licks or shimmering synths, celebratory uplifting vibe, streaming radio crossover shine", bpm: 108, negativePrompt: "dark trap 808 slides, aggressive rage screams, orchestral epic without groove, boom bap raw drums, metal distortion" },
-{ label: "Amapiano Fusion", cat: "Afrobeats / Afropop", prompt: "amapiano afrobeats fusion 2026, deep rolling log drums, warm piano chords, hypnotic South African-Nigerian groove, soulful vocal chops, Kabza De Small DJ Maphorisa Asake Davido Tyla style: laid-back yet infectious bounce, atmospheric pads, jazzy subtle elements, township-to-global dancefloor ritual", bpm: 113, negativePrompt: "fast trap hi-hat triplets, hyperpop glitch chaos, heavy metal guitars, slow ambient drone, pure reggaeton dembow" },
-{ label: "Afro-fusion Pop", cat: "Afrobeats / Afropop", prompt: "afro-fusion pop 2026, afrobeats meets mainstream pop/R&B, polished glossy production, emotional or party melodic hooks, Tyla Ayra Starr Qing Madi Seyi Vibez Rema style: smooth auto-tune touches, tropical percussion layers, major key uplift, viral TikTok/Reels ready crossover sound", bpm: 105, negativePrompt: "dark phonk cowbell, drill sliding 808 aggression, lo-fi vinyl crackle, orchestral symphony heavy" },
-{ label: "Afro House Crossover", cat: "Afrobeats / Afropop", prompt: "afro house 2026, four-on-the-floor kick meets afrobeats percussion, deep sub bass, hypnotic tribal grooves, soulful vocals or chants, Black Coffee Keinemusik &Me Tyla Burna Boy influence: warm organic textures, congas shakers log drum hybrid, uplifting yet deep warehouse / festival energy", bpm: 120, negativePrompt: "trap hi-hat spam, big room supersaw drops, harsh industrial noise, pure trap 808 dominance" },
-{ label: "Alté / Soulful Afrobeats", cat: "Afrobeats / Afropop", prompt: "alté soulful afrobeats 2026, slower mid-tempo groove, introspective emotional vocals, R&B funk lo-fi influences, Odunsi Cruel Santino Lady Donli Fireboy DML Omah Lay style: minimalist production, nostalgic textures, conversational delivery, heartfelt storytelling over groovy bass", bpm: 100, negativePrompt: "high-energy festival drops, aggressive rage elements, hyperpop maximalism, fast jungle breaks" },
-{ label: "Afro-Latin Tech", cat: "House & Electronic", prompt: "high-energy afro-latin house 2026, Aaron Sevilla & Mijangos style, driving tech-house bassline, organic congas & bongos, rhythmic spanish vocal fragments, tribal sun-drenched energy, techy synth stabs, peak-time club groove, rhythmic tension", bpm: 124, negativePrompt: "eurodance synths, melancholic violin, ambient wash, lo-fi grit, dubstep growls, pop piano" },
-{ label: "Melodic Afro-Tech", cat: "House & Electronic", prompt: "sophisticated melodic afro house 2026, Maz & Antdot style, lush analog synth plucks, driving organic percussion, deep melodic bass progression, emotive melodic breakdowns, brazilian-influenced rhythms, high-fidelity spatial textures, professional club master", bpm: 123, negativePrompt: "aggressive industrial techno, distorted vocals, chaotic noise, cheap casio sounds, trap hi-hat triplets" },
-{ label: "Ancestral / Dark Afro", cat: "House & Electronic", prompt: "raw ancestral soul 2026, Boddhi Satva & Shimza style, heavy djembe patterns, deep sub-bass drones, spiritual african chanting, polyrhythmic complexity, dark warehouse afro energy, driving floor-focused rhythm, ritualistic atmosphere", bpm: 122, negativePrompt: "bright cheesy pop chords, electric guitar solos, thin drum samples, jazz scatting, EDM risers" },
-{ label: "Organic Sunset Afro", cat: "House & Electronic", prompt: "organic afro house 2026, Keinemusik &Me Adam Port style: soft percussive layers, warm rhodes chords, soulful vocal whispers, atmospheric bird sounds, sunset beach club vibe, elegant minimalist groove, wooden percussion textures", bpm: 120, negativePrompt: "distorted 808, heavy metal, aggressive stabs, neurofunk bass, plastic digital sounds" },
-{ label: "Ethno / Desert House", cat: "House & Electronic", prompt: "ethno afro house 2026, Bedouin & Sabo style, middle-eastern instrumentation, oud and ney flute melodies, hypnotic slow-burn afro groove, spiritual ritual percussion, organic foley, sunset festival atmosphere, deep mystical journey", bpm: 118, negativePrompt: "heavy metal guitars, hyperpop vocals, jump-up dnb bass, glitchy digital artifacts, radio pop" },
-{ label: "Amapiano Hybrid", cat: "House & Electronic", prompt: "afro house amapiano fusion 2026, deep soulful house, log drum bass accents, shaker loops, jazzy piano chords, South African house energy, smooth transition between afro-tech and amapiano, warm sub-bass, log drum texture", bpm: 115, negativePrompt: "aggressive saw leads, industrial noise, trance arpeggios, high-pitched screeching, rock drums" },
+{ label: "Afro-Latin Tech Pop", cat: "Afrobeats / Afropop", prompt: "high-energy afro-latin fusion 2026, Aaron Sevilla & Mijangos style, driving club bassline, organic congas & bongos, rhythmic spanish vocal fragments, tribal pop energy, techy synth stabs, peak-time global groove, rhythmic tension", bpm: 124, negativePrompt: "eurodance synths, melancholic violin, ambient wash, lo-fi grit, dubstep growls, pop piano" },
 
-{ label: "Naija Street Afrobeats", cat: "Afrobeats / Afropop", prompt: "naija street afrobeats 2026, raw energetic Lagos street vibe, punchy percussion, catchy slang-heavy hooks, Shoday Ayo Maff Zerry DL Famous Pluto style: youthful confident delivery, viral challenge energy, gritty yet melodic, club and TikTok weapon", bpm: 110, negativePrompt: "smooth orchestral pads, deep ambient chill, metal distortion, slow doina melancholy" },
+{ label: "Melodic Afro-Pop", cat: "Afrobeats / Afropop", prompt: "sophisticated melodic afropop 2026, Maz & Antdot style, lush analog synth plucks, driving organic percussion, deep melodic bass progression, emotive vocal breakdowns, brazilian-influenced rhythms, high-fidelity spatial textures, radio-ready club master", bpm: 123, negativePrompt: "aggressive industrial techno, distorted vocals, chaotic noise, cheap casio sounds, trap hi-hat triplets" },
+
+{ label: "Ancestral Pop Soul", cat: "Afrobeats / Afropop", prompt: "raw ancestral afrobeats 2026, Boddhi Satva & Shimza style, heavy djembe patterns, deep sub-bass drones, spiritual african chanting, polyrhythmic complexity, dark club energy, driving rhythm, ritualistic atmosphere with pop appeal", bpm: 122, negativePrompt: "bright cheesy pop chords, electric guitar solos, thin drum samples, jazz scatting, EDM risers" },
+
+{ label: "Organic Sunset Pop", cat: "Afrobeats / Afropop", prompt: "organic afropop 2026, Keinemusik &Me Adam Port style: soft percussive layers, warm rhodes chords, soulful vocal whispers, atmospheric textures, sunset beach club vibe, elegant minimalist groove, wooden percussion, global pop crossover", bpm: 120, negativePrompt: "distorted 808, heavy metal, aggressive stabs, neurofunk bass, plastic digital sounds" },
+
+{ label: "Ethno / Desert Pop", cat: "Afrobeats / Afropop", prompt: "ethno afropop 2026, Bedouin & Sabo style, middle-eastern instrumentation, oud and ney flute melodies, hypnotic slow-burn groove, spiritual ritual percussion, organic foley, sunset festival atmosphere, deep mystical pop journey", bpm: 118, negativePrompt: "heavy metal guitars, hyperpop vocals, jump-up dnb bass, glitchy digital artifacts, radio pop" },
+
+{ label: "Amapiano Pop Hybrid", cat: "Afrobeats / Afropop", prompt: "afropop amapiano fusion 2026, deep soulful afrobeats, log drum bass accents, shaker loops, jazzy piano chords, South African pop energy, smooth transition between tech and amapiano, warm sub-bass, log drum texture", bpm: 115, negativePrompt: "aggressive saw leads, industrial noise, trance arpeggios, high-pitched screeching, rock drums" },
+
+{ label: "Stutter / Liquid Pop", cat: "Afrobeats / Afropop", prompt: "stutter house 2026, PinkPantheress style, chopped soulful vocals, fast breakbeat influenced percussion, liquid synth textures, nostalgic 2000s aesthetic, dreamy atmosphere, rhythmic vocal gating, high-speed rhythmic energy", bpm: 135, negativePrompt: "heavy distorted bass, slow ambient drone, aggressive metal vocals, cinematic brass, acoustic folk guitar" },
+
+{ label: "Baile Funk Evolution", cat: "Afrobeats / Afropop", prompt: "modern baile funk fusion 2026, brazilian phonk elements, aggressive rhythmic percussion, heavy sub-bass 808, vocal funk chants, gritty urban textures, global club energy, high-intensity dancefloor rhythm, sharp metallic snares", bpm: 130, negativePrompt: "trance pads, orchestral strings, slow tempo, country music, soft acoustic piano" },
+
 ];
 
 // ── Default Category Metadata ──────────────────────────────────────────────────
@@ -898,6 +919,12 @@ export default function AceStepTab({
   const [cleaningTemp, setCleaningTemp] = useState(false);
   const [cleanResult, setCleanResult] = useState(null);
 
+  // ── Lyrics Library ────────────────────────────────────────────────────────
+  const [lyricsLibrary, setLyricsLibrary] = useState(loadLyricsLibrary);
+  const [showLyricsLibrary, setShowLyricsLibrary] = useState(false);
+  const [lyricsSaveName, setLyricsSaveName] = useState("");
+  const [showLyricsSaveInput, setShowLyricsSaveInput] = useState(false);
+
   const TENSOR_MODELS = [
     { 
       id: "acestep-v15-turbo", 
@@ -1128,6 +1155,50 @@ export default function AceStepTab({
     if (settings.keyScale !== undefined) setKeyScale(settings.keyScale);
     if (settings.negativePrompt !== undefined) setNegativePrompt(settings.negativePrompt);
     if (settings.sourceStrength !== undefined) setSourceStrength(settings.sourceStrength);
+  };
+
+  // ── Lyrics Library functions ───────────────────────────────────────────────
+  const saveLyricsToLibrary = () => {
+    if (!lyrics.trim() || !lyricsSaveName.trim()) return;
+    
+    const newEntry = {
+      id: Date.now(),
+      name: lyricsSaveName.trim(),
+      lyrics: lyrics.trim(),
+      createdAt: new Date().toLocaleString("ro-RO"),
+    };
+    
+    const updated = [newEntry, ...lyricsLibrary];
+    setLyricsLibrary(updated);
+    saveLyricsToStorage(updated);
+    setLyricsSaveName("");
+    setShowLyricsSaveInput(false);
+    addLog(`📚 Lyrics saved: ${lyricsSaveName}`);
+  };
+
+  const loadLyricsFromLibrary = (entry) => {
+    setLyrics(entry.lyrics);
+    setShowLyricsLibrary(false);
+    addLog(`📚 Lyrics loaded: ${entry.name}`);
+  };
+
+  const deleteLyricsFromLibrary = (id) => {
+    const updated = lyricsLibrary.filter(l => l.id !== id);
+    setLyricsLibrary(updated);
+    saveLyricsToStorage(updated);
+    addLog(`📚 Lyrics deleted`);
+  };
+
+  const downloadLyrics = (entry) => {
+    const blob = new Blob([entry.lyrics], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${entry.name.replace(/[^a-z0-9]/gi, "_")}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   // ── Current settings snapshot (for saving) ────────────────────────────────
@@ -1405,6 +1476,100 @@ export default function AceStepTab({
         currentSettings={currentSettings}
         onLoad={handleLoadPreset}
       />
+
+      {/* Lyrics Save Input Modal */}
+      {showLyricsSaveInput && (
+        <div style={S.overlay} onClick={e => e.target === e.currentTarget && setShowLyricsSaveInput(false)}>
+          <div style={S.modal}>
+            <div style={S.header}>
+              <div>
+                <div style={{ color: "#e0e0ff", fontSize: 16, fontWeight: 900 }}>💾 Save Lyrics</div>
+                <div style={{ color: "#444466", fontSize: 11, marginTop: 2 }}>Save to your lyrics library</div>
+              </div>
+              <button onClick={() => setShowLyricsSaveInput(false)} style={{ background: "#e6394611", color: "#e63946", border: "1px solid #e6394633", borderRadius: 8, padding: "6px 12px", fontSize: 13, cursor: "pointer", fontWeight: 700 }}>✕</button>
+            </div>
+
+            <div style={{ padding: "20px" }}>
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ color: "#6666aa", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>📝 Lyrics Name</div>
+                <input
+                  type="text"
+                  value={lyricsSaveName}
+                  onChange={e => setLyricsSaveName(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && saveLyricsToLibrary()}
+                  placeholder="e.g. Love Song, Party Anthem, etc."
+                  autoFocus
+                  style={{
+                    width: "100%",
+                    background: "#080812",
+                    border: "1px solid #2a2a4a",
+                    color: "#e0e0ff",
+                    borderRadius: 8,
+                    padding: "10px 12px",
+                    fontSize: 13,
+                    outline: "none",
+                  }}
+                  onFocus={e => e.target.style.borderColor = "#06d6a0"}
+                  onBlur={e => e.target.style.borderColor = "#2a2a4a"}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: 8 }}>
+                <button onClick={() => setShowLyricsSaveInput(false)} style={{ flex: 1, background: "#0a0a1a", color: "#6666aa", border: "1px solid #2a2a4a", borderRadius: 8, padding: "10px", fontSize: 13, cursor: "pointer" }}>Cancel</button>
+                <button onClick={saveLyricsToLibrary} disabled={!lyricsSaveName.trim()} style={{ flex: 1, background: lyricsSaveName.trim() ? "#06d6a022" : "#1a1a2e", color: lyricsSaveName.trim() ? "#06d6a0" : "#444466", border: `1px solid ${lyricsSaveName.trim() ? "#06d6a044" : "#2a2a4a"}`, borderRadius: 8, padding: "10px", fontSize: 13, cursor: lyricsSaveName.trim() ? "pointer" : "not-allowed", fontWeight: 700 }}>💾 Save Lyrics</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Lyrics Library Modal */}
+      {showLyricsLibrary && (
+        <div style={S.overlay} onClick={e => e.target === e.currentTarget && setShowLyricsLibrary(false)}>
+          <div style={S.modal}>
+            <div style={S.header}>
+              <div>
+                <div style={{ color: "#e0e0ff", fontSize: 16, fontWeight: 900 }}>📚 Lyrics Library</div>
+                <div style={{ color: "#444466", fontSize: 11, marginTop: 2 }}>{lyricsLibrary.length} saved lyrics</div>
+              </div>
+              <button onClick={() => setShowLyricsLibrary(false)} style={{ background: "#e6394611", color: "#e63946", border: "1px solid #e6394633", borderRadius: 8, padding: "6px 12px", fontSize: 13, cursor: "pointer", fontWeight: 700 }}>✕</button>
+            </div>
+
+            <div style={{ padding: "0 20px 20px", maxHeight: 400, overflowY: "auto" }}>
+              {lyricsLibrary.length === 0 ? (
+                <div style={{ textAlign: "center", color: "#444466", fontSize: 13, padding: "40px 20px" }}>
+                  📭 No saved lyrics yet
+                  <div style={{ fontSize: 11, marginTop: 4, color: "#6666aa" }}>Click "💾 Save" to add lyrics to your library</div>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {lyricsLibrary.map(entry => (
+                    <div key={entry.id} style={{
+                      background: "#0a0a1a",
+                      border: "1px solid #2a2a4a",
+                      borderRadius: 8,
+                      padding: "12px",
+                    }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                        <div style={{ color: "#ffd166", fontSize: 13, fontWeight: 700 }}>💾 {entry.name}</div>
+                        <div style={{ color: "#444466", fontSize: 10 }}>{entry.createdAt}</div>
+                      </div>
+                      <div style={{ color: "#6666aa", fontSize: 11, fontFamily: "monospace", marginBottom: 8, maxHeight: 60, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "pre-wrap" }}>
+                        {entry.lyrics.slice(0, 150)}{entry.lyrics.length > 150 ? "..." : ""}
+                      </div>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button onClick={() => loadLyricsFromLibrary(entry)} style={{ flex: 1, background: "#06d6a022", color: "#06d6a0", border: "1px solid #06d6a044", borderRadius: 6, padding: "6px", fontSize: 11, cursor: "pointer", fontWeight: 700 }}>▶ Load</button>
+                        <button onClick={() => downloadLyrics(entry)} style={{ background: "#ffd16622", color: "#ffd166", border: "1px solid #ffd16644", borderRadius: 6, padding: "6px 10px", fontSize: 11, cursor: "pointer" }}>📥</button>
+                        <button onClick={() => deleteLyricsFromLibrary(entry.id)} style={{ background: "#e6394622", color: "#e63946", border: "1px solid #e6394644", borderRadius: 6, padding: "6px 10px", fontSize: 11, cursor: "pointer" }}>🗑</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <div style={{ textAlign: "center", marginBottom: 24 }}>
