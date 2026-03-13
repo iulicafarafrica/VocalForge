@@ -2749,16 +2749,11 @@ async def ace_generate(
 
                     print(f"[ACE {job_id[:8]}] Done in {t_sec}s — {duration_sec}s audio ({out_size_mb}MB)")
 
-                    # Auto-unload ACE-Step model to free RAM (optional)
-                    try:
-                        print(f"[ACE {job_id[:8]}] Unloading ACE-Step model to free RAM...")
-                        unload_headers = {}
-                        if ACE_STEP_API_KEY:
-                            unload_headers["Authorization"] = f"Bearer {ACE_STEP_API_KEY}"
-                        await client.post(f"{ACE_STEP_API}/v1/unload", headers=unload_headers, timeout=10.0)
-                        print(f"[ACE {job_id[:8]}] ✅ Model unloaded successfully")
-                    except Exception as unload_err:
-                        print(f"[ACE {job_id[:8]}] ⚠️ Model unload skipped: {unload_err}")
+                    # Auto-unload ACE-Step model to free RAM
+                    # Note: ACE-Step doesn't have /v1/unload endpoint, so we skip it
+                    # RAM will be freed when ACE-Step process is restarted
+                    print(f"[ACE {job_id[:8]}] ℹ️ Model stays loaded in ACE-Step (restart API to free RAM)")
+                    print(f"[ACE {job_id[:8]}] ℹ️ To free RAM: Restart ACE-Step API or run CLEAN_CONDA.bat")
 
                     return {
                         "status": "ok",
