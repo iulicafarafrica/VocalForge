@@ -751,18 +751,22 @@ export default function AceStepTab({
 
   // Auto-adjust inferSteps when model changes
   useEffect(() => {
-    if (modelInfo && modelInfo.steps) {
-      setInferSteps(modelInfo.steps);
+    const currentModel = TENSOR_MODELS.find(m => m.id === tensorModel);
+    if (currentModel && currentModel.steps) {
+      setInferSteps(currentModel.steps);
     }
-  }, [tensorModel, modelInfo]);
+  }, [tensorModel]);
 
   // Auto-adjust guidanceScale when model changes (CFG)
   // Turbo models: default 3.5, Base/SFT models: default 7.0
   useEffect(() => {
-    if (modelInfo) {
-      setGuidanceScale(modelInfo.cfg ? 7.0 : 3.5);
+    const currentModel = TENSOR_MODELS.find(m => m.id === tensorModel);
+    if (currentModel) {
+      // Set default guidance scale based on model type
+      // Turbo (no CFG): 3.5 | SFT/Base (with CFG): 7.0
+      setGuidanceScale(currentModel.cfg ? 7.0 : 3.5);
     }
-  }, [tensorModel, modelInfo]);
+  }, [tensorModel]);
 
   // Task type model compatibility
   const taskTypeModelSupport = {
