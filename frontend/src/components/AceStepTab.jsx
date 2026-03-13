@@ -729,6 +729,13 @@ export default function AceStepTab({
   // Current model info (computed from selected model)
   const modelInfo = TENSOR_MODELS.find(m => m.id === tensorModel) || TENSOR_MODELS[0];
 
+  // Auto-adjust inferSteps when model changes
+  useEffect(() => {
+    if (modelInfo && modelInfo.steps) {
+      setInferSteps(modelInfo.steps);
+    }
+  }, [tensorModel, modelInfo]);
+
   // Task type model compatibility
   const taskTypeModelSupport = {
     text2music: {
