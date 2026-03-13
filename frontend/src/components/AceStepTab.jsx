@@ -744,7 +744,7 @@ export default function AceStepTab({
   ];
 
   // Default DIT Model (user can select from dropdown)
-  const [tensorModel, setTensorModel] = useState("acestep-v15-sft");
+  const [tensorModel, setTensorModel] = useState("acestep-v15-turbo");
 
   // Current model info (computed from selected model)
   const modelInfo = TENSOR_MODELS.find(m => m.id === tensorModel) || TENSOR_MODELS[0];
