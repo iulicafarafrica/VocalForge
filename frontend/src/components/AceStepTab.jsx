@@ -1459,7 +1459,7 @@ export default function AceStepTab({
   };
 
   return (
-    <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+    <div style={{ maxWidth: 900, margin: "0 auto" }}>
       {/* Preset Manager Modal */}
       <PresetManager
         open={showPresets}
@@ -1616,7 +1616,7 @@ export default function AceStepTab({
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
 
         {/* LEFT */}
         <div>
