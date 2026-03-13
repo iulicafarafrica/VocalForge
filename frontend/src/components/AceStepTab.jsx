@@ -682,6 +682,21 @@ export default function AceStepTab({
       hasComplete: false
     },
     { 
+      id: "acestep-v15-sft-turbo_0.5", 
+      name: "⚡ SFT-Turbo 0.5", 
+      desc: "Hybrid │ ~2 min │ Balanced", 
+      color: "#ffd166", 
+      steps: 20,  // Estimated hybrid steps
+      cfg: true,  // ✅ CFG support (estimated)
+      features: "Text2Music, Cover, Repaint",
+      vram: "~5-6GB",
+      quality: "High",
+      diversity: "Medium",
+      hasExtract: false,
+      hasLego: false,
+      hasComplete: false
+    },
+    { 
       id: "acestep-v15-sft", 
       name: "🎵 SFT", 
       desc: "50 steps │ ~3 min │ Quality", 
@@ -690,6 +705,21 @@ export default function AceStepTab({
       cfg: true,  // ✅ CFG support
       features: "Text2Music, Cover, Repaint",
       vram: "~6-7GB",
+      quality: "High",
+      diversity: "Medium",
+      hasExtract: false,
+      hasLego: false,
+      hasComplete: false
+    },
+    { 
+      id: "acestep-v15-base-sft", 
+      name: "🎯 Base-SFT", 
+      desc: "50 steps │ ~3 min │ Enhanced", 
+      color: "#00e5ff", 
+      steps: 50,  // Same as base
+      cfg: true,  // ✅ CFG support
+      features: "Text2Music, Cover, Repaint",
+      vram: "~7-8GB",
       quality: "High",
       diversity: "Medium",
       hasExtract: false,
@@ -738,32 +768,44 @@ export default function AceStepTab({
   const taskTypeModelSupport = {
     text2music: {
       'acestep-v15-turbo': { supported: true, note: '✅ Fast (8 steps), No CFG' },
+      'acestep-v15-sft-turbo_0.5': { supported: true, note: '✅ Balanced (20 steps)' },
       'acestep-v15-sft': { supported: true, note: '✅ High quality (50 steps)' },
+      'acestep-v15-base-sft': { supported: true, note: '✅ Enhanced (50 steps)' },
       'acestep-v15-base': { supported: true, note: '✅ All features (50 steps)' },
     },
     audio2audio: {
       'acestep-v15-turbo': { supported: true, note: '✅ Fast (8 steps), No CFG' },
+      'acestep-v15-sft-turbo_0.5': { supported: true, note: '✅ Balanced (20 steps)' },
       'acestep-v15-sft': { supported: true, note: '✅ High quality (50 steps)' },
+      'acestep-v15-base-sft': { supported: true, note: '✅ Enhanced (50 steps)' },
       'acestep-v15-base': { supported: true, note: '✅ All features (50 steps)' },
     },
     repaint: {
       'acestep-v15-turbo': { supported: true, note: '✅ Fast (8 steps)' },
+      'acestep-v15-sft-turbo_0.5': { supported: true, note: '✅ Balanced (20 steps)' },
       'acestep-v15-sft': { supported: true, note: '✅ High quality (50 steps)' },
+      'acestep-v15-base-sft': { supported: true, note: '✅ Enhanced (50 steps)' },
       'acestep-v15-base': { supported: true, note: '✅ All features (50 steps)' },
     },
     lego: {
       'acestep-v15-turbo': { supported: false, note: '❌ Base model only' },
+      'acestep-v15-sft-turbo_0.5': { supported: false, note: '❌ Base model only' },
       'acestep-v15-sft': { supported: false, note: '❌ Base model only' },
+      'acestep-v15-base-sft': { supported: false, note: '❌ Base model only' },
       'acestep-v15-base': { supported: true, note: '✅ Exclusive feature' },
     },
     complete: {
       'acestep-v15-turbo': { supported: false, note: '❌ Base model only' },
+      'acestep-v15-sft-turbo_0.5': { supported: false, note: '❌ Base model only' },
       'acestep-v15-sft': { supported: false, note: '❌ Base model only' },
+      'acestep-v15-base-sft': { supported: false, note: '❌ Base model only' },
       'acestep-v15-base': { supported: true, note: '✅ Exclusive feature' },
     },
     extract: {
       'acestep-v15-turbo': { supported: false, note: '❌ Base model only' },
+      'acestep-v15-sft-turbo_0.5': { supported: false, note: '❌ Base model only' },
       'acestep-v15-sft': { supported: false, note: '❌ Base model only' },
+      'acestep-v15-base-sft': { supported: false, note: '❌ Base model only' },
       'acestep-v15-base': { supported: true, note: '✅ Exclusive feature' },
     },
   };
