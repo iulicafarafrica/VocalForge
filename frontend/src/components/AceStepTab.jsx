@@ -665,30 +665,85 @@ export default function AceStepTab({
   const [cleaningTemp, setCleaningTemp] = useState(false);
   const [cleanResult, setCleanResult] = useState(null);
 
-  // Default DIT Model (no UI selection)
-  const tensorModel = "acestep-v15-sft";
-
   const TENSOR_MODELS = [
-    { id: "acestep-v15-merge", name: "🎯 Merge SFT+Turbo", desc: "8 steps │ Best of both worlds", color: "#06d6a0", steps: 8, cfg: false, features: "Turbo speed + SFT quality" },
-    { id: "acestep-v15-turbo", name: "⚡ Turbo", desc: "8 steps │ CFG: ❌ │ Fast", color: "#06d6a0", steps: 8, cfg: false, features: "Standard" },
-    { id: "acestep-v15-turbo-shift3", name: "⚡ Turbo Shift3", desc: "8 steps │ CFG: ❌ │ Alternative", color: "#06d6a0", steps: 8, cfg: false, features: "Standard" },
-    { id: "acestep-v15-base", name: "🎯 Base", desc: "50 steps │ CFG: ✅ │ All Features", color: "#00e5ff", steps: 50, cfg: true, features: "Lego, Complete, Extract" },
-    { id: "acestep-v15-sft", name: "🎵 SFT", desc: "50 steps │ CFG: ✅ │ High Quality", color: "#c77dff", steps: 50, cfg: true, features: "Standard" },
+    { 
+      id: "acestep-v15-turbo", 
+      name: "⚡ Turbo", 
+      desc: "8 steps │ ~1 min │ Fast", 
+      color: "#06d6a0", 
+      steps: 8, 
+      cfg: false, 
+      features: "Standard",
+      vram: "~4-5GB",
+      quality: "9/10"
+    },
+    { 
+      id: "acestep-v15-sft-turbo_0.5", 
+      name: "⚡ SFT-Turbo", 
+      desc: "Hybrid │ ~2 min │ Balanced", 
+      color: "#ffd166", 
+      steps: 20, 
+      cfg: true, 
+      features: "Standard",
+      vram: "~5-6GB",
+      quality: "9/10"
+    },
+    { 
+      id: "acestep-v15-sft", 
+      name: "🎵 SFT", 
+      desc: "50 steps │ ~3 min │ Quality", 
+      color: "#c77dff", 
+      steps: 50, 
+      cfg: true, 
+      features: "Standard",
+      vram: "~6-7GB",
+      quality: "9/10"
+    },
+    { 
+      id: "acestep-v15-base-sft", 
+      name: "🎯 Base-SFT", 
+      desc: "50 steps │ ~3 min │ Enhanced", 
+      color: "#00e5ff", 
+      steps: 50, 
+      cfg: true, 
+      features: "Standard",
+      vram: "~7-8GB",
+      quality: "9/10"
+    },
+    { 
+      id: "acestep-v15-base", 
+      name: "🎯 Base", 
+      desc: "50 steps │ ~4 min │ All Features", 
+      color: "#118ab2", 
+      steps: 50, 
+      cfg: true, 
+      features: "Lego, Complete, Extract",
+      vram: "~7-8GB",
+      quality: "8/10"
+    },
   ];
+
+  // Current model info (computed from selected model)
+  const modelInfo = TENSOR_MODELS.find(m => m.id === tensorModel) || TENSOR_MODELS[0];
+
+  // Default DIT Model (user can select from dropdown)
+  const [tensorModel, setTensorModel] = useState("acestep-v15-sft");
 
   // Task type model compatibility
   const taskTypeModelSupport = {
     text2music: {
       'acestep-v15-turbo': { supported: true, note: '✅ Fast (8 steps)' },
-      'acestep-v15-turbo-shift3': { supported: true, note: '✅ Fast (8 steps)' },
-      'acestep-v15-base': { supported: true, note: '✅ Full features + CFG (50 steps)' },
-      'acestep-v15-sft': { supported: true, note: '✅ High quality + CFG (50 steps)' },
+      'acestep-v15-sft-turbo_0.5': { supported: true, note: '✅ Balanced (20 steps)' },
+      'acestep-v15-sft': { supported: true, note: '✅ High quality (50 steps)' },
+      'acestep-v15-base-sft': { supported: true, note: '✅ Enhanced (50 steps)' },
+      'acestep-v15-base': { supported: true, note: '✅ All features (50 steps)' },
     },
     audio2audio: {
       'acestep-v15-turbo': { supported: true, note: '✅ Fast (8 steps)' },
-      'acestep-v15-turbo-shift3': { supported: true, note: '✅ Fast (8 steps)' },
-      'acestep-v15-base': { supported: true, note: '✅ Full features + CFG (50 steps)' },
-      'acestep-v15-sft': { supported: true, note: '✅ High quality + CFG (50 steps)' },
+      'acestep-v15-sft-turbo_0.5': { supported: true, note: '✅ Balanced (20 steps)' },
+      'acestep-v15-sft': { supported: true, note: '✅ High quality (50 steps)' },
+      'acestep-v15-base-sft': { supported: true, note: '✅ Enhanced (50 steps)' },
+      'acestep-v15-base': { supported: true, note: '✅ All features (50 steps)' },
     },
   };
 
@@ -824,9 +879,10 @@ export default function AceStepTab({
     // Custom mode: limit duration to 60s max (avoid timeout)
     const effectiveDuration = isCustom ? Math.min(duration, 60) : duration;
 
-    // Turbo models: limit to 8 steps max (they're distilled for 8 steps)
-    const isTurbo = tensorModel.includes("turbo");
-    const effectiveSteps = isTurbo ? Math.min(inferSteps, 8) : inferSteps;
+    // Auto-adjust steps based on selected model
+    const modelInfo = TENSOR_MODELS.find(m => m.id === tensorModel);
+    const modelSteps = modelInfo?.steps || inferSteps;
+    const effectiveSteps = modelSteps;  // Use model-specific steps
 
     setProcessing(true);
     setProgress(5);
@@ -2147,6 +2203,60 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
             borderRadius: "0 0 12px 12px",
             padding: 20,
           }}>
+            {/* Model Selection */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ color: "#ffd166", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>
+                🦁 ACE-Step Model Selection
+              </div>
+              <select
+                value={tensorModel}
+                onChange={e => setTensorModel(e.target.value)}
+                style={{
+                  width: "100%",
+                  background: "#080812",
+                  border: "1px solid #2a2a4a",
+                  color: "#e0e0ff",
+                  borderRadius: 8,
+                  padding: "12px 16px",
+                  fontSize: 13,
+                  cursor: "pointer",
+                }}
+              >
+                {TENSOR_MODELS.map(model => (
+                  <option key={model.id} value={model.id}>
+                    {model.name} — {model.desc}
+                  </option>
+                ))}
+              </select>
+              
+              {/* Model Info */}
+              {modelInfo && (
+                <div style={{
+                  marginTop: 12,
+                  padding: 12,
+                  background: `linear-gradient(135deg, ${modelInfo.color}22, ${modelInfo.color}11)`,
+                  border: `1px solid ${modelInfo.color}44`,
+                  borderRadius: 8,
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr 1fr",
+                  gap: 8,
+                }}>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ color: modelInfo.color, fontSize: 16, fontWeight: 900 }}>{modelInfo.steps}</div>
+                    <div style={{ color: "#6666aa", fontSize: 10 }}>Steps</div>
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ color: modelInfo.color, fontSize: 16, fontWeight: 900 }}>{modelInfo.vram}</div>
+                    <div style={{ color: "#6666aa", fontSize: 10 }}>VRAM</div>
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ color: modelInfo.color, fontSize: 16, fontWeight: 900 }}>{modelInfo.quality}</div>
+                    <div style={{ color: "#6666aa", fontSize: 10 }}>Quality</div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* LM Parameters */}
             <div style={{ marginBottom: 20 }}>
               <div style={{ color: "#00e5ff", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>
