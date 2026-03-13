@@ -890,7 +890,6 @@ export default function AceStepTab({
     setResult(null);
 
     // Log generation parameters to console AND app logs
-    const modelInfo = TENSOR_MODELS.find(m => m.id === tensorModel);
     const modelName = modelInfo?.name || 'Unknown';
 
     console.log(`[ACE-Step] === GENERATION START ===`);
