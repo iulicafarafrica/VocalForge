@@ -723,11 +723,11 @@ export default function AceStepTab({
     },
   ];
 
-  // Current model info (computed from selected model)
-  const modelInfo = TENSOR_MODELS.find(m => m.id === tensorModel) || TENSOR_MODELS[0];
-
   // Default DIT Model (user can select from dropdown)
   const [tensorModel, setTensorModel] = useState("acestep-v15-sft");
+
+  // Current model info (computed from selected model)
+  const modelInfo = TENSOR_MODELS.find(m => m.id === tensorModel) || TENSOR_MODELS[0];
 
   // Task type model compatibility
   const taskTypeModelSupport = {
