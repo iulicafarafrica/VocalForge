@@ -3,6 +3,48 @@
 
 ## [Unreleased] - 2026-03-12
 
+### 📚 NEW: Lyrics Library Feature
+
+**Save & Load Lyrics**
+- ✅ **Save Lyrics** button next to lyrics textarea
+- ✅ **Lyrics Library Modal** — browse all saved lyrics
+- ✅ **Load** — instantly load saved lyrics into textarea
+- ✅ **Download** — export lyrics as .txt file
+- ✅ **Delete** — remove lyrics from library
+- ✅ **localStorage Persistence** — no server needed, saved in browser
+
+**UI Improvements**
+- ✅ **Centered Modals** — proper positioning (no more top-aligned popups)
+- ✅ **Scroll internally** — page doesn't scroll when modal is open
+- ✅ **Clear button names** — "💾 Save Lyrics" and "📂 Lyrics Library (X)"
+
+---
+
+### 🎵 Genre Presets Updates
+
+**House & Electronic**
+- ✅ Updated with 23 subgenres including:
+  - Afro House, Melodic Techno, Progressive House
+  - Ancestral/Dark Afro, Organic Sunset Afro
+  - Ethno/Desert House, Amapiano Hybrid
+  - Baile Funk 150+, Jersey Club House, Desert House
+- ✅ Description updated: "House, techno, EDM, afro house, melodic, progressive, ethno, desert"
+
+**Afrobeats / Afropop**
+- ✅ Updated with 12 subgenres including:
+  - Afrobeats, Amapiano Fusion, Afro-fusion Pop
+  - Afro House Crossover, Alté/Soulful Afrobeats
+  - Naija Street Afrobeats, Afro-Latin Tech
+  - Melodic Afro-Tech, Organic Sunset Afro
+- ✅ Description updated: "Afrobeats, amapiano, afro-fusion, alté, naija street, Afro-Latin"
+
+**Genre Fallback Fix**
+- ✅ All genres now use built-in `QUICK_GENRES` as fallback
+- ✅ No more "Full genres could not be loaded" error
+- ✅ Empty categories eliminated from UI
+
+---
+
 ### 🔧 TECHNICAL IMPROVEMENTS
 
 **ACE-Step Official Parameters Alignment**

@@ -46,6 +46,19 @@
 
 ### **🔧 Latest Updates (2026-03-12)**
 
+**Lyrics Library Feature** 📚
+- ✅ **Save Lyrics** — Save your favorite lyrics to local library
+- ✅ **Lyrics Library Modal** — Browse, load, download, delete saved lyrics
+- ✅ **localStorage Persistence** — Lyrics saved in browser (no server needed)
+- ✅ **Download as .txt** — Export lyrics to text files
+- ✅ **Centered Modals** — Proper positioning, no page scroll
+
+**Genre Presets Updates** 🎵
+- ✅ **House & Electronic** — Updated with 23 subgenres (Afro House, Melodic Techno, etc.)
+- ✅ **Afrobeats / Afropop** — Updated with 12 subgenres (Amapiano, Afro-fusion, etc.)
+- ✅ **DEFAULT_CAT_META** — Descriptions updated to reflect new subgenres
+- ✅ **All genres use built-in QUICK_GENRES** as fallback (no empty categories)
+
 **ACE-Step Official Parameters**
 - ✅ All LM parameters aligned with official ACE-Step v1.5 API:
   - `lm_temperature`: 0.85 (official default)
