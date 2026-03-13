@@ -178,7 +178,7 @@ def _suppress_connection_reset(loop, context):
         return
     loop.default_exception_handler(context)
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -209,22 +209,67 @@ app.add_middleware(
 from endpoints.audio_analysis import router as audio_analysis_router
 app.include_router(audio_analysis_router)
 
-app.mount("/tracks", StaticFiles(directory=OUTPUT_DIR), name="tracks")
+# Serve audio files with range support (for seeking/scrubbing)
+from starlette.responses import StreamingResponse, FileResponse
+import re
 
-from fastapi.responses import FileResponse
-
-@app.get("/audio/{filename}")
-async def serve_audio(filename: str):
+@app.get("/tracks/{filename:path}")
+async def serve_track(filename: str, request: Request):
+    """Serve audio files with HTTP Range support for seeking."""
     file_path = os.path.join(OUTPUT_DIR, filename)
+    
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found")
+    
+    file_size = os.path.getsize(file_path)
     ext = filename.rsplit(".", 1)[-1].lower()
-    media_types = {"mp3": "audio/mpeg", "wav": "audio/wav", "flac": "audio/flac"}
+    media_types = {"mp3": "audio/mpeg", "wav": "audio/wav", "flac": "audio/flac", "m4a": "audio/mp4"}
     media_type = media_types.get(ext, "audio/mpeg")
-    return FileResponse(file_path, media_type=media_type, headers={
-        "Accept-Ranges": "bytes",
-        "Cache-Control": "no-cache",
-    })
+    
+    # Support range requests for audio seeking
+    range_header = request.headers.get("range")
+    
+    if range_header:
+        # Parse range header
+        range_match = re.search(r"bytes=(\d+)-(\d*)", range_header)
+        if range_match:
+            start = int(range_match.group(1))
+            end = int(range_match.group(2)) if range_match.group(2) else file_size - 1
+            end = min(end, file_size - 1)
+            
+            # Stream the requested range
+            def iterfile():
+                with open(file_path, "rb") as f:
+                    f.seek(start)
+                    remaining = end - start + 1
+                    chunk_size = 1024 * 1024  # 1MB chunks
+                    while remaining > 0:
+                        chunk = f.read(min(chunk_size, remaining))
+                        if not chunk:
+                            break
+                        remaining -= len(chunk)
+                        yield chunk
+            
+            headers = {
+                "Content-Range": f"bytes {start}-{end}/{file_size}",
+                "Accept-Ranges": "bytes",
+                "Content-Length": str(end - start + 1),
+                "Content-Type": media_type,
+                "Cache-Control": "no-cache",
+            }
+            return StreamingResponse(iterfile(), status_code=206, headers=headers, media_type=media_type)
+    else:
+        # No range request - send full file
+        headers = {
+            "Accept-Ranges": "bytes",
+            "Content-Length": str(file_size),
+            "Content-Type": media_type,
+            "Cache-Control": "no-cache",
+        }
+        def iterfile():
+            with open(file_path, "rb") as f:
+                yield from f
+        return StreamingResponse(iterfile(), headers=headers, media_type=media_type)
 
 # Include ACE-Step Advanced router
 app.include_router(acestep_advanced_router)
