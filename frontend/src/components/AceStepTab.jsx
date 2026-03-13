@@ -2244,12 +2244,16 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                   border: `1px solid ${modelInfo.color}44`,
                   borderRadius: 8,
                   display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr",
+                  gridTemplateColumns: "1fr 1fr 1fr 1fr",
                   gap: 8,
                 }}>
                   <div style={{ textAlign: "center" }}>
                     <div style={{ color: modelInfo.color, fontSize: 16, fontWeight: 900 }}>{modelInfo.steps}</div>
                     <div style={{ color: "#6666aa", fontSize: 10 }}>Steps</div>
+                  </div>
+                  <div style={{ textAlign: "center" }}>
+                    <div style={{ color: modelInfo.color, fontSize: 16, fontWeight: 900 }}>{modelInfo.cfg ? '7.0' : '❌'}</div>
+                    <div style={{ color: "#6666aa", fontSize: 10 }}>CFG</div>
                   </div>
                   <div style={{ textAlign: "center" }}>
                     <div style={{ color: modelInfo.color, fontSize: 16, fontWeight: 900 }}>{modelInfo.vram}</div>
