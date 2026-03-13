@@ -2327,6 +2327,30 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
               )}
             </div>
 
+            {/* Model Loading Status */}
+            <div style={{
+              marginTop: 12,
+              padding: 10,
+              background: "#080812",
+              border: "1px solid #2a2a4a",
+              borderRadius: 6,
+              fontSize: 11,
+              fontFamily: "monospace",
+              color: "#444466",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ color: "#ffd166" }}>📋</span>
+                <span>Selected Model: <strong style={{ color: modelInfo.color }}>{modelInfo.name}</strong></span>
+                <span style={{ color: "#6666aa" }}>│</span>
+                <span>Steps: <strong style={{ color: "#06d6a0" }}>{modelInfo.steps}</strong></span>
+                <span style={{ color: "#6666aa" }}>│</span>
+                <span>CFG: <strong style={{ color: modelInfo.cfg ? "#06d6a0" : "#6666aa" }}>{modelInfo.cfg ? '✅' : '❌'}</strong></span>
+              </div>
+              <div style={{ marginTop: 6, color: "#6666aa" }}>
+                💡 Model will be loaded automatically when you click Generate
+              </div>
+            </div>
+
             {/* LM Parameters */}
             <div style={{ marginBottom: 20 }}>
               <div style={{ color: "#00e5ff", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>
