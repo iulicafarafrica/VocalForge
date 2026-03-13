@@ -344,17 +344,19 @@ const GENRE_PRESETS = [
 { label: "Naija Street Afrobeats", cat: "Afrobeats / Afropop", prompt: "naija street afrobeats 2026, raw energetic Lagos street vibe, punchy percussion, catchy slang-heavy hooks, Shoday Ayo Maff Zerry DL Famous Pluto style: youthful confident delivery, viral challenge energy, gritty yet melodic, club and TikTok weapon", bpm: 110, negativePrompt: "smooth orchestral pads, deep ambient chill, metal distortion, slow doina melancholy" },
 ];
 
-// Valori implicite per categorie pentru preset-uri complete (negative prompt, BPM etc.) — ca în JSON
+// ── Default Category Metadata ──────────────────────────────────────────────────
+// Folosit pentru UI: iconițe, culori tematice, descrieri scurte, ordine în dropdown etc.
+// Extins Martie 2026 cu trenduri reale (rock/metal revival, indie surge, pop dominant etc.)
 const DEFAULT_CAT_META = {
   "Hip-Hop": {
     lm_negative_prompt: "orchestral symphony, smooth jazz, four-on-the-floor EDM, cheesy pop chorus, country twang",
     bpm: 0,
     instrumental: false,
     // Visual metadata
-    icon: "🎤",
-    color: "#ffd166",
-    description: "Rap, trap, boom bap, drill",
-    featuredArtists: "Nas, Migos, Nirvana",
+    icon: "🎤🔥",
+    color: "#c77dff",          // mov energic, urban/rap vibe
+    description: "De la boom bap clasic la trap rage, melodic, drill, phonk și jerk – 808 heavy, flows agresive sau emoționale, underground la mainstream.",
+    featuredArtists: "Playboi Carti, Travis Scott, 21 Savage, Glokk40Spaz, Osamason, Killa Fonic, Rava",
     order: 1,
   },
   "Romanian": {
@@ -362,10 +364,10 @@ const DEFAULT_CAT_META = {
     bpm: 0,
     instrumental: false,
     // Visual metadata
-    icon: "🇷🇴",
-    color: "#00e5ff",
-    description: "Manele, folclor, pop românesc",
-    featuredArtists: "Florin Salam, Maria Tănase, Inna",
+    icon: "🇷🇴🎶",
+    color: "#ff4757",          // roșu pasional românesc
+    description: "Manele etno/house/viral, trap pop RO, melodic rap românesc, folclor modern, muzică de petrecere/nuntă – de la stradal la radio-friendly.",
+    featuredArtists: "Florin Salam, Killa Fonic, Rava, Ian, Andra, Inna, Connect-R",
     order: 2,
   },
   "Rock & Metal": {
@@ -373,21 +375,21 @@ const DEFAULT_CAT_META = {
     bpm: 0,
     instrumental: false,
     // Visual metadata
-    icon: "🎸",
-    color: "#e63946",
-    description: "Classic rock, metalcore, death metal",
-    featuredArtists: "Led Zeppelin, Metallica, Linkin Park",
+    icon: "🎸🤘",
+    color: "#e63946",          // roșu intens rock/metal
+    description: "Revival masiv 2026: alternative rock, nu-metal nostalgia, post-hardcore, industrial metal, shoegaze, hybrid cu electronic/hip-hop.",
+    featuredArtists: "Bring Me The Horizon, Sleep Token, Spiritbox, Bad Omens, Gojira, Korn revival wave",
     order: 3,
   },
-  "House": {
+  "House & Electronic": {
     lm_negative_prompt: "metal guitars, trap hats, rap vocals, orchestral, reggae one-drop, lo-fi cassette",
     bpm: 0,
     instrumental: false,
     // Visual metadata
-    icon: "🏠",
-    color: "#06d6a0",
-    description: "Deep house, techno, progressive",
-    featuredArtists: "Frankie Knuckles, Daft Punk, Carl Cox",
+    icon: "🔊🎧",
+    color: "#06d6a0",          // verde fresh, dance/electronic energy
+    description: "Four-on-the-floor grooves, deep house, tech house, afro house, melodic techno, UKG revival, bass house – festival la underground.",
+    featuredArtists: "Black Coffee, Fisher, Tale Of Us, Keinemusik, &ME, salute, Kordhell",
     order: 4,
   },
   "Reggae": {
@@ -403,10 +405,10 @@ const DEFAULT_CAT_META = {
   },
   "default": {
     icon: "🎵",
-    color: "#6666aa",
-    description: "Selectează un gen",
+    color: "#8888aa",
+    description: "Gen variat – alege un preset sau explorează!",
     featuredArtists: "",
-    order: 99,
+    order: 999,
   },
 };
 
