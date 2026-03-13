@@ -650,7 +650,7 @@ export default function AceStepTab({
   const [lmTopP, setLmTopP] = useState(0.9);
   const [instrumental, setInstrumental] = useState(false);
   const [vocalLanguage, setVocalLanguage] = useState("ro");
-  const [audioFormat, setAudioFormat] = useState("mp3");
+  const [audioFormat, setAudioFormat] = useState("mp3");  // Default: MP3 320kbps
   const [inferMethod, setInferMethod] = useState("ode");
   const [shift, setShift] = useState(3.0);
   const [useTiledDecode, setUseTiledDecode] = useState(true);
@@ -2452,7 +2452,7 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                     onChange={e => setAudioFormat(e.target.value)}
                     style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 6, padding: "8px 12px", fontSize: 12 }}
                   >
-                    <option value="mp3">MP3 (Compressed)</option>
+                    <option value="mp3">MP3 (320 kbps - High Quality)</option>
                     <option value="wav">WAV (Uncompressed)</option>
                     <option value="flac">FLAC (Lossless)</option>
                   </select>

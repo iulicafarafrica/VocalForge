@@ -164,7 +164,7 @@ async def _poll_acestep_task(
 def _convert_wav_to_mp3(
     wav_path: str,
     mp3_path: str,
-    bitrate: str = "192k"
+    bitrate: str = "320k"
 ) -> str:
     """
     Convert WAV to MP3 via FFmpeg.

@@ -103,7 +103,7 @@ for _ffp in _FFMPEG_COMMON:
 # Default output format: mp3 (smaller file size, better compatibility)
 # Change to "wav" if you need uncompressed audio
 OUTPUT_FORMAT = "mp3"  # "mp3" or "wav"
-MP3_BITRATE = "192k"   # Quality: 128k, 192k, 256k, 320k
+MP3_BITRATE = "320k"   # Quality: 128k, 192k, 256k, 320k
 
 # ── Logging configuration ────────────────────────────────────────────────────────
 import logging
