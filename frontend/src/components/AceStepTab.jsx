@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { AudioVisualizer } from "react-audio-visualize";
 
 const API = "http://localhost:8000";
 
@@ -665,9 +664,6 @@ export default function AceStepTab({
   // ── Clean Temp Files ──────────────────────────────────────────────────────
   const [cleaningTemp, setCleaningTemp] = useState(false);
   const [cleanResult, setCleanResult] = useState(null);
-
-  // Audio refs for visualizer
-  const audioRef = useRef(null);
 
   const TENSOR_MODELS = [
     { 
@@ -2180,54 +2176,8 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                 <div style={{ color: "#333355", fontSize: 10, marginBottom: 6, fontFamily: "monospace" }}>⏳ Detecting BPM & Key...</div>
               )}
               
-              {/* Audio Player with Spectrum Visualizer */}
-              <div style={{
-                background: "#0a0a1a",
-                border: "1px solid #1a1a2e",
-                borderRadius: 8,
-                padding: 12,
-                marginBottom: 8,
-                maxWidth: "100%",
-              }}>
-                {/* Spectrum Visualizer - Only shows when audio is playing */}
-                <div style={{ 
-                  width: "100%", 
-                  height: 60, 
-                  marginBottom: 12,
-                  background: "#080812",
-                  borderRadius: 4,
-                  overflow: "hidden",
-                }}>
-                  <AudioVisualizer
-                    audioRef={audioRef}
-                    width={500}  // Fixed width that fits in container
-                    height={60}
-                    barWidth={3}
-                    gap={2}
-                    barColor="#06d6a0"
-                    backgroundColor="#080812"
-                    roundedBars
-                  />
-                </div>
-
-                {/* Audio Controls */}
-                <audio
-                  ref={audioRef}
-                  controls
-                  src={result.url}
-                  preload="metadata"
-                  style={{ width: "100%" }}
-                  onLoadedMetadata={(e) => {
-                    console.log('[Audio] Duration:', e.target.duration, 's');
-                  }}
-                  onPlay={() => {
-                    console.log('[Audio] Playing - visualizer should show');
-                  }}
-                  onError={(e) => {
-                    console.error('[Audio] Error:', e);
-                  }}
-                />
-              </div>
+              {/* Audio Player */}
+              <audio controls src={result.url} preload="metadata" style={{ width: "100%", marginBottom: 8 }} />
               <div style={{ display: "flex", gap: 8 }}>
                 <button
                   onClick={async () => {
