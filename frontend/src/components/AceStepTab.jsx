@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { AudioVisualizer } from "react-audio-visualize";
 
 const API = "http://localhost:8000";
 
@@ -664,6 +665,9 @@ export default function AceStepTab({
   // ── Clean Temp Files ──────────────────────────────────────────────────────
   const [cleaningTemp, setCleaningTemp] = useState(false);
   const [cleanResult, setCleanResult] = useState(null);
+
+  // Audio refs for visualizer
+  const audioRef = useRef(null);
 
   const TENSOR_MODELS = [
     { 
@@ -2175,11 +2179,42 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
               {!resultBpm && result && (
                 <div style={{ color: "#333355", fontSize: 10, marginBottom: 6, fontFamily: "monospace" }}>⏳ Detecting BPM & Key...</div>
               )}
-              <audio controls src={result.url} preload="metadata" style={{ width: "100%", marginBottom: 8 }} onLoadedMetadata={(e) => {
-                console.log('[Audio] Metadata loaded:', e.target.duration, 'seconds');
-              }} onError={(e) => {
-                console.error('[Audio] Error loading:', e);
-              }} />
+              
+              {/* Audio Player with Spectrum Visualizer */}
+              <div style={{
+                background: "#0a0a1a",
+                border: "1px solid #1a1a2e",
+                borderRadius: 8,
+                padding: 12,
+                marginBottom: 8,
+              }}>
+                {/* Spectrum Visualizer */}
+                <AudioVisualizer
+                  audioRef={audioRef}
+                  width={800}
+                  height={80}
+                  barWidth={3}
+                  gap={2}
+                  barColor="#06d6a0"
+                  backgroundColor="#080812"
+                  roundedBars
+                />
+                
+                {/* Audio Controls */}
+                <audio
+                  ref={audioRef}
+                  controls
+                  src={result.url}
+                  preload="metadata"
+                  style={{ width: "100%", marginTop: 12 }}
+                  onLoadedMetadata={(e) => {
+                    console.log('[Audio] Metadata loaded:', e.target.duration, 'seconds');
+                  }}
+                  onError={(e) => {
+                    console.error('[Audio] Error loading:', e);
+                  }}
+                />
+              </div>
               <div style={{ display: "flex", gap: 8 }}>
                 <button
                   onClick={async () => {
