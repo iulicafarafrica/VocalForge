@@ -2959,8 +2959,5 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
       </div>
 
     </div>
-  </div>
-    </div>
-      </div>
   );
 }
