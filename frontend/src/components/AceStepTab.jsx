@@ -672,26 +672,11 @@ export default function AceStepTab({
       desc: "8 steps │ ~1 min │ Fast", 
       color: "#06d6a0", 
       steps: 8, 
-      cfg: false,  // ❌ No CFG support (distilled)
-      cfgScale: "N/A",
-      features: "Standard",
+      cfg: false,  // ❌ No CFG support
+      features: "Text2Music, Cover, Repaint",
       vram: "~4-5GB",
       quality: "Very High",
-      hasExtract: false,
-      hasLego: false,
-      hasComplete: false
-    },
-    { 
-      id: "acestep-v15-sft-turbo_0.5", 
-      name: "⚡ SFT-Turbo", 
-      desc: "Hybrid │ ~2 min │ Balanced", 
-      color: "#ffd166", 
-      steps: 20, 
-      cfg: true,  // ✅ CFG support
-      cfgScale: "7.0",
-      features: "Standard",
-      vram: "~5-6GB",
-      quality: "High",
+      diversity: "Medium",
       hasExtract: false,
       hasLego: false,
       hasComplete: false
@@ -703,10 +688,10 @@ export default function AceStepTab({
       color: "#c77dff", 
       steps: 50, 
       cfg: true,  // ✅ CFG support
-      cfgScale: "7.0",
-      features: "Standard",
+      features: "Text2Music, Cover, Repaint",
       vram: "~6-7GB",
       quality: "High",
+      diversity: "Medium",
       hasExtract: false,
       hasLego: false,
       hasComplete: false
@@ -718,10 +703,10 @@ export default function AceStepTab({
       color: "#118ab2", 
       steps: 50, 
       cfg: true,  // ✅ CFG support
-      cfgScale: "7.0",
-      features: "Extract, Lego, Complete",
+      features: "All Features + Extract/Lego/Complete",
       vram: "~7-8GB",
       quality: "Medium",
+      diversity: "High",
       hasExtract: true,
       hasLego: true,
       hasComplete: true
@@ -742,9 +727,10 @@ export default function AceStepTab({
   }, [tensorModel, modelInfo]);
 
   // Auto-adjust guidanceScale when model changes (CFG)
+  // Turbo models: default 3.5, Base/SFT models: default 7.0
   useEffect(() => {
-    if (modelInfo && modelInfo.cfgScale) {
-      setGuidanceScale(parseFloat(modelInfo.cfgScale));
+    if (modelInfo) {
+      setGuidanceScale(modelInfo.cfg ? 7.0 : 3.5);
     }
   }, [tensorModel, modelInfo]);
 
@@ -752,37 +738,31 @@ export default function AceStepTab({
   const taskTypeModelSupport = {
     text2music: {
       'acestep-v15-turbo': { supported: true, note: '✅ Fast (8 steps), No CFG' },
-      'acestep-v15-sft-turbo_0.5': { supported: true, note: '✅ Balanced (20 steps)' },
       'acestep-v15-sft': { supported: true, note: '✅ High quality (50 steps)' },
       'acestep-v15-base': { supported: true, note: '✅ All features (50 steps)' },
     },
     audio2audio: {
       'acestep-v15-turbo': { supported: true, note: '✅ Fast (8 steps), No CFG' },
-      'acestep-v15-sft-turbo_0.5': { supported: true, note: '✅ Balanced (20 steps)' },
       'acestep-v15-sft': { supported: true, note: '✅ High quality (50 steps)' },
       'acestep-v15-base': { supported: true, note: '✅ All features (50 steps)' },
     },
     repaint: {
       'acestep-v15-turbo': { supported: true, note: '✅ Fast (8 steps)' },
-      'acestep-v15-sft-turbo_0.5': { supported: true, note: '✅ Balanced (20 steps)' },
       'acestep-v15-sft': { supported: true, note: '✅ High quality (50 steps)' },
       'acestep-v15-base': { supported: true, note: '✅ All features (50 steps)' },
     },
     lego: {
       'acestep-v15-turbo': { supported: false, note: '❌ Base model only' },
-      'acestep-v15-sft-turbo_0.5': { supported: false, note: '❌ Base model only' },
       'acestep-v15-sft': { supported: false, note: '❌ Base model only' },
       'acestep-v15-base': { supported: true, note: '✅ Exclusive feature' },
     },
     complete: {
       'acestep-v15-turbo': { supported: false, note: '❌ Base model only' },
-      'acestep-v15-sft-turbo_0.5': { supported: false, note: '❌ Base model only' },
       'acestep-v15-sft': { supported: false, note: '❌ Base model only' },
       'acestep-v15-base': { supported: true, note: '✅ Exclusive feature' },
     },
     extract: {
       'acestep-v15-turbo': { supported: false, note: '❌ Base model only' },
-      'acestep-v15-sft-turbo_0.5': { supported: false, note: '❌ Base model only' },
       'acestep-v15-sft': { supported: false, note: '❌ Base model only' },
       'acestep-v15-base': { supported: true, note: '✅ Exclusive feature' },
     },
@@ -2287,10 +2267,10 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                   </div>
                   <div style={{ textAlign: "center" }}>
                     <div style={{ color: modelInfo.cfg ? modelInfo.color : "#6666aa", fontSize: 16, fontWeight: 900 }}>
-                      {modelInfo.cfg ? modelInfo.cfgScale : '❌'}
+                      {modelInfo.cfg ? '✅' : '❌'}
                     </div>
                     <div style={{ color: "#6666aa", fontSize: 10 }}>
-                      {modelInfo.cfg ? 'CFG Scale' : 'No CFG'}
+                      {modelInfo.cfg ? 'CFG Support' : 'No CFG'}
                     </div>
                   </div>
                   <div style={{ textAlign: "center" }}>
