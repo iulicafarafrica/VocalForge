@@ -573,12 +573,71 @@ D:\VocalForge\
 - `gc.collect()` + `torch.cuda.empty_cache()` — Auto cleanup after each generation
 - **Expected RAM usage:** ~2-4GB per generation (stable)
 
-**If you need lyrics generation:**
-1. Set `ACESTEP_INIT_LLM=true` in `ace-step/.env`
-2. **Warning:** RAM usage will grow to ~13-16GB per generation
-3. **Workaround:** Restart ACE-Step API after 3-4 generations
+---
 
-**Manual RAM Cleanup:**
+### **Ce face LLM-ul în ACE-Step?**
+
+LLM-ul are **2 roluri principale**:
+
+#### **1. CoT Caption (Prompt Expansion)**
+- **Cu LLM:** Tu scrii `"trap beat dark"` → LLM expandează la `"dark trap beat, 808 bass, hi-hats, aggressive, minor key, distorted synths..."`
+- **Fără LLM:** Prompt-ul tău merge direct, exact cum l-ai scris
+
+#### **2. CoT Language (Auto Language Detection)**
+- **Cu LLM:** Detectează automat limba lyrics-urilor și setează `vocal_language`
+- **Fără LLM:** Setezi manual `vocal_language` (ex: "en", "ro")
+
+---
+
+### **Comparație: Cu LLM vs Fără LLM**
+
+| Feature | Cu LLM | Fără LLM |
+|---------|--------|----------|
+| **Calitate audio** | ✅ | ✅ **Identica** |
+| **CoT prompt expansion** | ✅ Auto | ❌ Manual (tu scrii) |
+| **Lyrics automate** | ✅ | ❌ Manual |
+| **Detectare limbă** | ✅ Auto | ❌ Setezi manual |
+| **RAM după generare** | 85%+ (~16GB) | **~40% (~4GB)** ✅ |
+| **Viteză generare** | Mai lent | **Mai rapid** ✅ |
+
+---
+
+### **Concluzie**
+
+**Calitatea audio NU se schimbă** — DiT-ul (modelul care generează efectiv audio) rămâne același.
+
+**Singura diferență:**
+- **Cu LLM:** Prompt-urile sunt expandate automat, lyrics detectate automat
+- **Fără LLM:** Scrii prompt-uri detaliate manual, setezi limba manual
+
+**Recomandare:**
+- ✅ **Fără LLM** (`ACESTEP_INIT_LLM=false`) — dacă scrii prompt-uri bune manual → **câștigi RAM și viteză**
+- ⚠️ **Cu LLM** (`ACESTEP_INIT_LLM=true`) — dacă vrei lyrics/prompt expansion automat → **necesită 12GB+ RAM**
+
+---
+
+### **Cum configurezi**
+
+**Pentru RAM minim (recomandat 8GB VRAM):**
+```env
+ACESTEP_INIT_LLM=false  # Default - economisește RAM
+```
+
+**Pentru lyrics automate (necesită 12GB+ RAM):**
+```env
+ACESTEP_INIT_LLM=true  # Doar dacă ai RAM suficient
+```
+
+**Workaround dacă ai nevoie de LLM ocazional:**
+1. Setează `ACESTEP_INIT_LLM=true` în `.env`
+2. Generează lyrics cu LLM
+3. Setează `ACESTEP_INIT_LLM=false` înapoi
+4. Restart ACE-Step API
+
+---
+
+### **Manual RAM Cleanup**
+
 ```bash
 # Windows
 D:\VocalForge\RESTART_ACESTEP.bat
