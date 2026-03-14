@@ -1087,6 +1087,7 @@ export default function AceStepTab({
     // Identity
     { category: "Identity", label: "Female", tags: "female voice", desc: "Defines the base frequency spectrum (baritone vs. soprano)." },
     { category: "Identity", label: "Male", tags: "male voice", desc: "Defines the base frequency spectrum (baritone vs. soprano)." },
+    { category: "Identity", label: "Duet", tags: "male and female duet, vocal harmony interplay", desc: "Both male and female voices in harmony; call-and-response or layered duet." },
     // Quality
     { category: "Quality", label: "Studio Clean", tags: "studio-clean, silent background", desc: "Eliminates background noise; clear studio voice." },
     { category: "Quality", label: "High Fidelity", tags: "high-fidelity, 48kHz", desc: "Increases high-frequency clarity; maximum detail." },
