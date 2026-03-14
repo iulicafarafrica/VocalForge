@@ -1668,7 +1668,7 @@ export default function AceStepTab({
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14 }}>
 
-        {/* COLUMN 1: Task Type + Audio + Prompt Helper */}
+        {/* COLUMN 1: Task Type + Audio + Prompt Helper + Lyrics */}
         <div>
 
           {/* ── Task Type: text2music vs audio2audio vs custom ── */}
@@ -2045,6 +2045,82 @@ export default function AceStepTab({
             </div>
           </div>
 
+          {/* Lyrics */}
+          <div style={S.card}>
+            <span style={S.label}>📝 Lyrics (Optional)</span>
+            <textarea
+              value={lyrics}
+              onChange={e => setLyrics(e.target.value)}
+              placeholder={"Write or paste lyrics here...\n\nTips:\n• Use [verse] and [chorus] tags for structure\n• Keep it natural and rhythmic\n• ACE-Step will sing with proper emotion"}
+              style={{
+                width: "100%", minHeight: 120, background: "#080812",
+                border: "1px solid #2a2a4a", borderRadius: 8,
+                color: "#e0e0ff", fontSize: 13, fontFamily: "monospace",
+                padding: "12px", resize: "vertical", outline: "none", lineHeight: 1.6,
+                boxSizing: "border-box",
+              }}
+              onFocus={e => e.target.style.borderColor = "#c77dff"}
+              onBlur={e => e.target.style.borderColor = "#2a2a4a"}
+            />
+
+            {/* Lyrics Library button */}
+            <div style={{ marginTop: 10 }}>
+              <button onClick={() => setShowLyricsLib(v => !v)} style={{
+                width: "100%", background: showLyricsLib ? "#9b2de022" : "#0a0a1a",
+                color: showLyricsLib ? "#c77dff" : "#6666aa",
+                border: `1px solid ${showLyricsLib ? "#9b2de044" : "#2a2a4a"}`,
+                borderRadius: 8, padding: "8px 12px", fontSize: 11, cursor: "pointer", fontWeight: 600,
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              }}>
+                📚 Lyrics Library
+                {lyricsLibrary.length > 0 && (
+                  <span style={{ background: "#9b2de033", color: "#c77dff", borderRadius: 10, padding: "1px 6px", fontSize: 10, fontWeight: 700 }}>{lyricsLibrary.length}</span>
+                )}
+              </button>
+            </div>
+
+            {/* Lyrics Library */}
+            {showLyricsLib && (
+              <div style={{
+                marginTop: 12,
+                paddingTop: 12,
+                borderTop: "1px solid #1e1e3a",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                  <span style={{ color: "#6666aa", fontSize: 10, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase" }}>📚 Saved lyrics</span>
+                  <button onClick={() => setShowLyricsLib(false)} style={{ background: "transparent", color: "#555577", border: "none", fontSize: 11, cursor: "pointer", padding: "2px 4px" }}>✕ Close</button>
+                </div>
+                <div style={{ maxHeight: 200, overflowY: "auto", paddingRight: 4 }}>
+                  {lyricsLibrary.length === 0 ? (
+                    <div style={{ color: "#444466", fontSize: 12, textAlign: "center", padding: "16px 8px", background: "#080812", borderRadius: 8, border: "1px solid #1a1a2e" }}>
+                      No lyrics saved yet.
+                    </div>
+                  ) : (
+                    lyricsLibrary.map((item, idx) => (
+                      <div key={idx} style={{
+                        display: "flex", flexDirection: "column", gap: 4,
+                        padding: "8px 10px",
+                        background: "#080812",
+                        borderRadius: 6,
+                        marginBottom: 6,
+                        border: "1px solid #1a1a2e",
+                      }}>
+                        <div style={{ color: "#e0e0ff", fontSize: 11, fontWeight: 600 }}>{item.name}</div>
+                        <div style={{ color: "#444466", fontSize: 10, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.lyrics}</div>
+                        <div style={{ display: "flex", gap: 4 }}>
+                          <button onClick={() => { setLyrics(item.lyrics); setShowLyricsLib(false); }}
+                            style={{ background: "#9b2de022", color: "#c77dff", border: "1px solid #9b2de044", borderRadius: 4, padding: "3px 8px", fontSize: 10, cursor: "pointer", fontWeight: 600 }}>Use</button>
+                          <button onClick={() => { const u = lyricsLibrary.filter((_, i) => i !== idx); setLyricsLibrary(u); saveLyricsToStorage(u); }}
+                            style={{ background: "transparent", color: "#555577", border: "1px solid #2a2a4a", borderRadius: 4, padding: "3px 8px", fontSize: 10, cursor: "pointer" }}>🗑</button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
         </div>
 
         {/* COLUMN 2: Music Prompt + BPM/Key + Genres */}
@@ -2269,73 +2345,12 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
 
         </div>
 
-        {/* COLUMN 3: Lyrics + Duration */}
+        {/* COLUMN 3: Duration + Seed */}
         <div>
 
-          {/* Lyrics */}
+          {/* Duration */}
           <div style={S.card}>
-            <span style={S.label}>📝 Lyrics (Optional)</span>
-
-            {/* Duration */}
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                <span style={{ color: "#8888aa", fontSize: 12 }}>⏱ Duration</span>
-                <span style={{ color: "#ffd166", fontSize: 13, fontFamily: "monospace", fontWeight: 700 }}>{duration}s ({Math.floor(duration/60)}:{String(duration%60).padStart(2,'0')})</span>
-              </div>
-              
-              {/* Slider + Input pentru Duration */}
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                <input 
-                  type="range" 
-                  className="duration-slider"
-                  min="15" 
-                  max="240" 
-                  value={duration} 
-                  onChange={(e) => {
-                    const val = Number(e.target.value);
-                    setDuration(val);
-                  }}
-                  style={{ 
-                    flex: 1, 
-                  }} 
-                />
-                <input 
-                  type="number" 
-                  min="15" 
-                  max="240" 
-                  value={duration} 
-                  onChange={(e) => {
-                    const val = Number(e.target.value);
-                    if (val >= 15 && val <= 240) {
-                      setDuration(val);
-                    }
-                  }}
-                  style={{ 
-                    width: 60, 
-                    background: "#080812", 
-                    border: "1px solid #2a2a4a", 
-                    color: "#e0e0ff", 
-                    borderRadius: 6, 
-                    padding: "4px 8px", 
-                    fontSize: 12,
-                    fontFamily: "monospace",
-                    textAlign: "center"
-                  }} 
-                />
-              </div>
-              
-              {/* Quick preset buttons */}
-              <div style={{ display: "flex", gap: 5 }}>
-                {[15, 30, 60, 120, 180, 240].map(d => (
-                  <button key={d} onClick={() => setDuration(d)} style={{
-                    flex: 1, padding: "7px 2px", borderRadius: 6, fontSize: 11, fontWeight: 700,
-                    background: duration === d ? "#ffd16622" : "#0a0a1a",
-                    border: `1px solid ${duration === d ? "#ffd166" : "#2a2a4a"}`,
-                    color: duration === d ? "#ffd166" : "#444466", cursor: "pointer",
-                  }}>{d < 60 ? `${d}s` : `${d/60}m`}</button>
-                ))}
-              </div>
-            </div>
+            <span style={S.label}>⏱ Duration</span>
 
             {/* Guidance Scale */}
             <div style={{ marginBottom: 14 }}>
