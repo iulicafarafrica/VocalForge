@@ -1933,9 +1933,9 @@ export default function AceStepTab({
               ))}
             </div>
 
-            {/* Genuri - Dropdown */}
+            {/* Tags - Dropdown with preview */}
             <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-              <div style={{ color: "#8888aa", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>Genuri</div>
+              <div style={{ color: "#8888aa", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>Tags</div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
                 <select
                   value={selectedGenura}
@@ -1953,13 +1953,13 @@ export default function AceStepTab({
                     cursor: "pointer", outline: "none",
                   }}
                 >
-                  <option value="">Select genre...</option>
+                  <option value="">Select tag...</option>
                   {GENURI_INJECTS.map(g => (
                     <option key={g.label} value={g.label}>{g.label}</option>
                   ))}
                 </select>
                 {selectedGenura && (
-                  <span style={{ color: "#6666aa", fontSize: 9, fontStyle: "italic" }}>
+                  <span style={{ color: "#6666aa", fontSize: 8, fontStyle: "italic", maxWidth: 400, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {GENURI_INJECTS.find(g => g.label === selectedGenura)?.tags}
                   </span>
                 )}
