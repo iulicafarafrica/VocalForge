@@ -1082,34 +1082,61 @@ export default function AceStepTab({
     { code: "tr", name: "Turkish", native: "Türkçe" },
   ];
 
-  // ── Prompt Inject Dashboard ────────────────────────────────────────────────
+  // ── Prompt Helper ──────────────────────────────────────────────────────────
   const PROMPT_INJECTS = {
     "Identitate": [
       { label: "Female", tags: "female voice" },
       { label: "Male", tags: "male voice" },
     ],
-    "Calitate (Fundația)": [
+    "Calitate": [
       { label: "Studio Clean", tags: "studio-clean, silent background" },
-      { label: "High Fidelity", tags: "high-fidelity, 48kHz, crisp transients" },
-      { label: "No Artifacts", tags: "no digital artifacts, smooth modulation" },
+      { label: "High Fidelity", tags: "high-fidelity, 48kHz" },
+      { label: "No Artifacts", tags: "no digital artifacts" },
     ],
     "Performanță": [
-      { label: "Superb Vocals", tags: "master-class vocals, expressive, balanced" },
+      { label: "Master-Class", tags: "master-class vocals, expressive, balanced" },
     ],
-    "Genuri Muzicale": [
-      { label: "Românească", tags: "folk-inspired, soulful, authentic, warm acoustic" },
-      { label: "House", tags: "128bpm, dance-floor energy, deep bass, punchy" },
-      { label: "Reggae", tags: "laid-back groove, offbeat rhythm, warm sub-bass" },
-      { label: "Rock", tags: "electric-driven, raw energy, driving drums, distorted-guitar" },
-      { label: "Trap", tags: "808-heavy, dark atmosphere, sharp hi-hats, hard-hitting" },
-      { label: "Hip Hop", tags: "boom-bap groove, gritty texture, steady-beat" },
-      { label: "Afro House", tags: "tribal-percussion, deep-rhythmic, hypnotic, organic-vibe" },
-      { label: "Oriental Trad.", tags: "traditional-makam, acoustic-percussion, rich-darbuka" },
-      { label: "Oriental Fusion", tags: "oriental-electronic-blend, synth-fusion, dance-oriented" },
-      { label: "Rock & Metal", tags: "heavy-distorted-guitar, energetic-drum-kit, intense-vocal" },
-      { label: "Drum & Base", tags: "high-bpm, breakbeat-energy, rolling-bassline" },
-      { label: "Phonk", tags: "cowbell-rhythm, distorted-bass, dark-lofi-vibe" },
-      { label: "Afrobeat/Pop", tags: "percussive-rhythm, bouncy-groove, melodic-horns" },
+    "Dark Minimal": [
+      { label: "Afro Minimal", tags: "afro-minimal-bass, eerie-atmospheric-pads, sparse-percussion, shadowy-vibe, driving-steady-groove" },
+    ],
+    "Sevilla Style": [
+      { label: "Tribal Afro", tags: "tribal-percussion-layering, deep-afro-groove, syncopated-drums, driving-afro-bassline, spatial-club-mix" },
+    ],
+    "Dragoste / Romantic": [
+      { label: "Intimate", tags: "intimate-vocal-warmth, emotional-breathiness, heartfelt-delivery, romantic-vocal-texture" },
+    ],
+    "Textură 1 (Soul)": [
+      { label: "Soulful", tags: "soulful-delivery, organic-resonance, authentic-phrasing" },
+    ],
+    "Textură 2 (Energic)": [
+      { label: "Energic", tags: "rhythmic-precision, high-energy-delivery, punchy-articulation" },
+    ],
+    "Textură 3 (Chill)": [
+      { label: "Chill", tags: "laid-back-flow, spacious-mix, relaxed-tonal-balance" },
+    ],
+    "Textură 4 (Power)": [
+      { label: "Power", tags: "raw-vocal-intensity, high-dynamic-range, power-delivery" },
+    ],
+    "Textură 5 (Sharp)": [
+      { label: "Sharp", tags: "sharp-articulation, aggressive-flow, polished-presence" },
+    ],
+    "Textură 6 (Lyric)": [
+      { label: "Lyric", tags: "lyrical-clarity, steady-pacing, intimate-texture" },
+    ],
+    "Textură 7 (Hypnotic)": [
+      { label: "Hypnotic", tags: "hypnotic-cadence, lush-vocal-layering, fluid-delivery" },
+    ],
+    "Textură 8 (Oriental)": [
+      { label: "Oriental", tags: "microtonal-accuracy, emotional-ornamentation, resonant-depth" },
+    ],
+    "Textură 9 (Hybrid)": [
+      { label: "Hybrid", tags: "hybrid-vocal-processing, polished-integration, modern-polish" },
+    ],
+    "Textură 10 (Dark/LoFi)": [
+      { label: "Dark LoFi", tags: "distorted-lofi-aesthetic, dark-moody-phrasing, heavy-compression" },
+    ],
+    "Textură 11 (Bright)": [
+      { label: "Bright", tags: "bouncy-vocal-rhythm, bright-melodic-presence, sunny-delivery" },
     ],
   };
 
@@ -1900,93 +1927,29 @@ export default function AceStepTab({
               <span style={{ color: "#6666aa", fontSize: 11 }}>One-click tags injection</span>
             </div>
 
-            {/* Identitate */}
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ color: "#8888aa", fontSize: 11, fontWeight: 700, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Identitate</div>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {PROMPT_INJECTS["Identitate"].map(inj => (
-                  <button
-                    key={inj.label}
-                    onClick={() => injectPrompt(inj.tags)}
-                    style={{
-                      background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 6,
-                      color: "#e0e0ff", padding: "6px 12px", fontSize: 11, fontWeight: 600,
-                      cursor: "pointer", transition: "all 0.15s",
-                    }}
-                    onMouseEnter={e => { e.target.style.borderColor = "#06d6a0"; e.target.style.color = "#06d6a0"; }}
-                    onMouseLeave={e => { e.target.style.borderColor = "#2a2a4a"; e.target.style.color = "#e0e0ff"; }}
-                  >
-                    {inj.label}
-                  </button>
-                ))}
+            {/* Dynamic rendering of all categories */}
+            {Object.entries(PROMPT_INJECTS).map(([category, injects]) => (
+              <div key={category} style={{ marginBottom: 12 }}>
+                <div style={{ color: "#8888aa", fontSize: 11, fontWeight: 700, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>{category}</div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {injects.map(inj => (
+                    <button
+                      key={inj.label}
+                      onClick={() => injectPrompt(inj.tags)}
+                      style={{
+                        background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 6,
+                        color: "#e0e0ff", padding: "6px 12px", fontSize: 11, fontWeight: 600,
+                        cursor: "pointer", transition: "all 0.15s",
+                      }}
+                      onMouseEnter={e => { e.target.style.borderColor = "#06d6a0"; e.target.style.color = "#06d6a0"; }}
+                      onMouseLeave={e => { e.target.style.borderColor = "#2a2a4a"; e.target.style.color = "#e0e0ff"; }}
+                    >
+                      {inj.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-
-            {/* Calitate (Fundația) */}
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ color: "#8888aa", fontSize: 11, fontWeight: 700, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Calitate (Fundația)</div>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {PROMPT_INJECTS["Calitate (Fundația)"].map(inj => (
-                  <button
-                    key={inj.label}
-                    onClick={() => injectPrompt(inj.tags)}
-                    style={{
-                      background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 6,
-                      color: "#e0e0ff", padding: "6px 12px", fontSize: 11, fontWeight: 600,
-                      cursor: "pointer", transition: "all 0.15s",
-                    }}
-                    onMouseEnter={e => { e.target.style.borderColor = "#06d6a0"; e.target.style.color = "#06d6a0"; }}
-                    onMouseLeave={e => { e.target.style.borderColor = "#2a2a4a"; e.target.style.color = "#e0e0ff"; }}
-                  >
-                    {inj.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Performanță */}
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ color: "#8888aa", fontSize: 11, fontWeight: 700, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Performanță</div>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {PROMPT_INJECTS["Performanță"].map(inj => (
-                  <button
-                    key={inj.label}
-                    onClick={() => injectPrompt(inj.tags)}
-                    style={{
-                      background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 6,
-                      color: "#e0e0ff", padding: "6px 12px", fontSize: 11, fontWeight: 600,
-                      cursor: "pointer", transition: "all 0.15s",
-                    }}
-                    onMouseEnter={e => { e.target.style.borderColor = "#06d6a0"; e.target.style.color = "#06d6a0"; }}
-                    onMouseLeave={e => { e.target.style.borderColor = "#2a2a4a"; e.target.style.color = "#e0e0ff"; }}
-                  >
-                    {inj.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Genuri Muzicale */}
-            <div>
-              <div style={{ color: "#8888aa", fontSize: 11, fontWeight: 700, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Genuri Muzicale</div>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {PROMPT_INJECTS["Genuri Muzicale"].map(inj => (
-                  <button
-                    key={inj.label}
-                    onClick={() => injectPrompt(inj.tags)}
-                    style={{
-                      background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 6,
-                      color: "#e0e0ff", padding: "6px 12px", fontSize: 11, fontWeight: 600,
-                      cursor: "pointer", transition: "all 0.15s",
-                    }}
-                    onMouseEnter={e => { e.target.style.borderColor = "#ffd166"; e.target.style.color = "#ffd166"; }}
-                    onMouseLeave={e => { e.target.style.borderColor = "#2a2a4a"; e.target.style.color = "#e0e0ff"; }}
-                  >
-                    {inj.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
 
           {/* Music Prompt */}
