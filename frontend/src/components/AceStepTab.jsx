@@ -1095,45 +1095,34 @@ export default function AceStepTab({
     // Performance
     { category: "Performance", label: "Master-Class", tags: "master-class vocals, expressive, balanced", desc: "Professional compression; voice like in an expensive recording." },
     { category: "Performance", label: "Expressive", tags: "expressive, balanced", desc: "Balanced mix between voice and instruments; pure emotion." },
-    // Dark Minimal Afro
+  ];
+
+  // Tags dropdown options
+  const TAGS_DROPDOWN = [
     { category: "Dark Minimal", label: "Afro Minimal", tags: "afro-minimal-bass, eerie-atmospheric-pads, sparse-percussion, shadowy-vibe, driving-steady-groove", desc: "Thin but deep bass (sub-bass) that dominates the mix." },
-    // Sevilla Style
     { category: "Sevilla Style", label: "Tribal Afro", tags: "tribal-percussion-layering, deep-afro-groove, syncopated-drums, driving-afro-bassline, spatial-club-mix", desc: "Multi-layering of organic drums and conga." },
-    // Dragoste
     { category: "Love", label: "Intimate", tags: "intimate-vocal-warmth, emotional-breathiness, heartfelt-delivery, romantic-vocal-texture", desc: "Focus on low frequencies; voice 'at the listener's ear'." },
-    // Soul
     { category: "Soul", label: "Soulful", tags: "soulful-delivery, organic-resonance, authentic-phrasing", desc: "'Warm' voice, without sounding artificial or processed." },
-    // Energic
     { category: "Energic", label: "Energic", tags: "rhythmic-precision, high-energy-delivery, punchy-articulation", desc: "Clear consonants; perfect for fast, danceable rhythms." },
-    // Chill
     { category: "Chill", label: "Chill", tags: "laid-back-flow, spacious-mix, relaxed-tonal-balance", desc: "Voice placed in a large space; offers auditory relaxation." },
-    // Power
     { category: "Power", label: "Power", tags: "raw-vocal-intensity, high-dynamic-range, power-delivery", desc: "Intense transition from whisper to shout; dramatic impact." },
-    // Sharp
     { category: "Sharp", label: "Sharp", tags: "sharp-articulation, aggressive-flow, polished-presence", desc: "Fast attachment on beat; voice 'cuts' through instruments." },
-    // Lyric
     { category: "Lyric", label: "Lyric", tags: "lyrical-clarity, steady-pacing, intimate-texture", desc: "Focus on diction; you understand every word clearly." },
-    // Hypnotic
     { category: "Hypnotic", label: "Hypnotic", tags: "hypnotic-cadence, lush-vocal-layering, fluid-delivery", desc: "Doubled voice (harmony); 'trance' or dreaming effect." },
-    // Oriental
     { category: "Oriental", label: "Oriental", tags: "microtonal-accuracy, emotional-ornamentation, resonant-depth", desc: "Allows notes 'between keys' (quarter tones) specific to Oriental music." },
-    // Hybrid
     { category: "Hybrid", label: "Hybrid", tags: "hybrid-vocal-processing, polished-integration, modern-polish", desc: "Voice combined with synths; 'top chart' modern sound." },
-    // Dark/LoFi
     { category: "Dark/LoFi", label: "Dark LoFi", tags: "distorted-lofi-aesthetic, dark-moody-phrasing, heavy-compression", desc: "'Dense', muffled sound; specific to underground style." },
-    // Bright
     { category: "Bright", label: "Bright", tags: "bouncy-vocal-rhythm, bright-melodic-presence, sunny-delivery", desc: "Focus on mid-high frequencies; cheerful and bright sound." },
-    // Breath/Intimate
     { category: "Breath/Intimate", label: "Close-Mic", tags: "close-mic-placement, soft-breath-control, whisper-vocal-texture", desc: "Perfect for moments when the voice needs to be 'at the listener's ear'." },
-    // Vocal-Chop
     { category: "Vocal-Chop", label: "Stutter", tags: "stutter-vocal-edits, rhythmic-sampling, glitchy-vocal-texture", desc: "Ideal for House or Phonk style, to make the voice sound like an instrument." },
-    // Grand-Reverb
     { category: "Grand-Reverb", label: "Ethereal", tags: "ethereal-hall-reverb, cavernous-space, long-vocal-tail", desc: "For dramatic pieces, where the voice needs to float in an immense space." },
-    // Dynamic-Grit
     { category: "Dynamic-Grit", label: "Saturate", tags: "saturate-vocal-harmonic, grit-edge, tube-preamp-warmth", desc: "Adds that 'warm dirt' (like vinyl records) that eliminates the 'too digital' sound." },
-    // Wide-Stereo
     { category: "Wide-Stereo", label: "Wide", tags: "stereo-width-expansion, double-tracked-vocal, immersive-pan", desc: "Makes the voice sound 'bigger' than life, filling the entire sound field." },
   ];
+
+  // State for selected tag from dropdown
+  const [selectedTag, setSelectedTag] = useState("");
+  const [tagDescription, setTagDescription] = useState("");
 
   // Function to inject tags into prompt
   const injectPrompt = (tags) => {
@@ -1922,43 +1911,89 @@ export default function AceStepTab({
               <span style={{ color: "#6666aa", fontSize: 10 }}>Click to inject tags</span>
             </div>
 
+            {/* Identity, Quality, Performance - Inline buttons */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
+              {PROMPT_INJECTS.map((item, idx) => (
+                <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                  <div style={{ color: "#8888aa", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>{item.category}</div>
+                  <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                    <button
+                      onClick={() => injectPrompt(item.tags)}
+                      title={item.desc}
+                      style={{
+                        background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 3,
+                        color: "#06d6a0", padding: "3px 6px", fontSize: 8, fontWeight: 600,
+                        cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap", textAlign: "left",
+                      }}
+                      onMouseEnter={e => { e.target.style.borderColor = "#06d6a0"; e.target.style.background = "#06d6a011"; }}
+                      onMouseLeave={e => { e.target.style.borderColor = "#2a2a4a"; e.target.style.background = "#0a0a1a"; }}
+                    >
+                      {item.label}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Tags Dropdown */}
+            <div style={{ marginBottom: 8 }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                <div style={{ color: "#8888aa", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>Tags</div>
+                <select
+                  value={selectedTag}
+                  onChange={(e) => {
+                    setSelectedTag(e.target.value);
+                    const selected = TAGS_DROPDOWN.find(t => t.label === e.target.value);
+                    if (selected) {
+                      setTagDescription(selected.desc);
+                    }
+                  }}
+                  style={{
+                    background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 4,
+                    color: "#e0e0ff", padding: "4px 8px", fontSize: 8, fontWeight: 600,
+                    cursor: "pointer", outline: "none", maxWidth: 200,
+                  }}
+                >
+                  <option value="">Select a tag...</option>
+                  {TAGS_DROPDOWN.map(t => (
+                    <option key={t.label} value={t.label}>{t.label} ({t.category})</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Selected tag description + Inject button */}
+            {tagDescription && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, padding: "6px 8px", background: "#0a0a1a", borderRadius: 4, border: "1px solid #1a1a2e" }}>
+                <span style={{ color: "#6666aa", fontSize: 7, fontStyle: "italic", flex: 1 }}>{tagDescription}</span>
+                <button
+                  onClick={() => {
+                    const selected = TAGS_DROPDOWN.find(t => t.label === selectedTag);
+                    if (selected) {
+                      injectPrompt(selected.tags);
+                      setSelectedTag("");
+                      setTagDescription("");
+                    }
+                  }}
+                  style={{
+                    background: "#06d6a022", border: "1px solid #06d6a0", borderRadius: 4,
+                    color: "#06d6a0", padding: "3px 8px", fontSize: 7, fontWeight: 700,
+                    cursor: "pointer", whiteSpace: "nowrap", textTransform: "uppercase",
+                  }}
+                >
+                  💉 Inject to Prompt
+                </button>
+              </div>
+            )}
+
             {/* Usage Example */}
-            <div style={{ marginBottom: 10, padding: "8px", background: "#0a0a1a", borderRadius: 6, border: "1px solid #1a1a2e" }}>
+            <div style={{ padding: "8px", background: "#0a0a1a", borderRadius: 6, border: "1px solid #1a1a2e" }}>
               <div style={{ color: "#ffd166", fontSize: 8, fontWeight: 700, marginBottom: 4 }}>💡 Example:</div>
               <div style={{ color: "#6666aa", fontSize: 7, lineHeight: 1.5 }}>
                 <span style={{ color: "#8888aa" }}>Want a Dark Minimal Afro track with 'Whisper' and 'Grand Reverb' vocals?</span><br/>
                 <span style={{ color: "#555577" }}>Your command: </span>
                 <span style={{ color: "#06d6a0", fontFamily: "monospace" }}>Title: Shadows, Female, Studio Clean, Superb Vocals, Dark Minimal Afro, Breath/Intimate, Grand-Reverb</span>
               </div>
-            </div>
-
-            {/* 3-column layout: Category > Tags > Audio Effect */}
-            <div style={{ display: "grid", gridTemplateColumns: "100px 180px 1fr", gap: 6, alignItems: "start" }}>
-              {/* Header row */}
-              <div style={{ color: "#8888aa", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px" }}>Category</div>
-              <div style={{ color: "#8888aa", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px" }}>Tags</div>
-              <div style={{ color: "#8888aa", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px" }}>Audio Effect</div>
-
-              {/* Data rows */}
-              {PROMPT_INJECTS.map((item, idx) => (
-                <React.Fragment key={idx}>
-                  <div style={{ color: "#6666aa", fontSize: 8, paddingTop: 2 }}>{item.category}</div>
-                  <button
-                    onClick={() => injectPrompt(item.tags)}
-                    title={item.tags}
-                    style={{
-                      background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 3,
-                      color: "#06d6a0", padding: "3px 6px", fontSize: 8, fontWeight: 600,
-                      cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap", textAlign: "left",
-                    }}
-                    onMouseEnter={e => { e.target.style.borderColor = "#06d6a0"; e.target.style.background = "#06d6a011"; }}
-                    onMouseLeave={e => { e.target.style.borderColor = "#2a2a4a"; e.target.style.color = "#e0e0ff"; e.target.style.background = "#0a0a1a"; }}
-                  >
-                    {item.label}
-                  </button>
-                  <div style={{ color: "#555577", fontSize: 7, lineHeight: 1.4, fontStyle: "italic" }}>{item.desc}</div>
-                </React.Fragment>
-              ))}
             </div>
           </div>
 
