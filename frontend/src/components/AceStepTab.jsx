@@ -1079,6 +1079,7 @@ export default function AceStepTab({
     { code: "es", name: "Spanish", native: "Español" },
     { code: "ar", name: "Arabic", native: "العربية" },
     { code: "el", name: "Greek", native: "Ελληνικά" },
+    { code: "tr", name: "Turkish", native: "Türkçe" },
   ];
 
   // ── Genre presets (full) from presetmanager.json ───────────────────────────
