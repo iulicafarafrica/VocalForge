@@ -1666,9 +1666,9 @@ export default function AceStepTab({
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14 }}>
 
-        {/* LEFT COLUMN */}
+        {/* COLUMN 1: Task Type + Audio + Prompt Helper */}
         <div>
 
           {/* ── Task Type: text2music vs audio2audio vs custom ── */}
@@ -2045,6 +2045,11 @@ export default function AceStepTab({
             </div>
           </div>
 
+        </div>
+
+        {/* COLUMN 2: Music Prompt + BPM/Key + Genres */}
+        <div>
+
           {/* Music Prompt */}
           <div style={S.card}>
             <span style={S.label}>🎼 Music Style / Prompt</span>
@@ -2264,7 +2269,7 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
 
         </div>
 
-        {/* CENTER */}
+        {/* COLUMN 3: Lyrics + Duration */}
         <div>
 
           {/* Lyrics */}
