@@ -2035,12 +2035,12 @@ export default function AceStepTab({
             )}
 
             {/* Usage Example */}
-            <div style={{ padding: "8px", background: "#0a0a1a", borderRadius: 6, border: "1px solid #1a1a2e" }}>
-              <div style={{ color: "#ffd166", fontSize: 8, fontWeight: 700, marginBottom: 4 }}>💡 Example:</div>
-              <div style={{ color: "#6666aa", fontSize: 7, lineHeight: 1.5 }}>
+            <div style={{ padding: "10px 12px", background: "#0a0a1a", borderRadius: 6, border: "1px solid #1a1a2e" }}>
+              <div style={{ color: "#ffd166", fontSize: 10, fontWeight: 700, marginBottom: 6 }}>💡 Example:</div>
+              <div style={{ color: "#6666aa", fontSize: 10, lineHeight: 1.6 }}>
                 <span style={{ color: "#8888aa" }}>Want a Dark Minimal Afro track with 'Whisper' and 'Grand Reverb' vocals?</span><br/>
                 <span style={{ color: "#555577" }}>Your command: </span>
-                <span style={{ color: "#06d6a0", fontFamily: "monospace" }}>Title: Shadows, Female, Studio Clean, Superb Vocals, Dark Minimal Afro, Breath/Intimate, Grand-Reverb</span>
+                <span style={{ color: "#06d6a0", fontFamily: "monospace", fontSize: 10 }}>Title: Shadows, Female, Studio Clean, Superb Vocals, Dark Minimal Afro, Breath/Intimate, Grand-Reverb</span>
               </div>
             </div>
           </div>
