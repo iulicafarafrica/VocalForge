@@ -2818,21 +2818,21 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
 
         </div>
 
-        {/* RIGHT COLUMN — Advanced Settings */}
+        {/* RIGHT COLUMN — Advanced Settings (COMPACT) */}
         <div>
           <div style={{
             background: "linear-gradient(180deg, #0a0a1a, #080812)",
             border: "1px solid #2a2a4a",
-            borderRadius: 12,
-            padding: 20,
+            borderRadius: 10,
+            padding: 10,        // Reduced from 20
           }}>
-            <div style={{ color: "#8888aa", fontSize: 13, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ color: "#8888aa", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
               <span>⚙️</span> Advanced Settings
             </div>
             {/* Model Selection */}
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ color: "#ffd166", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>
-                🦁 ACE-Step Model Selection
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ color: "#ffd166", fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+                🦁 ACE-Step Model
               </div>
               <select
                 value={tensorModel}
@@ -2842,9 +2842,9 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                   background: "#080812",
                   border: "1px solid #2a2a4a",
                   color: "#e0e0ff",
-                  borderRadius: 8,
-                  padding: "12px 16px",
-                  fontSize: 13,
+                  borderRadius: 6,
+                  padding: "8px 10px",
+                  fontSize: 10,
                   cursor: "pointer",
                 }}
               >
@@ -2854,38 +2854,38 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                   </option>
                 ))}
               </select>
-              
+
               {/* Model Info */}
               {modelInfo && (
                 <div style={{
-                  marginTop: 12,
-                  padding: 12,
+                  marginTop: 8,
+                  padding: 8,
                   background: `linear-gradient(135deg, ${modelInfo.color}22, ${modelInfo.color}11)`,
                   border: `1px solid ${modelInfo.color}44`,
-                  borderRadius: 8,
+                  borderRadius: 6,
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr 1fr 1fr",
-                  gap: 8,
+                  gap: 6,
                 }}>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ color: modelInfo.color, fontSize: 16, fontWeight: 900 }}>{modelInfo.steps}</div>
-                    <div style={{ color: "#6666aa", fontSize: 10 }}>Steps</div>
+                    <div style={{ color: modelInfo.color, fontSize: 12, fontWeight: 900 }}>{modelInfo.steps}</div>
+                    <div style={{ color: "#6666aa", fontSize: 8 }}>Steps</div>
                   </div>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ color: modelInfo.cfg ? modelInfo.color : "#6666aa", fontSize: 16, fontWeight: 900 }}>
+                    <div style={{ color: modelInfo.cfg ? modelInfo.color : "#6666aa", fontSize: 12, fontWeight: 900 }}>
                       {modelInfo.cfg ? '✅' : '❌'}
                     </div>
-                    <div style={{ color: "#6666aa", fontSize: 10 }}>
-                      {modelInfo.cfg ? 'CFG Support' : 'No CFG'}
+                    <div style={{ color: "#6666aa", fontSize: 8 }}>
+                      {modelInfo.cfg ? 'CFG' : 'No CFG'}
                     </div>
                   </div>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ color: modelInfo.color, fontSize: 16, fontWeight: 900 }}>{modelInfo.vram}</div>
-                    <div style={{ color: "#6666aa", fontSize: 10 }}>VRAM</div>
+                    <div style={{ color: modelInfo.color, fontSize: 12, fontWeight: 900 }}>{modelInfo.vram}</div>
+                    <div style={{ color: "#6666aa", fontSize: 8 }}>VRAM</div>
                   </div>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ color: modelInfo.color, fontSize: 16, fontWeight: 900 }}>{modelInfo.quality}</div>
-                    <div style={{ color: "#6666aa", fontSize: 10 }}>Quality</div>
+                    <div style={{ color: modelInfo.color, fontSize: 12, fontWeight: 900 }}>{modelInfo.quality}</div>
+                    <div style={{ color: "#6666aa", fontSize: 8 }}>Quality</div>
                   </div>
                 </div>
               )}
@@ -2893,36 +2893,33 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
 
             {/* Model Loading Status */}
             <div style={{
-              marginTop: 12,
-              padding: 10,
+              marginTop: 8,
+              padding: 8,
               background: "#080812",
               border: "1px solid #2a2a4a",
               borderRadius: 6,
-              fontSize: 11,
+              fontSize: 9,
               fontFamily: "monospace",
               color: "#444466",
             }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                 <span style={{ color: "#ffd166" }}>📋</span>
-                <span>Selected Model: <strong style={{ color: modelInfo.color }}>{modelInfo.name}</strong></span>
+                <span>Model: <strong style={{ color: modelInfo.color }}>{modelInfo.name}</strong></span>
                 <span style={{ color: "#6666aa" }}>│</span>
                 <span>Steps: <strong style={{ color: "#06d6a0" }}>{modelInfo.steps}</strong></span>
                 <span style={{ color: "#6666aa" }}>│</span>
                 <span>CFG: <strong style={{ color: modelInfo.cfg ? "#06d6a0" : "#6666aa" }}>{modelInfo.cfg ? '✅' : '❌'}</strong></span>
               </div>
-              <div style={{ marginTop: 6, color: "#6666aa" }}>
-                💡 Model will be loaded automatically when you click Generate
-              </div>
             </div>
 
             {/* LM Parameters */}
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ color: "#00e5ff", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>
-                🧠 Language Model Parameters
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ color: "#00e5ff", fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+                🧠 LM Parameters
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>LM Temperature: {lmTemperature.toFixed(2)}</label>
+                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>Temp: {lmTemperature.toFixed(2)}</label>
                   <input
                     type="range" min="0.5" max="2.0" step="0.01"
                     value={lmTemperature}
@@ -2931,7 +2928,7 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                   />
                 </div>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>LM CFG Scale: {lmCfgScale.toFixed(1)}</label>
+                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>CFG: {lmCfgScale.toFixed(1)}</label>
                   <input
                     type="range" min="1.0" max="5.0" step="0.1"
                     value={lmCfgScale}
@@ -2940,16 +2937,16 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                   />
                 </div>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>Top-K: {lmTopK}</label>
+                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>Top-K: {lmTopK}</label>
                   <input
                     type="number" min="0" max="100"
                     value={lmTopK}
                     onChange={e => setLmTopK(parseInt(e.target.value) || 0)}
-                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 6, padding: "8px 12px", fontSize: 12 }}
+                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 9 }}
                   />
                 </div>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>Top-P: {lmTopP.toFixed(2)}</label>
+                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>Top-P: {lmTopP.toFixed(2)}</label>
                   <input
                     type="range" min="0.8" max="1.0" step="0.01"
                     value={lmTopP}
@@ -2961,24 +2958,24 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
             </div>
 
             {/* Generation Control */}
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ color: "#06d6a0", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>
-                ⚙ Generation Control
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ color: "#06d6a0", fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+                ⚙ Generation
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>Infer Method</label>
+                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>Method</label>
                   <select
                     value={inferMethod}
                     onChange={e => setInferMethod(e.target.value)}
-                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 6, padding: "8px 12px", fontSize: 12 }}
+                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 9 }}
                   >
-                    <option value="ode">ODE (Fast)</option>
-                    <option value="sde">SDE (Stochastic)</option>
+                    <option value="ode">ODE</option>
+                    <option value="sde">SDE</option>
                   </select>
                 </div>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>Timestep Shift: {shift.toFixed(1)}</label>
+                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>Shift: {shift.toFixed(1)}</label>
                   <input
                     type="range" min="1.0" max="5.0" step="0.1"
                     value={shift}
@@ -2988,43 +2985,43 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                   />
                 </div>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>Batch Size: {batchSize}</label>
+                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>Batch: {batchSize}</label>
                   <input
                     type="number" min="1" max="8"
                     value={batchSize}
                     onChange={e => setBatchSize(parseInt(e.target.value) || 1)}
-                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 6, padding: "8px 12px", fontSize: 12 }}
+                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 9 }}
                   />
                 </div>
               </div>
             </div>
 
             {/* Audio & VRAM */}
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ color: "#c77dff", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>
-                🔊 Audio & VRAM
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ color: "#c77dff", fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+                🔊 Audio
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>Output Format</label>
+                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>Format</label>
                   <select
                     value={audioFormat}
                     onChange={e => setAudioFormat(e.target.value)}
-                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 6, padding: "8px 12px", fontSize: 12 }}
+                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 9 }}
                   >
-                    <option value="wav">WAV (Uncompressed - Highest Quality)</option>
-                    <option value="mp3">MP3 (320 kbps - High Quality)</option>
-                    <option value="flac">FLAC (Lossless)</option>
+                    <option value="wav">WAV</option>
+                    <option value="mp3">MP3</option>
+                    <option value="flac">FLAC</option>
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: "flex", alignItems: "center", gap: 8, color: "#6666aa", fontSize: 11, cursor: "pointer" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: 4, color: "#6666aa", fontSize: 9, cursor: "pointer" }}>
                     <input
                       type="checkbox"
                       checked={useTiledDecode}
                       onChange={e => setUseTiledDecode(e.target.checked)}
                     />
-                    Tiled Decode (VRAM optimization)
+                    Tiled Decode
                   </label>
                 </div>
               </div>
@@ -3032,26 +3029,26 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
 
             {/* CoT Controls */}
             {taskType !== "custom" && (
-              <div style={{ marginBottom: 20, padding: "12px 14px", borderRadius: 8, background: "#07071a", border: "1px solid #1a1a3a" }}>
-                <div style={{ fontSize: 11, color: "#444466", fontWeight: 700, marginBottom: 10, letterSpacing: 1, textTransform: "uppercase" }}>
+              <div style={{ marginBottom: 12, padding: "8px 10px", borderRadius: 6, background: "#07071a", border: "1px solid #1a1a3a" }}>
+                <div style={{ fontSize: 9, color: "#444466", fontWeight: 700, marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" }}>
                   🧠 AI Chain-of-Thought
                 </div>
                 {[
-                  { key: "cotMetas", state: useCotMetas, setter: setUseCotMetas, label: "CoT Metas", icon: "🥁", desc: "AI detects and overwrites BPM, Key, Time Signature. OFF = respects your settings." },
-                  { key: "cotCaption", state: useCotCaption, setter: setUseCotCaption, label: "CoT Caption", icon: "🎨", desc: "AI rewrites and expands your style prompt. OFF = uses your exact text." },
-                  { key: "cotLanguage", state: useCotLanguage, setter: setUseCotLanguage, label: "CoT Language", icon: "🌐", desc: "AI detects language from lyrics. OFF = uses your Vocal Language setting." },
+                  { key: "cotMetas", state: useCotMetas, setter: setUseCotMetas, label: "CoT Metas", icon: "🥁", desc: "AI detects BPM, Key, Time Signature" },
+                  { key: "cotCaption", state: useCotCaption, setter: setUseCotCaption, label: "CoT Caption", icon: "🎨", desc: "AI rewrites style prompt" },
+                  { key: "cotLanguage", state: useCotLanguage, setter: setUseCotLanguage, label: "CoT Language", icon: "🌐", desc: "AI detects language from lyrics" },
                 ].map(({ key, state, setter, label, icon, desc }) => (
-                  <div key={key} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 8, paddingBottom: 8, borderBottom: key !== "cotLanguage" ? "1px solid #12122a" : "none" }}>
-                    <div onClick={() => setter(v => !v)} style={{ width: 36, height: 20, borderRadius: 999, flexShrink: 0, marginTop: 2, background: state ? "#9b2de0" : "#1a1a3a", position: "relative", cursor: "pointer", transition: "background 0.2s" }}>
-                      <div style={{ position: "absolute", top: 2, left: state ? 18 : 2, width: 14, height: 14, borderRadius: "50%", background: state ? "#fff" : "#444466", transition: "left 0.2s" }} />
+                  <div key={key} style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 6, paddingBottom: 6, borderBottom: key !== "cotLanguage" ? "1px solid #12122a" : "none" }}>
+                    <div onClick={() => setter(v => !v)} style={{ width: 28, height: 16, borderRadius: 999, flexShrink: 0, marginTop: 2, background: state ? "#9b2de0" : "#1a1a3a", position: "relative", cursor: "pointer", transition: "background 0.2s" }}>
+                      <div style={{ position: "absolute", top: 2, left: state ? 14 : 2, width: 12, height: 12, borderRadius: "50%", background: state ? "#fff" : "#444466", transition: "left 0.2s" }} />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                        <span style={{ fontSize: 13 }}>{icon}</span>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: state ? "#c77dff" : "#444466" }}>{label}</span>
-                        <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 999, fontWeight: 700, background: state ? "#9b2de022" : "#12122a", color: state ? "#c77dff" : "#333355", border: `1px solid ${state ? "#9b2de044" : "#1a1a3a"}` }}>{state ? "ON" : "OFF"}</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2 }}>
+                        <span style={{ fontSize: 11 }}>{icon}</span>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: state ? "#c77dff" : "#444466" }}>{label}</span>
+                        <span style={{ fontSize: 8, padding: "1px 4px", borderRadius: 999, fontWeight: 700, background: state ? "#9b2de022" : "#12122a", color: state ? "#c77dff" : "#333355", border: `1px solid ${state ? "#9b2de044" : "#1a1a3a"}` }}>{state ? "ON" : "OFF"}</span>
                       </div>
-                      <div style={{ fontSize: 11, color: "#333355", lineHeight: 1.4 }}>{desc}</div>
+                      <div style={{ fontSize: 8, color: "#333355", lineHeight: 1.3 }}>{desc}</div>
                     </div>
                   </div>
                 ))}
@@ -3060,19 +3057,19 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
 
             {/* Thinking Mode */}
             <div>
-              <label style={{ display: "flex", alignItems: "center", gap: 10, color: "#ffd166", fontSize: 12, cursor: "pointer" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, color: "#ffd166", fontSize: 9, cursor: "pointer" }}>
                 <input
                   type="checkbox"
                   checked={thinking}
                   onChange={e => setThinking(e.target.checked)}
                 />
-                💭 Thinking Mode (Use 5Hz LM for audio codes - slower but better quality)
+                💭 Thinking Mode (5Hz LM for better quality)
               </label>
             </div>
 
             {/* Clean Temp Files */}
-            <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid #2a2a4a" }}>
-              <div style={{ color: "#e63946", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #2a2a4a" }}>
+              <div style={{ color: "#e63946", fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
                 🧹 Cleanup
               </div>
               <button
@@ -3083,13 +3080,13 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: 8,
+                  gap: 6,
                   background: cleaningTemp ? "#1a1a2e" : "linear-gradient(135deg, #e6394622, #e6394644)",
                   border: "1px solid #e6394666",
                   color: cleaningTemp ? "#666688" : "#e63946",
-                  borderRadius: 8,
-                  padding: "12px 16px",
-                  fontSize: 13,
+                  borderRadius: 6,
+                  padding: "8px 12px",
+                  fontSize: 10,
                   fontWeight: 700,
                   cursor: cleaningTemp ? "not-allowed" : "pointer",
                   opacity: cleaningTemp ? 0.6 : 1,
