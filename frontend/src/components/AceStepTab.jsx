@@ -1921,35 +1921,38 @@ export default function AceStepTab({
           </div>
 
           {/* 🎯 Prompt Helper */}
-          <div style={{ marginBottom: 16, background: "#0d0d22", borderRadius: 10, padding: "14px", border: "1px solid #2a2a4a" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-              <span style={{ color: "#06d6a0", fontSize: 14, fontWeight: 700 }}>🎯 Prompt Helper</span>
-              <span style={{ color: "#6666aa", fontSize: 11 }}>One-click tags injection</span>
+          <div style={{ marginBottom: 16, background: "#0d0d22", borderRadius: 10, padding: "12px", border: "1px solid #2a2a4a" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <span style={{ color: "#06d6a0", fontSize: 13, fontWeight: 700 }}>🎯 Prompt Helper</span>
+              <span style={{ color: "#6666aa", fontSize: 10 }}>Click to inject tags</span>
             </div>
 
             {/* Dynamic rendering of all categories */}
-            {Object.entries(PROMPT_INJECTS).map(([category, injects]) => (
-              <div key={category} style={{ marginBottom: 12 }}>
-                <div style={{ color: "#8888aa", fontSize: 11, fontWeight: 700, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>{category}</div>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  {injects.map(inj => (
-                    <button
-                      key={inj.label}
-                      onClick={() => injectPrompt(inj.tags)}
-                      style={{
-                        background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 6,
-                        color: "#e0e0ff", padding: "6px 12px", fontSize: 11, fontWeight: 600,
-                        cursor: "pointer", transition: "all 0.15s",
-                      }}
-                      onMouseEnter={e => { e.target.style.borderColor = "#06d6a0"; e.target.style.color = "#06d6a0"; }}
-                      onMouseLeave={e => { e.target.style.borderColor = "#2a2a4a"; e.target.style.color = "#e0e0ff"; }}
-                    >
-                      {inj.label}
-                    </button>
-                  ))}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 10 }}>
+              {Object.entries(PROMPT_INJECTS).map(([category, injects]) => (
+                <div key={category} style={{ background: "#0a0a1a", borderRadius: 8, padding: "8px", border: "1px solid #1a1a2e" }}>
+                  <div style={{ color: "#8888aa", fontSize: 9, fontWeight: 700, marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{category}</div>
+                  <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                    {injects.map(inj => (
+                      <button
+                        key={inj.label}
+                        onClick={() => injectPrompt(inj.tags)}
+                        title={inj.tags}
+                        style={{
+                          background: "#080812", border: "1px solid #2a2a4a", borderRadius: 4,
+                          color: "#e0e0ff", padding: "4px 8px", fontSize: 9, fontWeight: 600,
+                          cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap",
+                        }}
+                        onMouseEnter={e => { e.target.style.borderColor = "#06d6a0"; e.target.style.color = "#06d6a0"; e.target.style.background = "#06d6a011"; }}
+                        onMouseLeave={e => { e.target.style.borderColor = "#2a2a4a"; e.target.style.color = "#e0e0ff"; e.target.style.background = "#080812"; }}
+                      >
+                        {inj.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
           {/* Music Prompt */}
