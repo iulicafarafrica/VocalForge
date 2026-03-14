@@ -1927,11 +1927,11 @@ export default function AceStepTab({
               <span style={{ color: "#6666aa", fontSize: 10 }}>Click to inject</span>
             </div>
 
-            {/* Dynamic rendering of all categories */}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+            {/* Dynamic rendering of all categories - organized in rows */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {Object.entries(PROMPT_INJECTS).map(([category, injects]) => (
-                <div key={category} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  <div style={{ color: "#8888aa", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", marginBottom: 2 }}>{category}</div>
+                <div key={category} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                  <div style={{ color: "#8888aa", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>{category}</div>
                   <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
                     {injects.map(inj => (
                       <button
