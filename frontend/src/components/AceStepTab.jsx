@@ -2247,6 +2247,7 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                   { v: 8,  label: "8 ⚡", tip: "Turbo" },
                   { v: 12, label: "12 🚀", tip: "Fast" },
                   { v: 20, label: "20 ✅", tip: "Balanced" },
+                  { v: 32, label: "32 🎨", tip: "High Quality" },
                   { v: 40, label: "40 🎯", tip: "Quality" },
                 ].map(s => (
                   <button key={s.v} onClick={() => setInferSteps(s.v)} title={s.tip} style={{
