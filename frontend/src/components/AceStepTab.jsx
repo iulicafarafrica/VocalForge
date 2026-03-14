@@ -1084,54 +1084,54 @@ export default function AceStepTab({
 
   // ── Prompt Helper ──────────────────────────────────────────────────────────
   const PROMPT_INJECTS = [
-    // Identitate
-    { category: "Identitate", label: "Female", tags: "female voice", desc: "Definește spectrul de frecvențe de bază (bariton vs. sopran)." },
-    { category: "Identitate", label: "Male", tags: "male voice", desc: "Definește spectrul de frecvențe de bază (bariton vs. sopran)." },
-    // Calitate
-    { category: "Calitate", label: "Studio Clean", tags: "studio-clean, silent background", desc: "Elimină zgomotul de fundal; voce clară de studio." },
-    { category: "Calitate", label: "High Fidelity", tags: "high-fidelity, 48kHz", desc: "Crește claritatea frecvențelor înalte; detaliu maxim." },
-    { category: "Calitate", label: "No Artifacts", tags: "no digital artifacts", desc: "Elimină sunetele metalice/robotizate; sunet natural." },
-    // Performanță
-    { category: "Performanță", label: "Master-Class", tags: "master-class vocals, expressive, balanced", desc: "Comprimare profesională; voce ca într-o înregistrare scumpă." },
-    { category: "Performanță", label: "Expressive", tags: "expressive, balanced", desc: "Mixaj echilibrat între voce și instrumente; emoție pură." },
+    // Identity
+    { category: "Identity", label: "Female", tags: "female voice", desc: "Defines the base frequency spectrum (baritone vs. soprano)." },
+    { category: "Identity", label: "Male", tags: "male voice", desc: "Defines the base frequency spectrum (baritone vs. soprano)." },
+    // Quality
+    { category: "Quality", label: "Studio Clean", tags: "studio-clean, silent background", desc: "Eliminates background noise; clear studio voice." },
+    { category: "Quality", label: "High Fidelity", tags: "high-fidelity, 48kHz", desc: "Increases high-frequency clarity; maximum detail." },
+    { category: "Quality", label: "No Artifacts", tags: "no digital artifacts", desc: "Eliminates metallic/robotic sounds; natural sound." },
+    // Performance
+    { category: "Performance", label: "Master-Class", tags: "master-class vocals, expressive, balanced", desc: "Professional compression; voice like in an expensive recording." },
+    { category: "Performance", label: "Expressive", tags: "expressive, balanced", desc: "Balanced mix between voice and instruments; pure emotion." },
     // Dark Minimal Afro
-    { category: "Dark Minimal", label: "Afro Minimal", tags: "afro-minimal-bass, eerie-atmospheric-pads, sparse-percussion, shadowy-vibe, driving-steady-groove", desc: "Bas subțire, dar profund (sub-bass) care domină mixul." },
+    { category: "Dark Minimal", label: "Afro Minimal", tags: "afro-minimal-bass, eerie-atmospheric-pads, sparse-percussion, shadowy-vibe, driving-steady-groove", desc: "Thin but deep bass (sub-bass) that dominates the mix." },
     // Sevilla Style
-    { category: "Sevilla Style", label: "Tribal Afro", tags: "tribal-percussion-layering, deep-afro-groove, syncopated-drums, driving-afro-bassline, spatial-club-mix", desc: "Multi-stratificare de tobe organice și conga." },
+    { category: "Sevilla Style", label: "Tribal Afro", tags: "tribal-percussion-layering, deep-afro-groove, syncopated-drums, driving-afro-bassline, spatial-club-mix", desc: "Multi-layering of organic drums and conga." },
     // Dragoste
-    { category: "Dragoste", label: "Intimate", tags: "intimate-vocal-warmth, emotional-breathiness, heartfelt-delivery, romantic-vocal-texture", desc: "Accent pe frecvențele joase; voce 'la urechea' ascultătorului." },
+    { category: "Love", label: "Intimate", tags: "intimate-vocal-warmth, emotional-breathiness, heartfelt-delivery, romantic-vocal-texture", desc: "Focus on low frequencies; voice 'at the listener's ear'." },
     // Soul
-    { category: "Soul", label: "Soulful", tags: "soulful-delivery, organic-resonance, authentic-phrasing", desc: "Voce 'caldă', fără să pară artificială sau procesată." },
+    { category: "Soul", label: "Soulful", tags: "soulful-delivery, organic-resonance, authentic-phrasing", desc: "'Warm' voice, without sounding artificial or processed." },
     // Energic
-    { category: "Energic", label: "Energic", tags: "rhythmic-precision, high-energy-delivery, punchy-articulation", desc: "Consonante clare; perfect pentru ritmuri rapide și dansabile." },
+    { category: "Energic", label: "Energic", tags: "rhythmic-precision, high-energy-delivery, punchy-articulation", desc: "Clear consonants; perfect for fast, danceable rhythms." },
     // Chill
-    { category: "Chill", label: "Chill", tags: "laid-back-flow, spacious-mix, relaxed-tonal-balance", desc: "Voce plasată într-un spațiu mare; oferă relaxare auditivă." },
+    { category: "Chill", label: "Chill", tags: "laid-back-flow, spacious-mix, relaxed-tonal-balance", desc: "Voice placed in a large space; offers auditory relaxation." },
     // Power
-    { category: "Power", label: "Power", tags: "raw-vocal-intensity, high-dynamic-range, power-delivery", desc: "Trecere intensă de la șoaptă la strigăt; impact dramatic." },
+    { category: "Power", label: "Power", tags: "raw-vocal-intensity, high-dynamic-range, power-delivery", desc: "Intense transition from whisper to shout; dramatic impact." },
     // Sharp
-    { category: "Sharp", label: "Sharp", tags: "sharp-articulation, aggressive-flow, polished-presence", desc: "Atașament rapid pe beat; vocea 'taie' prin instrumente." },
+    { category: "Sharp", label: "Sharp", tags: "sharp-articulation, aggressive-flow, polished-presence", desc: "Fast attachment on beat; voice 'cuts' through instruments." },
     // Lyric
-    { category: "Lyric", label: "Lyric", tags: "lyrical-clarity, steady-pacing, intimate-texture", desc: "Accent pe dicție; înțelegi fiecare cuvânt clar." },
+    { category: "Lyric", label: "Lyric", tags: "lyrical-clarity, steady-pacing, intimate-texture", desc: "Focus on diction; you understand every word clearly." },
     // Hypnotic
-    { category: "Hypnotic", label: "Hypnotic", tags: "hypnotic-cadence, lush-vocal-layering, fluid-delivery", desc: "Voce dublată (harmony); efect de 'trance' sau visare." },
+    { category: "Hypnotic", label: "Hypnotic", tags: "hypnotic-cadence, lush-vocal-layering, fluid-delivery", desc: "Doubled voice (harmony); 'trance' or dreaming effect." },
     // Oriental
-    { category: "Oriental", label: "Oriental", tags: "microtonal-accuracy, emotional-ornamentation, resonant-depth", desc: "Permite note 'între clape' (sferturi de ton) specifice Orientului." },
+    { category: "Oriental", label: "Oriental", tags: "microtonal-accuracy, emotional-ornamentation, resonant-depth", desc: "Allows notes 'between keys' (quarter tones) specific to Oriental music." },
     // Hybrid
-    { category: "Hybrid", label: "Hybrid", tags: "hybrid-vocal-processing, polished-integration, modern-polish", desc: "Voce combinată cu synth-uri; sunet de 'top chart' actual." },
+    { category: "Hybrid", label: "Hybrid", tags: "hybrid-vocal-processing, polished-integration, modern-polish", desc: "Voice combined with synths; 'top chart' modern sound." },
     // Dark/LoFi
-    { category: "Dark/LoFi", label: "Dark LoFi", tags: "distorted-lofi-aesthetic, dark-moody-phrasing, heavy-compression", desc: "Sunet 'dens', înfundat; specific stilului underground." },
+    { category: "Dark/LoFi", label: "Dark LoFi", tags: "distorted-lofi-aesthetic, dark-moody-phrasing, heavy-compression", desc: "'Dense', muffled sound; specific to underground style." },
     // Bright
-    { category: "Bright", label: "Bright", tags: "bouncy-vocal-rhythm, bright-melodic-presence, sunny-delivery", desc: "Accent pe frecvențe medii-înalte; sunet vesel și luminos." },
+    { category: "Bright", label: "Bright", tags: "bouncy-vocal-rhythm, bright-melodic-presence, sunny-delivery", desc: "Focus on mid-high frequencies; cheerful and bright sound." },
     // Breath/Intimate
-    { category: "Breath/Intimate", label: "Close-Mic", tags: "close-mic-placement, soft-breath-control, whisper-vocal-texture", desc: "Perfect pentru momentele în care vocea trebuie să fie 'la urechea' ascultătorului." },
+    { category: "Breath/Intimate", label: "Close-Mic", tags: "close-mic-placement, soft-breath-control, whisper-vocal-texture", desc: "Perfect for moments when the voice needs to be 'at the listener's ear'." },
     // Vocal-Chop
-    { category: "Vocal-Chop", label: "Stutter", tags: "stutter-vocal-edits, rhythmic-sampling, glitchy-vocal-texture", desc: "Ideal pentru stilul House sau Phonk, pentru a face vocea să sune ca un instrument." },
+    { category: "Vocal-Chop", label: "Stutter", tags: "stutter-vocal-edits, rhythmic-sampling, glitchy-vocal-texture", desc: "Ideal for House or Phonk style, to make the voice sound like an instrument." },
     // Grand-Reverb
-    { category: "Grand-Reverb", label: "Ethereal", tags: "ethereal-hall-reverb, cavernous-space, long-vocal-tail", desc: "Pentru piese dramatice, unde vocea trebuie să plutească într-un spațiu imens." },
+    { category: "Grand-Reverb", label: "Ethereal", tags: "ethereal-hall-reverb, cavernous-space, long-vocal-tail", desc: "For dramatic pieces, where the voice needs to float in an immense space." },
     // Dynamic-Grit
-    { category: "Dynamic-Grit", label: "Saturate", tags: "saturate-vocal-harmonic, grit-edge, tube-preamp-warmth", desc: "Adaugă acea 'murdărie' caldă (ca la discurile de vinil) care elimină sunetul 'prea digital'." },
+    { category: "Dynamic-Grit", label: "Saturate", tags: "saturate-vocal-harmonic, grit-edge, tube-preamp-warmth", desc: "Adds that 'warm dirt' (like vinyl records) that eliminates the 'too digital' sound." },
     // Wide-Stereo
-    { category: "Wide-Stereo", label: "Wide", tags: "stereo-width-expansion, double-tracked-vocal, immersive-pan", desc: "Face vocea să sune 'mai mare' decât viața, umplând tot câmpul sonor." },
+    { category: "Wide-Stereo", label: "Wide", tags: "stereo-width-expansion, double-tracked-vocal, immersive-pan", desc: "Makes the voice sound 'bigger' than life, filling the entire sound field." },
   ];
 
   // Function to inject tags into prompt
@@ -1921,22 +1921,22 @@ export default function AceStepTab({
               <span style={{ color: "#6666aa", fontSize: 10 }}>Click to inject tags</span>
             </div>
 
-            {/* Exemplu de utilizare */}
+            {/* Usage Example */}
             <div style={{ marginBottom: 10, padding: "8px", background: "#0a0a1a", borderRadius: 6, border: "1px solid #1a1a2e" }}>
-              <div style={{ color: "#ffd166", fontSize: 8, fontWeight: 700, marginBottom: 4 }}>💡 Exemplu:</div>
+              <div style={{ color: "#ffd166", fontSize: 8, fontWeight: 700, marginBottom: 4 }}>💡 Example:</div>
               <div style={{ color: "#6666aa", fontSize: 7, lineHeight: 1.5 }}>
-                <span style={{ color: "#8888aa" }}>Vrei o piesă Dark Minimal Afro cu voce de tip „Whisper" și „Grand Reverb"?</span><br/>
-                <span style={{ color: "#555577" }}>Comanda ta: </span>
-                <span style={{ color: "#06d6a0", fontFamily: "monospace" }}>Titlu: Umbre, Female, Studio Clean, Superb Vocals, Dark Minimal Afro, Breath/Intimate, Grand-Reverb</span>
+                <span style={{ color: "#8888aa" }}>Want a Dark Minimal Afro track with 'Whisper' and 'Grand Reverb' vocals?</span><br/>
+                <span style={{ color: "#555577" }}>Your command: </span>
+                <span style={{ color: "#06d6a0", fontFamily: "monospace" }}>Title: Shadows, Female, Studio Clean, Superb Vocals, Dark Minimal Afro, Breath/Intimate, Grand-Reverb</span>
               </div>
             </div>
 
-            {/* 3-column layout: Categorie > Tag-uri > Descriere */}
+            {/* 3-column layout: Category > Tags > Audio Effect */}
             <div style={{ display: "grid", gridTemplateColumns: "100px 180px 1fr", gap: 6, alignItems: "start" }}>
               {/* Header row */}
-              <div style={{ color: "#8888aa", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px" }}>Categorie</div>
-              <div style={{ color: "#8888aa", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px" }}>Tag-uri</div>
-              <div style={{ color: "#8888aa", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px" }}>Efect Audio</div>
+              <div style={{ color: "#8888aa", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px" }}>Category</div>
+              <div style={{ color: "#8888aa", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px" }}>Tags</div>
+              <div style={{ color: "#8888aa", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px" }}>Audio Effect</div>
 
               {/* Data rows */}
               {PROMPT_INJECTS.map((item, idx) => (
