@@ -1921,6 +1921,16 @@ export default function AceStepTab({
               <span style={{ color: "#6666aa", fontSize: 10 }}>Click to inject tags</span>
             </div>
 
+            {/* Exemplu de utilizare */}
+            <div style={{ marginBottom: 10, padding: "8px", background: "#0a0a1a", borderRadius: 6, border: "1px solid #1a1a2e" }}>
+              <div style={{ color: "#ffd166", fontSize: 8, fontWeight: 700, marginBottom: 4 }}>💡 Exemplu:</div>
+              <div style={{ color: "#6666aa", fontSize: 7, lineHeight: 1.5 }}>
+                <span style={{ color: "#8888aa" }}>Vrei o piesă Dark Minimal Afro cu voce de tip „Whisper" și „Grand Reverb"?</span><br/>
+                <span style={{ color: "#555577" }}>Comanda ta: </span>
+                <span style={{ color: "#06d6a0", fontFamily: "monospace" }}>Titlu: Umbre, Female, Studio Clean, Superb Vocals, Dark Minimal Afro, Breath/Intimate, Grand-Reverb</span>
+              </div>
+            </div>
+
             {/* 3-column layout: Categorie > Tag-uri > Descriere */}
             <div style={{ display: "grid", gridTemplateColumns: "100px 180px 1fr", gap: 6, alignItems: "start" }}>
               {/* Header row */}
@@ -1941,7 +1951,7 @@ export default function AceStepTab({
                       cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap", textAlign: "left",
                     }}
                     onMouseEnter={e => { e.target.style.borderColor = "#06d6a0"; e.target.style.background = "#06d6a011"; }}
-                    onMouseLeave={e => { e.target.style.borderColor = "#2a2a4a"; e.target.style.background = "#0a0a1a"; }}
+                    onMouseLeave={e => { e.target.style.borderColor = "#2a2a4a"; e.target.style.color = "#e0e0ff"; e.target.style.background = "#0a0a1a"; }}
                   >
                     {item.label}
                   </button>
