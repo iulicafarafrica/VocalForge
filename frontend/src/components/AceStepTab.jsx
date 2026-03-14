@@ -1105,37 +1105,37 @@ export default function AceStepTab({
     "Dragoste / Romantic": [
       { label: "Intimate", tags: "intimate-vocal-warmth, emotional-breathiness, heartfelt-delivery, romantic-vocal-texture" },
     ],
-    "Textură 1 (Soul)": [
+    "Soul": [
       { label: "Soulful", tags: "soulful-delivery, organic-resonance, authentic-phrasing" },
     ],
-    "Textură 2 (Energic)": [
+    "Energic": [
       { label: "Energic", tags: "rhythmic-precision, high-energy-delivery, punchy-articulation" },
     ],
-    "Textură 3 (Chill)": [
+    "Chill": [
       { label: "Chill", tags: "laid-back-flow, spacious-mix, relaxed-tonal-balance" },
     ],
-    "Textură 4 (Power)": [
+    "Power": [
       { label: "Power", tags: "raw-vocal-intensity, high-dynamic-range, power-delivery" },
     ],
-    "Textură 5 (Sharp)": [
+    "Sharp": [
       { label: "Sharp", tags: "sharp-articulation, aggressive-flow, polished-presence" },
     ],
-    "Textură 6 (Lyric)": [
+    "Lyric": [
       { label: "Lyric", tags: "lyrical-clarity, steady-pacing, intimate-texture" },
     ],
-    "Textură 7 (Hypnotic)": [
+    "Hypnotic": [
       { label: "Hypnotic", tags: "hypnotic-cadence, lush-vocal-layering, fluid-delivery" },
     ],
-    "Textură 8 (Oriental)": [
+    "Oriental": [
       { label: "Oriental", tags: "microtonal-accuracy, emotional-ornamentation, resonant-depth" },
     ],
-    "Textură 9 (Hybrid)": [
+    "Hybrid": [
       { label: "Hybrid", tags: "hybrid-vocal-processing, polished-integration, modern-polish" },
     ],
-    "Textură 10 (Dark/LoFi)": [
+    "Dark/LoFi": [
       { label: "Dark LoFi", tags: "distorted-lofi-aesthetic, dark-moody-phrasing, heavy-compression" },
     ],
-    "Textură 11 (Bright)": [
+    "Bright": [
       { label: "Bright", tags: "bouncy-vocal-rhythm, bright-melodic-presence, sunny-delivery" },
     ],
   };
