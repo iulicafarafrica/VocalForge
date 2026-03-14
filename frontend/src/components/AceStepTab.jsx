@@ -1099,9 +1099,9 @@ export default function AceStepTab({
     // Sevilla Style
     { category: "Sevilla Style", label: "Tribal Afro", tags: "tribal-percussion-layering, deep-afro-groove, syncopated-drums, driving-afro-bassline, spatial-club-mix", desc: "Multi-stratificare de tobe organice și conga." },
     // Dragoste
-    { category: "Dragoste", label: "Intimate", tags: "intimate-vocal-warmth, emotional-breathiness, heartfelt-delivery, romantic-vocal-texture", desc: "Accent pe frecvențele joase; voce „la urechea" ascultătorului." },
+    { category: "Dragoste", label: "Intimate", tags: "intimate-vocal-warmth, emotional-breathiness, heartfelt-delivery, romantic-vocal-texture", desc: "Accent pe frecvențele joase; voce 'la urechea' ascultătorului." },
     // Soul
-    { category: "Soul", label: "Soulful", tags: "soulful-delivery, organic-resonance, authentic-phrasing", desc: "Voce „caldă", fără să pară artificială sau procesată." },
+    { category: "Soul", label: "Soulful", tags: "soulful-delivery, organic-resonance, authentic-phrasing", desc: "Voce 'caldă', fără să pară artificială sau procesată." },
     // Energic
     { category: "Energic", label: "Energic", tags: "rhythmic-precision, high-energy-delivery, punchy-articulation", desc: "Consonante clare; perfect pentru ritmuri rapide și dansabile." },
     // Chill
@@ -1109,29 +1109,29 @@ export default function AceStepTab({
     // Power
     { category: "Power", label: "Power", tags: "raw-vocal-intensity, high-dynamic-range, power-delivery", desc: "Trecere intensă de la șoaptă la strigăt; impact dramatic." },
     // Sharp
-    { category: "Sharp", label: "Sharp", tags: "sharp-articulation, aggressive-flow, polished-presence", desc: "Atașament rapid pe beat; vocea „taie" prin instrumente." },
+    { category: "Sharp", label: "Sharp", tags: "sharp-articulation, aggressive-flow, polished-presence", desc: "Atașament rapid pe beat; vocea 'taie' prin instrumente." },
     // Lyric
     { category: "Lyric", label: "Lyric", tags: "lyrical-clarity, steady-pacing, intimate-texture", desc: "Accent pe dicție; înțelegi fiecare cuvânt clar." },
     // Hypnotic
-    { category: "Hypnotic", label: "Hypnotic", tags: "hypnotic-cadence, lush-vocal-layering, fluid-delivery", desc: "Voce dublată (harmony); efect de „trance" sau visare." },
+    { category: "Hypnotic", label: "Hypnotic", tags: "hypnotic-cadence, lush-vocal-layering, fluid-delivery", desc: "Voce dublată (harmony); efect de 'trance' sau visare." },
     // Oriental
-    { category: "Oriental", label: "Oriental", tags: "microtonal-accuracy, emotional-ornamentation, resonant-depth", desc: "Permite note „între clape" (sferturi de ton) specifice Orientului." },
+    { category: "Oriental", label: "Oriental", tags: "microtonal-accuracy, emotional-ornamentation, resonant-depth", desc: "Permite note 'între clape' (sferturi de ton) specifice Orientului." },
     // Hybrid
-    { category: "Hybrid", label: "Hybrid", tags: "hybrid-vocal-processing, polished-integration, modern-polish", desc: "Voce combinată cu synth-uri; sunet de „top chart" actual." },
+    { category: "Hybrid", label: "Hybrid", tags: "hybrid-vocal-processing, polished-integration, modern-polish", desc: "Voce combinată cu synth-uri; sunet de 'top chart' actual." },
     // Dark/LoFi
-    { category: "Dark/LoFi", label: "Dark LoFi", tags: "distorted-lofi-aesthetic, dark-moody-phrasing, heavy-compression", desc: "Sunet „dens", înfundat; specific stilului underground." },
+    { category: "Dark/LoFi", label: "Dark LoFi", tags: "distorted-lofi-aesthetic, dark-moody-phrasing, heavy-compression", desc: "Sunet 'dens', înfundat; specific stilului underground." },
     // Bright
     { category: "Bright", label: "Bright", tags: "bouncy-vocal-rhythm, bright-melodic-presence, sunny-delivery", desc: "Accent pe frecvențe medii-înalte; sunet vesel și luminos." },
     // Breath/Intimate
-    { category: "Breath/Intimate", label: "Close-Mic", tags: "close-mic-placement, soft-breath-control, whisper-vocal-texture", desc: "Perfect pentru momentele în care vocea trebuie să fie „la urechea" ascultătorului." },
+    { category: "Breath/Intimate", label: "Close-Mic", tags: "close-mic-placement, soft-breath-control, whisper-vocal-texture", desc: "Perfect pentru momentele în care vocea trebuie să fie 'la urechea' ascultătorului." },
     // Vocal-Chop
     { category: "Vocal-Chop", label: "Stutter", tags: "stutter-vocal-edits, rhythmic-sampling, glitchy-vocal-texture", desc: "Ideal pentru stilul House sau Phonk, pentru a face vocea să sune ca un instrument." },
     // Grand-Reverb
     { category: "Grand-Reverb", label: "Ethereal", tags: "ethereal-hall-reverb, cavernous-space, long-vocal-tail", desc: "Pentru piese dramatice, unde vocea trebuie să plutească într-un spațiu imens." },
     // Dynamic-Grit
-    { category: "Dynamic-Grit", label: "Saturate", tags: "saturate-vocal-harmonic, grit-edge, tube-preamp-warmth", desc: "Adaugă acea „murdărie" caldă (ca la discurile de vinil) care elimină sunetul „prea digital"." },
+    { category: "Dynamic-Grit", label: "Saturate", tags: "saturate-vocal-harmonic, grit-edge, tube-preamp-warmth", desc: "Adaugă acea 'murdărie' caldă (ca la discurile de vinil) care elimină sunetul 'prea digital'." },
     // Wide-Stereo
-    { category: "Wide-Stereo", label: "Wide", tags: "stereo-width-expansion, double-tracked-vocal, immersive-pan", desc: "Face vocea să sune „mai mare" decât viața, umplând tot câmpul sonor." },
+    { category: "Wide-Stereo", label: "Wide", tags: "stereo-width-expansion, double-tracked-vocal, immersive-pan", desc: "Face vocea să sune 'mai mare' decât viața, umplând tot câmpul sonor." },
   ];
 
   // Function to inject tags into prompt
