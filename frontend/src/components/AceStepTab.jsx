@@ -1896,7 +1896,11 @@ const filteredApiGenres = Object.fromEntries(
   Object.entries(apiGenres).filter(([k]) => !EXCLUDED_GENRE_KEYS.includes(k))
 );
 const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
-                const genreKeys = Object.keys(allGenres);
+                const genreKeys = Object.keys(allGenres).filter(gKey => {
+                  const g = allGenres[gKey];
+                  const subgenres = g?.subgenres ? Object.keys(g.subgenres) : [];
+                  return subgenres.length > 0;  // Only show genres with subgenres
+                });
                 const currentGenre = genreKeys.length && (genreKeys.includes(genreCatFull) ? genreCatFull : genreKeys[0]);
                 if (genreKeys.length === 0) return null;
                 return (

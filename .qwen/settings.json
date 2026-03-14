@@ -1,0 +1,45 @@
+{
+  "_comment": "Qwen Code Settings for VocalForge project",
+  "_version": "1.0",
+  
+  "session": {
+    "_comment": "Session management settings",
+    "auto_load_context": true,
+    "startup_script": ".qwen/on_session_start.sh",
+    "save_on_exit": true,
+    "exit_script": ".qwen/scripts/save_session_context.sh"
+  },
+  
+  "skills": {
+    "_comment": "Skills to auto-activate for this project",
+    "always_active": [
+      "claudecode-tools",
+      "clauder"
+    ],
+    "on_demand": [
+      "google-search",
+      "context7",
+      "conductor"
+    ]
+  },
+  
+  "clauder": {
+    "_comment": "Clauder memory settings",
+    "auto_recall_on_start": true,
+    "recall_query": "Session",
+    "max_facts_to_show": 5
+  },
+  
+  "project": {
+    "_comment": "Project-specific settings",
+    "name": "VocalForge",
+    "version": "2.0.0",
+    "hardware": "NVIDIA RTX 3070 8GB VRAM",
+    "services": {
+      "frontend": 3000,
+      "backend": 8000,
+      "acestep": 8001,
+      "rvc": 8002
+    }
+  }
+}
