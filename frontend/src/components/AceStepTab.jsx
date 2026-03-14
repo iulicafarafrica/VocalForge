@@ -1893,10 +1893,10 @@ export default function AceStepTab({
             )}
           </div>
 
-          {/* 🎯 Prompt Inject Dashboard */}
+          {/* 🎯 Prompt Helper */}
           <div style={{ marginBottom: 16, background: "#0d0d22", borderRadius: 10, padding: "14px", border: "1px solid #2a2a4a" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-              <span style={{ color: "#06d6a0", fontSize: 14, fontWeight: 700 }}>🎯 Prompt Inject Dashboard</span>
+              <span style={{ color: "#06d6a0", fontSize: 14, fontWeight: 700 }}>🎯 Prompt Helper</span>
               <span style={{ color: "#6666aa", fontSize: 11 }}>One-click tags injection</span>
             </div>
 
