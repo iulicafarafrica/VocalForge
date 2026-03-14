@@ -1096,49 +1096,28 @@ export default function AceStepTab({
     "Performanță": [
       { label: "Master-Class", tags: "master-class vocals, expressive, balanced" },
     ],
-    "Dark Minimal": [
-      { label: "Afro Minimal", tags: "afro-minimal-bass, eerie-atmospheric-pads, sparse-percussion, shadowy-vibe, driving-steady-groove" },
-    ],
-    "Sevilla Style": [
-      { label: "Tribal Afro", tags: "tribal-percussion-layering, deep-afro-groove, syncopated-drums, driving-afro-bassline, spatial-club-mix" },
-    ],
-    "Dragoste / Romantic": [
-      { label: "Intimate", tags: "intimate-vocal-warmth, emotional-breathiness, heartfelt-delivery, romantic-vocal-texture" },
-    ],
-    "Soul": [
-      { label: "Soulful", tags: "soulful-delivery, organic-resonance, authentic-phrasing" },
-    ],
-    "Energic": [
-      { label: "Energic", tags: "rhythmic-precision, high-energy-delivery, punchy-articulation" },
-    ],
-    "Chill": [
-      { label: "Chill", tags: "laid-back-flow, spacious-mix, relaxed-tonal-balance" },
-    ],
-    "Power": [
-      { label: "Power", tags: "raw-vocal-intensity, high-dynamic-range, power-delivery" },
-    ],
-    "Sharp": [
-      { label: "Sharp", tags: "sharp-articulation, aggressive-flow, polished-presence" },
-    ],
-    "Lyric": [
-      { label: "Lyric", tags: "lyrical-clarity, steady-pacing, intimate-texture" },
-    ],
-    "Hypnotic": [
-      { label: "Hypnotic", tags: "hypnotic-cadence, lush-vocal-layering, fluid-delivery" },
-    ],
-    "Oriental": [
-      { label: "Oriental", tags: "microtonal-accuracy, emotional-ornamentation, resonant-depth" },
-    ],
-    "Hybrid": [
-      { label: "Hybrid", tags: "hybrid-vocal-processing, polished-integration, modern-polish" },
-    ],
-    "Dark/LoFi": [
-      { label: "Dark LoFi", tags: "distorted-lofi-aesthetic, dark-moody-phrasing, heavy-compression" },
-    ],
-    "Bright": [
-      { label: "Bright", tags: "bouncy-vocal-rhythm, bright-melodic-presence, sunny-delivery" },
-    ],
   };
+
+  // Genuri dropdown options
+  const GENURI_INJECTS = [
+    { label: "Dark Minimal - Afro Minimal", tags: "afro-minimal-bass, eerie-atmospheric-pads, sparse-percussion, shadowy-vibe, driving-steady-groove" },
+    { label: "Sevilla Style - Tribal Afro", tags: "tribal-percussion-layering, deep-afro-groove, syncopated-drums, driving-afro-bassline, spatial-club-mix" },
+    { label: "Romantic - Intimate", tags: "intimate-vocal-warmth, emotional-breathiness, heartfelt-delivery, romantic-vocal-texture" },
+    { label: "Soul - Soulful", tags: "soulful-delivery, organic-resonance, authentic-phrasing" },
+    { label: "Energic - Energic", tags: "rhythmic-precision, high-energy-delivery, punchy-articulation" },
+    { label: "Chill - Chill", tags: "laid-back-flow, spacious-mix, relaxed-tonal-balance" },
+    { label: "Power - Power", tags: "raw-vocal-intensity, high-dynamic-range, power-delivery" },
+    { label: "Sharp - Sharp", tags: "sharp-articulation, aggressive-flow, polished-presence" },
+    { label: "Lyric - Lyric", tags: "lyrical-clarity, steady-pacing, intimate-texture" },
+    { label: "Hypnotic - Hypnotic", tags: "hypnotic-cadence, lush-vocal-layering, fluid-delivery" },
+    { label: "Oriental - Oriental", tags: "microtonal-accuracy, emotional-ornamentation, resonant-depth" },
+    { label: "Hybrid - Hybrid", tags: "hybrid-vocal-processing, polished-integration, modern-polish" },
+    { label: "Dark/LoFi - Dark LoFi", tags: "distorted-lofi-aesthetic, dark-moody-phrasing, heavy-compression" },
+    { label: "Bright - Bright", tags: "bouncy-vocal-rhythm, bright-melodic-presence, sunny-delivery" },
+  ];
+
+  // State for selected genre
+  const [selectedGenura, setSelectedGenura] = useState("");
 
   // Function to inject tags into prompt
   const injectPrompt = (tags) => {
@@ -1927,8 +1906,8 @@ export default function AceStepTab({
               <span style={{ color: "#6666aa", fontSize: 10 }}>Click to inject</span>
             </div>
 
-            {/* Dynamic rendering of all categories - organized in rows */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {/* Identitate, Calitate, Performanță - Inline buttons */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
               {Object.entries(PROMPT_INJECTS).map(([category, injects]) => (
                 <div key={category} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
                   <div style={{ color: "#8888aa", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>{category}</div>
@@ -1952,6 +1931,39 @@ export default function AceStepTab({
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Genuri - Dropdown */}
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+              <div style={{ color: "#8888aa", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>Genuri</div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                <select
+                  value={selectedGenura}
+                  onChange={(e) => {
+                    setSelectedGenura(e.target.value);
+                    const selected = GENURI_INJECTS.find(g => g.label === e.target.value);
+                    if (selected) {
+                      injectPrompt(selected.tags);
+                      setSelectedGenura("");
+                    }
+                  }}
+                  style={{
+                    background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 4,
+                    color: "#e0e0ff", padding: "4px 8px", fontSize: 9, fontWeight: 600,
+                    cursor: "pointer", outline: "none",
+                  }}
+                >
+                  <option value="">Select genre...</option>
+                  {GENURI_INJECTS.map(g => (
+                    <option key={g.label} value={g.label}>{g.label}</option>
+                  ))}
+                </select>
+                {selectedGenura && (
+                  <span style={{ color: "#6666aa", fontSize: 9, fontStyle: "italic" }}>
+                    {GENURI_INJECTS.find(g => g.label === selectedGenura)?.tags}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
