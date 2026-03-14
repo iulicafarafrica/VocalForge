@@ -1,6 +1,93 @@
 
 ---
 
+## [Unreleased] - 2026-03-14
+
+### 🔧 CRITICAL FIX: Genre Presets Display
+
+**Problem:** Genre presets from backend API were not displaying in UI
+- Backend returned genres as **array format**: `[{label, prompt, bpm}]`
+- Frontend expected **object format**: `{subgenres: {label: {caption, bpm}}}`
+- Result: Only local QUICK_GENRES appeared, API genres were invisible
+
+**Solution:** Transform backend array to frontend object format
+- Added transformation logic in `AceStepTab.jsx` (line ~1899)
+- Maps each genre category's array to `{subgenres: {...}}` structure
+- Now all **150+ subgenres** from backend display correctly
+
+**UI Cleanup:**
+- Hidden empty genre categories (0 subgenres) from display
+- Filter applied: `genreKeys.filter(gKey => subgenres.length > 0)`
+- Clean UI: only shows categories with actual content
+
+**Files Changed:**
+- `frontend/src/components/AceStepTab.jsx` — Array→object transform + empty filter
+
+---
+
+### 🧠 NEW: Clauder Session Memory
+
+**Persistent Session Memory (SQLite)**
+- ✅ Added Clauder for cross-session memory persistence
+- ✅ Stores facts/decisions in SQLite database (`.qwen/clauder.db`)
+- ✅ Auto-saves session context at end of each session
+- ✅ Auto-loads last session context at startup
+
+**Session Management Scripts:**
+- ✅ `.qwen/scripts/clauder.sh` — CLI for memory operations
+  - `clauder remember "fact"` — Store facts
+  - `clauder recall "query"` — Search facts
+  - `clauder session save` — Save current session
+  - `clauder session load` — Load last session
+- ✅ `.qwen/scripts/save_session_context.sh` — Auto-save at session end
+- ✅ `.qwen/on_session_start.sh` — Auto-load at session start
+
+**Auto-Load on Startup:**
+- ✅ Runs automatically when Qwen Code session starts
+- ✅ Shows last session context (branch, modified files, last commit)
+- ✅ Displays active skills reminder
+
+**Skills Configuration:**
+- ✅ `claudecode-tools` — Set as permanent active skill
+- ✅ `clauder` — Set as permanent active skill
+- ✅ Config stored in `.qwen/settings.json`
+
+**Files Added:**
+- `.qwen/scripts/clauder.sh` (260 lines)
+- `.qwen/scripts/save_session_context.sh` (70 lines)
+- `.qwen/on_session_start.sh` (50 lines)
+- `.qwen/settings.json` (config)
+
+---
+
+### 🐛 FIX: CUDA Offload Issue
+
+**Problem:** Model was moving to CPU instead of staying on CUDA
+- `offload_to_cpu=True` was default for RTX 3070 8GB
+- Model kept offloading to CPU after each operation
+- Generation time: 300s+ (CPU) instead of ~20-30s (CUDA)
+
+**Solution:** Set `OFFLOAD_TO_CPU=false` for RTX 3070
+- Updated `launch_services.ps1` with correct CUDA settings
+- Model now stays on GPU throughout generation
+
+**Files Changed:**
+- `launch_services.ps1` — CUDA optimization settings
+
+---
+
+### 📊 Summary
+
+**Total Changes:**
+- 🎨 UI: Genre presets display fix (150+ subgenres now visible)
+- 🧠 Memory: Clauder session persistence (SQLite)
+- 🐛 Performance: CUDA offload fix (15x faster generation)
+- 📁 Files: 7 changed, 598 insertions, 34 deletions
+
+**Commit:** `d12dc22` — "feat: Genre presets fix + Clauder session memory"
+
+---
+
 ## [Unreleased] - 2026-03-13
 
 ### 🎨 MAJOR UI REDESIGN: ACE-Step 3-Column Layout
