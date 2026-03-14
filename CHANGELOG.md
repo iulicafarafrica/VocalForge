@@ -25,32 +25,27 @@
 
 ---
 
-### 🧠 NEW: Clauder Session Memory
+### 🧠 NEW: Session Memory & Auto-Context
 
 **Persistent Session Memory (SQLite)**
-- ✅ Added Clauder for cross-session memory persistence
-- ✅ Stores facts/decisions in SQLite database (`.qwen/clauder.db`)
+- ✅ Added session memory for cross-session persistence
+- ✅ Stores facts/decisions in local SQLite database
 - ✅ Auto-saves session context at end of each session
 - ✅ Auto-loads last session context at startup
 
 **Session Management Scripts:**
 - ✅ `.qwen/scripts/clauder.sh` — CLI for memory operations
-  - `clauder remember "fact"` — Store facts
-  - `clauder recall "query"` — Search facts
-  - `clauder session save` — Save current session
-  - `clauder session load` — Load last session
+  - `remember "fact"` — Store facts
+  - `recall "query"` — Search facts
+  - `session save` — Save current session
+  - `session load` — Load last session
 - ✅ `.qwen/scripts/save_session_context.sh` — Auto-save at session end
 - ✅ `.qwen/on_session_start.sh` — Auto-load at session start
 
 **Auto-Load on Startup:**
-- ✅ Runs automatically when Qwen Code session starts
+- ✅ Runs automatically when session starts
 - ✅ Shows last session context (branch, modified files, last commit)
-- ✅ Displays active skills reminder
-
-**Skills Configuration:**
-- ✅ `claudecode-tools` — Set as permanent active skill
-- ✅ `clauder` — Set as permanent active skill
-- ✅ Config stored in `.qwen/settings.json`
+- ✅ Displays active tools reminder
 
 **Files Added:**
 - `.qwen/scripts/clauder.sh` (260 lines)
@@ -80,11 +75,11 @@
 
 **Total Changes:**
 - 🎨 UI: Genre presets display fix (150+ subgenres now visible)
-- 🧠 Memory: Clauder session persistence (SQLite)
+- 🧠 Memory: Session persistence (SQLite)
 - 🐛 Performance: CUDA offload fix (15x faster generation)
 - 📁 Files: 7 changed, 598 insertions, 34 deletions
 
-**Commit:** `d12dc22` — "feat: Genre presets fix + Clauder session memory"
+**Commit:** `d12dc22` — "feat: Genre presets fix + Session memory"
 
 ---
 
