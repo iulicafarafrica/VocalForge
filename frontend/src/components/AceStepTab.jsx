@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 
 const API = "http://localhost:8000";
 
@@ -1083,41 +1083,56 @@ export default function AceStepTab({
   ];
 
   // ── Prompt Helper ──────────────────────────────────────────────────────────
-  const PROMPT_INJECTS = {
-    "Identitate": [
-      { label: "Female", tags: "female voice" },
-      { label: "Male", tags: "male voice" },
-    ],
-    "Calitate": [
-      { label: "Studio Clean", tags: "studio-clean, silent background" },
-      { label: "High Fidelity", tags: "high-fidelity, 48kHz" },
-      { label: "No Artifacts", tags: "no digital artifacts" },
-    ],
-    "Performanță": [
-      { label: "Master-Class", tags: "master-class vocals, expressive, balanced" },
-    ],
-  };
-
-  // Genuri dropdown options
-  const GENURI_INJECTS = [
-    { label: "Dark Minimal - Afro Minimal", tags: "afro-minimal-bass, eerie-atmospheric-pads, sparse-percussion, shadowy-vibe, driving-steady-groove" },
-    { label: "Sevilla Style - Tribal Afro", tags: "tribal-percussion-layering, deep-afro-groove, syncopated-drums, driving-afro-bassline, spatial-club-mix" },
-    { label: "Romantic - Intimate", tags: "intimate-vocal-warmth, emotional-breathiness, heartfelt-delivery, romantic-vocal-texture" },
-    { label: "Soul - Soulful", tags: "soulful-delivery, organic-resonance, authentic-phrasing" },
-    { label: "Energic - Energic", tags: "rhythmic-precision, high-energy-delivery, punchy-articulation" },
-    { label: "Chill - Chill", tags: "laid-back-flow, spacious-mix, relaxed-tonal-balance" },
-    { label: "Power - Power", tags: "raw-vocal-intensity, high-dynamic-range, power-delivery" },
-    { label: "Sharp - Sharp", tags: "sharp-articulation, aggressive-flow, polished-presence" },
-    { label: "Lyric - Lyric", tags: "lyrical-clarity, steady-pacing, intimate-texture" },
-    { label: "Hypnotic - Hypnotic", tags: "hypnotic-cadence, lush-vocal-layering, fluid-delivery" },
-    { label: "Oriental - Oriental", tags: "microtonal-accuracy, emotional-ornamentation, resonant-depth" },
-    { label: "Hybrid - Hybrid", tags: "hybrid-vocal-processing, polished-integration, modern-polish" },
-    { label: "Dark/LoFi - Dark LoFi", tags: "distorted-lofi-aesthetic, dark-moody-phrasing, heavy-compression" },
-    { label: "Bright - Bright", tags: "bouncy-vocal-rhythm, bright-melodic-presence, sunny-delivery" },
+  const PROMPT_INJECTS = [
+    // Identitate
+    { category: "Identitate", label: "Female", tags: "female voice", desc: "Definește spectrul de frecvențe de bază (bariton vs. sopran)." },
+    { category: "Identitate", label: "Male", tags: "male voice", desc: "Definește spectrul de frecvențe de bază (bariton vs. sopran)." },
+    // Calitate
+    { category: "Calitate", label: "Studio Clean", tags: "studio-clean, silent background", desc: "Elimină zgomotul de fundal; voce clară de studio." },
+    { category: "Calitate", label: "High Fidelity", tags: "high-fidelity, 48kHz", desc: "Crește claritatea frecvențelor înalte; detaliu maxim." },
+    { category: "Calitate", label: "No Artifacts", tags: "no digital artifacts", desc: "Elimină sunetele metalice/robotizate; sunet natural." },
+    // Performanță
+    { category: "Performanță", label: "Master-Class", tags: "master-class vocals, expressive, balanced", desc: "Comprimare profesională; voce ca într-o înregistrare scumpă." },
+    { category: "Performanță", label: "Expressive", tags: "expressive, balanced", desc: "Mixaj echilibrat între voce și instrumente; emoție pură." },
+    // Dark Minimal Afro
+    { category: "Dark Minimal", label: "Afro Minimal", tags: "afro-minimal-bass, eerie-atmospheric-pads, sparse-percussion, shadowy-vibe, driving-steady-groove", desc: "Bas subțire, dar profund (sub-bass) care domină mixul." },
+    // Sevilla Style
+    { category: "Sevilla Style", label: "Tribal Afro", tags: "tribal-percussion-layering, deep-afro-groove, syncopated-drums, driving-afro-bassline, spatial-club-mix", desc: "Multi-stratificare de tobe organice și conga." },
+    // Dragoste
+    { category: "Dragoste", label: "Intimate", tags: "intimate-vocal-warmth, emotional-breathiness, heartfelt-delivery, romantic-vocal-texture", desc: "Accent pe frecvențele joase; voce „la urechea" ascultătorului." },
+    // Soul
+    { category: "Soul", label: "Soulful", tags: "soulful-delivery, organic-resonance, authentic-phrasing", desc: "Voce „caldă", fără să pară artificială sau procesată." },
+    // Energic
+    { category: "Energic", label: "Energic", tags: "rhythmic-precision, high-energy-delivery, punchy-articulation", desc: "Consonante clare; perfect pentru ritmuri rapide și dansabile." },
+    // Chill
+    { category: "Chill", label: "Chill", tags: "laid-back-flow, spacious-mix, relaxed-tonal-balance", desc: "Voce plasată într-un spațiu mare; oferă relaxare auditivă." },
+    // Power
+    { category: "Power", label: "Power", tags: "raw-vocal-intensity, high-dynamic-range, power-delivery", desc: "Trecere intensă de la șoaptă la strigăt; impact dramatic." },
+    // Sharp
+    { category: "Sharp", label: "Sharp", tags: "sharp-articulation, aggressive-flow, polished-presence", desc: "Atașament rapid pe beat; vocea „taie" prin instrumente." },
+    // Lyric
+    { category: "Lyric", label: "Lyric", tags: "lyrical-clarity, steady-pacing, intimate-texture", desc: "Accent pe dicție; înțelegi fiecare cuvânt clar." },
+    // Hypnotic
+    { category: "Hypnotic", label: "Hypnotic", tags: "hypnotic-cadence, lush-vocal-layering, fluid-delivery", desc: "Voce dublată (harmony); efect de „trance" sau visare." },
+    // Oriental
+    { category: "Oriental", label: "Oriental", tags: "microtonal-accuracy, emotional-ornamentation, resonant-depth", desc: "Permite note „între clape" (sferturi de ton) specifice Orientului." },
+    // Hybrid
+    { category: "Hybrid", label: "Hybrid", tags: "hybrid-vocal-processing, polished-integration, modern-polish", desc: "Voce combinată cu synth-uri; sunet de „top chart" actual." },
+    // Dark/LoFi
+    { category: "Dark/LoFi", label: "Dark LoFi", tags: "distorted-lofi-aesthetic, dark-moody-phrasing, heavy-compression", desc: "Sunet „dens", înfundat; specific stilului underground." },
+    // Bright
+    { category: "Bright", label: "Bright", tags: "bouncy-vocal-rhythm, bright-melodic-presence, sunny-delivery", desc: "Accent pe frecvențe medii-înalte; sunet vesel și luminos." },
+    // Breath/Intimate
+    { category: "Breath/Intimate", label: "Close-Mic", tags: "close-mic-placement, soft-breath-control, whisper-vocal-texture", desc: "Perfect pentru momentele în care vocea trebuie să fie „la urechea" ascultătorului." },
+    // Vocal-Chop
+    { category: "Vocal-Chop", label: "Stutter", tags: "stutter-vocal-edits, rhythmic-sampling, glitchy-vocal-texture", desc: "Ideal pentru stilul House sau Phonk, pentru a face vocea să sune ca un instrument." },
+    // Grand-Reverb
+    { category: "Grand-Reverb", label: "Ethereal", tags: "ethereal-hall-reverb, cavernous-space, long-vocal-tail", desc: "Pentru piese dramatice, unde vocea trebuie să plutească într-un spațiu imens." },
+    // Dynamic-Grit
+    { category: "Dynamic-Grit", label: "Saturate", tags: "saturate-vocal-harmonic, grit-edge, tube-preamp-warmth", desc: "Adaugă acea „murdărie" caldă (ca la discurile de vinil) care elimină sunetul „prea digital"." },
+    // Wide-Stereo
+    { category: "Wide-Stereo", label: "Wide", tags: "stereo-width-expansion, double-tracked-vocal, immersive-pan", desc: "Face vocea să sune „mai mare" decât viața, umplând tot câmpul sonor." },
   ];
-
-  // State for selected genre
-  const [selectedGenura, setSelectedGenura] = useState("");
 
   // Function to inject tags into prompt
   const injectPrompt = (tags) => {
@@ -1903,67 +1918,36 @@ export default function AceStepTab({
           <div style={{ marginBottom: 14, padding: "10px 0", borderTop: "1px solid #2a2a4a" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
               <span style={{ color: "#06d6a0", fontSize: 11, fontWeight: 700 }}>🎯 Prompt Helper</span>
-              <span style={{ color: "#6666aa", fontSize: 10 }}>Click to inject</span>
+              <span style={{ color: "#6666aa", fontSize: 10 }}>Click to inject tags</span>
             </div>
 
-            {/* Identitate, Calitate, Performanță - Inline buttons */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
-              {Object.entries(PROMPT_INJECTS).map(([category, injects]) => (
-                <div key={category} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                  <div style={{ color: "#8888aa", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>{category}</div>
-                  <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                    {injects.map(inj => (
-                      <button
-                        key={inj.label}
-                        onClick={() => injectPrompt(inj.tags)}
-                        title={inj.tags}
-                        style={{
-                          background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 4,
-                          color: "#e0e0ff", padding: "4px 8px", fontSize: 9, fontWeight: 600,
-                          cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap",
-                        }}
-                        onMouseEnter={e => { e.target.style.borderColor = "#06d6a0"; e.target.style.color = "#06d6a0"; e.target.style.background = "#06d6a011"; }}
-                        onMouseLeave={e => { e.target.style.borderColor = "#2a2a4a"; e.target.style.color = "#e0e0ff"; e.target.style.background = "#0a0a1a"; }}
-                      >
-                        {inj.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+            {/* 3-column layout: Categorie > Tag-uri > Descriere */}
+            <div style={{ display: "grid", gridTemplateColumns: "100px 180px 1fr", gap: 6, alignItems: "start" }}>
+              {/* Header row */}
+              <div style={{ color: "#8888aa", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px" }}>Categorie</div>
+              <div style={{ color: "#8888aa", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px" }}>Tag-uri</div>
+              <div style={{ color: "#8888aa", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px" }}>Efect Audio</div>
+
+              {/* Data rows */}
+              {PROMPT_INJECTS.map((item, idx) => (
+                <React.Fragment key={idx}>
+                  <div style={{ color: "#6666aa", fontSize: 8, paddingTop: 2 }}>{item.category}</div>
+                  <button
+                    onClick={() => injectPrompt(item.tags)}
+                    title={item.tags}
+                    style={{
+                      background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 3,
+                      color: "#06d6a0", padding: "3px 6px", fontSize: 8, fontWeight: 600,
+                      cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap", textAlign: "left",
+                    }}
+                    onMouseEnter={e => { e.target.style.borderColor = "#06d6a0"; e.target.style.background = "#06d6a011"; }}
+                    onMouseLeave={e => { e.target.style.borderColor = "#2a2a4a"; e.target.style.background = "#0a0a1a"; }}
+                  >
+                    {item.label}
+                  </button>
+                  <div style={{ color: "#555577", fontSize: 7, lineHeight: 1.4, fontStyle: "italic" }}>{item.desc}</div>
+                </React.Fragment>
               ))}
-            </div>
-
-            {/* Tags - Dropdown with preview */}
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-              <div style={{ color: "#8888aa", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>Tags</div>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-                <select
-                  value={selectedGenura}
-                  onChange={(e) => {
-                    setSelectedGenura(e.target.value);
-                    const selected = GENURI_INJECTS.find(g => g.label === e.target.value);
-                    if (selected) {
-                      injectPrompt(selected.tags);
-                      setSelectedGenura("");
-                    }
-                  }}
-                  style={{
-                    background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 4,
-                    color: "#e0e0ff", padding: "4px 8px", fontSize: 9, fontWeight: 600,
-                    cursor: "pointer", outline: "none",
-                  }}
-                >
-                  <option value="">Select tag...</option>
-                  {GENURI_INJECTS.map(g => (
-                    <option key={g.label} value={g.label}>{g.label}</option>
-                  ))}
-                </select>
-                {selectedGenura && (
-                  <span style={{ color: "#6666aa", fontSize: 8, fontStyle: "italic", maxWidth: 400, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {GENURI_INJECTS.find(g => g.label === selectedGenura)?.tags}
-                  </span>
-                )}
-              </div>
             </div>
           </div>
 
