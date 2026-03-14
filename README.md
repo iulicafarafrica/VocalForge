@@ -4,6 +4,8 @@
 
 **AI-Powered Music Production Studio**
 
+*Powered by ACE-Step v1.5*
+
 *Transform your voice, generate music, and create professional tracks with cutting-edge AI*
 
 [![Version](https://img.shields.io/badge/Version-2.0.0-blue?style=for-the-badge)]()
