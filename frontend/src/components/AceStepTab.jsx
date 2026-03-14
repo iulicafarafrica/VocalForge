@@ -2146,44 +2146,44 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
               </div>
               {/* Slider + Input pentru Guidance Scale */}
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                <input 
-                  type="range" 
+                <input
+                  type="range"
                   className="guidance-slider"
-                  min="1" 
-                  max="20" 
+                  min="1"
+                  max="25"
                   step="0.5"
-                  value={guidanceScale} 
+                  value={guidanceScale}
                   onChange={(e) => setGuidanceScale(parseFloat(e.target.value))}
-                  style={{ flex: 1 }} 
+                  style={{ flex: 1 }}
                 />
-                <input 
-                  type="number" 
-                  min="1" 
-                  max="20" 
+                <input
+                  type="number"
+                  min="1"
+                  max="25"
                   step="0.5"
-                  value={guidanceScale} 
+                  value={guidanceScale}
                   onChange={(e) => {
                     const val = parseFloat(e.target.value);
-                    if (!isNaN(val) && val >= 1 && val <= 20) {
+                    if (!isNaN(val) && val >= 1 && val <= 25) {
                       setGuidanceScale(val);
                     }
                   }}
-                  style={{ 
-                    width: 60, 
-                    background: "#080812", 
-                    border: "1px solid #2a2a4a", 
-                    color: "#e0e0ff", 
-                    borderRadius: 6, 
-                    padding: "4px 8px", 
+                  style={{
+                    width: 60,
+                    background: "#080812",
+                    border: "1px solid #2a2a4a",
+                    color: "#e0e0ff",
+                    borderRadius: 6,
+                    padding: "4px 8px",
                     fontSize: 12,
                     fontFamily: "monospace",
                     textAlign: "center"
-                  }} 
+                  }}
                 />
               </div>
               {/* Quick preset buttons */}
               <div style={{ display: "flex", gap: 5 }}>
-                {[3, 5, 7, 9, 12].map(v => (
+                {[3, 5, 7, 9, 12, 15, 20, 25].map(v => (
                   <button key={v} onClick={() => setGuidanceScale(v)} style={{
                     flex: 1, padding: "7px 2px", borderRadius: 6, fontSize: 11, fontWeight: 700,
                     background: guidanceScale === v ? "#00e5ff22" : "#0a0a1a",
