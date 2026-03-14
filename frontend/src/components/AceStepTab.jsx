@@ -2012,8 +2012,8 @@ export default function AceStepTab({
 
             {/* Selected tag description + Inject button */}
             {tagDescription && (
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, padding: "9px 12px", background: "#0a0a1a", borderRadius: 4, border: "1px solid #1a1a2e" }}>
-                <span style={{ color: "#6666aa", fontSize: 11, fontStyle: "italic", flex: 1 }}>{tagDescription}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, padding: "10px 13px", background: "#0a0a1a", borderRadius: 4, border: "1px solid #1a1a2e" }}>
+                <span style={{ color: "#6666aa", fontSize: 13, fontStyle: "italic", flex: 1 }}>{tagDescription}</span>
                 <button
                   onClick={() => {
                     const selected = TAGS_DROPDOWN.find(t => t.label === selectedTag);
@@ -2025,7 +2025,7 @@ export default function AceStepTab({
                   }}
                   style={{
                     background: "#06d6a022", border: "1px solid #06d6a0", borderRadius: 4,
-                    color: "#06d6a0", padding: "6px 12px", fontSize: 10, fontWeight: 700,
+                    color: "#06d6a0", padding: "7px 13px", fontSize: 11, fontWeight: 700,
                     cursor: "pointer", whiteSpace: "nowrap", textTransform: "uppercase",
                   }}
                 >
