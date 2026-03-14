@@ -1911,13 +1911,15 @@ export default function AceStepTab({
               <span style={{ color: "#6666aa", fontSize: 10 }}>Click to inject tags</span>
             </div>
 
-            {/* Identity, Quality, Performance - Inline buttons */}
+            {/* Identity, Quality, Performance - Each category on single row */}
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
-              {PROMPT_INJECTS.map((item, idx) => (
-                <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                  <div style={{ color: "#8888aa", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>{item.category}</div>
-                  <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+              {/* Identity row */}
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                <div style={{ color: "#8888aa", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>Identity</div>
+                <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                  {PROMPT_INJECTS.filter(item => item.category === "Identity").map((item, idx) => (
                     <button
+                      key={idx}
                       onClick={() => injectPrompt(item.tags)}
                       title={item.desc}
                       style={{
@@ -1930,9 +1932,55 @@ export default function AceStepTab({
                     >
                       {item.label}
                     </button>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+
+              {/* Quality row */}
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                <div style={{ color: "#8888aa", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>Quality</div>
+                <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                  {PROMPT_INJECTS.filter(item => item.category === "Quality").map((item, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => injectPrompt(item.tags)}
+                      title={item.desc}
+                      style={{
+                        background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 3,
+                        color: "#06d6a0", padding: "3px 6px", fontSize: 8, fontWeight: 600,
+                        cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap", textAlign: "left",
+                      }}
+                      onMouseEnter={e => { e.target.style.borderColor = "#06d6a0"; e.target.style.background = "#06d6a011"; }}
+                      onMouseLeave={e => { e.target.style.borderColor = "#2a2a4a"; e.target.style.background = "#0a0a1a"; }}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Performance row */}
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                <div style={{ color: "#8888aa", fontSize: 8, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>Performance</div>
+                <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                  {PROMPT_INJECTS.filter(item => item.category === "Performance").map((item, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => injectPrompt(item.tags)}
+                      title={item.desc}
+                      style={{
+                        background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 3,
+                        color: "#06d6a0", padding: "3px 6px", fontSize: 8, fontWeight: 600,
+                        cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap", textAlign: "left",
+                      }}
+                      onMouseEnter={e => { e.target.style.borderColor = "#06d6a0"; e.target.style.background = "#06d6a011"; }}
+                      onMouseLeave={e => { e.target.style.borderColor = "#2a2a4a"; e.target.style.background = "#0a0a1a"; }}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Tags Dropdown */}
