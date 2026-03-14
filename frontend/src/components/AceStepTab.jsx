@@ -2065,10 +2065,10 @@ export default function AceStepTab({
 
             {/* Lyrics Library button */}
             <div style={{ marginTop: 10 }}>
-              <button onClick={() => setShowLyricsLib(v => !v)} style={{
-                width: "100%", background: showLyricsLib ? "#9b2de022" : "#0a0a1a",
-                color: showLyricsLib ? "#c77dff" : "#6666aa",
-                border: `1px solid ${showLyricsLib ? "#9b2de044" : "#2a2a4a"}`,
+              <button onClick={() => setShowLyricsLibrary(v => !v)} style={{
+                width: "100%", background: showLyricsLibrary ? "#9b2de022" : "#0a0a1a",
+                color: showLyricsLibrary ? "#c77dff" : "#6666aa",
+                border: `1px solid ${showLyricsLibrary ? "#9b2de044" : "#2a2a4a"}`,
                 borderRadius: 8, padding: "8px 12px", fontSize: 11, cursor: "pointer", fontWeight: 600,
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
               }}>
@@ -2080,7 +2080,7 @@ export default function AceStepTab({
             </div>
 
             {/* Lyrics Library */}
-            {showLyricsLib && (
+            {showLyricsLibrary && (
               <div style={{
                 marginTop: 12,
                 paddingTop: 12,
@@ -2088,7 +2088,7 @@ export default function AceStepTab({
               }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                   <span style={{ color: "#6666aa", fontSize: 10, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase" }}>📚 Saved lyrics</span>
-                  <button onClick={() => setShowLyricsLib(false)} style={{ background: "transparent", color: "#555577", border: "none", fontSize: 11, cursor: "pointer", padding: "2px 4px" }}>✕ Close</button>
+                  <button onClick={() => setShowLyricsLibrary(false)} style={{ background: "transparent", color: "#555577", border: "none", fontSize: 11, cursor: "pointer", padding: "2px 4px" }}>✕ Close</button>
                 </div>
                 <div style={{ maxHeight: 200, overflowY: "auto", paddingRight: 4 }}>
                   {lyricsLibrary.length === 0 ? (
@@ -2108,7 +2108,7 @@ export default function AceStepTab({
                         <div style={{ color: "#e0e0ff", fontSize: 11, fontWeight: 600 }}>{item.name}</div>
                         <div style={{ color: "#444466", fontSize: 10, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.lyrics}</div>
                         <div style={{ display: "flex", gap: 4 }}>
-                          <button onClick={() => { setLyrics(item.lyrics); setShowLyricsLib(false); }}
+                          <button onClick={() => { setLyrics(item.lyrics); setShowLyricsLibrary(false); }}
                             style={{ background: "#9b2de022", color: "#c77dff", border: "1px solid #9b2de044", borderRadius: 4, padding: "3px 8px", fontSize: 10, cursor: "pointer", fontWeight: 600 }}>Use</button>
                           <button onClick={() => { const u = lyricsLibrary.filter((_, i) => i !== idx); setLyricsLibrary(u); saveLyricsToStorage(u); }}
                             style={{ background: "transparent", color: "#555577", border: "1px solid #2a2a4a", borderRadius: 4, padding: "3px 8px", fontSize: 10, cursor: "pointer" }}>🗑</button>
