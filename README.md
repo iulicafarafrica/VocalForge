@@ -1,4 +1,4 @@
-# 🎵 VocalForge
+# 🎵 VocalForge powered by Ace-step v1.5
 
 <div align="center">
 
