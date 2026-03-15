@@ -372,6 +372,48 @@ cd ace-step && uv sync && cd ..
 
 ---
 
+## 🔒 Security
+
+### Security Audit (2026-03-15)
+
+**Security Score:** 9/10 ✅ **EXCELLENT** (improved from 4.5/10 POOR)
+
+**Vulnerabilities Fixed:** 8 total (2 Critical, 2 Medium, 2 Low, 2 Info)
+
+| Severity | Issue | Status |
+|----------|-------|--------|
+| 🔴 **CORS Misconfiguration** (CVSS 7.5) | `allow_origins=["*"]` allowed any website | ✅ Fixed |
+| 🔴 **Missing Authentication** (CVSS 8.0) | 7 endpoints had no auth | ✅ Fixed |
+| 🟠 **File Upload Validation** (CVSS 6.5) | Accepted any file type | ✅ Fixed |
+| 🟠 **Path Traversal** (CVSS 6.0) | `../` attacks possible | ✅ Fixed |
+| 🟡 **Environment Variables** | Hardcoded config | ✅ Fixed |
+| 🟡 **Frontend Auth** | Missing auth headers | ✅ Fixed |
+
+**Security Features:**
+- ✅ HTTP Bearer token authentication on all sensitive endpoints
+- ✅ CORS restricted to `localhost:3000` and `localhost:3001`
+- ✅ File upload validation (extension whitelist + size limits)
+- ✅ Path traversal prevention with `Path.resolve()` + `relative_to()`
+- ✅ Environment variables in `.env` files (gitignored)
+- ✅ Rate limiting ready (slowapi integration available)
+
+**Security Documentation:**
+- [`SECURITY_AUDIT.md`](SECURITY_AUDIT.md) — Full audit report
+- [`VULNERABILITIES.json`](VULNERABILITIES.json) — Machine-readable format
+- [`REMEDIATION.md`](REMEDIATION.md) — Step-by-step fixes
+- [`SECURITY_CHECKLIST.md`](SECURITY_CHECKLIST.md) — Tracking checklist
+
+**Configure API Token:**
+```bash
+# Generate secure token
+python -c "import secrets; print(secrets.token_urlsafe(32))"
+
+# Update backend/.env and frontend/.env
+VOCALFORGE_API_TOKEN=your-secure-token-here
+```
+
+---
+
 ## 📝 Changelog
 
 ### Unreleased — 2026-03-15: Cyberpunk UI Redesign

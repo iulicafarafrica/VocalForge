@@ -105,7 +105,13 @@ export default function PipelineTab() {
     form.append('enable_stage4', enableStage4);
 
     try {
-      const res = await fetch(`${API}/pipeline/run`, { method: 'POST', body: form });
+      const res = await fetch(`${API}/pipeline/run`, { 
+        method: 'POST', 
+        body: form,
+        headers: {
+          "Authorization": `Bearer ${import.meta.env.VITE_API_TOKEN || "dev-token"}`,
+        },
+      });
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
       setJobId(data.job_id);
@@ -161,28 +167,136 @@ export default function PipelineTab() {
     },
   ];
 
-  return (
-    <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto', color: '#e5e7eb', fontFamily: 'sans-serif' }}>
-      <h2 style={{ fontSize: '22px', marginBottom: '4px', color: 'white' }}>🎙️ Vocal Pipeline</h2>
-      <p style={{ color: '#888', fontSize: '13px', marginBottom: '24px' }}>
-        BS RoFormer → RVC Voice Conversion → Mix & Master (-14 LUFS)
-      </p>
+  // Cyberpunk theme colors
+  const cyberpunk = {
+    bg: {
+      primary: "linear-gradient(135deg, #0a0a1a 0%, #0d0d22 50%, #0a0a1a 100%)",
+      card: "linear-gradient(180deg, rgba(13,13,34,0.95) 0%, rgba(8,8,24,0.98) 100%)",
+    },
+    neon: {
+      indigo: { primary: "#6366f1", glow: "rgba(99,102,241,0.5)" },
+      purple: { primary: "#8b5cf6", glow: "rgba(139,92,246,0.5)" },
+      pink: { primary: "#ec4899", glow: "rgba(236,72,153,0.5)" },
+      cyan: { primary: "#00e5ff", glow: "rgba(0,229,255,0.5)" },
+      green: { primary: "#10b981", glow: "rgba(16,185,129,0.5)" },
+      yellow: { primary: "#f59e0b", glow: "rgba(245,158,11,0.5)" },
+    },
+    text: {
+      primary: "#e0e0ff",
+      secondary: "#8888aa",
+      muted: "#444466",
+    },
+  };
 
-      {/* Stage cards */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
+  const S = {
+    card: {
+      background: cyberpunk.bg.card,
+      border: "1px solid rgba(30,30,58,0.5)",
+      borderRadius: 16,
+      padding: 20,
+      marginBottom: 16,
+      backdropFilter: "blur(10px)",
+      boxShadow: "0 4px 30px rgba(0,0,0,0.3)",
+    },
+    label: {
+      color: cyberpunk.neon.cyan.primary,
+      fontSize: 10,
+      fontWeight: 800,
+      letterSpacing: 2,
+      textTransform: "uppercase",
+      marginBottom: 14,
+      display: "block",
+      textShadow: `0 0 10px ${cyberpunk.neon.cyan.glow}`,
+    },
+    input: {
+      background: "#0a0a1a",
+      border: "1px solid rgba(42,42,74,0.5)",
+      color: cyberpunk.text.primary,
+      borderRadius: 10,
+      padding: "10px 14px",
+      fontSize: 13,
+      width: "100%",
+    },
+  };
+
+  return (
+    <div style={{ padding: '24px', maxWidth: '1100px', margin: '0 auto', color: cyberpunk.text.primary }}>
+      
+      {/* Header Cyberpunk */}
+      <div style={{ textAlign: 'center', marginBottom: 32 }}>
+        <div style={{ 
+          fontSize: 48, 
+          marginBottom: 8, 
+          filter: `drop-shadow(0 0 20px ${cyberpunk.neon.purple.glow})`,
+          animation: "pulse 2s ease-in-out infinite",
+        }}>🎙️</div>
+        <div style={{ 
+          fontSize: 28, 
+          fontWeight: 900, 
+          color: cyberpunk.text.primary, 
+          marginBottom: 6,
+          letterSpacing: 3,
+          textTransform: "uppercase",
+          textShadow: `0 0 20px ${cyberpunk.neon.purple.glow}`,
+        }}>
+          Vocal Pipeline
+        </div>
+        <div style={{ 
+          color: cyberpunk.text.secondary, 
+          fontSize: 13,
+          letterSpacing: 1,
+        }}>
+          BS-ROFORMER → RVC CONVERSION → MIX & MASTER (-14 LUFS)
+        </div>
+      </div>
+
+      {/* Stage Cards */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: 28, flexWrap: 'wrap' }}>
         {STAGES.map(s => {
           const st = stages[s.key] || 'pending';
           return (
             <div key={s.key} style={{
-              flex: 1, background: '#111827', borderRadius: '12px', padding: '14px',
-              border: `1px solid ${st === 'running' ? s.color : '#1f2937'}`,
-              boxShadow: st === 'running' ? `0 0 12px ${s.color}44` : 'none',
-              transition: 'all 0.3s',
+              flex: 1, 
+              minWidth: '200px',
+              background: "linear-gradient(135deg, rgba(13,13,34,0.9), rgba(8,8,24,0.95))", 
+              borderRadius: '14px', 
+              padding: '16px',
+              border: `2px solid ${st === 'running' ? s.color : 'rgba(31,41,55,0.5)'}`,
+              boxShadow: st === 'running' ? `0 0 20px ${s.color}44` : 'none',
+              transition: 'all 0.3s ease',
+              position: 'relative',
+              overflow: 'hidden',
             }}>
-              <div style={{ fontSize: '22px', marginBottom: '6px' }}>{s.icon}</div>
-              <div style={{ fontSize: '11px', fontWeight: 'bold', color: s.color }}>{s.label}</div>
-              <div style={{ fontSize: '10px', color: '#9ca3af', marginBottom: '6px', lineHeight: 1.3 }}>{s.desc}</div>
-              <div style={{ fontSize: '11px', color: STATUS_COLOR[st] || '#444', fontWeight: 'bold' }}>
+              {st === 'running' && (
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '3px',
+                  background: `linear-gradient(90deg, transparent, ${s.color}, transparent)`,
+                  animation: 'shimmer 1.5s infinite',
+                }} />
+              )}
+              <div style={{ fontSize: '28px', marginBottom: '8px', filter: st === 'running' ? `drop-shadow(0 0 10px ${s.color})` : 'none' }}>
+                {s.icon}
+              </div>
+              <div style={{ fontSize: '10px', fontWeight: 800, color: s.color, letterSpacing: 1, marginBottom: 4 }}>
+                {s.label.toUpperCase()}
+              </div>
+              <div style={{ fontSize: '10px', color: cyberpunk.text.secondary, marginBottom: 8, lineHeight: 1.4 }}>
+                {s.desc}
+              </div>
+              <div style={{ 
+                fontSize: '11px', 
+                color: STATUS_COLOR[st] || '#444', 
+                fontWeight: 700,
+                padding: '4px 8px',
+                background: `${STATUS_COLOR[st] || '#444'}22`,
+                borderRadius: 6,
+                display: 'inline-block',
+                border: `1px solid ${STATUS_COLOR[st] || '#444'}44`,
+              }}>
                 {STATUS_LABEL[st] || '⏳ Astept'}
               </div>
             </div>
@@ -190,272 +304,661 @@ export default function PipelineTab() {
         })}
       </div>
 
-      {/* Progress */}
-      <div style={{ marginBottom: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-          <span style={{ fontSize: '13px', color: '#9ca3af' }}>Progress</span>
-          <span style={{ fontSize: '13px', color: 'white', fontWeight: 'bold' }}>{progress}%</span>
+      {/* Progress Bar */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+          <span style={{ fontSize: 11, color: cyberpunk.text.secondary, letterSpacing: 1, textTransform: 'uppercase', fontWeight: 700 }}>
+            Pipeline Progress
+          </span>
+          <span style={{ 
+            fontSize: 14, 
+            color: error ? cyberpunk.neon.pink.primary : cyberpunk.neon.cyan.primary, 
+            fontWeight: 800,
+            fontFamily: 'monospace',
+            textShadow: error ? `0 0 10px ${cyberpunk.neon.pink.glow}` : `0 0 10px ${cyberpunk.neon.cyan.glow}`,
+          }}>
+            {progress}%
+          </span>
         </div>
-        <div style={{ background: '#1f2937', borderRadius: '999px', height: '8px', overflow: 'hidden' }}>
+        <div style={{ 
+          height: 12, 
+          background: "rgba(10,10,26,0.8)", 
+          borderRadius: 6, 
+          overflow: 'hidden',
+          border: '1px solid rgba(255,255,255,0.1)',
+        }}>
           <div style={{
-            width: `${progress}%`, height: '100%', borderRadius: '999px',
-            background: error ? '#ef4444' : 'linear-gradient(90deg, #6366f1, #ec4899)',
+            width: `${progress}%`, 
+            height: '100%', 
+            borderRadius: 6,
+            background: error 
+              ? `linear-gradient(90deg, #ef4444, #dc2626)` 
+              : `linear-gradient(90deg, ${cyberpunk.neon.indigo.primary}, ${cyberpunk.neon.pink.primary})`,
             transition: 'width 0.5s ease',
+            boxShadow: error ? `0 0 20px #ef444466` : `0 0 20px ${cyberpunk.neon.indigo.glow}`,
           }} />
         </div>
-        {error && <div style={{ marginTop: '8px', color: '#ef4444', fontSize: '12px' }}>✗ {error}</div>}
+        {error && (
+          <div style={{ 
+            marginTop: 10, 
+            color: cyberpunk.neon.pink.primary, 
+            fontSize: 12,
+            padding: '10px 14px',
+            background: `${cyberpunk.neon.pink.primary}11`,
+            borderRadius: 8,
+            border: `1px solid ${cyberpunk.neon.pink.primary}44`,
+          }}>
+            ❌ {error}
+          </div>
+        )}
       </div>
 
-      {/* Config */}
+      {/* Configuration Panel */}
       {!running && !done && (
-        <div style={{ background: '#111827', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
-          <h3 style={{ fontSize: '13px', color: '#9ca3af', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-            Configurare
-          </h3>
+        <div style={S.card}>
+          <span style={S.label}>⚙️ Configurare Pipeline</span>
 
-          {/* Upload */}
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ fontSize: '13px', color: '#9ca3af', display: 'block', marginBottom: '6px' }}>
-              🎵 Fisier Audio Input
-            </label>
-            <input type="file" accept="audio/*" onChange={e => setFile(e.target.files[0])}
-              style={{ fontSize: '13px', color: '#e5e7eb', background: '#1f2937',
-                border: '1px solid #374151', borderRadius: '8px', padding: '8px 12px', width: '100%' }} />
-            {file && <div style={{ fontSize: '11px', color: '#6366f1', marginTop: '4px' }}>✓ {file.name}</div>}
-          </div>
+          {/* Upload & Model Row */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+            
+            {/* File Upload */}
+            <div>
+              <label style={{ fontSize: 11, color: cyberpunk.text.secondary, display: 'block', marginBottom: 8, letterSpacing: 1 }}>
+                🎵 FISIER AUDIO INPUT
+              </label>
+              <label style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '14px 16px',
+                background: "rgba(10,10,26,0.6)",
+                border: `2px dashed ${file ? cyberpunk.neon.indigo.primary : 'rgba(55,65,81,0.5)'}`,
+                borderRadius: 10,
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={(e) => {
+                if (!file) {
+                  e.currentTarget.style.borderColor = cyberpunk.neon.indigo.primary;
+                  e.currentTarget.style.boxShadow = `0 0 15px ${cyberpunk.neon.indigo.glow}`;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!file) {
+                  e.currentTarget.style.borderColor = 'rgba(55,65,81,0.5)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }
+              }}
+              >
+                <span style={{ fontSize: 32 }}>{file ? '🎵' : '📂'}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ 
+                    color: file ? cyberpunk.neon.indigo.primary : cyberpunk.text.secondary, 
+                    fontSize: 13, 
+                    fontWeight: 700,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {file ? file.name : 'Click to upload audio'}
+                  </div>
+                  <div style={{ color: cyberpunk.text.muted, fontSize: 10, marginTop: 2 }}>
+                    WAV · MP3 · FLAC · M4A
+                  </div>
+                </div>
+                <input type="file" accept="audio/*" onChange={e => setFile(e.target.files[0])} style={{ display: 'none' }} />
+              </label>
+              {file && (
+                <div style={{ 
+                  marginTop: 8, 
+                  fontSize: 10, 
+                  color: cyberpunk.neon.indigo.primary,
+                  padding: '6px 10px',
+                  background: `${cyberpunk.neon.indigo.primary}11`,
+                  borderRadius: 6,
+                  display: 'inline-block',
+                  border: `1px solid ${cyberpunk.neon.indigo.primary}33`,
+                }}>
+                  ✓ {file.name}
+                </div>
+              )}
+            </div>
 
-          {/* RVC Model */}
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ fontSize: '13px', color: '#9ca3af', display: 'block', marginBottom: '6px' }}>🎤 Model RVC</label>
-            {models.length > 0 ? (
-              <select value={rvcModel} onChange={e => setRvcModel(e.target.value)}
-                style={{ width: '100%', background: '#1f2937', color: 'white', border: '1px solid #374151',
-                  borderRadius: '8px', padding: '8px 12px', fontSize: '13px' }}>
-                {models.map(m => <option key={m} value={m}>{m}</option>)}
-              </select>
-            ) : (
-              <input value={rvcModel} onChange={e => setRvcModel(e.target.value)} placeholder="Numele modelului RVC"
-                style={{ width: '100%', background: '#1f2937', color: 'white', border: '1px solid #374151',
-                  borderRadius: '8px', padding: '8px 12px', fontSize: '13px' }} />
-            )}
+            {/* RVC Model */}
+            <div>
+              <label style={{ fontSize: 11, color: cyberpunk.text.secondary, display: 'block', marginBottom: 8, letterSpacing: 1 }}>
+                🎤 MODEL RVC
+              </label>
+              {models.length > 0 ? (
+                <select value={rvcModel} onChange={e => setRvcModel(e.target.value)}
+                  style={{ 
+                    width: '100%', 
+                    background: "#0a0a1a", 
+                    color: cyberpunk.text.primary, 
+                    border: '1px solid rgba(55,65,81,0.5)',
+                    borderRadius: 10, 
+                    padding: '12px 14px', 
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}>
+                  {models.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              ) : (
+                <input 
+                  value={rvcModel} 
+                  onChange={e => setRvcModel(e.target.value)} 
+                  placeholder="Numele modelului RVC"
+                  style={{ 
+                    width: '100%', 
+                    background: "#0a0a1a", 
+                    color: cyberpunk.text.primary, 
+                    border: '1px solid rgba(55,65,81,0.5)',
+                    borderRadius: 10, 
+                    padding: '12px 14px', 
+                    fontSize: 13,
+                  }} 
+                />
+              )}
+            </div>
           </div>
 
           {/* F0 Method */}
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ fontSize: '13px', color: '#9ca3af', display: 'block', marginBottom: '6px' }}>🎵 F0 Method (Pitch Extraction)</label>
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontSize: 11, color: cyberpunk.text.secondary, display: 'block', marginBottom: 8, letterSpacing: 1 }}>
+              🎵 F0 METHOD (PITCH EXTRACTION)
+            </label>
             <select value={f0Method} onChange={e => setF0Method(e.target.value)}
-              style={{ width: '100%', background: '#1f2937', color: 'white', border: '1px solid #374151',
-                borderRadius: '8px', padding: '8px 12px', fontSize: '13px' }}>
+              style={{ 
+                width: '100%', 
+                background: "#0a0a1a", 
+                color: 'white', 
+                border: '1px solid rgba(55,65,81,0.5)',
+                borderRadius: 10, 
+                padding: '12px 14px', 
+                fontSize: 13,
+                cursor: 'pointer',
+              }}>
               <option value="harvest">🎤 harvest — Best for singing (slow, accurate)</option>
               <option value="rmvpe">🎙️ rmvpe — Best for speech (fast, good quality)</option>
               <option value="crepe">🔬 crepe — High quality (very slow, GPU intensive)</option>
               <option value="pm">⚡ pm — Fastest (poor quality, testing only)</option>
               <option value="dio">📊 dio — Fast (decent quality)</option>
             </select>
-            <p style={{ fontSize: '10px', color: '#6b7280', marginTop: '6px', fontStyle: 'italic' }}>
-              Recomandat: <strong>harvest</strong> pentru muzică, <strong>rmvpe</strong> pentru vorbire
+            <p style={{ fontSize: 10, color: cyberpunk.text.muted, marginTop: 6, fontStyle: 'italic' }}>
+              Recomandat: <strong style={{ color: cyberpunk.neon.green.primary }}>harvest</strong> pentru muzică, <strong style={{ color: cyberpunk.neon.yellow.primary }}>rmvpe</strong> pentru vorbire
             </p>
           </div>
 
           {/* Vocal Chain Preset */}
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ fontSize: '13px', color: '#9ca3af', display: 'block', marginBottom: '6px' }}>🎤 Vocal Chain Preset</label>
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontSize: 11, color: cyberpunk.text.secondary, display: 'block', marginBottom: 8, letterSpacing: 1 }}>
+              🎤 VOCAL CHAIN PRESET
+            </label>
             <select value={vocalPreset} onChange={e => setVocalPreset(e.target.value)}
-              style={{ width: '100%', background: '#1f2937', color: 'white', border: '1px solid #374151',
-                borderRadius: '8px', padding: '8px 12px', fontSize: '13px' }}>
+              style={{ 
+                width: '100%', 
+                background: "#0a0a1a", 
+                color: 'white', 
+                border: '1px solid rgba(55,65,81,0.5)',
+                borderRadius: 10, 
+                padding: '12px 14px', 
+                fontSize: 13,
+                cursor: 'pointer',
+              }}>
               <option value="studio_radio">🎙️ Studio Radio — Clar, compresat (pop/manele)</option>
               <option value="natural">🎤 Natural — Minimal procesare (acoustic/folk)</option>
               <option value="arena">🏟️ Arena — Mult reverb (concert/live)</option>
               <option value="radio">📻 Radio — Foarte compresat (commercial)</option>
               <option value="balanced">🎵 Balanced — Echilibrat (all-round)</option>
             </select>
-            <p style={{ fontSize: '10px', color: '#6b7280', marginTop: '6px', fontStyle: 'italic' }}>
-              Recomandat: <strong>Studio Radio</strong> pentru muzică românească
+            <p style={{ fontSize: 10, color: cyberpunk.text.muted, marginTop: 6, fontStyle: 'italic' }}>
+              Recomandat: <strong style={{ color: cyberpunk.neon.cyan.primary }}>Studio Radio</strong> pentru muzică românească
             </p>
           </div>
 
           {/* Sliders 3x2 Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 16 }}>
             {sliders.map(({ label, val, set, min, max, step, display, desc, example, color }) => (
-              <div key={label} style={{ background: '#0d1117', borderRadius: '8px', padding: '12px', border: '1px solid #1f2937' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-                  <span style={{ fontSize: '12px', color: 'white', fontWeight: 'bold' }}>{label}</span>
-                  <span style={{ fontSize: '12px', color, fontWeight: 'bold', fontFamily: 'monospace' }}>{display}</span>
+              <div key={label} style={{ 
+                background: "rgba(13,17,23,0.8)", 
+                borderRadius: 10, 
+                padding: 14, 
+                border: `1px solid rgba(31,41,55,0.5)`,
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = color;
+                e.currentTarget.style.boxShadow = `0 0 15px ${color}33`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(31,41,55,0.5)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <span style={{ fontSize: 11, color: 'white', fontWeight: 700, letterSpacing: 0.5 }}>{label}</span>
+                  <span style={{ 
+                    fontSize: 11, 
+                    color, 
+                    fontWeight: 700, 
+                    fontFamily: 'monospace',
+                    textShadow: `0 0 8px ${color}66`,
+                  }}>
+                    {display}
+                  </span>
                 </div>
-                <p style={{ fontSize: '11px', color: '#9ca3af', margin: '0 0 2px 0', lineHeight: 1.4 }}>{desc}</p>
-                <p style={{ fontSize: '10px', color: '#555577', margin: '0 0 8px 0', fontStyle: 'italic' }}>e.g. {example}</p>
-                <input type="range" min={min} max={max} step={step} value={val}
+                <p style={{ fontSize: 10, color: cyberpunk.text.secondary, margin: '0 0 4px 0', lineHeight: 1.4 }}>
+                  {desc}
+                </p>
+                <p style={{ fontSize: 9, color: '#555577', margin: '0 0 10px 0', fontStyle: 'italic' }}>
+                  {example}
+                </p>
+                <input 
+                  type="range" 
+                  min={min} 
+                  max={max} 
+                  step={step} 
+                  value={val}
                   onChange={e => set(Number(e.target.value))}
-                  style={{ width: '100%', accentColor: color }} />
+                  style={{ 
+                    width: '100%', 
+                    accentColor: color,
+                    height: 6,
+                    borderRadius: 3,
+                  }} 
+                />
               </div>
             ))}
           </div>
 
-          {/* Feature toggles 3-col */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+          {/* Feature Toggles */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             {/* Applio */}
-            <div style={{ background: '#0d1117', borderRadius: '8px', padding: '12px', border: '1px solid #1f2937' }}>
-              <h4 style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '10px', fontWeight: 'bold' }}>🎛️ Applio (Stage 2)</h4>
-              <label style={{ display: 'flex', alignItems: 'center', fontSize: '11px', color: '#e5e7eb', marginBottom: '6px', cursor: 'pointer' }}>
-                <input type="checkbox" checked={enableAutotune} onChange={e => setEnableAutotune(e.target.checked)}
-                  style={{ marginRight: '8px', accentColor: '#6366f1' }} />
+            <div style={{ 
+              background: "rgba(13,17,23,0.8)", 
+              borderRadius: 10, 
+              padding: 14, 
+              border: '1px solid rgba(31,41,55,0.5)',
+            }}>
+              <h4 style={{ fontSize: 11, color: cyberpunk.text.secondary, marginBottom: 12, fontWeight: 700, letterSpacing: 1 }}>
+                🎛️ APPLIO (STAGE 2)
+              </h4>
+              <label style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                fontSize: 11, 
+                color: cyberpunk.text.primary, 
+                marginBottom: 8, 
+                cursor: 'pointer',
+                padding: '6px 8px',
+                borderRadius: 6,
+                background: enableAutotune ? `${cyberpunk.neon.indigo.primary}11` : 'transparent',
+                border: enableAutotune ? `1px solid ${cyberpunk.neon.indigo.primary}44` : 'none',
+              }}>
+                <input 
+                  type="checkbox" 
+                  checked={enableAutotune} 
+                  onChange={e => setEnableAutotune(e.target.checked)}
+                  style={{ marginRight: 8, accentColor: cyberpunk.neon.indigo.primary, width: 16, height: 16 }} 
+                />
                 🎵 Autotune
               </label>
               {enableAutotune && (
-                <input type="range" min="0" max="1" step="0.1" value={autotuneStrength}
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="1" 
+                  step="0.1" 
+                  value={autotuneStrength}
                   onChange={e => setAutotuneStrength(Number(e.target.value))}
-                  style={{ width: '100%', accentColor: '#6366f1', marginBottom: '6px' }} />
+                  style={{ 
+                    width: '100%', 
+                    accentColor: cyberpunk.neon.indigo.primary, 
+                    marginBottom: 8,
+                    height: 6,
+                  }} 
+                />
               )}
-              <label style={{ display: 'flex', alignItems: 'center', fontSize: '11px', color: '#e5e7eb', marginBottom: '6px', cursor: 'pointer' }}>
-                <input type="checkbox" checked={enableHighpass} onChange={e => setEnableHighpass(e.target.checked)}
-                  style={{ marginRight: '8px', accentColor: '#6366f1' }} />
+              <label style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                fontSize: 11, 
+                color: cyberpunk.text.primary, 
+                marginBottom: 8, 
+                cursor: 'pointer',
+                padding: '6px 8px',
+                borderRadius: 6,
+                background: enableHighpass ? `${cyberpunk.neon.indigo.primary}11` : 'transparent',
+                border: enableHighpass ? `1px solid ${cyberpunk.neon.indigo.primary}44` : 'none',
+              }}>
+                <input 
+                  type="checkbox" 
+                  checked={enableHighpass} 
+                  onChange={e => setEnableHighpass(e.target.checked)}
+                  style={{ marginRight: 8, accentColor: cyberpunk.neon.indigo.primary, width: 16, height: 16 }} 
+                />
                 🔊 HPF (48Hz)
               </label>
-              <label style={{ display: 'flex', alignItems: 'center', fontSize: '11px', color: '#e5e7eb', cursor: 'pointer' }}>
-                <input type="checkbox" checked={enableVolumeEnvelope} onChange={e => setEnableVolumeEnvelope(e.target.checked)}
-                  style={{ marginRight: '8px', accentColor: '#6366f1' }} />
+              <label style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                fontSize: 11, 
+                color: cyberpunk.text.primary, 
+                cursor: 'pointer',
+                padding: '6px 8px',
+                borderRadius: 6,
+                background: enableVolumeEnvelope ? `${cyberpunk.neon.indigo.primary}11` : 'transparent',
+                border: enableVolumeEnvelope ? `1px solid ${cyberpunk.neon.indigo.primary}44` : 'none',
+              }}>
+                <input 
+                  type="checkbox" 
+                  checked={enableVolumeEnvelope} 
+                  onChange={e => setEnableVolumeEnvelope(e.target.checked)}
+                  style={{ marginRight: 8, accentColor: cyberpunk.neon.indigo.primary, width: 16, height: 16 }} 
+                />
                 📊 Vol. Envelope
               </label>
             </div>
 
             {/* Stage 4 (Mix) */}
-            <div style={{ background: '#0d1117', borderRadius: '8px', padding: '12px', border: `1px solid ${enableStage4 ? '#ec489944' : '#1f2937'}` }}>
-              <h4 style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '10px', fontWeight: 'bold' }}>🎚️ Mix & Master</h4>
-              <label style={{ display: 'flex', alignItems: 'center', fontSize: '11px', color: '#e5e7eb', marginBottom: '8px', cursor: 'pointer' }}>
-                <input type="checkbox" checked={enableStage4} onChange={e => setEnableStage4(e.target.checked)}
-                  style={{ marginRight: '8px', accentColor: '#ec4899' }} />
+            <div style={{ 
+              background: "rgba(13,17,23,0.8)", 
+              borderRadius: 10, 
+              padding: 14, 
+              border: `1px solid ${enableStage4 ? `${cyberpunk.neon.pink.primary}44` : 'rgba(31,41,55,0.5)'}`,
+              boxShadow: enableStage4 ? `0 0 15px ${cyberpunk.neon.pink.glow}` : 'none',
+            }}>
+              <h4 style={{ fontSize: 11, color: cyberpunk.text.secondary, marginBottom: 10, fontWeight: 700, letterSpacing: 1 }}>
+                🎚️ MIX & MASTER
+              </h4>
+              <label style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                fontSize: 11, 
+                color: cyberpunk.text.primary, 
+                marginBottom: 10, 
+                cursor: 'pointer',
+                padding: '6px 8px',
+                borderRadius: 6,
+                background: enableStage4 ? `${cyberpunk.neon.pink.primary}11` : 'transparent',
+                border: enableStage4 ? `1px solid ${cyberpunk.neon.pink.primary}44` : 'none',
+              }}>
+                <input 
+                  type="checkbox" 
+                  checked={enableStage4} 
+                  onChange={e => setEnableStage4(e.target.checked)}
+                  style={{ marginRight: 8, accentColor: cyberpunk.neon.pink.primary, width: 16, height: 16 }} 
+                />
                 Enable
               </label>
-              <p style={{ fontSize: '10px', color: '#6b7280', margin: 0, lineHeight: 1.4 }}>
-                Mix vocal + instrumental.<br />
-                Loudnorm <span style={{ color: '#10b981' }}>-14 LUFS</span> Spotify.
+              <p style={{ fontSize: 10, color: cyberpunk.text.muted, margin: 0, lineHeight: 1.6 }}>
+                Mix vocal + instrumental.
+                <br />
+                Loudnorm <span style={{ color: cyberpunk.neon.green.primary, fontWeight: 700 }}>-14 LUFS</span> Spotify.
               </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Buttons */}
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+      {/* Action Buttons */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
         {!running && !done && (
-          <button onClick={handleRun} disabled={!file || !rvcModel}
-            style={{ flex: 1, padding: '14px', cursor: file && rvcModel ? 'pointer' : 'not-allowed',
-              background: file && rvcModel ? 'linear-gradient(135deg, #6366f1, #ec4899)' : '#374151',
-              color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', fontSize: '15px' }}>
-            🚀 Porneste Pipeline
+          <button 
+            onClick={handleRun} 
+            disabled={!file || !rvcModel}
+            style={{ 
+              flex: 1, 
+              padding: '16px 0', 
+              cursor: file && rvcModel ? 'pointer' : 'not-allowed',
+              background: file && rvcModel 
+                ? `linear-gradient(135deg, ${cyberpunk.neon.indigo.primary}, ${cyberpunk.neon.pink.primary})` 
+                : 'rgba(55,65,81,0.5)',
+              color: 'white', 
+              border: 'none', 
+              borderRadius: 12, 
+              fontWeight: 900, 
+              fontSize: 16,
+              letterSpacing: 2,
+              textTransform: 'uppercase',
+              boxShadow: file && rvcModel ? `0 0 30px ${cyberpunk.neon.indigo.glow}` : 'none',
+              transition: 'all 0.3s ease',
+            }}
+            onMouseEnter={(e) => {
+              if (file && rvcModel) {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = `0 0 40px ${cyberpunk.neon.indigo.glow}`;
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = file && rvcModel 
+                ? `0 0 30px ${cyberpunk.neon.indigo.glow}` 
+                : 'none';
+            }}
+          >
+            🚀 PORNESTE PIPELINE
           </button>
         )}
         {running && (
-          <div style={{ flex: 1, padding: '14px', background: '#1f2937', borderRadius: '10px',
-            textAlign: 'center', color: '#9ca3af', fontSize: '14px' }}>
-            ⚙️ Procesare in curs... ({progress}%)
+          <div style={{ 
+            flex: 1, 
+            padding: '16px 0', 
+            background: "rgba(31,41,55,0.8)", 
+            borderRadius: 12,
+            textAlign: 'center', 
+            color: cyberpunk.text.secondary, 
+            fontSize: 14,
+            fontWeight: 700,
+            letterSpacing: 1,
+            border: '1px solid rgba(245,158,11,0.3)',
+            boxShadow: `0 0 20px ${cyberpunk.neon.yellow.glow}`,
+          }}>
+            ⚙️ PROCESARE IN CURS... ({progress}%)
           </div>
         )}
         {(done || error) && (
-          <button onClick={handleReset}
-            style={{ padding: '14px 24px', background: '#374151', color: 'white', border: 'none',
-              borderRadius: '10px', cursor: 'pointer', fontSize: '14px' }}>
-            🔄 Job Nou
+          <button 
+            onClick={handleReset}
+            style={{ 
+              padding: '16px 32px', 
+              background: "rgba(55,65,81,0.8)", 
+              color: 'white', 
+              border: `1px solid rgba(255,255,255,0.2)`,
+              borderRadius: 12, 
+              cursor: 'pointer', 
+              fontSize: 14,
+              fontWeight: 700,
+              letterSpacing: 1,
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(75,85,99,0.8)';
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(55,65,81,0.8)';
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
+            }}
+          >
+            🔄 JOB NOU
           </button>
         )}
       </div>
 
-      {/* Downloads */}
+      {/* Results Section */}
       {done && jobId && (
-        <div style={{ background: '#111827', borderRadius: '12px', padding: '20px' }}>
-          <h3 style={{ fontSize: '13px', color: '#9ca3af', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-            📁 Descarca Fisierele
-          </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '20px' }}>
+        <div style={S.card}>
+          <span style={S.label}>📁 DESCARCA FISIERELE</span>
+          
+          {/* Download Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10, marginBottom: 20 }}>
             {[
-              { key: 'vocals',       label: '🎵 Vocals Separat',       color: '#6366f1' },
-              { key: 'instrumental', label: '🎸 Instrumental',         color: '#6366f1' },
-              { key: 'rvc_raw',      label: '🎤 RVC Converted',        color: '#8b5cf6' },
-              { key: 'final_mix',    label: '🎚️ Mix Final WAV',      color: '#ec4899' },
-              { key: 'final_mix_mp3', label: '🎧 Mix Final MP3 320k', color: '#f43f5e' },
+              { key: 'vocals',       label: '🎵 Vocals',       color: cyberpunk.neon.indigo.primary },
+              { key: 'instrumental', label: '🎸 Instrumental', color: cyberpunk.neon.indigo.primary },
+              { key: 'rvc_raw',      label: '🎤 RVC Converted',color: cyberpunk.neon.purple.primary },
+              { key: 'final_mix',    label: '🎚️ Mix WAV',     color: cyberpunk.neon.pink.primary },
+              { key: 'final_mix_mp3',label: '🎧 Mix MP3 320k',color: '#f43f5e' },
             ].map(({ key, label, color }) => (
-              <a key={key} href={`${API}/pipeline/download/${jobId}/${key}`}
+              <a 
+                key={key} 
+                href={`${API}/pipeline/download/${jobId}/${key}`}
                 style={{
-                  display: 'block', padding: '12px 14px', background: '#1f2937',
-                  borderRadius: '8px', color: color, textDecoration: 'none',
-                  fontSize: '12px', fontWeight: 'bold', border: `1px solid ${color}44`,
-                  opacity: outputs[key] ? 1 : 0.3,
+                  display: 'block', 
+                  padding: '14px 12px', 
+                  background: "rgba(31,41,55,0.6)",
+                  borderRadius: 10, 
+                  color: color, 
+                  textDecoration: 'none',
+                  fontSize: 11, 
+                  fontWeight: 700, 
+                  border: `1px solid ${color}44`,
+                  opacity: outputs[key] ? 1 : 0.4,
                   pointerEvents: outputs[key] ? 'auto' : 'none',
-                  transition: 'opacity 0.2s',
+                  transition: 'all 0.2s ease',
                   textAlign: 'center',
-                }}>
+                  letterSpacing: 0.5,
+                }}
+                onMouseEnter={(e) => {
+                  if (outputs[key]) {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = `0 0 15px ${color}66`;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
                 {label}
-                {!outputs[key] && <div style={{ fontSize: '10px', color: '#555', marginTop: '3px' }}>not available</div>}
+                {!outputs[key] && (
+                  <div style={{ fontSize: 9, color: cyberpunk.text.muted, marginTop: 4 }}>
+                    not available
+                  </div>
+                )}
               </a>
             ))}
           </div>
 
           {/* Audio Players */}
-          <h3 style={{ fontSize: '13px', color: '#9ca3af', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-            🎧 Preview Audio
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <span style={S.label}>🎧 PREVIEW AUDIO</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {outputs.final_mix && (
-              <div style={{ background: '#0d1117', borderRadius: '10px', padding: '16px', border: '1px solid #ec489944' }}>
-                <div style={{ fontSize: '12px', color: '#ec4899', fontWeight: 'bold', marginBottom: '8px' }}>
-                  🎚️ Mix Final — Spotify Ready
+              <div style={{ 
+                background: "rgba(13,17,23,0.8)", 
+                borderRadius: 12, 
+                padding: 16, 
+                border: `1px solid ${cyberpunk.neon.pink.primary}44`,
+                boxShadow: `0 0 15px ${cyberpunk.neon.pink.glow}`,
+              }}>
+                <div style={{ 
+                  fontSize: 12, 
+                  color: cyberpunk.neon.pink.primary, 
+                  fontWeight: 800, 
+                  marginBottom: 10,
+                  letterSpacing: 1,
+                }}>
+                  🎚️ MIX FINAL — SPOTIFY READY
                 </div>
-                <audio controls style={{ width: '100%', marginBottom: '8px' }}>
+                <audio controls style={{ width: '100%', marginBottom: 10 }}>
                   <source src={`${API}/pipeline/download/${jobId}/final_mix`} type="audio/wav" />
-                  Your browser does not support the audio element.
                 </audio>
-                <div style={{ fontSize: '10px', color: '#6b7280' }}>-14 LUFS · True Peak -1dB · 48kHz/16bit</div>
+                <div style={{ fontSize: 10, color: cyberpunk.text.muted, fontFamily: 'monospace' }}>
+                  -14 LUFS · True Peak -1dB · 48kHz/16bit
+                </div>
               </div>
             )}
             {outputs.rvc_raw && (
-              <div style={{ background: '#0d1117', borderRadius: '10px', padding: '16px', border: '1px solid #8b5cf644' }}>
-                <div style={{ fontSize: '12px', color: '#8b5cf6', fontWeight: 'bold', marginBottom: '8px' }}>
-                  🎤 RVC Converted
+              <div style={{ 
+                background: "rgba(13,17,23,0.8)", 
+                borderRadius: 12, 
+                padding: 16, 
+                border: `1px solid ${cyberpunk.neon.purple.primary}44`,
+                boxShadow: `0 0 15px ${cyberpunk.neon.purple.glow}`,
+              }}>
+                <div style={{ 
+                  fontSize: 12, 
+                  color: cyberpunk.neon.purple.primary, 
+                  fontWeight: 800, 
+                  marginBottom: 10,
+                  letterSpacing: 1,
+                }}>
+                  🎤 RVC CONVERTED
                 </div>
-                <audio controls style={{ width: '100%', marginBottom: '8px' }}>
+                <audio controls style={{ width: '100%', marginBottom: 10 }}>
                   <source src={`${API}/pipeline/download/${jobId}/rvc_raw`} type="audio/wav" />
-                  Your browser does not support the audio element.
                 </audio>
-                <div style={{ fontSize: '10px', color: '#6b7280' }}>Voce convertită prin RVC</div>
+                <div style={{ fontSize: 10, color: cyberpunk.text.muted }}>
+                  Voce convertită prin RVC
+                </div>
               </div>
             )}
             {outputs.vocals && (
-              <div style={{ background: '#0d1117', borderRadius: '10px', padding: '16px', border: '1px solid #6366f144' }}>
-                <div style={{ fontSize: '12px', color: '#6366f1', fontWeight: 'bold', marginBottom: '8px' }}>
-                  🎵 Vocals Separat (BS-RoFormer)
+              <div style={{ 
+                background: "rgba(13,17,23,0.8)", 
+                borderRadius: 12, 
+                padding: 16, 
+                border: `1px solid ${cyberpunk.neon.indigo.primary}44`,
+                boxShadow: `0 0 15px ${cyberpunk.neon.indigo.glow}`,
+              }}>
+                <div style={{ 
+                  fontSize: 12, 
+                  color: cyberpunk.neon.indigo.primary, 
+                  fontWeight: 800, 
+                  marginBottom: 10,
+                  letterSpacing: 1,
+                }}>
+                  🎵 VOCALS SEPARAT (BS-ROFORMER)
                 </div>
-                <audio controls style={{ width: '100%', marginBottom: '8px' }}>
+                <audio controls style={{ width: '100%', marginBottom: 10 }}>
                   <source src={`${API}/pipeline/download/${jobId}/vocals`} type="audio/wav" />
-                  Your browser does not support the audio element.
                 </audio>
-                <div style={{ fontSize: '10px', color: '#6b7280' }}>Separare vocal/instrumental SDR 12.97</div>
+                <div style={{ fontSize: 10, color: cyberpunk.text.muted }}>
+                  Separare vocal/instrumental SDR 12.97
+                </div>
               </div>
             )}
             {outputs.instrumental && (
-              <div style={{ background: '#0d1117', borderRadius: '10px', padding: '16px', border: '1px solid #6366f144' }}>
-                <div style={{ fontSize: '12px', color: '#6366f1', fontWeight: 'bold', marginBottom: '8px' }}>
-                  🎸 Instrumental
+              <div style={{ 
+                background: "rgba(13,17,23,0.8)", 
+                borderRadius: 12, 
+                padding: 16, 
+                border: `1px solid ${cyberpunk.neon.indigo.primary}44`,
+                boxShadow: `0 0 15px ${cyberpunk.neon.indigo.glow}`,
+              }}>
+                <div style={{ 
+                  fontSize: 12, 
+                  color: cyberpunk.neon.indigo.primary, 
+                  fontWeight: 800, 
+                  marginBottom: 10,
+                  letterSpacing: 1,
+                }}>
+                  🎸 INSTRUMENTAL
                 </div>
-                <audio controls style={{ width: '100%', marginBottom: '8px' }}>
+                <audio controls style={{ width: '100%', marginBottom: 10 }}>
                   <source src={`${API}/pipeline/download/${jobId}/instrumental`} type="audio/wav" />
-                  Your browser does not support the audio element.
                 </audio>
-                <div style={{ fontSize: '10px', color: '#6b7280' }}>Pista instrumentală pentru mix final</div>
+                <div style={{ fontSize: 10, color: cyberpunk.text.muted }}>
+                  Pista instrumentală pentru mix final
+                </div>
               </div>
             )}
           </div>
-
-          {outputs.final_mix && (
-            <div style={{ marginTop: '16px', padding: '12px', background: '#0d1117', borderRadius: '8px',
-              border: '1px solid #ec489944', textAlign: 'center' }}>
-              <div style={{ fontSize: '12px', color: '#ec4899', fontWeight: 'bold', marginBottom: '4px' }}>
-                🎚️ Mix Final — Spotify Ready
-              </div>
-              <div style={{ fontSize: '11px', color: '#6b7280' }}>-14 LUFS · True Peak -1dB · 48kHz/16bit</div>
-            </div>
-          )}
         </div>
       )}
+
+      {/* Global Styles */}
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+      `}</style>
     </div>
   );
 }

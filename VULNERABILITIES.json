@@ -1,0 +1,229 @@
+{
+  "audit_info": {
+    "date": "2026-03-15",
+    "auditor": "AI Security Assistant",
+    "project": "VocalForge",
+    "version": "2.0.0",
+    "methodology": "SAST (Static Application Security Testing)"
+  },
+  "summary": {
+    "total_vulnerabilities": 8,
+    "critical": 2,
+    "high": 0,
+    "medium": 2,
+    "low": 2,
+    "info": 2,
+    "security_score": 4.5
+  },
+  "vulnerabilities": [
+    {
+      "id": "VF-2026-001",
+      "severity": "CRITICAL",
+      "cvss_score": 7.5,
+      "title": "CORS Misconfiguration - Allow All Origins",
+      "cwe": "CWE-942",
+      "location": {
+        "file": "backend/main.py",
+        "lines": "199-207"
+      },
+      "description": "Backend API allows requests from ANY origin, enabling malicious websites to make authenticated requests on behalf of users.",
+      "impact": {
+        "attack_vector": "Network",
+        "attack_complexity": "Low",
+        "privileges_required": "None",
+        "user_interaction": "Required",
+        "confidentiality": "Low",
+        "integrity": "Low",
+        "availability": "None"
+      },
+      "remediation": "Restrict allow_origins to specific trusted domains instead of wildcard '*'",
+      "code_fix": {
+        "before": "allow_origins=[\"*\"]",
+        "after": "allow_origins=[\"http://localhost:3000\", \"http://localhost:3001\"]"
+      },
+      "priority": "IMMEDIATE",
+      "status": "OPEN"
+    },
+    {
+      "id": "VF-2026-002",
+      "severity": "CRITICAL",
+      "cvss_score": 8.0,
+      "title": "Missing Authentication on Critical Endpoints",
+      "cwe": "CWE-306",
+      "location": {
+        "file": "backend/main.py",
+        "endpoints": [
+          "/process_cover",
+          "/upload_model",
+          "/demucs_separate",
+          "/delete_model/{model_id}",
+          "/preview",
+          "/clean_temp_files",
+          "/unload_models"
+        ]
+      },
+      "description": "Multiple critical endpoints have no authentication, allowing anyone to use GPU resources, upload malicious models, or delete data.",
+      "impact": {
+        "attack_vector": "Network",
+        "attack_complexity": "Low",
+        "privileges_required": "None",
+        "user_interaction": "None",
+        "scope": "Changed",
+        "confidentiality": "None",
+        "integrity": "Low",
+        "availability": "High"
+      },
+      "remediation": "Implement HTTP Bearer token authentication on all sensitive endpoints",
+      "code_fix": {
+        "type": "Add authentication middleware",
+        "example": "async def verify_auth(credentials: HTTPAuthorizationCredentials = Depends(security))"
+      },
+      "priority": "IMMEDIATE",
+      "status": "OPEN"
+    },
+    {
+      "id": "VF-2026-003",
+      "severity": "MEDIUM",
+      "cvss_score": 6.5,
+      "title": "File Upload Without Validation",
+      "cwe": "CWE-434",
+      "location": {
+        "file": "backend/main.py",
+        "endpoints": [
+          "/upload_model",
+          "/process_cover"
+        ]
+      },
+      "description": "File upload endpoints accept any file type without extension validation, MIME type checking, or file size limits.",
+      "attack_scenarios": [
+        "Upload PHP/Python shell for Remote Code Execution",
+        "Upload executable for malware deployment",
+        "Upload huge file for DoS via disk exhaustion",
+        "Upload malicious model weights for model poisoning"
+      ],
+      "remediation": "Implement file extension whitelist, MIME type validation, and file size limits",
+      "priority": "WITHIN_1_WEEK",
+      "status": "OPEN"
+    },
+    {
+      "id": "VF-2026-004",
+      "severity": "MEDIUM",
+      "cvss_score": 6.0,
+      "title": "Path Traversal in File Serving",
+      "cwe": "CWE-22",
+      "location": {
+        "file": "backend/main.py",
+        "lines": "216-240",
+        "endpoint": "/tracks/{filename:path}"
+      },
+      "description": "The filename parameter is not sanitized, allowing path traversal attacks via '../' sequences.",
+      "attack_examples": [
+        "GET /tracks/../../backend/main.py",
+        "GET /tracks/../../../.env",
+        "GET /tracks/..%2F..%2F..%2Fetc%2Fpasswd"
+      ],
+      "remediation": "Use pathlib.Path.resolve() and verify path is within OUTPUT_DIR",
+      "code_fix": {
+        "type": "Add path validation",
+        "example": "file_path.relative_to(output_dir_resolved)"
+      },
+      "priority": "WITHIN_1_WEEK",
+      "status": "OPEN"
+    },
+    {
+      "id": "VF-2026-005",
+      "severity": "LOW",
+      "cvss_score": 4.0,
+      "title": "Inconsistent Token Authentication",
+      "cwe": "CWE-287",
+      "location": {
+        "file": "backend/main.py"
+      },
+      "description": "Some endpoints check ai_token in request body, others have no auth at all.",
+      "remediation": "Implement centralized authentication middleware using HTTP Authorization header",
+      "priority": "CONSIDER_FIXING",
+      "status": "OPEN"
+    },
+    {
+      "id": "VF-2026-006",
+      "severity": "LOW",
+      "cvss_score": 4.5,
+      "title": "No Rate Limiting",
+      "cwe": "CWE-770",
+      "location": {
+        "file": "Global"
+      },
+      "description": "No rate limiting on any endpoint allows DoS attacks and GPU resource exhaustion.",
+      "remediation": "Implement rate limiting using slowapi (10 requests/minute per IP)",
+      "priority": "CONSIDER_FIXING",
+      "status": "OPEN"
+    },
+    {
+      "id": "VF-2026-007",
+      "severity": "INFO",
+      "cvss_score": 2.0,
+      "title": "localStorage Usage (Frontend)",
+      "cwe": "CWE-311",
+      "location": {
+        "file": "frontend/src/components/AceStepTab.jsx"
+      },
+      "description": "Sensitive data stored in localStorage could be stolen via XSS attacks.",
+      "remediation": "Implement Content Security Policy (CSP) headers",
+      "priority": "AWARENESS",
+      "status": "OPEN"
+    },
+    {
+      "id": "VF-2026-008",
+      "severity": "INFO",
+      "cvss_score": 0.0,
+      "title": "Hardcoded Localhost URLs (Frontend)",
+      "cwe": "CWE-798",
+      "location": {
+        "file": "frontend/src/App.jsx"
+      },
+      "description": "API URL hardcoded as localhost, needs environment variable for production.",
+      "remediation": "Use environment variable VITE_API_URL",
+      "priority": "AWARENESS",
+      "status": "OPEN"
+    }
+  ],
+  "dependencies": {
+    "python": {
+      "packages": [
+        {"name": "fastapi", "version": ">=0.104.0", "cve_count": 0, "status": "SECURE"},
+        {"name": "uvicorn", "version": ">=0.24.0", "cve_count": 0, "status": "SECURE"},
+        {"name": "torch", "version": ">=2.0.0", "cve_count": 0, "status": "SECURE"},
+        {"name": "librosa", "version": ">=0.10.0", "cve_count": 0, "status": "SECURE"},
+        {"name": "python-multipart", "version": ">=0.0.6", "cve_count": 0, "status": "SECURE"}
+      ],
+      "overall_status": "SECURE"
+    },
+    "npm": {
+      "packages": [
+        {"name": "react", "version": "^18.2.0", "cve_count": 0, "status": "SECURE"},
+        {"name": "react-dom", "version": "^18.2.0", "cve_count": 0, "status": "SECURE"},
+        {"name": "vite", "version": "^5.0.0", "cve_count": 0, "status": "SECURE"},
+        {"name": "lucide-react", "version": "^0.574.0", "cve_count": 0, "status": "SECURE"}
+      ],
+      "overall_status": "SECURE"
+    }
+  },
+  "remediation_roadmap": {
+    "week_1_critical": [
+      "Fix CORS configuration",
+      "Implement authentication on all endpoints",
+      "Add file upload validation"
+    ],
+    "week_2_medium": [
+      "Fix path traversal vulnerability",
+      "Add rate limiting",
+      "Centralize authentication"
+    ],
+    "week_3_hardening": [
+      "Add security headers",
+      "Implement logging/monitoring",
+      "Add input validation on all endpoints",
+      "Create security documentation"
+    ]
+  }
+}

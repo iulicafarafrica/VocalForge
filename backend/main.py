@@ -178,10 +178,12 @@ def _suppress_connection_reset(loop, context):
         return
     loop.default_exception_handler(context)
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request, Depends, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 
 # Import ACE-Step Advanced router
 from endpoints.acestep_advanced import router as acestep_advanced_router
@@ -198,16 +200,73 @@ for d in [MODELS_DIR, TEMP_DIR, OUTPUT_DIR]:
 # ── App ────────────────────────────────────────────────────────────────────────
 app = FastAPI(title="VocalForge API", version="1.7")
 
+# Allowed origins for CORS (restrict to prevent cross-origin attacks)
+ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+    allow_credentials=True,
 )
+
+# ── Security: Authentication ──────────────────────────────────────────────────
+# Bearer token authentication for API endpoints
+security = HTTPBearer()
+
+# API Token from environment variable (with fallback for development)
+API_TOKEN = os.getenv("VOCALFORGE_API_TOKEN", "dev-token-change-in-production")
+
+async def verify_auth(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Verify Bearer token authentication."""
+    if credentials.credentials != API_TOKEN:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication token"
+        )
+    return credentials.credentials
 
 # Include Audio Analysis router (BPM, Key, Chords detection)
 from endpoints.audio_analysis import router as audio_analysis_router
 app.include_router(audio_analysis_router)
+
+# ── Security: File Upload Validation ──────────────────────────────────────────
+# Allowed file extensions
+ALLOWED_MODEL_EXTENSIONS = {".pth", ".pt", ".bin", ".safetensors"}
+ALLOWED_AUDIO_EXTENSIONS = {".wav", ".mp3", ".flac", ".m4a", ".ogg", ".webm"}
+
+# Max file sizes (in bytes)
+MAX_MODEL_SIZE = 2 * 1024 * 1024 * 1024  # 2GB
+MAX_AUDIO_SIZE = 100 * 1024 * 1024  # 100MB
+
+def validate_upload(file: UploadFile, allowed_extensions: set, max_size: int):
+    """Validate uploaded file for extension, size, and basic content checks."""
+    # 1. Check file extension
+    file_ext = Path(file.filename).suffix.lower() if file.filename else ""
+    if file_ext not in allowed_extensions:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File type '{file_ext}' not allowed. Allowed: {allowed_extensions}"
+        )
+    
+    # 2. Check file size using file.file (SpooledTemporaryFile)
+    file.file.seek(0, 2)  # Seek to end
+    file_size = file.file.tell()
+    file.file.seek(0)  # Reset to beginning
+    
+    if file_size > max_size:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File too large ({file_size/1024/1024:.1f}MB). Max: {max_size/1024/1024:.0f}MB"
+        )
+    
+    return True
 
 # Serve audio files with range support (for seeking/scrubbing)
 from starlette.responses import StreamingResponse, FileResponse
@@ -215,13 +274,27 @@ import re
 
 @app.get("/tracks/{filename:path}")
 async def serve_track(filename: str, request: Request):
-    """Serve audio files with HTTP Range support for seeking."""
-    file_path = os.path.join(OUTPUT_DIR, filename)
-
-    if not os.path.exists(file_path):
+    """Serve audio files with HTTP Range support for seeking and path traversal protection."""
+    # 1. Resolve OUTPUT_DIR to absolute path to prevent path traversal attacks
+    output_dir_resolved = Path(OUTPUT_DIR).resolve()
+    
+    # 2. Construct and resolve requested path
+    file_path = (output_dir_resolved / filename).resolve()
+    
+    # 3. Verify path is within OUTPUT_DIR (prevents ../ attacks)
+    try:
+        file_path.relative_to(output_dir_resolved)
+    except ValueError:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied: Invalid path"
+        )
+    
+    # 4. Check file exists and is a file (not directory)
+    if not file_path.is_file():
         raise HTTPException(status_code=404, detail="File not found")
-
-    file_size = os.path.getsize(file_path)
+    
+    file_size = file_path.stat().st_size
     ext = filename.rsplit(".", 1)[-1].lower()
     media_types = {"mp3": "audio/mpeg", "wav": "audio/wav", "flac": "audio/flac", "m4a": "audio/mp4"}
     media_type = media_types.get(ext, "audio/mpeg")
@@ -549,6 +622,7 @@ async def process_cover(
     instrumental_gain: float = Form(1.0),
     pad_seconds: float = Form(0.5),
     clip_seconds: float = Form(0.0),
+    auth: str = Depends(verify_auth),  # 🔒 Authentication required
 ):
     """
     Full cover pipeline with job tracking:
@@ -782,11 +856,18 @@ async def upload_model(
     pth_file: UploadFile = File(...),
     config_file: UploadFile = File(...),
     name: str = Form(""),
+    auth: str = Depends(verify_auth),  # 🔒 Authentication required
 ):
     """
     Upload a so-vits-svc model (.pth) + config.json.
     Creates a new model directory under backend/models/.
     """
+    # Validate pth file
+    validate_upload(pth_file, ALLOWED_MODEL_EXTENSIONS, MAX_MODEL_SIZE)
+    
+    # Validate config file (must be .json)
+    validate_upload(config_file, {".json"}, 10 * 1024 * 1024)  # 10MB max for config
+    
     model_id = uuid.uuid4().hex[:8]
     model_name = name or os.path.splitext(pth_file.filename)[0]
     model_dir = os.path.join(MODELS_DIR, model_id)
@@ -838,7 +919,7 @@ def list_models():
 
 
 @app.delete("/delete_model/{model_id}")
-def delete_model(model_id: str):
+def delete_model(model_id: str, auth: str = Depends(verify_auth)):  # 🔒 Authentication required
     """Delete a model by ID."""
     model_dir = os.path.join(MODELS_DIR, model_id)
     if not os.path.isdir(model_dir):
@@ -1039,6 +1120,7 @@ async def demucs_separate(
     file: UploadFile = File(...),
     model: str = Form("htdemucs_ft"),
     mode: str = Form("stems"),  # "stems" | "vocals_only" | "instrumental_only"
+    auth: str = Depends(verify_auth),  # 🔒 Authentication required
 ):
     """
     Separate audio into stems using Demucs.
@@ -1046,6 +1128,9 @@ async def demucs_separate(
     mode=vocals_only: returns only vocals
     mode=instrumental_only: returns no_vocals mix (drums+bass+other)
     """
+    # Validate uploaded audio file
+    validate_upload(file, ALLOWED_AUDIO_EXTENSIONS, MAX_AUDIO_SIZE)
+    
     job_id = uuid.uuid4().hex
     job_dir = os.path.join(TEMP_DIR, job_id)
     os.makedirs(job_dir, exist_ok=True)
@@ -1263,7 +1348,7 @@ def clear_cache():
 
 
 @app.get("/clean_temp_files")
-async def clean_temp_files():
+async def clean_temp_files(auth: str = Depends(verify_auth)):  # 🔒 Authentication required
     """Clean temporary output files from ACE-Step and backend."""
     import shutil
     import asyncio
@@ -1325,7 +1410,7 @@ async def clean_temp_files():
 
 
 @app.get("/unload_models")
-def unload_all_models():
+def unload_all_models(auth: str = Depends(verify_auth)):  # 🔒 Authentication required
     for svc in _svc_cache.values():
         try:
             svc.unload()
@@ -2335,7 +2420,7 @@ async def ace_generate(
     # Custom mode extra fields (ignored by backend, accepted to avoid 422)
     mode: str = Form(""),
     ref_audio_strength: float = Form(0.5),
-    tags: str = Form(""),
+    texture: str = Form(""),
 ):
     """
     Generate music with ACE-Step v1.5.
