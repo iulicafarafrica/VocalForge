@@ -56,20 +56,25 @@ export default function LyricsTab({ addLog }) {
     setConnectionStatus(null);
     
     try {
-      const response = await fetch("https://api.genius.com/search?q=test", {
-        headers: {
-          "Authorization": `Bearer ${geniusAccessToken}`,
-        },
+      // Test through backend to avoid CORS issues
+      const fd = new FormData();
+      fd.append("access_token", geniusAccessToken);
+      
+      const response = await fetch(`${API}/audio/lyrics/test-connection`, {
+        method: "POST",
+        body: fd,
       });
       
-      if (response.ok) {
+      const data = await response.json();
+      
+      if (response.ok && data.status === "success") {
         setConnectionStatus("success");
         addLog?.("[Lyrics] Genius API connection successful!");
         alert("✅ Connected to Genius API successfully!");
       } else {
         setConnectionStatus("error");
         addLog?.("[Lyrics] Genius API connection failed");
-        alert("❌ Connection failed. Check your Access Token.");
+        alert(`❌ Connection failed: ${data.error || "Invalid token"}`);
       }
     } catch (err) {
       setConnectionStatus("error");

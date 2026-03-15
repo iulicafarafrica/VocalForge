@@ -389,6 +389,28 @@ async def audio_analysis_info():
 
 # ── Lyrics Search (Genius API) ────────────────────────────────────────────────
 
+@router.post("/lyrics/test-connection")
+async def test_genius_connection(access_token: str = Form(...)):
+    """Test Genius API connection through backend (avoids CORS issues)."""
+    try:
+        headers = {"Authorization": f"Bearer {access_token}"}
+        response = requests.get("https://api.genius.com/search?q=test", headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            return {"status": "success", "message": "Connected to Genius API"}
+        elif response.status_code == 401:
+            raise HTTPException(status_code=401, detail="Invalid access token")
+        elif response.status_code == 403:
+            raise HTTPException(status_code=403, detail="Access token expired or revoked")
+        else:
+            raise HTTPException(status_code=500, detail=f"Genius API error: {response.status_code}")
+            
+    except requests.exceptions.Timeout:
+        raise HTTPException(status_code=500, detail="Connection timeout")
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail=f"Connection error: {str(e)}")
+
+
 @router.post("/lyrics/search")
 async def search_lyrics(artist: str = Form(...), title: str = Form(...)):
     """Search lyrics using Genius API."""
