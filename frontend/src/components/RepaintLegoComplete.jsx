@@ -572,9 +572,31 @@ export default function RepaintLegoComplete() {
           <div style={{ marginTop: 12 }}>
             <audio controls src={result.url} style={{ width: "100%", marginBottom: 12 }} />
             <div style={{ display: "flex", gap: 8 }}>
-              <a
-                href={result.url}
-                download={result.filename}
+              <button
+                onClick={async () => {
+                  try {
+                    // Fetch the file as blob to force download
+                    const response = await fetch(result.url);
+                    const blob = await response.blob();
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    
+                    // Create download link
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = result.filename || 'repaint-output.mp3';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(blobUrl);
+                  } catch (err) {
+                    // Fallback: direct download
+                    const a = document.createElement('a');
+                    a.href = result.url;
+                    a.download = result.filename || 'repaint-output.mp3';
+                    a.target = '_blank';
+                    a.click();
+                  }
+                }}
                 style={{
                   flex: 1,
                   padding: "10px 0",
@@ -588,10 +610,20 @@ export default function RepaintLegoComplete() {
                   fontSize: 11,
                   letterSpacing: 1,
                   textTransform: "uppercase",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = `${cyberpunk.neon.green.primary}33`;
+                  e.currentTarget.style.boxShadow = `0 0 20px ${cyberpunk.neon.green.glow}`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = `${cyberpunk.neon.green.primary}22`;
+                  e.currentTarget.style.boxShadow = `0 0 10px ${cyberpunk.neon.green.glow}`;
                 }}
               >
                 ⬇️ Download
-              </a>
+              </button>
             </div>
           </div>
         </div>

@@ -3340,11 +3340,29 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                 <audio controls src={result.url} preload="metadata" style={{ width: "100%", marginBottom: 12 }} />
                 <div style={{ display: "flex", gap: 8 }}>
                   <button
-                    onClick={() => {
-                      const a = document.createElement("a");
-                      a.href = result.url;
-                      a.download = result.filename;
-                      a.click();
+                    onClick={async () => {
+                      try {
+                        // Fetch the file as blob to force download
+                        const response = await fetch(result.url);
+                        const blob = await response.blob();
+                        const blobUrl = window.URL.createObjectURL(blob);
+                        
+                        // Create download link
+                        const a = document.createElement('a');
+                        a.href = blobUrl;
+                        a.download = result.filename || 'acestep-output.mp3';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(blobUrl);
+                      } catch (err) {
+                        // Fallback: direct download
+                        const a = document.createElement('a');
+                        a.href = result.url;
+                        a.download = result.filename || 'acestep-output.mp3';
+                        a.target = '_blank';
+                        a.click();
+                      }
                     }}
                     style={{
                       flex: 1,
