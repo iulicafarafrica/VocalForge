@@ -33,7 +33,7 @@ export default function LyricsTab({ addLog }) {
   const [showSaveInput, setShowSaveInput] = useState(false);
   const [saveName, setSaveName] = useState("");
 
-  // Load library on mount
+  // Load library and Genius credentials on mount
   useEffect(() => {
     try {
       const saved = localStorage.getItem("vocalforge_lyrics_library");
@@ -43,6 +43,19 @@ export default function LyricsTab({ addLog }) {
     } catch (e) {
       console.error("Failed to load lyrics library:", e);
     }
+    
+    // Load Genius API credentials
+    try {
+      const savedClientId = localStorage.getItem("genius_client_id");
+      const savedClientSecret = localStorage.getItem("genius_client_secret");
+      const savedAccessToken = localStorage.getItem("genius_access_token");
+      
+      if (savedClientId) setGeniusClientId(savedClientId);
+      if (savedClientSecret) setGeniusClientSecret(savedClientSecret);
+      if (savedAccessToken) setGeniusAccessToken(savedAccessToken);
+    } catch (e) {
+      console.error("Failed to load Genius credentials:", e);
+    }
   }, []);
 
   // Test Genius API connection
@@ -51,6 +64,9 @@ export default function LyricsTab({ addLog }) {
       alert("Please enter an Access Token");
       return;
     }
+    
+    // Auto-save credentials on successful test
+    saveGeniusCredentials();
     
     setTestingConnection(true);
     setConnectionStatus(null);
@@ -70,7 +86,7 @@ export default function LyricsTab({ addLog }) {
       if (response.ok && data.status === "success") {
         setConnectionStatus("success");
         addLog?.("[Lyrics] Genius API connection successful!");
-        alert("✅ Connected to Genius API successfully!");
+        alert("✅ Connected to Genius API successfully! Credentials saved.");
       } else {
         setConnectionStatus("error");
         addLog?.("[Lyrics] Genius API connection failed");
@@ -82,6 +98,18 @@ export default function LyricsTab({ addLog }) {
       alert("❌ Connection error: " + err.message);
     } finally {
       setTestingConnection(false);
+    }
+  };
+
+  // Save Genius credentials to localStorage
+  const saveGeniusCredentials = () => {
+    try {
+      if (geniusClientId) localStorage.setItem("genius_client_id", geniusClientId);
+      if (geniusClientSecret) localStorage.setItem("genius_client_secret", geniusClientSecret);
+      if (geniusAccessToken) localStorage.setItem("genius_access_token", geniusAccessToken);
+      addLog?.("[Lyrics] Genius credentials saved to localStorage");
+    } catch (e) {
+      console.error("Failed to save Genius credentials:", e);
     }
   };
 
@@ -97,6 +125,9 @@ export default function LyricsTab({ addLog }) {
       alert("Please configure Genius API credentials first. Click '🔑 API Config' button.");
       return;
     }
+    
+    // Auto-save credentials
+    saveGeniusCredentials();
     
     setSearching(true);
     addLog?.(`[Lyrics] Searching: ${searchArtist} - ${searchTitle}`);
