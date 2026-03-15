@@ -418,7 +418,7 @@ async def search_lyrics(
     access_token: str = Form(None),
     use_lyrics_ovh: bool = Form(False)
 ):
-    """Search lyrics using Genius API or lyrics.ovh."""
+    """Search lyrics using lyrics.ovh (primary) or Genius API (fallback)."""
     
     # Option 1: Use lyrics.ovh (free, no token needed, returns full lyrics)
     if use_lyrics_ovh:
@@ -443,10 +443,23 @@ async def search_lyrics(
                     }
             
             print(f"[lyrics.ovh] Not found: HTTP {response.status_code}")
+            # lyrics.ovh returned 404 - song not found
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Song not found on lyrics.ovh. Try: '{artist} - {title}'. Check spelling or try a different song."
+            )
+        except requests.exceptions.RequestException as e:
+            print(f"[lyrics.ovh] Connection error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"lyrics.ovh connection error: {str(e)}")
+        except HTTPException:
+            # Re-raise HTTP exceptions (like 404)
+            raise
         except Exception as e:
             print(f"[lyrics.ovh] Error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"lyrics.ovh error: {str(e)}")
     
     # Option 2: Use Genius API (requires token, returns metadata + link)
+    # Only used if use_lyrics_ovh is False
     genius_token = access_token or GENIUS_ACCESS_TOKEN
     
     if not genius_token:
