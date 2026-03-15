@@ -1,41 +1,11 @@
 /**
  * Repaint Tab - ACE-Step Advanced Feature
- * Simplified version - only Repaint (Lego and Complete removed)
+ * Cyberpunk Redesign for VocalForge v2.1.0
  */
 
 import React, { useState, useRef, useEffect } from 'react';
 
 const API_BASE = 'http://localhost:8000';
-
-const sectionStyle = {
-  background: 'linear-gradient(180deg, #0d0d22 0%, #0a0a1a 100%)',
-  border: '1px solid #1a1a3a',
-  borderRadius: 12,
-  padding: '20px 24px',
-  marginBottom: 20,
-};
-
-const labelStyle = {
-  display: 'block',
-  fontSize: 11,
-  fontWeight: 600,
-  letterSpacing: '0.06em',
-  textTransform: 'uppercase',
-  color: '#6666aa',
-  marginBottom: 8,
-};
-
-const inputStyle = {
-  width: '100%',
-  background: '#0d0d25',
-  border: '1px solid #2a2a4a',
-  color: '#e0e0ff',
-  borderRadius: 8,
-  padding: '10px 12px',
-  fontSize: 14,
-  outline: 'none',
-  transition: 'border-color 0.2s, box-shadow 0.2s',
-};
 
 export default function RepaintLegoComplete() {
   const [file, setFile] = useState(null);
@@ -45,21 +15,70 @@ export default function RepaintLegoComplete() {
   const [inferSteps, setInferSteps] = useState(12);
   const [keyScale, setKeyScale] = useState('');
   const [audioFormat, setAudioFormat] = useState('mp3');
-
-  // Default DIT Model (no UI selection)
-  const ditModel = 'acestep-v15-turbo';
-
   const [audioCoverStrength, setAudioCoverStrength] = useState(1.0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [progress, setProgress] = useState('');
-
   const [startTime, setStartTime] = useState(0);
   const [endTime, setEndTime] = useState(30);
   const [lyrics, setLyrics] = useState('');
 
   const fileInputRef = useRef(null);
+
+  const ditModel = 'acestep-v15-turbo';
+
+  // Cyberpunk theme colors
+  const cyberpunk = {
+    bg: {
+      primary: "linear-gradient(135deg, #0a0a1a 0%, #0d0d22 50%, #0a0a1a 100%)",
+      card: "linear-gradient(180deg, rgba(13,13,34,0.95) 0%, rgba(8,8,24,0.98) 100%)",
+    },
+    neon: {
+      purple: { primary: "#9b5de5", glow: "rgba(155,93,229,0.5)" },
+      cyan: { primary: "#00e5ff", glow: "rgba(0,229,255,0.5)" },
+      pink: { primary: "#ff6b9d", glow: "rgba(255,107,157,0.5)" },
+      yellow: { primary: "#ffd166", glow: "rgba(255,209,102,0.5)" },
+      green: { primary: "#06d6a0", glow: "rgba(6,214,160,0.5)" },
+    },
+    text: {
+      primary: "#e0e0ff",
+      secondary: "#8888aa",
+      muted: "#444466",
+    },
+  };
+
+  const S = {
+    card: {
+      background: cyberpunk.bg.card,
+      border: "1px solid rgba(30,30,58,0.5)",
+      borderRadius: 16,
+      padding: 20,
+      marginBottom: 16,
+      backdropFilter: "blur(10px)",
+      boxShadow: "0 4px 30px rgba(0,0,0,0.3)",
+    },
+    label: {
+      color: cyberpunk.neon.cyan.primary,
+      fontSize: 10,
+      fontWeight: 800,
+      letterSpacing: 2,
+      textTransform: "uppercase",
+      marginBottom: 14,
+      display: "block",
+      textShadow: `0 0 10px ${cyberpunk.neon.cyan.glow}`,
+    },
+    input: {
+      background: "#0a0a1a",
+      border: "1px solid rgba(42,42,74,0.5)",
+      color: cyberpunk.text.primary,
+      borderRadius: 10,
+      padding: "10px 14px",
+      fontSize: 13,
+      width: "100%",
+      boxSizing: "border-box",
+    },
+  };
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -80,14 +99,6 @@ export default function RepaintLegoComplete() {
     setResult(null);
     setProgress('Uploading file...');
 
-    // Log generation parameters
-    const modelName = ditModel.replace('acestep-v15-', '').toUpperCase();
-    const steps = ditModel.includes('turbo') ? '8' : '50';
-    console.log(`[Repaint] === START ===`);
-    console.log(`[Repaint] Model: ${ditModel} (${modelName}) | Steps: ${steps}`);
-    console.log(`[Repaint] Prompt: "${prompt.slice(0, 50)}..."`);
-    console.log(`[Repaint] ===============================`);
-
     const formData = new FormData();
     formData.append('file', file);
     formData.append('prompt', prompt);
@@ -97,8 +108,6 @@ export default function RepaintLegoComplete() {
     formData.append('key_scale', keyScale);
     formData.append('audio_format', audioFormat);
     formData.append('dit_model', ditModel);
-    
-    // Repaint specific parameters
     formData.append('start_time', startTime);
     formData.append('end_time', endTime);
     formData.append('lyrics', lyrics);
@@ -111,7 +120,6 @@ export default function RepaintLegoComplete() {
       const response = await fetch(`${API_BASE}${endpoint}`, { method: 'POST', body: formData });
       let data = {};
       try { data = await response.json(); } catch (_) {}
-
 
       if (!response.ok) {
         const errMsg = typeof data.error === 'string' ? data.error : typeof data.detail === 'string' ? data.detail : typeof data.detail === 'object' ? JSON.stringify(data.detail) : JSON.stringify(data) || `HTTP ${response.status}`;
@@ -127,408 +135,479 @@ export default function RepaintLegoComplete() {
     }
   };
 
-  const repaintConfig = {
-    label: 'Repaint',
-    icon: '🖌️',
-    color: '#9b5de5',
-    desc: 'Select a portion of the track (e.g. seconds 30–60) and regenerate it.\nUseful to fix a section that doesn\'t sound right without regenerating everything.\nYou can change lyrics, add a bridge, modify endings.\nAll models support Repaint.',
-    modelSupport: {
-      'acestep-v15-turbo': { supported: true, note: '✅ Fast (8 steps)' },
-      'acestep-v15-turbo-shift3': { supported: true, note: '✅ Fast (8 steps)' },
-      'acestep-v15-base': { supported: true, note: '✅ Full support + CFG (50 steps)' },
-      'acestep-v15-sft': { supported: true, note: '✅ High quality + CFG (50 steps)' },
-    },
-  };
-
   return (
-    <div style={{ maxWidth: 720, margin: '0 auto' }}>
-      {/* Title */}
-      <div style={{ marginBottom: 28 }}>
-        <h2 style={{
-          fontSize: 22,
-          fontWeight: 800,
-          letterSpacing: 1,
-          background: 'linear-gradient(135deg, #e0e0ff, #00e5ff)',
+    <div style={{ padding: 24, maxWidth: 1000, margin: "0 auto" }}>
+      
+      {/* Header */}
+      <div style={{ textAlign: "center", marginBottom: 32 }}>
+        <div style={{ 
+          fontSize: 48, 
+          marginBottom: 8, 
+          filter: `drop-shadow(0 0 20px ${cyberpunk.neon.purple.glow})`,
+          animation: "pulse 2s ease-in-out infinite",
+        }}>🖌️</div>
+        <div style={{ 
+          fontSize: 28, 
+          fontWeight: 900, 
+          color: cyberpunk.text.primary, 
+          marginBottom: 6,
+          letterSpacing: 3,
+          textTransform: "uppercase",
+          textShadow: `0 0 20px ${cyberpunk.neon.purple.glow}`,
+          background: 'linear-gradient(135deg, #9b5de5, #00e5ff)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
-          marginBottom: 4,
         }}>
-          {repaintConfig.icon} {repaintConfig.label}
-        </h2>
-        <p style={{ color: '#444466', fontSize: 13 }}>Repaint - ACE-Step Advanced</p>
+          Repaint
+        </div>
+        <div style={{ color: cyberpunk.text.secondary, fontSize: 13, letterSpacing: 1 }}>
+          REGENERATE SPECIFIC SECTIONS WITHOUT RECREATING EVERYTHING
+        </div>
       </div>
 
-      {/* Mode description card */}
-      <div style={{ ...sectionStyle, borderLeft: `4px solid ${repaintConfig.color}` }}>
-        <p style={{ color: '#a0a0cc', fontSize: 14, lineHeight: 1.55, margin: 0, whiteSpace: 'pre-line' }}>
-          {repaintConfig.desc}
+      {/* Info Card */}
+      <div style={{
+        ...S.card,
+        borderLeft: `4px solid ${cyberpunk.neon.purple.primary}`,
+        marginBottom: 20,
+      }}>
+        <p style={{ color: cyberpunk.text.secondary, fontSize: 13, lineHeight: 1.6, margin: 0 }}>
+          🖌️ <strong>Repaint</strong> allows you to select a portion of the track (e.g., seconds 30–60) and regenerate it.
+          <br />
+          ✨ Useful to fix a section that doesn't sound right without regenerating everything.
+          <br />
+          🎵 You can change lyrics, add a bridge, modify endings.
+          <br />
+          ✅ All ACE-Step models support Repaint.
         </p>
       </div>
 
-      {/* Model Compatibility Card */}
+      {/* Model Compatibility */}
       <div style={{
-        ...sectionStyle,
-        borderColor: 'rgba(255,209,102,0.35)',
-        background: 'rgba(255,209,102,0.04)',
-        borderLeft: `4px solid #ffd166`,
+        ...S.card,
+        borderColor: `${cyberpunk.neon.yellow.primary}33`,
+        background: `${cyberpunk.neon.yellow.primary}08`,
+        borderLeft: `4px solid ${cyberpunk.neon.yellow.primary}`,
+        marginBottom: 20,
       }}>
-        <span style={{ ...labelStyle, color: '#ffd166', marginBottom: 10 }}>
-          🔍 Model Compatibility for Repaint
+        <span style={{ ...S.label, color: cyberpunk.neon.yellow.primary, marginBottom: 12 }}>
+          🔍 Model Compatibility
         </span>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontFamily: 'monospace', fontSize: 11 }}>
-          {Object.entries(repaintConfig.modelSupport).map(([modelId, { supported, note }]) => (
-            <div
-              key={modelId}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                padding: '6px 10px',
-                borderRadius: 6,
-                background: supported ? 'rgba(6,214,160,0.08)' : 'rgba(230,57,70,0.08)',
-                border: `1px solid ${supported ? '#06d6a044' : '#e6394644'}`,
-              }}
-            >
-              <span style={{ color: supported ? '#06d6a0' : '#e63946', fontWeight: 600 }}>
-                {modelId.replace('acestep-v15-', '')}
-              </span>
-              <span style={{ color: supported ? '#06d6a0' : '#e63946' }}>{note}</span>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 8 }}>
+          {[
+            { model: 'turbo', steps: '8', status: '✅ Fast', color: cyberpunk.neon.green.primary },
+            { model: 'turbo-shift3', steps: '8', status: '✅ Fast', color: cyberpunk.neon.green.primary },
+            { model: 'base', steps: '50', status: '✅ Full + CFG', color: cyberpunk.neon.green.primary },
+            { model: 'sft', steps: '50', status: '✅ Quality + CFG', color: cyberpunk.neon.green.primary },
+          ].map((item, i) => (
+            <div key={i} style={{
+              background: `${item.color}11`,
+              border: `1px solid ${item.color}44`,
+              borderRadius: 8,
+              padding: 10,
+              textAlign: "center",
+            }}>
+              <div style={{ color: item.color, fontSize: 11, fontWeight: 800, marginBottom: 4 }}>{item.model.toUpperCase()}</div>
+              <div style={{ color: cyberpunk.text.muted, fontSize: 10 }}>{item.steps} steps</div>
+              <div style={{ color: item.color, fontSize: 10, fontWeight: 700, marginTop: 6 }}>{item.status}</div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* File upload */}
-      <div style={sectionStyle}>
-        <span style={labelStyle}>Source audio</span>
-        <div
-          role="button"
-          tabIndex={0}
+      {/* File Upload */}
+      <div style={S.card}>
+        <span style={S.label}>🎵 Upload Audio File</span>
+        <input
+          type="file"
+          accept="audio/*"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          style={{ display: "none" }}
+        />
+        <label
           onClick={() => fileInputRef.current?.click()}
-          onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
           style={{
-            border: '2px dashed #2a2a4a',
+            display: "flex",
+            alignItems: "center",
+            gap: 16,
+            padding: 20,
+            background: "rgba(10,10,26,0.6)",
+            border: `2px dashed ${file ? cyberpunk.neon.purple.primary : "rgba(42,42,74,0.5)"}`,
             borderRadius: 12,
-            padding: 28,
-            textAlign: 'center',
-            cursor: 'pointer',
-            transition: 'border-color 0.2s, background 0.2s',
-            background: file ? '#0d0d22' : 'transparent',
+            cursor: "pointer",
+            transition: "all 0.3s ease",
           }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.borderColor = repaintConfig.color;
-            e.currentTarget.style.background = '#0d0d22';
+          onMouseEnter={(e) => {
+            if (!file) {
+              e.currentTarget.style.borderColor = cyberpunk.neon.purple.primary;
+              e.currentTarget.style.boxShadow = `0 0 20px ${cyberpunk.neon.purple.glow}`;
+            }
           }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.borderColor = '#2a2a4a';
-            e.currentTarget.style.background = file ? '#0d0d22' : 'transparent';
+          onMouseLeave={(e) => {
+            if (!file) {
+              e.currentTarget.style.borderColor = "rgba(42,42,74,0.5)";
+              e.currentTarget.style.boxShadow = "none";
+            }
           }}
         >
-          {file ? (
-            <div>
-              <p style={{ color: '#e0e0ff', fontWeight: 600, marginBottom: 4 }}>{file.name}</p>
-              <p style={{ color: '#6666aa', fontSize: 12 }}>{(file.size / 1024 / 1024).toFixed(2)} MB · Click to change</p>
+          <span style={{ fontSize: 40 }}>{file ? '🎵' : '📂'}</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ 
+              color: file ? cyberpunk.neon.purple.primary : cyberpunk.text.secondary, 
+              fontSize: 14, 
+              fontWeight: 700,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}>
+              {file ? file.name : 'Click to upload or drag and drop'}
             </div>
-          ) : (
-            <div>
-              <p style={{ color: '#6666aa', marginBottom: 4 }}>Click to select audio file</p>
-              <p style={{ color: '#444466', fontSize: 12 }}>WAV, MP3, FLAC</p>
+            <div style={{ color: cyberpunk.text.muted, fontSize: 11, marginTop: 4 }}>
+              WAV, MP3, FLAC supported
             </div>
-          )}
-        </div>
-        <input ref={fileInputRef} type="file" accept="audio/*" onChange={handleFileChange} style={{ display: 'none' }} />
+          </div>
+        </label>
       </div>
 
-      {/* Repaint region settings */}
-      <div style={sectionStyle}>
-        <span style={labelStyle}>Repaint region</span>
-
-        {/* Start Time */}
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ ...labelStyle, marginBottom: 4 }}>Start time (seconds)</label>
-          <input
-            type="number"
-            min="0"
-            max="300"
-            step="0.1"
-            value={startTime}
-            onChange={(e) => setStartTime(parseFloat(e.target.value) || 0)}
-            style={inputStyle}
-          />
+      {/* Time Range Selection */}
+      <div style={{
+        ...S.card,
+        marginBottom: 16,
+      }}>
+        <span style={S.label}>⏱️ Time Range (seconds)</span>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div>
+            <label style={{ color: cyberpunk.text.secondary, fontSize: 11, marginBottom: 6, display: "block" }}>
+              Start Time
+            </label>
+            <input
+              type="number"
+              value={startTime}
+              onChange={(e) => setStartTime(Number(e.target.value))}
+              style={{ ...S.input, borderColor: cyberpunk.neon.cyan.primary }}
+              min="0"
+            />
+          </div>
+          <div>
+            <label style={{ color: cyberpunk.text.secondary, fontSize: 11, marginBottom: 6, display: "block" }}>
+              End Time
+            </label>
+            <input
+              type="number"
+              value={endTime}
+              onChange={(e) => setEndTime(Number(e.target.value))}
+              style={{ ...S.input, borderColor: cyberpunk.neon.pink.primary }}
+              min="0"
+            />
+          </div>
         </div>
-
-        {/* End Time */}
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ ...labelStyle, marginBottom: 4 }}>End time (seconds)</label>
-          <input
-            type="number"
-            min="0"
-            max="300"
-            step="0.1"
-            value={endTime}
-            onChange={(e) => setEndTime(parseFloat(e.target.value) || 0)}
-            style={inputStyle}
-          />
+        <div style={{ marginTop: 10, padding: 10, background: `${cyberpunk.neon.cyan.primary}11`, borderRadius: 8, border: `1px solid ${cyberpunk.neon.cyan.primary}33` }}>
+          <div style={{ color: cyberpunk.neon.cyan.primary, fontSize: 11, fontWeight: 700 }}>
+            ⏱️ Duration: <strong>{endTime - startTime} seconds</strong>
+          </div>
         </div>
+      </div>
 
-        {/* Lyrics */}
-        <div style={{ marginBottom: 12 }}>
-          <label style={labelStyle}>Lyrics (optional)</label>
-          <textarea
-            value={lyrics}
-            onChange={(e) => setLyrics(e.target.value)}
-            placeholder="Lyrics for the repainted section..."
-            style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }}
-          />
-        </div>
+      {/* Prompt */}
+      <div style={S.card}>
+        <span style={S.label}>📝 New Prompt (Optional)</span>
+        <textarea
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="Describe what you want in this section..."
+          rows={4}
+          style={{
+            ...S.input,
+            resize: "vertical",
+            minHeight: 100,
+            fontFamily: "inherit",
+            lineHeight: 1.6,
+          }}
+        />
+      </div>
 
-        {/* Audio Cover Strength */}
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ ...labelStyle, marginBottom: 4 }}>Audio Cover Strength: {audioCoverStrength.toFixed(1)}</label>
+      {/* Lyrics */}
+      <div style={S.card}>
+        <span style={S.label}>🎤 Lyrics (Optional)</span>
+        <textarea
+          value={lyrics}
+          onChange={(e) => setLyrics(e.target.value)}
+          placeholder="Enter lyrics for this section..."
+          rows={4}
+          style={{
+            ...S.input,
+            resize: "vertical",
+            minHeight: 100,
+            fontFamily: "inherit",
+            lineHeight: 1.6,
+          }}
+        />
+      </div>
+
+      {/* Advanced Settings Grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, marginBottom: 16 }}>
+        
+        {/* Guidance Scale */}
+        <div style={S.card}>
+          <span style={S.label}>🎯 Guidance Scale</span>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+            <span style={{ color: cyberpunk.text.muted, fontSize: 11 }}>CFG</span>
+            <span style={{ color: cyberpunk.neon.purple.primary, fontSize: 14, fontWeight: 900, fontFamily: "monospace" }}>
+              {guidanceScale.toFixed(1)}
+            </span>
+          </div>
           <input
             type="range"
-            min="0.0"
-            max="1.0"
-            step="0.05"
-            value={audioCoverStrength}
-            onChange={(e) => setAudioCoverStrength(parseFloat(e.target.value))}
-            style={{ width: '100%', accentColor: repaintConfig.color }}
-          />
-          <div style={{ fontSize: '11px', color: '#6666aa', marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
-            <span>Transform (0.0)</span>
-            <span>Preserve (1.0)</span>
-          </div>
-          <span style={{ color: '#6666aa', fontSize: 11, marginTop: 4, display: 'block' }}>
-            How much to preserve from the original audio
-          </span>
-        </div>
-      </div>
-
-      {/* Common parameters */}
-      <div style={sectionStyle}>
-        <span style={labelStyle}>Generation parameters</span>
-        
-        {/* Prompt */}
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ ...labelStyle, marginBottom: 4 }}>Prompt</label>
-          <input
-            type="text"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Describe the style..."
-            style={inputStyle}
-          />
-        </div>
-
-        {/* guidance Scale */}
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ ...labelStyle, marginBottom: 4 }}>Guidance Scale (CFG)</label>
-          <input
-            type="number"
             min="1"
             max="20"
             step="0.5"
             value={guidanceScale}
-            onChange={(e) => setGuidanceScale(parseFloat(e.target.value) || 7)}
-            style={inputStyle}
+            onChange={(e) => setGuidanceScale(Number(e.target.value))}
+            style={{ width: "100%", accentColor: cyberpunk.neon.purple.primary, height: 6, borderRadius: 3 }}
           />
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+            <span style={{ color: cyberpunk.text.muted, fontSize: 9 }}>1</span>
+            <span style={{ color: cyberpunk.text.muted, fontSize: 9 }}>20</span>
+          </div>
         </div>
 
-        {/* Inference Steps */}
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ ...labelStyle, marginBottom: 4 }}>Inference Steps (quality)</label>
+        {/* Infer Steps */}
+        <div style={S.card}>
+          <span style={S.label}>🔢 Steps</span>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+            <span style={{ color: cyberpunk.text.muted, fontSize: 11 }}>Inference</span>
+            <span style={{ color: cyberpunk.neon.cyan.primary, fontSize: 14, fontWeight: 900, fontFamily: "monospace" }}>
+              {inferSteps}
+            </span>
+          </div>
           <input
-            type="number"
-            min="4"
+            type="range"
+            min="8"
             max="50"
             step="1"
             value={inferSteps}
-            onChange={(e) => setInferSteps(parseInt(e.target.value, 10) || 12)}
-            style={inputStyle}
+            onChange={(e) => setInferSteps(Number(e.target.value))}
+            style={{ width: "100%", accentColor: cyberpunk.neon.cyan.primary, height: 6, borderRadius: 3 }}
           />
-          <span style={{ color: '#6666aa', fontSize: 11, marginTop: 4, display: 'block' }}>
-            More steps = better quality, slower generation (default: 12, recommended: 8-20)
-          </span>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+            <span style={{ color: cyberpunk.text.muted, fontSize: 9 }}>8 (Turbo)</span>
+            <span style={{ color: cyberpunk.text.muted, fontSize: 9 }}>50 (Quality)</span>
+          </div>
         </div>
 
-        {/* Key Scale */}
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ ...labelStyle, marginBottom: 4 }}>Key Scale (musical key)</label>
+        {/* Audio Cover Strength */}
+        <div style={S.card}>
+          <span style={S.label}>💪 Cover Strength</span>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+            <span style={{ color: cyberpunk.text.muted, fontSize: 11 }}>Influence</span>
+            <span style={{ color: cyberpunk.neon.pink.primary, fontSize: 14, fontWeight: 900, fontFamily: "monospace" }}>
+              {(audioCoverStrength * 100).toFixed(0)}%
+            </span>
+          </div>
           <input
-            type="text"
-            value={keyScale}
-            onChange={(e) => setKeyScale(e.target.value)}
-            placeholder="e.g., C major, A minor, D# major..."
-            style={inputStyle}
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value={audioCoverStrength}
+            onChange={(e) => setAudioCoverStrength(Number(e.target.value))}
+            style={{ width: "100%", accentColor: cyberpunk.neon.pink.primary, height: 6, borderRadius: 3 }}
           />
-          <span style={{ color: '#6666aa', fontSize: 11, marginTop: 4, display: 'block' }}>
-            Musical key for the repainted section (leave empty for auto)
-          </span>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+            <span style={{ color: cyberpunk.text.muted, fontSize: 9 }}>0% (Ignore)</span>
+            <span style={{ color: cyberpunk.text.muted, fontSize: 9 }}>100% (Full)</span>
+          </div>
         </div>
 
         {/* Seed */}
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-            <span style={{ color: '#8888aa', fontSize: 12 }}>🎲 Seed (-1 = random)</span>
-            <span style={{ color: '#c77dff', fontSize: 13, fontFamily: 'monospace', fontWeight: 700 }}>{seed === -1 ? 'Random' : seed}</span>
+        <div style={S.card}>
+          <span style={S.label}>🎲 Seed</span>
+          <input
+            type="number"
+            value={seed}
+            onChange={(e) => setSeed(Number(e.target.value))}
+            placeholder="-1 for random"
+            style={{ ...S.input, marginTop: 8 }}
+          />
+          <div style={{ color: cyberpunk.text.muted, fontSize: 10, marginTop: 6 }}>
+            -1 = Random | Any number = Fixed seed
           </div>
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            <input 
-              type="number" 
-              value={seed} 
-              onChange={(e) => setSeed(parseInt(e.target.value, 10) || -1)}
-              style={{ 
+        </div>
+
+      </div>
+
+      {/* Format Selection */}
+      <div style={S.card}>
+        <span style={S.label}>📦 Output Format</span>
+        <div style={{ display: "flex", gap: 8 }}>
+          {['mp3', 'wav', 'flac'].map((fmt) => (
+            <button
+              key={fmt}
+              onClick={() => setAudioFormat(fmt)}
+              style={{
                 flex: 1,
-                background: '#080812', 
-                border: '1px solid #2a2a4a', 
-                color: '#e0e0ff', 
-                borderRadius: 8, 
-                padding: '8px 12px', 
-                fontSize: 12,
-              }} 
-            />
-            <button 
-              onClick={() => setSeed(-1)} 
-              style={{ 
-                background: '#0a0a1a', 
-                color: '#8888aa', 
-                border: '1px solid #2a2a4a', 
-                borderRadius: 8, 
-                padding: '8px 12px', 
-                fontSize: 11, 
-                cursor: 'pointer', 
-                fontWeight: 600 
-              }} 
-              title="Random seed"
-            >🎲 Random</button>
-            <button 
-              onClick={() => setSeed(Math.floor(Math.random() * 999999))} 
-              style={{ 
-                background: '#0a0a1a', 
-                color: '#6666aa', 
-                border: '1px solid #2a2a4a', 
-                borderRadius: 8, 
-                padding: '8px 10px', 
-                fontSize: 11, 
-                cursor: 'pointer' 
-              }} 
-              title="Random numeric"
-            >🔀</button>
-          </div>
+                padding: "10px 16px",
+                background: audioFormat === fmt ? `${cyberpunk.neon.yellow.primary}22` : "rgba(10,10,26,0.6)",
+                border: `1px solid ${audioFormat === fmt ? cyberpunk.neon.yellow.primary : "rgba(42,42,74,0.5)"}`,
+                color: audioFormat === fmt ? cyberpunk.neon.yellow.primary : cyberpunk.text.muted,
+                borderRadius: 8,
+                cursor: "pointer",
+                fontWeight: 700,
+                fontSize: 11,
+                letterSpacing: 1,
+                textTransform: "uppercase",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                if (audioFormat !== fmt) {
+                  e.currentTarget.style.borderColor = cyberpunk.neon.yellow.primary;
+                  e.currentTarget.style.background = `${cyberpunk.neon.yellow.primary}11`;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (audioFormat !== fmt) {
+                  e.currentTarget.style.borderColor = "rgba(42,42,74,0.5)";
+                  e.currentTarget.style.background = "rgba(10,10,26,0.6)";
+                }
+              }}
+            >
+              {fmt.toUpperCase()}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Messages */}
+      {/* Generate Button */}
+      <div style={S.card}>
+        <button
+          onClick={handleSubmit}
+          disabled={!file || isProcessing}
+          style={{
+            width: "100%",
+            padding: "18px 0",
+            borderRadius: 12,
+            background: isProcessing || !file
+              ? "rgba(55,65,81,0.5)"
+              : `linear-gradient(135deg, ${cyberpunk.neon.purple.primary}, ${cyberpunk.neon.pink.primary})`,
+            color: "white",
+            border: "none",
+            cursor: isProcessing || !file ? "not-allowed" : "pointer",
+            fontWeight: 900,
+            fontSize: 16,
+            letterSpacing: 2,
+            textTransform: "uppercase",
+            boxShadow: isProcessing || !file ? "none" : `0 0 30px ${cyberpunk.neon.purple.glow}`,
+            transition: "all 0.3s ease",
+            opacity: isProcessing || !file ? 0.5 : 1,
+          }}
+          onMouseEnter={(e) => {
+            if (!isProcessing && file) {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = `0 0 40px ${cyberpunk.neon.purple.glow}`;
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = !isProcessing && file
+              ? `0 0 30px ${cyberpunk.neon.purple.glow}`
+              : "none";
+          }}
+        >
+          {isProcessing ? `⚙ ${progress || "PROCESSING..."}` : "🖌️ REPAINT SECTION"}
+        </button>
+
+        {isProcessing && (
+          <div style={{ marginTop: 14 }}>
+            <div style={{
+              height: 8,
+              background: "rgba(10,10,26,0.8)",
+              borderRadius: 4,
+              overflow: "hidden",
+              border: "1px solid rgba(255,255,255,0.1)",
+            }}>
+              <div style={{
+                height: 8,
+                background: `linear-gradient(90deg, ${cyberpunk.neon.purple.primary}, ${cyberpunk.neon.pink.primary}, ${cyberpunk.neon.purple.primary})`,
+                width: "100%",
+                borderRadius: 4,
+                backgroundSize: "200% 100%",
+                animation: "shimmer 2s linear infinite",
+                boxShadow: `0 0 20px ${cyberpunk.neon.purple.glow}`,
+              }} />
+            </div>
+            <div style={{ color: cyberpunk.text.secondary, fontSize: 11, marginTop: 8, textAlign: "center" }}>
+              {progress}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Error */}
       {error && (
         <div style={{
-          ...sectionStyle,
-          borderColor: '#e63946',
-          background: 'rgba(230,57,70,0.08)',
-          marginBottom: 20,
+          padding: 14,
+          background: "rgba(239,68,68,0.15)",
+          borderRadius: 10,
+          border: "1px solid #ef444444",
+          marginBottom: 16,
         }}>
-          <p style={{ color: '#e63946', fontSize: 14 }}>{error}</p>
+          <div style={{ color: "#ef4444", fontSize: 12, fontWeight: 700 }}>
+            ❌ {error}
+          </div>
         </div>
       )}
-
-      {progress && !error && (
-        <div style={{
-          ...sectionStyle,
-          borderColor: '#00e5ff',
-          background: 'rgba(0,229,255,0.06)',
-          marginBottom: 20,
-        }}>
-          <p style={{ color: '#00e5ff', fontSize: 14 }}>{progress}</p>
-        </div>
-      )}
-
-      {/* Submit */}
-      <button
-        type="button"
-        onClick={handleSubmit}
-        disabled={isProcessing || !file}
-        style={{
-          width: '100%',
-          padding: '14px 24px',
-          borderRadius: 12,
-          border: 'none',
-          background: isProcessing || !file
-            ? '#1a1a3a'
-            : `linear-gradient(135deg, ${repaintConfig.color}, #00e5ff)`,
-          color: isProcessing || !file ? '#444466' : '#080812',
-          fontWeight: 700,
-          fontSize: 15,
-          cursor: isProcessing || !file ? 'not-allowed' : 'pointer',
-          transition: 'opacity 0.2s',
-          marginBottom: 24,
-        }}
-      >
-        {isProcessing ? 'Processing…' : 'Generate Repaint'}
-      </button>
 
       {/* Result */}
       {result && (
-        <div style={{ ...sectionStyle, borderLeft: '4px solid #06d6a0' }}>
-          <span style={{ ...labelStyle, color: '#06d6a0' }}>Result</span>
-          <div style={{ color: '#a0a0cc', fontSize: 13, marginBottom: 16 }}>
-            <p style={{ marginBottom: 4 }}>Duration: {result.duration_sec}s</p>
-            <p style={{ marginBottom: 4 }}>Processing: {result.processing_time_sec}s</p>
-            {result.seed !== undefined && (
-              <p style={{ marginBottom: 4 }}>
-                🎲 Seed: <span style={{ color: '#c77dff', fontFamily: 'monospace', fontWeight: 700 }}>{result.seed}</span>
-                <button
-                  onClick={() => setSeed(result.seed)}
-                  style={{
-                    marginLeft: 8,
-                    background: '#1a1a3a',
-                    border: '1px solid #2a2a4a',
-                    color: '#8888aa',
-                    borderRadius: 4,
-                    padding: '2px 8px',
-                    fontSize: 11,
-                    cursor: 'pointer',
-                  }}
-                  title="Use this seed"
-                >
-                  Use
-                </button>
-              </p>
-            )}
-          </div>
-          {result.url && (
-            <div>
-              <audio controls src={`${API_BASE}${result.url}`} style={{ width: '100%', marginBottom: 12 }} />
+        <div style={{
+          ...S.card,
+          border: `1px solid ${cyberpunk.neon.green.primary}44`,
+          background: `${cyberpunk.neon.green.primary}11`,
+          boxShadow: `0 0 30px ${cyberpunk.neon.green.glow}`,
+        }}>
+          <span style={{ ...S.label, color: cyberpunk.neon.green.primary }}>
+            ✅ Repaint Complete!
+          </span>
+          <div style={{ marginTop: 12 }}>
+            <audio controls src={result.url} style={{ width: "100%", marginBottom: 12 }} />
+            <div style={{ display: "flex", gap: 8 }}>
               <a
-                href={`${API_BASE}${result.url}`}
-                download
+                href={result.url}
+                download={result.filename}
                 style={{
-                  display: 'inline-block',
-                  padding: '10px 20px',
+                  flex: 1,
+                  padding: "10px 0",
+                  background: `${cyberpunk.neon.green.primary}22`,
+                  color: cyberpunk.neon.green.primary,
+                  border: `1px solid ${cyberpunk.neon.green.primary}44`,
                   borderRadius: 8,
-                  background: '#06d6a0',
-                  color: '#080812',
-                  fontWeight: 600,
-                  fontSize: 13,
-                  textDecoration: 'none',
-                  transition: 'opacity 0.2s',
+                  textAlign: "center",
+                  textDecoration: "none",
+                  fontWeight: 800,
+                  fontSize: 11,
+                  letterSpacing: 1,
+                  textTransform: "uppercase",
                 }}
               >
-                Download audio
+                ⬇️ Download
               </a>
             </div>
-          )}
+          </div>
         </div>
       )}
 
-      {/* Note */}
-      <div style={{
-        ...sectionStyle,
-        borderColor: 'rgba(255,209,102,0.35)',
-        background: 'rgba(255,209,102,0.06)',
-        marginBottom: 0,
-      }}>
-        <p style={{ color: '#ffd166', fontSize: 13, margin: 0 }}>
-          ACE-Step API must be running on port 8001. Use <code style={{ background: '#1a1a3a', padding: '2px 6px', borderRadius: 4 }}>start_acestep.bat</code> to start it.
-        </p>
-      </div>
+      {/* Global Styles */}
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        @keyframes shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+      `}</style>
     </div>
   );
 }
