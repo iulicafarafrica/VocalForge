@@ -1,6 +1,8 @@
-# 🎵 VocalForge <sup>v2.0.0</sup>
+# 🎵 VocalForge <sup>v2.1.0</sup>
 
 <div align="center">
+
+![Preview](preview.png)
 
 ![Cyberpunk Banner](https://img.shields.io/badge/🎵-AI_Powered_Music_Studio-purple?style=for-the-badge&logo=ableton&logoColor=white)
 
@@ -8,12 +10,13 @@
 
 *⚡ Powered by ACE-Step v1.5*
 
-[![Version](https://img.shields.io/badge/Version-2.0.0-blue?style=for-the-badge)]()
+[![Version](https://img.shields.io/badge/Version-2.1.0-blue?style=for-the-badge)]()
 [![Python](https://img.shields.io/badge/Python-3.10+-green?style=for-the-badge&logo=python)]()
 [![GPU](https://img.shields.io/badge/GPU-NVIDIA%20CUDA-orange?style=for-the-badge&logo=nvidia)]()
 [![License](https://img.shields.io/badge/License-MIT-red?style=for-the-badge)]()
+[![Security](https://img.shields.io/badge/Security-9%2F10-success?style=for-the-badge)](SECURITY_AUDIT.md)
 
-[📺 Watch Demo](https://www.youtube.com/watch?v=8XSwCM7bM1A) • [📋 Changelog](#-changelog) • [🗺️ Roadmap](#-roadmap)
+[📺 Watch Demo](https://www.youtube.com/watch?v=8XSwCM7bM1A) • [📋 Changelog](#-changelog) • [🗺️ Roadmap](#-roadmap) • [🔒 Security](#-security)
 
 </div>
 
