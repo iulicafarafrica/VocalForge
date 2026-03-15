@@ -35,12 +35,8 @@ $aceStepArgs = "/k cd /d D:\VocalForge\ace-step && title VocalForge ACE-Step API
 Start-Process "cmd.exe" -ArgumentList $aceStepArgs
 
 # 4. Pornire RVC Voice Conversion (:8002)
-Write-Host "[4/5] Starting RVC API (port 8002)..." -ForegroundColor Cyan
+Write-Host "[4/4] Starting RVC API (port 8002)..." -ForegroundColor Cyan
 Start-Process "cmd.exe" -ArgumentList "/k cd /d D:\VocalForge && title VocalForge RVC && call venv\Scripts\activate.bat && python -m uvicorn backend.app:app --host 0.0.0.0 --port 8002"
-
-# 5. Pornire Suno-API (:8080)
-Write-Host "[5/5] Starting Suno-API (port 8080)..." -ForegroundColor Cyan
-Start-Process "cmd.exe" -ArgumentList "/k cd /d D:\VocalForge && title VocalForge Suno-API && python suno-api/start_suno.py"
 
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Green
@@ -52,7 +48,6 @@ Write-Host "  Frontend (React)     : http://localhost:3000" -ForegroundColor Gra
 Write-Host "  Backend API          : http://localhost:8000" -ForegroundColor Gray
 Write-Host "  ACE-Step API         : http://localhost:8001" -ForegroundColor Gray
 Write-Host "  RVC Voice Conversion : http://localhost:8002" -ForegroundColor Gray
-Write-Host "  Suno-API (optional)  : http://localhost:8080" -ForegroundColor Gray
 Write-Host ""
 Write-Host "VRAM Optimization (RTX 3070 8GB):" -ForegroundColor White
 Write-Host "  - DiT Model  : acestep-v15-turbo (8 steps, ~3GB)" -ForegroundColor Gray
