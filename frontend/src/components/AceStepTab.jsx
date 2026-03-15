@@ -3326,35 +3326,96 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
               )}
 
               {/* Audio Player */}
-              <audio controls src={result.url} preload="metadata" style={{ width: "100%", marginBottom: 8 }} />
-              <div style={{ display: "flex", gap: 8 }}>
-                <button
-                  onClick={() => {
-                    const a = document.createElement("a");
-                    a.href = result.url;
-                    a.download = result.filename;
-                    a.click();
-                  }}
-                  style={{
-                    flex: 1, background: "#ffd166", color: "#000", border: "none", borderRadius: 6,
-                    padding: "8px", fontSize: 11, fontWeight: 700, cursor: "pointer",
-                  }}
-                >
-                  ⬇️ Download
-                </button>
-                <button
-                  onClick={() => {
-                    setUseAsCover(true);
-                    setSourceAudio(null);
-                    setSourceAudioUrl(null);
-                  }}
-                  style={{
-                    flex: 1, background: "#9b2de022", color: "#c77dff", border: "1px solid #9b2de044", borderRadius: 6,
-                    padding: "8px", fontSize: 11, fontWeight: 700, cursor: "pointer",
-                  }}
-                >
-                  🎤 Use as Cover
-                </button>
+              <div style={{
+                background: "rgba(13,13,34,0.8)",
+                borderRadius: 12,
+                padding: 16,
+                border: `1px solid ${cyberpunk.colors.neon.purple.primary}44`,
+                boxShadow: `0 0 20px ${cyberpunk.colors.neon.purple.glow}`,
+                marginBottom: 12,
+              }}>
+                <div style={{ color: cyberpunk.colors.neon.purple.primary, fontSize: 10, fontWeight: 800, letterSpacing: 2, marginBottom: 10, textTransform: "uppercase" }}>
+                  🎵 Generated Track
+                </div>
+                <audio controls src={result.url} preload="metadata" style={{ width: "100%", marginBottom: 12 }} />
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    onClick={() => {
+                      const a = document.createElement("a");
+                      a.href = result.url;
+                      a.download = result.filename;
+                      a.click();
+                    }}
+                    style={{
+                      flex: 1,
+                      background: `${cyberpunk.colors.neon.green.primary}22`,
+                      color: cyberpunk.colors.neon.green.primary,
+                      border: `1px solid ${cyberpunk.colors.neon.green.primary}44`,
+                      borderRadius: 8,
+                      padding: "10px",
+                      fontSize: 11,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      letterSpacing: 1,
+                      textTransform: "uppercase",
+                      boxShadow: `0 0 10px ${cyberpunk.colors.neon.green.glow}`,
+                      transition: "all 0.3s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = `${cyberpunk.colors.neon.green.primary}33`;
+                      e.currentTarget.style.boxShadow = `0 0 20px ${cyberpunk.colors.neon.green.glow}`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = `${cyberpunk.colors.neon.green.primary}22`;
+                      e.currentTarget.style.boxShadow = `0 0 10px ${cyberpunk.colors.neon.green.glow}`;
+                    }}
+                  >
+                    ⬇️ Download
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Set task type to audio2audio (Audio Cover)
+                      setTaskType("audio2audio");
+                      // Set the generated track as source audio
+                      fetch(result.url)
+                        .then(res => res.blob())
+                        .then(blob => {
+                          const file = new File([blob], result.filename, { type: "audio/wav" });
+                          setSourceAudio(file);
+                          setSourceAudioUrl(result.url);
+                          addLog(`[ACE-Step] Set "${result.filename}" as Audio Cover source`);
+                        })
+                        .catch(err => {
+                          addLog(`[ACE-Step] Error setting as cover: ${err.message}`);
+                        });
+                    }}
+                    style={{
+                      flex: 1,
+                      background: `${cyberpunk.colors.neon.cyan.primary}22`,
+                      color: cyberpunk.colors.neon.cyan.primary,
+                      border: `1px solid ${cyberpunk.colors.neon.cyan.primary}44`,
+                      borderRadius: 8,
+                      padding: "10px",
+                      fontSize: 11,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      letterSpacing: 1,
+                      textTransform: "uppercase",
+                      boxShadow: `0 0 10px ${cyberpunk.colors.neon.cyan.glow}`,
+                      transition: "all 0.3s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = `${cyberpunk.colors.neon.cyan.primary}33`;
+                      e.currentTarget.style.boxShadow = `0 0 20px ${cyberpunk.colors.neon.cyan.glow}`;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = `${cyberpunk.colors.neon.cyan.primary}22`;
+                      e.currentTarget.style.boxShadow = `0 0 10px ${cyberpunk.colors.neon.cyan.glow}`;
+                    }}
+                  >
+                    🎤 Use as Cover
+                  </button>
+                </div>
               </div>
             </div>
           )}
