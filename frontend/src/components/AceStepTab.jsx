@@ -900,24 +900,60 @@ export default function AceStepTab({
   const [showLyricsSaveInput, setShowLyricsSaveInput] = useState(false);
 
   // ── Styles ────────────────────────────────────────────────────────────────
+  const cyberpunk = {
+    colors: {
+      bg: { primary: "#030308", secondary: "#0a0a1a", card: "#0d0d22", accent: "#12122a" },
+      neon: {
+        cyan: { primary: "#00e5ff", glow: "#00e5ff66", bg: "#00e5ff0d" },
+        purple: { primary: "#9b2de0", glow: "#9b2de066", bg: "#9b2de00d" },
+        pink: { primary: "#ff00ff", glow: "#ff00ff66", bg: "#ff00ff0d" },
+        yellow: { primary: "#ffd166", glow: "#ffd16666", bg: "#ffd1660d" },
+        green: { primary: "#06d6a0", glow: "#06d6a066", bg: "#06d6a00d" },
+        red: { primary: "#e63946", glow: "#e6394666", bg: "#e639460d" },
+      },
+      text: { primary: "#e0e0ff", secondary: "#aaaacc", muted: "#6666aa" },
+    },
+    gradients: {
+      card: "linear-gradient(135deg, #0d0d22 0%, #0a0a1a 100%)",
+      text: "linear-gradient(135deg, #00e5ff, #9b2de0, #ff00ff)",
+    },
+  };
+
   const S = {
-    card: { background: "linear-gradient(135deg,#0d0d22,#0a0a1a)", border: "1px solid #1e1e3a", borderRadius: 12, padding: 18, marginBottom: 14 },
-    label: { color: "#6666aa", fontSize: 11, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8, display: "block" },
+    card: { 
+      background: cyberpunk.gradients.card, 
+      border: `1px solid ${cyberpunk.colors.neon.purple.primary}22`, 
+      borderRadius: 16, 
+      padding: "20px 24px", 
+      marginBottom: 20,
+      boxShadow: `0 0 20px ${cyberpunk.colors.neon.purple.glow}11`,
+    },
+    label: { 
+      color: cyberpunk.colors.neon.cyan.primary, 
+      fontSize: 12, 
+      fontWeight: 800, 
+      letterSpacing: 2, 
+      textTransform: "uppercase", 
+      marginBottom: 12, 
+      display: "block",
+      textShadow: `0 0 10px ${cyberpunk.colors.neon.cyan.glow}`,
+    },
     overlay: {
-      position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)",
+      position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)",
       zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center",
-      backdropFilter: "blur(4px)",
+      backdropFilter: "blur(8px)",
     },
     modal: {
-      background: "linear-gradient(135deg,#0d0d22,#0a0a1a)",
-      border: "1px solid #2a2a4a", borderRadius: 16,
+      background: cyberpunk.gradients.card,
+      border: `1px solid ${cyberpunk.colors.neon.purple.primary}33`, 
+      borderRadius: 20,
       width: "min(800px, 95vw)", maxHeight: "85vh",
       display: "flex", flexDirection: "column",
-      boxShadow: "0 20px 60px rgba(0,0,0,0.8)",
+      boxShadow: `0 0 80px ${cyberpunk.colors.neon.purple.glow}22`,
     },
     header: {
-      padding: "18px 20px 14px",
-      borderBottom: "1px solid #1a1a2e",
+      padding: "20px 24px 16px",
+      borderBottom: `1px solid ${cyberpunk.colors.neon.purple.primary}22`,
       display: "flex", alignItems: "center", justifyContent: "space-between",
     },
   };
@@ -1819,7 +1855,11 @@ export default function AceStepTab({
   };
 
   return (
-    <div style={{ maxWidth: 1600, margin: "0 auto" }}>
+    <div style={{ 
+      maxWidth: 2000, 
+      margin: "0 auto", 
+      padding: "40px 32px",
+    }}>
       {/* Preset Manager Modal */}
       <PresetManager
         open={showPresets}
@@ -1923,35 +1963,55 @@ export default function AceStepTab({
       )}
 
       {/* Status bar */}
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 24 }}>
         {/* Status badge */}
-        <div style={{ display: "flex", justifyContent: "center", gap: 8, alignItems: "center" }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: 12, alignItems: "center" }}>
           <div style={{
-            display: "inline-flex", alignItems: "center", gap: 6,
-            background: aceOnline === true ? "#06d6a011" : aceOnline === false ? "#e6394611" : "#ffd16611",
-            border: `1px solid ${aceOnline === true ? "#06d6a044" : aceOnline === false ? "#e6394644" : "#ffd16644"}`,
-            borderRadius: 20, padding: "4px 12px", fontSize: 12,
+            display: "inline-flex", alignItems: "center", gap: 8,
+            background: aceOnline === true ? cyberpunk.colors.neon.green.bg : aceOnline === false ? cyberpunk.colors.neon.red.bg : cyberpunk.colors.neon.yellow.bg,
+            border: `1px solid ${aceOnline === true ? cyberpunk.colors.neon.green.primary : aceOnline === false ? cyberpunk.colors.neon.red.primary : cyberpunk.colors.neon.yellow.primary}44`,
+            borderRadius: 24, padding: "8px 16px", fontSize: 12,
+            boxShadow: `0 0 20px ${aceOnline === true ? cyberpunk.colors.neon.green.glow : aceOnline === false ? cyberpunk.colors.neon.red.glow : cyberpunk.colors.neon.yellow.glow}22`,
           }}>
             <div style={{
-              width: 8, height: 8, borderRadius: "50%",
-              background: aceOnline === true ? "#06d6a0" : aceOnline === false ? "#e63946" : "#ffd166",
+              width: 10, height: 10, borderRadius: "50%",
+              background: aceOnline === true ? cyberpunk.colors.neon.green.primary : aceOnline === false ? cyberpunk.colors.neon.red.primary : cyberpunk.colors.neon.yellow.primary,
+              boxShadow: `0 0 15px ${aceOnline === true ? cyberpunk.colors.neon.green.glow : aceOnline === false ? cyberpunk.colors.neon.red.glow : cyberpunk.colors.neon.yellow.glow}`,
               animation: aceOnline === null ? "pulse 1s infinite" : "none",
             }} />
-            <span style={{ color: aceOnline === true ? "#06d6a0" : aceOnline === false ? "#e63946" : "#ffd166", fontWeight: 600 }}>
-              {aceOnline === null ? "Checking..." : aceOnline ? "ACE-Step Online" : "ACE-Step Offline"}
+            <span style={{ color: aceOnline === true ? cyberpunk.colors.neon.green.primary : aceOnline === false ? cyberpunk.colors.neon.red.primary : cyberpunk.colors.neon.yellow.primary, fontWeight: 700, letterSpacing: 1 }}>
+              {aceOnline === null ? "Checking..." : aceOnline ? "ACE-STEP ONLINE" : "ACE-STEP OFFLINE"}
             </span>
           </div>
-          <button onClick={checkHealth} style={{ background: "#1a1a2e", border: "1px solid #2a2a4a", color: "#6666aa", borderRadius: 6, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>↻ Refresh</button>
+          <button onClick={checkHealth} style={{ 
+            background: cyberpunk.colors.bg.secondary, 
+            border: `1px solid ${cyberpunk.colors.neon.purple.primary}33`, 
+            color: cyberpunk.colors.neon.cyan.primary, 
+            borderRadius: 10, 
+            padding: "8px 16px", 
+            fontSize: 11, 
+            cursor: "pointer",
+            fontWeight: 700,
+            letterSpacing: 1,
+          }}>↻ REFRESH</button>
           <button
             onClick={() => setShowPresets(true)}
             style={{
-              background: "#ffd16622", border: "1px solid #ffd16644",
-              color: "#ffd166", borderRadius: 6, padding: "4px 12px",
-              fontSize: 11, cursor: "pointer", fontWeight: 700,
-              display: "flex", alignItems: "center", gap: 5,
+              background: cyberpunk.colors.neon.yellow.bg, 
+              border: `1px solid ${cyberpunk.colors.neon.yellow.primary}44`,
+              color: cyberpunk.colors.neon.yellow.primary, 
+              borderRadius: 10, 
+              padding: "8px 16px",
+              fontSize: 11, 
+              cursor: "pointer", 
+              fontWeight: 700,
+              display: "flex", 
+              alignItems: "center", 
+              gap: 6,
+              letterSpacing: 1,
             }}
           >
-            💾 Presets
+            💾 PRESETS
           </button>
         </div>
       </div>
@@ -1972,14 +2032,20 @@ export default function AceStepTab({
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14 }}>
+      <div style={{ 
+        display: "grid", 
+        gridTemplateColumns: "repeat(4, 1fr)", 
+        gap: 24,
+        position: "relative",
+        zIndex: 1,
+      }}>
 
         {/* COLUMN 1: Task Type + Audio + Prompt Helper */}
-        <div>
+        <div style={{ display: "flex", flexDirection: "column" }}>
 
           {/* ── Task Type: text2music vs audio2audio vs custom ── */}
-          <div style={S.card}>
-            <span style={S.label}>🎯 Task Type</span>
+          <div style={{ ...S.card, marginBottom: 8 }}>
+            <span style={{ ...S.label, fontSize: 13, marginBottom: 12 }}>🎯 Task Type</span>
             <div style={{ display: "flex", gap: 8, marginBottom: (taskType === "audio2audio" || taskType === "custom") ? 12 : 0 }}>
               {[
                 { id: "text2music", icon: "✍️", label: "Text → Music" },
@@ -2352,15 +2418,15 @@ export default function AceStepTab({
           </div>
 
           {/* 📝 Lyrics + Vocal Language */}
-          <div style={S.card}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-              <span style={S.label}>📝 Lyrics (Optional)</span>
-              <span style={{ color: "#333355", fontSize: 10, fontFamily: "monospace" }}>{wordCount} words</span>
+          <div style={{ ...S.card, marginBottom: 8 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <span style={{ ...S.label, fontSize: 13, marginBottom: 0 }}>📝 Lyrics (Optional)</span>
+              <span style={{ color: "#333355", fontSize: 11, fontFamily: "monospace" }}>{wordCount} words</span>
             </div>
 
             {/* 🌐 Vocal Language Selector */}
-            <div style={{ marginBottom: 10 }}>
-              <span style={{ color: "#6666aa", fontSize: 11, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6, display: "block" }}>
+            <div style={{ marginBottom: 14 }}>
+              <span style={{ color: "#6666aa", fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8, display: "block" }}>
                 🌐 Vocal Language
               </span>
               <select
@@ -2455,8 +2521,8 @@ export default function AceStepTab({
         <div>
 
           {/* Music Prompt */}
-          <div style={S.card}>
-            <span style={S.label}>🎼 Music Style / Prompt</span>
+          <div style={{ ...S.card, marginBottom: 8 }}>
+            <span style={{ ...S.label, fontSize: 13, marginBottom: 12 }}>🎼 Music Style / Prompt</span>
             <textarea
               value={prompt}
               onChange={e => setPrompt(e.target.value)}
@@ -2475,9 +2541,6 @@ export default function AceStepTab({
             {/* Presets după gen (complet): JSON (BPM+caption+negative) + Hip-Hop, Românesc, House, Dembow */}
             <div style={{ marginTop: 14, padding: "10px 0", borderTop: "1px solid #2a2a4a" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
-                <span style={{ color: "#9b2de0", fontSize: 11, fontWeight: 700 }}>
-                  🎚 Genres and Subgenres
-                </span>
                 <button
                   type="button"
                   onClick={() => setShowCustomSubgenreInput(true)}
@@ -2819,8 +2882,8 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
         <div>
 
           {/* Duration */}
-          <div style={S.card}>
-            <span style={S.label}>⏱ Duration</span>
+          <div style={{ ...S.card, marginBottom: 8 }}>
+            <span style={{ ...S.label, fontSize: 13, marginBottom: 12 }}>⏱ Duration</span>
 
             {/* Duration Slider */}
             <div style={{ marginBottom: 14 }}>
@@ -3194,8 +3257,8 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
           </div>
 
           {/* Negative Prompt */}
-          <div style={S.card}>
-            <span style={S.label}>🚫 Negative Prompt (Optional)</span>
+          <div style={{ ...S.card, marginBottom: 8 }}>
+            <span style={{ ...S.label, fontSize: 13, marginBottom: 12 }}>🚫 Negative Prompt (Optional)</span>
             <textarea
               value={negativePrompt}
               onChange={e => setNegativePrompt(e.target.value)}
@@ -3231,48 +3294,8 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
 
         </div>
 
-        {/* COLUMN 4: Generate + Result + Advanced Settings */}
+        {/* COLUMN 4: Result + Generate + Advanced Settings */}
         <div>
-
-          {/* 🎵 Generate Button */}
-          <div style={S.card}>
-            <button
-              onClick={handleGenerate}
-              disabled={processing || !aceOnline || !prompt.trim()}
-              style={{
-                width: "100%", padding: "18px 0", borderRadius: 10,
-                background: processing ? "#1a1a2e" : (aceOnline && prompt.trim()
-                  ? "linear-gradient(135deg, #ffd166, #ff9f1c)"
-                  : "#1a1a2e"),
-                color: "#000", fontWeight: 900, fontSize: 17, border: "none",
-                cursor: (processing || !aceOnline || !prompt.trim()) ? "not-allowed" : "pointer",
-                opacity: (!aceOnline || !prompt.trim()) ? 0.5 : 1,
-                letterSpacing: 1,
-                boxShadow: aceOnline && prompt.trim() && !processing ? "0 0 20px #ffd16644" : "none",
-              }}>
-              {processing ? `⚙ ${progressLabel || "Generating..."}` : "🎵 Generate Music"}
-            </button>
-
-            {processing && (
-              <div style={{ marginTop: 10 }}>
-                <div style={{ height: 6, background: "#1a1a2e", borderRadius: 3, overflow: "hidden" }}>
-                  <div style={{ height: 6, background: "linear-gradient(90deg, #ffd166, #ff9f1c)", width: `${progress}%`, transition: "width 1s", borderRadius: 3 }} />
-                </div>
-                <div style={{ color: "#6666aa", fontSize: 11, marginTop: 6, textAlign: "center" }}>{progressLabel}</div>
-              </div>
-            )}
-
-            {/* Info */}
-            <div style={{ marginTop: 12, padding: "10px 12px", background: "#0a0a1a", borderRadius: 8, border: "1px solid #1a1a2e" }}>
-              <div style={{ color: "#ffd166", fontSize: 11, fontWeight: 700, marginBottom: 6 }}>💡 ACE-Step v1.5 Info</div>
-              <div style={{ color: "#444466", fontSize: 11, lineHeight: 1.8 }}>
-                <div>• Generate full music from text (beats SUNO)</div>
-                <div>• 8GB VRAM → model 0.6B · 12GB+ → 1.7B</div>
-                <div>• Prima rulare descarcă ~10GB modele</div>
-                <div>• Timp: ~30-120s pentru 30s muzică</div>
-              </div>
-            </div>
-          </div>
 
           {/* ✅ Result */}
           {result && (
@@ -3336,6 +3359,42 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
               </div>
             </div>
           )}
+
+          {/* 🎵 Generate Button */}
+          <div style={{ ...S.card, marginBottom: 20 }}>
+            <button
+              onClick={handleGenerate}
+              disabled={processing || !aceOnline || !prompt.trim()}
+              style={{
+                width: "100%", 
+                padding: "18px 0", 
+                borderRadius: 14,
+                background: processing ? cyberpunk.colors.bg.accent : (aceOnline && prompt.trim()
+                  ? "linear-gradient(135deg, #9b2de0, #0a0a1a)"
+                  : cyberpunk.colors.bg.accent),
+                color: "#fff", 
+                fontWeight: 900, 
+                fontSize: 17, 
+                border: `1px solid ${cyberpunk.colors.neon.purple.primary}66`,
+                cursor: (processing || !aceOnline || !prompt.trim()) ? "not-allowed" : "pointer",
+                opacity: (!aceOnline || !prompt.trim()) ? 0.5 : 1,
+                letterSpacing: 2,
+                textTransform: "uppercase",
+                boxShadow: aceOnline && prompt.trim() && !processing ? `0 0 30px ${cyberpunk.colors.neon.purple.glow}` : "none",
+                transition: "all 0.3s ease",
+              }}>
+              {processing ? `⚙ ${progressLabel || "GENERATING..."}` : "🎵 GENERATE MUSIC"}
+            </button>
+
+            {processing && (
+              <div style={{ marginTop: 14 }}>
+                <div style={{ height: 8, background: cyberpunk.colors.bg.accent, borderRadius: 4, overflow: "hidden", border: `1px solid ${cyberpunk.colors.neon.purple.primary}33` }}>
+                  <div style={{ height: 8, background: "linear-gradient(90deg, #9b2de0, #0a0a1a)", width: `${progress}%`, transition: "width 1s", borderRadius: 4, boxShadow: `0 0 15px ${cyberpunk.colors.neon.purple.glow}` }} />
+                </div>
+                <div style={{ color: cyberpunk.colors.text.muted, fontSize: 11, marginTop: 8, textAlign: "center", letterSpacing: 1 }}>{progressLabel}</div>
+              </div>
+            )}
+          </div>
 
           {/* ⚙️ Advanced Settings */}
           <div style={{
@@ -4033,6 +4092,32 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
         </div>
       )}
 
+      {/* Global Styles for Animations */}
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        
+        ::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+          background: #0a0a1a;
+          border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+          background: linear-gradient(135deg, #9b2de0, #00e5ff);
+          border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(135deg, #00e5ff, #9b2de0);
+        }
+      `}</style>
     </div>
   );
 }

@@ -214,7 +214,7 @@ export default function App() {
       </header>
 
       {/* ── Content ── */}
-      <main style={{ padding: "24px 28px", maxWidth: 1400, margin: "0 auto" }}>
+      <main style={{ padding: "16px 16px", maxWidth: 1800, margin: "0 auto" }}>
 
         <div style={{ display: tab === "Readme" ? "block" : "none" }}>
           <ReadmeTab />

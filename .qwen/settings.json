@@ -1,7 +1,6 @@
 {
   "_comment": "Qwen Code Settings for VocalForge project",
   "_version": "1.0",
-  
   "session": {
     "_comment": "Session management settings",
     "auto_load_context": true,
@@ -9,7 +8,6 @@
     "save_on_exit": true,
     "exit_script": ".qwen/scripts/save_session_context.sh"
   },
-  
   "skills": {
     "_comment": "Skills to auto-activate for this project",
     "always_active": [
@@ -22,14 +20,12 @@
       "conductor"
     ]
   },
-  
   "clauder": {
     "_comment": "Clauder memory settings",
     "auto_recall_on_start": true,
     "recall_query": "Session",
     "max_facts_to_show": 5
   },
-  
   "project": {
     "_comment": "Project-specific settings",
     "name": "VocalForge",
@@ -41,5 +37,6 @@
       "acestep": 8001,
       "rvc": 8002
     }
-  }
+  },
+  "$version": 3
 }
