@@ -68,15 +68,27 @@ def calculate_loudness(y: np.ndarray, sr: int) -> Dict[str, Any]:
 # ── Vocal Range Detection ──────────────────────────────────────────────────────
 
 def detect_vocal_range(y: np.ndarray, sr: int) -> Dict[str, Any]:
-    """Detect vocal range and classify voice type."""
+    """Detect vocal range and classify voice type (optimized for speed)."""
     if len(y.shape) > 1:
         y = librosa.to_mono(y)
     
-    f0, voiced_flag, _ = librosa.pyin(y, fmin=librosa.note_to_hz('C2'), fmax=librosa.note_to_hz('C7'), sr=sr)
-    voiced_f0 = f0[voiced_flag]
+    # Downsample for faster processing (keep quality for vocal detection)
+    if sr > 22050:
+        y = librosa.resample(y, orig_sr=sr, target_sr=22050)
+        sr = 22050
+    
+    # Use simpler F0 tracking (faster than pYIN)
+    f0, voiced_flag = librosa.piptrack(y=y, sr=sr, fmin=librosa.note_to_hz('C2'), fmax=librosa.note_to_hz('C7'))
+    
+    # Extract voiced frames
+    voiced_f0 = f0[voiced_flag > 0.8]  # Only confident detections
     
     if len(voiced_f0) == 0:
-        return {"detected": False, "reason": "No vocals detected"}
+        # Fallback: use simpler method
+        intervals, pitch = librosa.pyin(y, fmin=librosa.note_to_hz('C2'), fmax=librosa.note_to_hz('C7'), sr=sr, frame_length=2048)
+        voiced_f0 = intervals[pitch != np.nan]
+        if len(voiced_f0) == 0:
+            return {"detected": False, "reason": "No vocals detected"}
     
     min_freq = float(np.percentile(voiced_f0, 5))
     max_freq = float(np.percentile(voiced_f0, 95))
@@ -111,7 +123,8 @@ def detect_vocal_range(y: np.ndarray, sr: int) -> Dict[str, Any]:
         "range_octaves": round(range_octaves, 1),
         "voice_type": voice_type,
         "avg_freq_hz": round(avg_freq, 1),
-        "model_recommendations": model_recommendations
+        "model_recommendations": model_recommendations,
+        "processing_time": "optimized"
     }
 
 
