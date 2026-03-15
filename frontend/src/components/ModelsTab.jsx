@@ -16,12 +16,21 @@ export default function ModelsTab({ addLog }) {
       setHwInfo({ mode: "offline", device: "cpu", vram_gb: 0, has_cuda: false, cpu_cores: "?" })
     );
     fetchVram();
+    
+    // Auto-refresh VRAM every 2 seconds
+    const interval = setInterval(fetchVram, 2000);
+    return () => clearInterval(interval);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchVram = () => {
-    fetch(`${API}/vram_usage`).then(r => r.json()).then(setVram).catch(() =>
-      setVram({ available: false, used_gb: 0, total_gb: 8, pct: 0 })
-    );
+    fetch(`${API}/vram_usage`)
+      .then(r => r.json())
+      .then(data => {
+        setVram(data);
+      })
+      .catch(() => {
+        setVram({ available: false, used_gb: 0, total_gb: 8, pct: 0 });
+      });
   };
 
   const action = async (endpoint, label) => {

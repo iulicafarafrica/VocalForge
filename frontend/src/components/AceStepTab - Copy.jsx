@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 
 const API = "http://localhost:8000";
 
@@ -582,7 +582,7 @@ function PresetManager({
       display: "flex", alignItems: "center", justifyContent: "space-between",
     },
     tab: (active, color) => ({
-      flex: 1, padding: "8px 0", borderRadius: 8, fontSize: 12, fontWeight: 700,
+      flex: 1, padding: "6px 0", borderRadius: 8, fontSize: 11, fontWeight: 700,
       background: active ? color + "22" : "#0a0a1a",
       border: `1px solid ${active ? color : "#2a2a4a"}`,
       color: active ? color : "#444466", cursor: "pointer",
@@ -865,7 +865,7 @@ export default function AceStepTab({
   const [customReferenceAudio, setCustomReferenceAudio] = useState(null);
   const [customReferenceUrl, setCustomReferenceUrl] = useState(null);
   const [customRefStrength, setCustomRefStrength] = useState(0.7); // 0.0-1.0
-  const [customTags, setCustomTags] = useState("");
+  const [customTextures, setCustomTextures] = useState("");
   const [detectingCustom, setDetectingCustom] = useState(false);
   const [customBpm, setCustomBpm] = useState(null);
   const [customKey, setCustomKey] = useState(null);
@@ -900,24 +900,60 @@ export default function AceStepTab({
   const [showLyricsSaveInput, setShowLyricsSaveInput] = useState(false);
 
   // ── Styles ────────────────────────────────────────────────────────────────
+  const cyberpunk = {
+    colors: {
+      bg: { primary: "#030308", secondary: "#0a0a1a", card: "#0d0d22", accent: "#12122a" },
+      neon: {
+        cyan: { primary: "#00e5ff", glow: "#00e5ff66", bg: "#00e5ff0d" },
+        purple: { primary: "#9b2de0", glow: "#9b2de066", bg: "#9b2de00d" },
+        pink: { primary: "#ff00ff", glow: "#ff00ff66", bg: "#ff00ff0d" },
+        yellow: { primary: "#ffd166", glow: "#ffd16666", bg: "#ffd1660d" },
+        green: { primary: "#06d6a0", glow: "#06d6a066", bg: "#06d6a00d" },
+        red: { primary: "#e63946", glow: "#e6394666", bg: "#e639460d" },
+      },
+      text: { primary: "#e0e0ff", secondary: "#aaaacc", muted: "#6666aa" },
+    },
+    gradients: {
+      card: "linear-gradient(135deg, #0d0d22 0%, #0a0a1a 100%)",
+      text: "linear-gradient(135deg, #00e5ff, #9b2de0, #ff00ff)",
+    },
+  };
+
   const S = {
-    card: { background: "linear-gradient(135deg,#0d0d22,#0a0a1a)", border: "1px solid #1e1e3a", borderRadius: 12, padding: 18, marginBottom: 14 },
-    label: { color: "#6666aa", fontSize: 11, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8, display: "block" },
+    card: { 
+      background: cyberpunk.gradients.card, 
+      border: `1px solid ${cyberpunk.colors.neon.purple.primary}22`, 
+      borderRadius: 16, 
+      padding: "10px 12px", 
+      marginBottom: 6,
+      boxShadow: `0 0 20px ${cyberpunk.colors.neon.purple.glow}11`,
+    },
+    label: { 
+      color: cyberpunk.colors.neon.cyan.primary, 
+      fontSize: 12, 
+      fontWeight: 800, 
+      letterSpacing: 2, 
+      textTransform: "uppercase", 
+      marginBottom: 12, 
+      display: "block",
+      textShadow: `0 0 10px ${cyberpunk.colors.neon.cyan.glow}`,
+    },
     overlay: {
-      position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)",
+      position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)",
       zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center",
-      backdropFilter: "blur(4px)",
+      backdropFilter: "blur(8px)",
     },
     modal: {
-      background: "linear-gradient(135deg,#0d0d22,#0a0a1a)",
-      border: "1px solid #2a2a4a", borderRadius: 16,
+      background: cyberpunk.gradients.card,
+      border: `1px solid ${cyberpunk.colors.neon.purple.primary}33`, 
+      borderRadius: 20,
       width: "min(800px, 95vw)", maxHeight: "85vh",
       display: "flex", flexDirection: "column",
-      boxShadow: "0 20px 60px rgba(0,0,0,0.8)",
+      boxShadow: `0 0 80px ${cyberpunk.colors.neon.purple.glow}22`,
     },
     header: {
-      padding: "18px 20px 14px",
-      borderBottom: "1px solid #1a1a2e",
+      padding: "20px 24px 16px",
+      borderBottom: `1px solid ${cyberpunk.colors.neon.purple.primary}22`,
       display: "flex", alignItems: "center", justifyContent: "space-between",
     },
   };
@@ -1079,12 +1115,100 @@ export default function AceStepTab({
     { code: "es", name: "Spanish", native: "Español" },
     { code: "ar", name: "Arabic", native: "العربية" },
     { code: "el", name: "Greek", native: "Ελληνικά" },
+    { code: "tr", name: "Turkish", native: "Türkçe" },
   ];
+
+  // ── Prompt Helper ──────────────────────────────────────────────────────────
+  const PROMPT_INJECTS = [
+    // Identity
+    { category: "Identity", label: "Female", tags: "female voice", desc: "Defines the base frequency spectrum (baritone vs. soprano)." },
+    { category: "Identity", label: "Male", tags: "male voice", desc: "Defines the base frequency spectrum (baritone vs. soprano)." },
+    { category: "Identity", label: "Duet", tags: "male and female duet, vocal harmony interplay", desc: "Both male and female voices in harmony; call-and-response or layered duet." },
+    { category: "Identity", label: "Group Chorus", tags: "vocal ensemble, group chorus", desc: "Creates a group of voices (perfect for Afro/Tribal hooks)." },
+    // Quality
+    { category: "Quality", label: "Studio Clean", tags: "studio-clean, silent background", desc: "Eliminates background noise; clear studio voice." },
+    { category: "Quality", label: "High Fidelity", tags: "high-fidelity, 48kHz", desc: "Increases high-frequency clarity; maximum detail." },
+    { category: "Quality", label: "No Artifacts", tags: "no digital artifacts", desc: "Eliminates metallic/robotic sounds; natural sound." },
+    { category: "Quality", label: "Digital Clean", tags: "zero-noise-floor, ultra-transparent-mix, silky-smooth-highs, pure-digital-mastering, noise-gate-processing", desc: "Pristine digital production; ultra-clean modern sound." },
+    { category: "Quality", label: "No AI Voice", tags: "natural-vocal-inflection, organic-vocal-resonance, unprocessed-vocal-feel, authentic-human-delivery, emotive-voice-cracks, soft-breathing-artifacts, analog-vocal-warmth", desc: "Human-like vocals with natural imperfections; removes AI robotic sound." },
+    // Performance
+    { category: "Performance", label: "Master-Class", tags: "master-class vocals, authentic-human-inflection, soft-breathing-artifacts, organic-vocal-resonance", desc: "Professional vocals with natural human imperfections; warm and authentic delivery." },
+    { category: "Performance", label: "Expressive", tags: "expressive, balanced", desc: "Balanced mix between voice and instruments; pure emotion." },
+  ];
+
+  // Tags dropdown options
+  const TAGS_DROPDOWN = [
+    { category: "Dark Minimal", label: "Afro Minimal", tags: "afro-minimal-bass, eerie-atmospheric-pads, sparse-percussion, shadowy-vibe, driving-steady-groove", desc: "Thin but deep bass (sub-bass) that dominates the mix." },
+    { category: "Sevilla Style", label: "Tribal Afro", tags: "tribal-percussion-layering, deep-afro-groove, syncopated-drums, driving-afro-bassline, spatial-club-mix", desc: "Multi-layering of organic drums and conga." },
+    { category: "Love", label: "Intimate", tags: "intimate-vocal-warmth, emotional-breathiness, heartfelt-delivery, romantic-vocal-texture", desc: "Focus on low frequencies; voice 'at the listener's ear'." },
+    { category: "Soul", label: "Soulful", tags: "soulful-delivery, organic-resonance, authentic-phrasing", desc: "'Warm' voice, without sounding artificial or processed." },
+    { category: "Energic", label: "Energic", tags: "rhythmic-precision, high-energy-delivery, punchy-articulation", desc: "Clear consonants; perfect for fast, danceable rhythms." },
+    { category: "Chill", label: "Chill", tags: "laid-back-flow, spacious-mix, relaxed-tonal-balance", desc: "Voice placed in a large space; offers auditory relaxation." },
+    { category: "Power", label: "Power", tags: "raw-vocal-intensity, high-dynamic-range, power-delivery", desc: "Intense transition from whisper to shout; dramatic impact." },
+    { category: "Sharp", label: "Sharp", tags: "sharp-articulation, aggressive-flow, polished-presence", desc: "Fast attachment on beat; voice 'cuts' through instruments." },
+    { category: "Lyric", label: "Lyric", tags: "lyrical-clarity, steady-pacing, intimate-texture", desc: "Focus on diction; you understand every word clearly." },
+    { category: "Hypnotic", label: "Hypnotic", tags: "hypnotic-cadence, lush-vocal-layering, fluid-delivery", desc: "Doubled voice (harmony); 'trance' or dreaming effect." },
+    { category: "Oriental", label: "Oriental", tags: "microtonal-accuracy, emotional-ornamentation, resonant-depth", desc: "Allows notes 'between keys' (quarter tones) specific to Oriental music." },
+    { category: "Hybrid", label: "Hybrid", tags: "hybrid-vocal-processing, polished-integration, modern-polish", desc: "Voice combined with synths; 'top chart' modern sound." },
+    { category: "Dark/LoFi", label: "Dark LoFi", tags: "distorted-lofi-aesthetic, dark-moody-phrasing, heavy-compression", desc: "'Dense', muffled sound; specific to underground style." },
+    { category: "Bright", label: "Bright", tags: "bouncy-vocal-rhythm, bright-melodic-presence, sunny-delivery", desc: "Focus on mid-high frequencies; cheerful and bright sound." },
+    { category: "Breath/Intimate", label: "Close-Mic", tags: "close-mic-placement, soft-breath-control, whisper-vocal-texture", desc: "Perfect for moments when the voice needs to be 'at the listener's ear'." },
+    { category: "Vocal-Chop", label: "Stutter", tags: "stutter-vocal-edits, rhythmic-sampling, glitchy-vocal-texture", desc: "Ideal for House or Phonk style, to make the voice sound like an instrument." },
+    { category: "Grand-Reverb", label: "Ethereal", tags: "ethereal-hall-reverb, cavernous-space, long-vocal-tail", desc: "For dramatic pieces, where the voice needs to float in an immense space." },
+    { category: "Dynamic-Grit", label: "Saturate", tags: "saturate-vocal-harmonic, grit-edge, tube-preamp-warmth", desc: "Adds that 'warm dirt' (like vinyl records) that eliminates the 'too digital' sound." },
+    { category: "Wide-Stereo", label: "Wide", tags: "stereo-width-expansion, double-tracked-vocal, immersive-pan", desc: "Makes the voice sound 'bigger' than life, filling the entire sound field." },
+    { category: "Thick & Human", label: "Thick & Human", tags: "deep-chest-resonance, sub-harmonic-vocal-depth, unprocessed-vocal-grain, authentic-speech-cadence, tube-preamp-saturation", desc: "Thick, warm, human vocal character with analog warmth." },
+  ];
+
+  // State for selected texture from dropdown
+  const [selectedTexture, setSelectedTexture] = useState("");
+  const [textureDescription, setTextureDescription] = useState("");
+
+  // Function to inject texture into prompt
+  const injectPrompt = useCallback((texture) => {
+    console.log('[Prompt Helper] Injecting texture:', texture);
+    setPrompt(prev => {
+      const currentPrompt = (prev || '').trim();
+      if (!currentPrompt) {
+        console.log('[Prompt Helper] Setting new prompt:', texture);
+        return texture;
+      } else {
+        const separator = currentPrompt.endsWith(',') ? ' ' : ', ';
+        const newPrompt = currentPrompt + separator + texture;
+        console.log('[Prompt Helper] Appending to prompt:', newPrompt);
+        return newPrompt;
+      }
+    });
+  }, [setPrompt]);
 
   // ── Genre presets (full) from presetmanager.json ───────────────────────────
   const [genrePresetsData, setGenrePresetsData] = useState(null);
   const [genreCatFull, setGenreCatFull] = useState("");
   const [selectedGenreSubgenre, setSelectedGenreSubgenre] = useState(""); // "GenreName|SubgenreName"
+  
+  // Custom subgenre save states
+  const [showCustomSubgenreInput, setShowCustomSubgenreInput] = useState(false);
+  const [customSubgenreName, setCustomSubgenreName] = useState("");
+  const [customSubgenreCategory, setCustomSubgenreCategory] = useState("");
+  
+  // Custom subgenre edit/delete states
+  const [showEditSubgenre, setShowEditSubgenre] = useState(false);
+  const [editingSubgenre, setEditingSubgenre] = useState(null); // {category, subName, preset}
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingSubgenre, setDeletingSubgenre] = useState(null); // {category, subName}
+  const [showAddGenre, setShowAddGenre] = useState(false);
+  const [newGenreName, setNewGenreName] = useState("");
+  
+  // Edit form state
+  const [editForm, setEditForm] = useState({
+    prompt: "",
+    bpm: 0,
+    key_scale: "",
+    guidanceScale: 7,
+    inferSteps: 20,
+    duration: 60,
+    negativePrompt: "",
+  });
   const [genrePresetsLoading, setGenrePresetsLoading] = useState(true);
 
   const loadGenrePresets = useCallback(() => {
@@ -1096,6 +1220,23 @@ export default function AceStepTab({
     const applyData = (data) => {
       clearTimeout(timeoutId);
       setGenrePresetsLoading(false);
+      
+      // Load custom genres from localStorage
+      const savedCustom = localStorage.getItem('acestep_custom_genres');
+      if (savedCustom) {
+        try {
+          const customGenres = JSON.parse(savedCustom);
+          // Merge custom genres with API/built-in genres
+          if (data?.genres) {
+            data.genres = { ...data.genres, ...customGenres.genres };
+          } else if (QUICK_GENRES) {
+            data = { version: 1, genres: { ...QUICK_GENRES, ...customGenres.genres } };
+          }
+        } catch (e) {
+          console.error('[Custom Genres] Failed to load from localStorage:', e);
+        }
+      }
+      
       // Use API data if it has genres, otherwise use built-in QUICK_GENRES
       if (data?.genres && typeof data.genres === "object" && Object.keys(data.genres).length > 0) {
         setGenrePresetsData(data);
@@ -1114,7 +1255,19 @@ export default function AceStepTab({
         // Fallback: use built-in QUICK_GENRES
         clearTimeout(timeoutId);
         setGenrePresetsLoading(false);
-        setGenrePresetsData({ version: 1, genres: QUICK_GENRES });
+        
+        // Load custom genres from localStorage even on fallback
+        const savedCustom = localStorage.getItem('acestep_custom_genres');
+        if (savedCustom) {
+          try {
+            const customGenres = JSON.parse(savedCustom);
+            setGenrePresetsData({ version: 1, genres: { ...QUICK_GENRES, ...customGenres.genres } });
+          } catch {
+            setGenrePresetsData({ version: 1, genres: QUICK_GENRES });
+          }
+        } else {
+          setGenrePresetsData({ version: 1, genres: QUICK_GENRES });
+        }
         setGenreCatFull((prev) => prev || Object.keys(QUICK_GENRES)[0]);
       });
   }, []);
@@ -1136,6 +1289,253 @@ export default function AceStepTab({
     setBpm(bpmVal > 0 && bpmVal <= 300 ? bpmVal : 0);
     setKeyScale(typeof keyVal === "string" && keyVal !== "auto" ? keyVal : "");
     setInstrumental(!!preset.instrumental);
+    // ✅ Apply guidanceScale and inferSteps from preset
+    if (preset.guidanceScale !== undefined) setGuidanceScale(preset.guidanceScale);
+    if (preset.inferSteps !== undefined) setInferSteps(preset.inferSteps);
+  };
+
+  // ── Save Custom Subgenre ───────────────────────────────────────────────────
+  const saveCustomSubgenre = () => {
+    if (!customSubgenreName.trim() || !customSubgenreCategory) {
+      console.error('[Custom Subgenre] Missing name or category');
+      return;
+    }
+    
+    console.log('[Custom Subgenre] Saving...', {
+      name: customSubgenreName,
+      category: customSubgenreCategory,
+      genrePresetsData: genrePresetsData,
+    });
+    
+    // Creează preset din setările curente
+    const customPreset = {
+      caption: prompt.trim(),
+      prompt: prompt.trim(),
+      lm_negative_prompt: negativePrompt.trim(),
+      negatives: negativePrompt.trim(),
+      bpm: bpm,
+      key_scale: keyScale,
+      keyscale: keyScale,
+      guidanceScale: guidanceScale,
+      inferSteps: inferSteps,
+      duration: duration,
+      instrumental: false,
+    };
+    
+    // Get existing custom genres or create new structure
+    let customGenres = { version: 1, genres: {} };
+    const savedCustom = localStorage.getItem('acestep_custom_genres');
+    if (savedCustom) {
+      try {
+        customGenres = JSON.parse(savedCustom);
+        console.log('[Custom Subgenre] Loaded existing custom genres:', customGenres);
+      } catch (e) {
+        console.error('[Custom Subgenre] Failed to parse saved custom genres:', e);
+      }
+    }
+    
+    // Add new subgenre
+    if (!customGenres.genres[customSubgenreCategory]) {
+      customGenres.genres[customSubgenreCategory] = { subgenres: {} };
+    }
+    customGenres.genres[customSubgenreCategory].subgenres[customSubgenreName] = customPreset;
+    
+    console.log('[Custom Subgenre] Updated custom genres:', customGenres);
+    
+    // Salvează în localStorage
+    localStorage.setItem('acestep_custom_genres', JSON.stringify(customGenres));
+    
+    // Update state with merged data
+    const mergedData = {
+      version: 1,
+      genres: {
+        ...(genrePresetsData?.genres || QUICK_GENRES),
+        ...customGenres.genres
+      }
+    };
+    setGenrePresetsData(mergedData);
+    
+    // Auto-select the new subgenre
+    setSelectedGenreSubgenre(`${customSubgenreCategory}|${customSubgenreName}`);
+    
+    // Reset și close
+    setCustomSubgenreName("");
+    setCustomSubgenreCategory("");
+    setShowCustomSubgenreInput(false);
+    
+    // Show success message
+    console.log(`[Custom Subgenre] ✅ Saved "${customSubgenreName}" in ${customSubgenreCategory}`);
+    alert(`✅ Subgenre "${customSubgenreName}" saved in ${customSubgenreCategory}!`);
+  };
+
+  // ── Edit Custom Subgenre ───────────────────────────────────────────────────
+  const openEditSubgenre = (category, subName, preset) => {
+    setEditingSubgenre({ category, subName, preset });
+    setEditForm({
+      prompt: preset.prompt || preset.caption || "",
+      bpm: preset.bpm || 0,
+      key_scale: preset.key_scale || "",
+      guidanceScale: preset.guidanceScale || 7,
+      inferSteps: preset.inferSteps || 20,
+      duration: preset.duration || 60,
+      negativePrompt: preset.lm_negative_prompt || preset.negatives || "",
+    });
+    setShowEditSubgenre(true);
+  };
+
+  const saveEditSubgenre = () => {
+    if (!editingSubgenre) return;
+    
+    const { category, subName } = editingSubgenre;
+    
+    // Get existing custom genres
+    let customGenres = { version: 1, genres: {} };
+    const savedCustom = localStorage.getItem('acestep_custom_genres');
+    if (savedCustom) {
+      try {
+        customGenres = JSON.parse(savedCustom);
+      } catch (e) {
+        console.error('[Edit Subgenre] Failed to parse saved custom genres:', e);
+      }
+    }
+    
+    // Update subgenre
+    if (!customGenres.genres[category]) {
+      customGenres.genres[category] = { subgenres: {} };
+    }
+    customGenres.genres[category].subgenres[subName] = {
+      caption: editForm.prompt,
+      prompt: editForm.prompt,
+      lm_negative_prompt: editForm.negativePrompt,
+      negatives: editForm.negativePrompt,
+      bpm: editForm.bpm,
+      key_scale: editForm.key_scale,
+      keyscale: editForm.key_scale,
+      guidanceScale: editForm.guidanceScale,
+      inferSteps: editForm.inferSteps,
+      duration: editForm.duration,
+      instrumental: false,
+    };
+    
+    // Salvează în localStorage
+    localStorage.setItem('acestep_custom_genres', JSON.stringify(customGenres));
+    
+    // Update state with merged data
+    const mergedData = {
+      version: 1,
+      genres: {
+        ...(genrePresetsData?.genres || QUICK_GENRES),
+        ...customGenres.genres
+      }
+    };
+    setGenrePresetsData(mergedData);
+    
+    // Close modal
+    setShowEditSubgenre(false);
+    setEditingSubgenre(null);
+    
+    console.log(`[Edit Subgenre] ✅ Updated "${subName}" in ${category}`);
+    alert(`✅ Subgenre "${subName}" updated!`);
+  };
+
+  // ── Delete Custom Subgenre ─────────────────────────────────────────────────
+  const confirmDeleteSubgenre = (category, subName) => {
+    setDeletingSubgenre({ category, subName });
+    setShowDeleteConfirm(true);
+  };
+
+  const deleteSubgenre = () => {
+    if (!deletingSubgenre) return;
+    
+    const { category, subName } = deletingSubgenre;
+    
+    // Get existing custom genres
+    let customGenres = { version: 1, genres: {} };
+    const savedCustom = localStorage.getItem('acestep_custom_genres');
+    if (savedCustom) {
+      try {
+        customGenres = JSON.parse(savedCustom);
+      } catch (e) {
+        console.error('[Delete Subgenre] Failed to parse saved custom genres:', e);
+      }
+    }
+    
+    // Delete subgenre
+    if (customGenres.genres[category]?.subgenres[subName]) {
+      delete customGenres.genres[category].subgenres[subName];
+      
+      // Remove category if empty
+      if (Object.keys(customGenres.genres[category].subgenres).length === 0) {
+        delete customGenres.genres[category];
+      }
+    }
+    
+    // Salvează în localStorage
+    localStorage.setItem('acestep_custom_genres', JSON.stringify(customGenres));
+    
+    // Update state with merged data
+    const mergedData = {
+      version: 1,
+      genres: {
+        ...(genrePresetsData?.genres || QUICK_GENRES),
+        ...customGenres.genres
+      }
+    };
+    setGenrePresetsData(mergedData);
+    
+    // Close modal
+    setShowDeleteConfirm(false);
+    setDeletingSubgenre(null);
+    
+    // Deselect if was selected
+    if (selectedGenreSubgenre === `${category}|${subName}`) {
+      setSelectedGenreSubgenre("");
+    }
+    
+    console.log(`[Delete Subgenre] ✅ Deleted "${subName}" from ${category}`);
+    alert(`✅ Subgenre "${subName}" deleted from ${category}!`);
+  };
+
+  // ── Add New Genre ──────────────────────────────────────────────────────────
+  const addNewGenre = () => {
+    if (!newGenreName.trim()) return;
+    
+    // Get existing custom genres
+    let customGenres = { version: 1, genres: {} };
+    const savedCustom = localStorage.getItem('acestep_custom_genres');
+    if (savedCustom) {
+      try {
+        customGenres = JSON.parse(savedCustom);
+      } catch (e) {
+        console.error('[Add Genre] Failed to parse saved custom genres:', e);
+      }
+    }
+    
+    // Add new genre
+    customGenres.genres[newGenreName] = { subgenres: {} };
+    
+    // Salvează în localStorage
+    localStorage.setItem('acestep_custom_genres', JSON.stringify(customGenres));
+    
+    // Update state with merged data
+    const mergedData = {
+      version: 1,
+      genres: {
+        ...(genrePresetsData?.genres || QUICK_GENRES),
+        ...customGenres.genres
+      }
+    };
+    setGenrePresetsData(mergedData);
+    
+    // Auto-select new genre
+    setGenreCatFull(newGenreName);
+    
+    // Close modal
+    setShowAddGenre(false);
+    setNewGenreName("");
+    
+    console.log(`[Add Genre] ✅ Added new genre "${newGenreName}"`);
+    alert(`✅ New genre "${newGenreName}" created!`);
   };
 
   // ── Preset load handler ────────────────────────────────────────────────────
@@ -1229,7 +1629,7 @@ export default function AceStepTab({
     // Custom mode validation
     if (taskType === "custom") {
       if (!customReferenceAudio) { addLog("[ERR] Upload reference audio for Custom mode"); return; }
-      if (!customTags.trim() && !prompt.trim()) { addLog("[ERR] Enter tags or prompt for Custom mode"); return; }
+      if (!customTextures.trim() && !prompt.trim()) { addLog("[ERR] Enter tags or prompt for Custom mode"); return; }
     }
 
     // ── OPTIMIZATIONS FOR CUSTOM MODE ──────────────────────────────────────
@@ -1313,10 +1713,10 @@ export default function AceStepTab({
       fd.append("mode", "custom");
       fd.append("source_audio", customReferenceAudio);  // Use source_audio (same as audio2audio)
       fd.append("ref_audio_strength", customRefStrength);
-      if (customTags) {
-        // tags param doesn't exist in ACE-Step API - merge into prompt
+      if (customTextures) {
+        // texture param doesn't exist in ACE-Step API - merge into prompt
         const currentPrompt = fd.get("prompt") || "";
-        fd.set("prompt", customTags + (currentPrompt ? ", " + currentPrompt : ""));
+        fd.set("prompt", customTextures + (currentPrompt ? ", " + currentPrompt : ""));
       }
       // Auto-detect BPM/Key from reference and send if available
       if (customBpm && customBpm > 0) {
@@ -1459,7 +1859,11 @@ export default function AceStepTab({
   };
 
   return (
-    <div style={{ maxWidth: 1600, margin: "0 auto" }}>
+    <div style={{ 
+      maxWidth: 2000, 
+      margin: "0 auto", 
+      padding: "40px 32px",
+    }}>
       {/* Preset Manager Modal */}
       <PresetManager
         open={showPresets}
@@ -1563,35 +1967,55 @@ export default function AceStepTab({
       )}
 
       {/* Status bar */}
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 24 }}>
         {/* Status badge */}
-        <div style={{ display: "flex", justifyContent: "center", gap: 8, alignItems: "center" }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: 12, alignItems: "center" }}>
           <div style={{
-            display: "inline-flex", alignItems: "center", gap: 6,
-            background: aceOnline === true ? "#06d6a011" : aceOnline === false ? "#e6394611" : "#ffd16611",
-            border: `1px solid ${aceOnline === true ? "#06d6a044" : aceOnline === false ? "#e6394644" : "#ffd16644"}`,
-            borderRadius: 20, padding: "4px 12px", fontSize: 12,
+            display: "inline-flex", alignItems: "center", gap: 8,
+            background: aceOnline === true ? cyberpunk.colors.neon.green.bg : aceOnline === false ? cyberpunk.colors.neon.red.bg : cyberpunk.colors.neon.yellow.bg,
+            border: `1px solid ${aceOnline === true ? cyberpunk.colors.neon.green.primary : aceOnline === false ? cyberpunk.colors.neon.red.primary : cyberpunk.colors.neon.yellow.primary}44`,
+            borderRadius: 24, padding: "6px 12px", fontSize: 10,
+            boxShadow: `0 0 20px ${aceOnline === true ? cyberpunk.colors.neon.green.glow : aceOnline === false ? cyberpunk.colors.neon.red.glow : cyberpunk.colors.neon.yellow.glow}22`,
           }}>
             <div style={{
-              width: 8, height: 8, borderRadius: "50%",
-              background: aceOnline === true ? "#06d6a0" : aceOnline === false ? "#e63946" : "#ffd166",
+              width: 10, height: 10, borderRadius: "50%",
+              background: aceOnline === true ? cyberpunk.colors.neon.green.primary : aceOnline === false ? cyberpunk.colors.neon.red.primary : cyberpunk.colors.neon.yellow.primary,
+              boxShadow: `0 0 15px ${aceOnline === true ? cyberpunk.colors.neon.green.glow : aceOnline === false ? cyberpunk.colors.neon.red.glow : cyberpunk.colors.neon.yellow.glow}`,
               animation: aceOnline === null ? "pulse 1s infinite" : "none",
             }} />
-            <span style={{ color: aceOnline === true ? "#06d6a0" : aceOnline === false ? "#e63946" : "#ffd166", fontWeight: 600 }}>
-              {aceOnline === null ? "Checking..." : aceOnline ? "ACE-Step Online" : "ACE-Step Offline"}
+            <span style={{ color: aceOnline === true ? cyberpunk.colors.neon.green.primary : aceOnline === false ? cyberpunk.colors.neon.red.primary : cyberpunk.colors.neon.yellow.primary, fontWeight: 700, letterSpacing: 0.5, fontSize: 10 }}>
+              {aceOnline === null ? "Checking..." : aceOnline ? "ACE-STEP ONLINE" : "ACE-STEP OFFLINE"}
             </span>
           </div>
-          <button onClick={checkHealth} style={{ background: "#1a1a2e", border: "1px solid #2a2a4a", color: "#6666aa", borderRadius: 6, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>↻ Refresh</button>
+          <button onClick={checkHealth} style={{
+            background: cyberpunk.colors.bg.secondary,
+            border: `1px solid ${cyberpunk.colors.neon.purple.primary}33`,
+            color: cyberpunk.colors.neon.cyan.primary,
+            borderRadius: 10,
+            padding: "6px 12px",
+            fontSize: 10,
+            cursor: "pointer",
+            fontWeight: 700,
+            letterSpacing: 0.5,
+          }}>↻ REFRESH</button>
           <button
             onClick={() => setShowPresets(true)}
             style={{
-              background: "#ffd16622", border: "1px solid #ffd16644",
-              color: "#ffd166", borderRadius: 6, padding: "4px 12px",
-              fontSize: 11, cursor: "pointer", fontWeight: 700,
-              display: "flex", alignItems: "center", gap: 5,
+              background: cyberpunk.colors.neon.yellow.bg,
+              border: `1px solid ${cyberpunk.colors.neon.yellow.primary}44`,
+              color: cyberpunk.colors.neon.yellow.primary,
+              borderRadius: 10,
+              padding: "6px 12px",
+              fontSize: 10,
+              cursor: "pointer",
+              fontWeight: 700,
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              letterSpacing: 0.5,
             }}
           >
-            💾 Presets
+            💾 PRESETS
           </button>
         </div>
       </div>
@@ -1612,156 +2036,20 @@ export default function AceStepTab({
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+      <div style={{ 
+        display: "grid", 
+        gridTemplateColumns: "repeat(4, 1fr)", 
+        gap: 6,
+        position: "relative",
+        zIndex: 1,
+      }}>
 
-        {/* LEFT COLUMN */}
-        <div>
-
-          {/* Music Prompt */}
-          <div style={S.card}>
-            <span style={S.label}>🎼 Music Style / Prompt</span>
-            <textarea
-              value={prompt}
-              onChange={e => setPrompt(e.target.value)}
-              placeholder={"Describe the music you want...\n\nExamples:\n• pop music, upbeat, catchy chorus, modern production\n• hip hop trap beat, 808 bass, dark atmosphere\n• romantic Romanian ballad, piano, emotional"}
-              style={{
-                width: "100%", minHeight: 100, background: "#080812",
-                border: "1px solid #2a2a4a", borderRadius: 8,
-                color: "#e0e0ff", fontSize: 13, fontFamily: "monospace",
-                padding: "12px", resize: "vertical", outline: "none", lineHeight: 1.6,
-                boxSizing: "border-box",
-              }}
-              onFocus={e => e.target.style.borderColor = "#ffd166"}
-              onBlur={e => e.target.style.borderColor = "#2a2a4a"}
-            />
-
-            {/* Presets după gen (complet): JSON (BPM+caption+negative) + Hip-Hop, Românesc, House, Dembow */}
-            <div style={{ marginTop: 14, padding: "10px 0", borderTop: "1px solid #2a2a4a" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
-                <span style={{ color: "#9b2de0", fontSize: 11, fontWeight: 700 }}>
-                  🎚 Genres and Subgenres
-                </span>
-                <button
-                  type="button"
-                  onClick={loadGenrePresets}
-                  disabled={genrePresetsLoading}
-                  style={{
-                    background: "#9b2de022", border: "1px solid #9b2de044", color: "#c77dff",
-                    borderRadius: 6, padding: "2px 8px", fontSize: 10, cursor: genrePresetsLoading ? "wait" : "pointer", fontWeight: 600,
-                  }}
-                >
-                  {genrePresetsLoading ? "Loading..." : "↻ Reload"}
-                </button>
-              </div>
-              {genrePresetsLoading && genrePresetsData === null && (
-                <div style={{ color: "#6666aa", fontSize: 11 }}>Loading genre presets...</div>
-              )}
-              {(() => {
-                const EXCLUDED_GENRE_KEYS = ["EDM", "Hip Hop", "Hip-Hop", "Pop", "Classical", "Afrobeat", "Instrumental", "Other"];
-const apiGenres = genrePresetsData?.genres || {};
-const filteredApiGenres = Object.fromEntries(
-  Object.entries(apiGenres).filter(([k]) => !EXCLUDED_GENRE_KEYS.includes(k))
-);
-const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
-                const genreKeys = Object.keys(allGenres);
-                const currentGenre = genreKeys.length && (genreKeys.includes(genreCatFull) ? genreCatFull : genreKeys[0]);
-                if (genreKeys.length === 0) return null;
-                return (
-                  <>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 8 }}>
-                      {genreKeys.map((gKey) => {
-                        const g = allGenres[gKey];
-                        const subgenres = g?.subgenres ? Object.keys(g.subgenres) : [];
-                        const active = currentGenre === gKey;
-                        const isRapid = Object.prototype.hasOwnProperty.call(QUICK_GENRES, gKey);
-                        return (
-                          <button
-                            key={gKey}
-                            onClick={() => setGenreCatFull(gKey)}
-                            style={{
-                              background: active ? "#9b2de022" : "#0a0a1a",
-                              border: `1px solid ${active ? "#9b2de0" : "#2a2a4a"}`,
-                              color: active ? "#c77dff" : "#444466",
-                              borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 700,
-                              cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
-                            }}
-                            title={isRapid ? "Full preset (caption + default negative per category)" : "Preset from JSON (BPM + caption + negative)"}
-                          >
-                            {gKey}
-                            <span style={{
-                              background: active ? "#9b2de033" : "#1a1a2e",
-                              color: active ? "#c77dff" : "#333355",
-                              borderRadius: 10, padding: "1px 5px", fontSize: 10, fontWeight: 800,
-                            }}>{subgenres.length}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    
-                    {/* Category Info Card - Compact */}
-                    {(() => {
-                      const meta = getCategoryMeta(currentGenre);
-                      return (
-                        <div style={{
-                          marginTop: 12,
-                          padding: "8px 12px",
-                          background: `${meta.color}22`,
-                          border: `1px solid ${meta.color}44`,
-                          borderRadius: 6,
-                          marginBottom: 12,
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                        }}>
-                          <span style={{ fontSize: 20 }}>{meta.icon}</span>
-                          <div>
-                            <div style={{ color: meta.color, fontSize: 13, fontWeight: 700 }}>
-                              {currentGenre}
-                            </div>
-                            <div style={{ color: "#6666aa", fontSize: 11 }}>
-                              {meta.description}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                    
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5, maxHeight: 160, overflowY: "auto", paddingRight: 2 }}>
-                      {Object.entries(allGenres[currentGenre]?.subgenres || {}).map(([subName, preset]) => {
-                        const key = `${currentGenre}|${subName}`;
-                        const isSelected = selectedGenreSubgenre === key;
-                        return (
-                          <button
-                            key={key}
-                            onClick={() => {
-                              applyGenrePreset(preset);
-                              setSelectedGenreSubgenre(key);
-                            }}
-                            style={{
-                              background: isSelected ? "#9b2de022" : "#0a0a1a",
-                              border: `1px solid ${isSelected ? "#9b2de0" : "#2a2a4a"}`,
-                              color: isSelected ? "#c77dff" : "#6666aa",
-                              borderRadius: 6, padding: "4px 10px", fontSize: 11, cursor: "pointer",
-                              whiteSpace: "nowrap",
-                            }}
-                            title={preset.caption ? String(preset.caption).slice(0, 120) + "…" : subName}
-                          >
-                            {subName}
-                            {preset.bpm > 0 && <span style={{ marginLeft: 4, opacity: 0.8 }}>♩{preset.bpm}</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
-
-          </div>
+        {/* COLUMN 1: Task Type + Audio + Prompt Helper */}
+        <div style={{ display: "flex", flexDirection: "column" }}>
 
           {/* ── Task Type: text2music vs audio2audio vs custom ── */}
-          <div style={S.card}>
-            <span style={S.label}>🎯 Task Type</span>
+          <div style={{ ...S.card, marginBottom: 8 }}>
+            <span style={{ ...S.label, fontSize: 10, marginBottom: 12 }}>🎯 Task Type</span>
             <div style={{ display: "flex", gap: 8, marginBottom: (taskType === "audio2audio" || taskType === "custom") ? 12 : 0 }}>
               {[
                 { id: "text2music", icon: "✍️", label: "Text → Music" },
@@ -1782,34 +2070,6 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
               ))}
             </div>
 
-
-            {/* CoT Controls */}
-            {taskType !== "custom" && (
-              <div style={{ marginTop: 12, padding: "12px 14px", borderRadius: 8, background: "#07071a", border: "1px solid #1a1a3a" }}>
-                <div style={{ fontSize: 11, color: "#444466", fontWeight: 700, marginBottom: 10, letterSpacing: 1, textTransform: "uppercase" }}>
-                  🧠 AI Chain-of-Thought
-                </div>
-                {[
-                  { key: "cotMetas", state: useCotMetas, setter: setUseCotMetas, label: "CoT Metas", icon: "🥁", desc: "AI detects and overwrites BPM, Key, Time Signature. OFF = respects your settings." },
-                  { key: "cotCaption", state: useCotCaption, setter: setUseCotCaption, label: "CoT Caption", icon: "🎨", desc: "AI rewrites and expands your style prompt. OFF = uses your exact text." },
-                  { key: "cotLanguage", state: useCotLanguage, setter: setUseCotLanguage, label: "CoT Language", icon: "🌐", desc: "AI detects language from lyrics. OFF = uses your Vocal Language setting." },
-                ].map(({ key, state, setter, label, icon, desc }) => (
-                  <div key={key} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 8, paddingBottom: 8, borderBottom: key !== "cotLanguage" ? "1px solid #12122a" : "none" }}>
-                    <div onClick={() => setter(v => !v)} style={{ width: 36, height: 20, borderRadius: 999, flexShrink: 0, marginTop: 2, background: state ? "#9b2de0" : "#1a1a3a", position: "relative", cursor: "pointer", transition: "background 0.2s" }}>
-                      <div style={{ position: "absolute", top: 2, left: state ? 18 : 2, width: 14, height: 14, borderRadius: "50%", background: state ? "#fff" : "#444466", transition: "left 0.2s" }} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                        <span style={{ fontSize: 13 }}>{icon}</span>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: state ? "#c77dff" : "#444466" }}>{label}</span>
-                        <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 999, fontWeight: 700, background: state ? "#9b2de022" : "#12122a", color: state ? "#c77dff" : "#333355", border: `1px solid ${state ? "#9b2de044" : "#1a1a3a"}` }}>{state ? "ON" : "OFF"}</span>
-                      </div>
-                      <div style={{ fontSize: 11, color: "#333355", lineHeight: 1.4 }}>{desc}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
 
             {/* Audio source upload (only for audio2audio) */}
             {taskType === "audio2audio" && (
@@ -1962,10 +2222,10 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                   </div>
                 )}
 
-                {/* Tags input */}
+                {/* Texture input */}
                 <div style={{ marginBottom: 12 }}>
-                  <label style={{ color: "#8888aa", fontSize: 12, display: "block", marginBottom: 4 }}>🏷️ Genre/Style Tags</label>
-                  <input type="text" value={customTags} onChange={e => setCustomTags(e.target.value)}
+                  <label style={{ color: "#8888aa", fontSize: 12, display: "block", marginBottom: 4 }}>🏷️ Genre/Style Texture</label>
+                  <input type="text" value={customTextures} onChange={e => setCustomTextures(e.target.value)}
                     placeholder="e.g., hip-hop, trap, 140bpm, minor key, aggressive"
                     style={{
                       width: "100%", padding: "10px", borderRadius: 8, border: "1px solid #2a2a4a",
@@ -2020,16 +2280,157 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
             )}
           </div>
 
-          {/* Lyrics */}
-          <div style={S.card}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-              <span style={S.label}>📝 Lyrics (Optional)</span>
-              <span style={{ color: "#333355", fontSize: 10, fontFamily: "monospace" }}>{wordCount} words</span>
+          {/* 🎯 Prompt Helper */}
+          <div style={{ marginBottom: 14, padding: "10px 0", borderTop: "1px solid #2a2a4a" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <span style={{ color: "#06d6a0", fontSize: 11, fontWeight: 700 }}>🎯 Prompt Helper</span>
+              <span style={{ color: "#6666aa", fontSize: 10 }}>Click to inject tags</span>
             </div>
-            
-            {/* Vocal Language Selector */}
-            <div style={{ marginBottom: 10 }}>
-              <span style={{ color: "#6666aa", fontSize: 11, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6, display: "block" }}>
+
+            {/* Identity, Quality, Performance - Each category on single row */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
+              {/* Identity row */}
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                <div style={{ color: "#8888aa", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>Identity</div>
+                <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                  {PROMPT_INJECTS.filter(item => item.category === "Identity").map((item, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => injectPrompt(item.tags)}
+                      title={item.desc}
+                      style={{
+                        background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 4,
+                        color: "#06d6a0", padding: "5px 9px", fontSize: 9, fontWeight: 600,
+                        cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap", textAlign: "left",
+                      }}
+                      onMouseEnter={e => { e.target.style.borderColor = "#06d6a0"; e.target.style.background = "#06d6a011"; }}
+                      onMouseLeave={e => { e.target.style.borderColor = "#2a2a4a"; e.target.style.background = "#0a0a1a"; }}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quality row */}
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                <div style={{ color: "#8888aa", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>Quality</div>
+                <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                  {PROMPT_INJECTS.filter(item => item.category === "Quality").map((item, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => injectPrompt(item.tags)}
+                      title={item.desc}
+                      style={{
+                        background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 4,
+                        color: "#06d6a0", padding: "5px 9px", fontSize: 9, fontWeight: 600,
+                        cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap", textAlign: "left",
+                      }}
+                      onMouseEnter={e => { e.target.style.borderColor = "#06d6a0"; e.target.style.background = "#06d6a011"; }}
+                      onMouseLeave={e => { e.target.style.borderColor = "#2a2a4a"; e.target.style.background = "#0a0a1a"; }}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Performance row */}
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                <div style={{ color: "#8888aa", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>Performance</div>
+                <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                  {PROMPT_INJECTS.filter(item => item.category === "Performance").map((item, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => injectPrompt(item.tags)}
+                      title={item.desc}
+                      style={{
+                        background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 4,
+                        color: "#06d6a0", padding: "5px 9px", fontSize: 9, fontWeight: 600,
+                        cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap", textAlign: "left",
+                      }}
+                      onMouseEnter={e => { e.target.style.borderColor = "#06d6a0"; e.target.style.background = "#06d6a011"; }}
+                      onMouseLeave={e => { e.target.style.borderColor = "#2a2a4a"; e.target.style.background = "#0a0a1a"; }}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Texture Dropdown */}
+            <div style={{ marginBottom: 8 }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                <div style={{ color: "#8888aa", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>Texture</div>
+                <select
+                  value={selectedTexture}
+                  onChange={(e) => {
+                    setSelectedTexture(e.target.value);
+                    const selected = TAGS_DROPDOWN.find(t => t.label === e.target.value);
+                    if (selected) {
+                      setTextureDescription(selected.desc);
+                    }
+                  }}
+                  style={{
+                    background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 4,
+                    color: "#e0e0ff", padding: "5px 9px", fontSize: 9, fontWeight: 600,
+                    cursor: "pointer", outline: "none", maxWidth: 220,
+                  }}
+                >
+                  <option value="">Select texture...</option>
+                  {TAGS_DROPDOWN.map(t => (
+                    <option key={t.label} value={t.label}>{t.label} ({t.category})</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Selected texture description + Inject button */}
+            {textureDescription && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, padding: "10px 13px", background: "#0a0a1a", borderRadius: 4, border: "1px solid #1a1a2e" }}>
+                <span style={{ color: "#6666aa", fontSize: 13, fontStyle: "italic", flex: 1 }}>{textureDescription}</span>
+                <button
+                  onClick={() => {
+                    const selected = TAGS_DROPDOWN.find(t => t.label === selectedTexture);
+                    if (selected) {
+                      injectPrompt(selected.tags);
+                      setSelectedTexture("");
+                      setTextureDescription("");
+                    }
+                  }}
+                  style={{
+                    background: "#06d6a022", border: "1px solid #06d6a0", borderRadius: 4,
+                    color: "#06d6a0", padding: "7px 13px", fontSize: 11, fontWeight: 700,
+                    cursor: "pointer", whiteSpace: "nowrap", textTransform: "uppercase",
+                  }}
+                >
+                  💉 Inject to Prompt
+                </button>
+              </div>
+            )}
+
+            {/* Usage Example */}
+            <div style={{ padding: "10px 12px", background: "#0a0a1a", borderRadius: 6, border: "1px solid #1a1a2e" }}>
+              <div style={{ color: "#ffd166", fontSize: 10, fontWeight: 700, marginBottom: 6 }}>💡 Example:</div>
+              <div style={{ color: "#6666aa", fontSize: 10, lineHeight: 1.6 }}>
+                <span style={{ color: "#8888aa" }}>Want a Dark Minimal Afro track with 'Whisper' and 'Grand Reverb' vocals?</span><br/>
+                <span style={{ color: "#555577" }}>Your command: </span>
+                <span style={{ color: "#06d6a0", fontFamily: "monospace", fontSize: 10 }}>Title: Shadows, Female, Studio Clean, Superb Vocals, Dark Minimal Afro, Breath/Intimate, Grand-Reverb</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 📝 Lyrics + Vocal Language */}
+          <div style={{ ...S.card, marginBottom: 8 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <span style={{ ...S.label, fontSize: 10, marginBottom: 0 }}>📝 Lyrics (Optional)</span>
+              <span style={{ color: "#333355", fontSize: 11, fontFamily: "monospace" }}>{wordCount} words</span>
+            </div>
+
+            {/* 🌐 Vocal Language Selector */}
+            <div style={{ marginBottom: 14 }}>
+              <span style={{ color: "#6666aa", fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8, display: "block" }}>
                 🌐 Vocal Language
               </span>
               <select
@@ -2059,22 +2460,23 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
               <div style={{ color: "#444466", fontSize: 10, marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
                 <span>💡</span>
                 <span>
-                  {vocalLanguage === "unknown" 
-                    ? "Instrumental or auto-detect language from lyrics" 
+                  {vocalLanguage === "unknown"
+                    ? "Instrumental or auto-detect from lyrics"
                     : (() => {
                         const selectedLang = VOCAL_LANGUAGES.find(l => l.code === vocalLanguage);
-                        return `Vocals will be generated in ${selectedLang?.name || vocalLanguage}`;
+                        return `Vocals in ${selectedLang?.name || vocalLanguage}`;
                       })()}
                 </span>
               </div>
             </div>
 
+            {/* Lyrics textarea */}
             <textarea
               value={lyrics}
               onChange={e => setLyrics(e.target.value)}
-              placeholder={"Leave empty for instrumental, or add lyrics:\n\n[verse]\nYour lyrics here...\n\n[chorus]\nChorus lyrics..."}
+              placeholder={"Leave empty for instrumental\n\n[verse]\nYour lyrics...\n\n[chorus]\nChorus..."}
               style={{
-                width: "100%", minHeight: 140, background: "#080812",
+                width: "100%", minHeight: 120, background: "#080812",
                 border: "1px solid #2a2a4a", borderRadius: 8,
                 color: "#e0e0ff", fontSize: 13, fontFamily: "monospace",
                 padding: "12px", resize: "vertical", outline: "none", lineHeight: 1.7,
@@ -2087,76 +2489,442 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
               <button onClick={() => setLyrics("")} style={{ background: "#e6394611", color: "#e63946", border: "1px solid #e6394633", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>🗑 Clear</button>
               <button onClick={() => setLyrics("[verse]\n\n[chorus]\n\n[verse]\n\n[chorus]\n\n[bridge]\n\n[chorus]")} style={{ background: "#7209b711", color: "#9b2de0", border: "1px solid #7209b733", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>📋 Template</button>
               <button onClick={() => setShowLyricsSaveInput(true)} style={{ background: "#06d6a011", color: "#06d6a0", border: "1px solid #06d6a033", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>💾 Save Lyrics</button>
-              <button onClick={() => setShowLyricsLibrary(true)} style={{ background: "#ffd16611", color: "#ffd166", border: "1px solid #ffd16633", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>📂 Lyrics Library ({lyricsLibrary.length})</button>
+              <button onClick={() => setShowLyricsLibrary(true)} style={{ background: "#ffd16611", color: "#ffd166", border: "1px solid #ffd16633", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>📚 Lyrics Library ({lyricsLibrary.length})</button>
             </div>
+
+            {/* Lyrics Library */}
+            {showLyricsLibrary && (
+              <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #1e1e3a" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                  <span style={{ color: "#6666aa", fontSize: 10, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase" }}>📚 Saved lyrics</span>
+                  <button onClick={() => setShowLyricsLibrary(false)} style={{ background: "transparent", color: "#555577", border: "none", fontSize: 11, cursor: "pointer", padding: "2px 4px" }}>✕ Close</button>
+                </div>
+                <div style={{ maxHeight: 180, overflowY: "auto", paddingRight: 4 }}>
+                  {lyricsLibrary.length === 0 ? (
+                    <div style={{ color: "#444466", fontSize: 12, textAlign: "center", padding: "16px 8px", background: "#080812", borderRadius: 8, border: "1px solid #1a1a2e" }}>No lyrics saved</div>
+                  ) : (
+                    lyricsLibrary.map((item, idx) => (
+                      <div key={idx} style={{ display: "flex", flexDirection: "column", gap: 4, padding: "8px 10px", background: "#080812", borderRadius: 6, marginBottom: 6, border: "1px solid #1a1a2e" }}>
+                        <div style={{ color: "#e0e0ff", fontSize: 11, fontWeight: 600 }}>{item.name}</div>
+                        <div style={{ color: "#444466", fontSize: 10, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.lyrics}</div>
+                        <div style={{ display: "flex", gap: 4 }}>
+                          <button onClick={() => { setLyrics(item.lyrics); setShowLyricsLibrary(false); }} style={{ background: "#9b2de022", color: "#c77dff", border: "1px solid #9b2de044", borderRadius: 4, padding: "3px 8px", fontSize: 10, cursor: "pointer", fontWeight: 600 }}>Use</button>
+                          <button onClick={() => { const u = lyricsLibrary.filter((_, i) => i !== idx); setLyricsLibrary(u); saveLyricsToStorage(u); }} style={{ background: "transparent", color: "#555577", border: "1px solid #2a2a4a", borderRadius: 4, padding: "3px 8px", fontSize: 10, cursor: "pointer" }}>🗑</button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
         </div>
 
-        {/* CENTER */}
+        {/* COLUMN 2: Music Prompt + BPM/Key + Genres */}
         <div>
 
-          {/* Lyrics */}
-          <div style={S.card}>
-            <span style={S.label}>📝 Lyrics (Optional)</span>
+          {/* Music Prompt */}
+          <div style={{ ...S.card, marginBottom: 8 }}>
+            <span style={{ ...S.label, fontSize: 10, marginBottom: 12 }}>🎼 Music Style / Prompt</span>
+            <textarea
+              value={prompt}
+              onChange={e => setPrompt(e.target.value)}
+              placeholder={"Describe the music you want...\n\nExamples:\n• pop music, upbeat, catchy chorus, modern production\n• hip hop trap beat, 808 bass, dark atmosphere\n• romantic Romanian ballad, piano, emotional"}
+              style={{
+                width: "100%", minHeight: 100, background: "#080812",
+                border: "1px solid #2a2a4a", borderRadius: 8,
+                color: "#e0e0ff", fontSize: 13, fontFamily: "monospace",
+                padding: "12px", resize: "vertical", outline: "none", lineHeight: 1.6,
+                boxSizing: "border-box",
+              }}
+              onFocus={e => e.target.style.borderColor = "#ffd166"}
+              onBlur={e => e.target.style.borderColor = "#2a2a4a"}
+            />
 
-            {/* Duration */}
+            {/* Presets după gen (complet): JSON (BPM+caption+negative) + Hip-Hop, Românesc, House, Dembow */}
+            <div style={{ marginTop: 14, padding: "10px 0", borderTop: "1px solid #2a2a4a" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={() => setShowCustomSubgenreInput(true)}
+                  style={{
+                    background: "#06d6a022", border: "1px solid #06d6a044", color: "#06d6a0",
+                    borderRadius: 6, padding: "2px 8px", fontSize: 10, cursor: "pointer", fontWeight: 600,
+                  }}
+                >
+                  💾 Save as Subgenre
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddGenre(true)}
+                  style={{
+                    background: "#06d6a022", border: "1px dashed #06d6a044", color: "#06d6a0",
+                    borderRadius: 6, padding: "2px 8px", fontSize: 10, cursor: "pointer", fontWeight: 600,
+                    display: "flex", alignItems: "center", gap: 4,
+                  }}
+                  title="Add a new custom genre category"
+                >
+                  ➕ Add Genre
+                </button>
+              </div>
+              {genrePresetsLoading && genrePresetsData === null && (
+                <div style={{ color: "#6666aa", fontSize: 11 }}>Loading genre presets...</div>
+              )}
+              {(() => {
+                const EXCLUDED_GENRE_KEYS = ["EDM", "Hip Hop", "Hip-Hop", "Pop", "Classical", "Afrobeat", "Instrumental", "Other"];
+const apiGenres = genrePresetsData?.genres || {};
+const filteredApiGenres = Object.fromEntries(
+  Object.entries(apiGenres).filter(([k]) => !EXCLUDED_GENRE_KEYS.includes(k))
+);
+const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
+
+// Load custom genres to check if a genre is custom
+const savedCustom = localStorage.getItem('acestep_custom_genres');
+let customGenreKeys = [];
+if (savedCustom) {
+  try {
+    const customGenres = JSON.parse(savedCustom);
+    customGenreKeys = Object.keys(customGenres.genres || {});
+  } catch {}
+}
+
+const genreKeys = Object.keys(allGenres).filter(gKey => {
+  const g = allGenres[gKey];
+  const subgenres = g?.subgenres ? Object.keys(g.subgenres) : [];
+  // Show genre if it has subgenres OR if it's a custom genre (even if empty)
+  return subgenres.length > 0 || customGenreKeys.includes(gKey);
+}).sort(); // Sort genres alphabetically
+                const currentGenre = genreKeys.length && (genreKeys.includes(genreCatFull) ? genreCatFull : genreKeys[0]);
+                if (genreKeys.length === 0) return null;
+                return (
+                  <>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 8 }}>
+                      {genreKeys.map((gKey) => {
+                        const g = allGenres[gKey];
+                        const subgenres = g?.subgenres ? Object.keys(g.subgenres) : [];
+                        const active = currentGenre === gKey;
+                        const isRapid = Object.prototype.hasOwnProperty.call(QUICK_GENRES, gKey);
+                        
+                        // Check if this is a custom genre (ONLY in customGenres, NOT in QUICK_GENRES)
+                        const isCustomGenre = customGenreKeys.includes(gKey) && !QUICK_GENRES[gKey];
+                        return (
+                          <button
+                            key={gKey}
+                            onClick={() => setGenreCatFull(gKey)}
+                            style={{
+                              background: active ? "#9b2de022" : "#0a0a1a",
+                              border: `1px solid ${active ? "#9b2de0" : "#2a2a4a"}`,
+                              color: active ? "#c77dff" : "#444466",
+                              borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 700,
+                              cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
+                            }}
+                            title={isRapid ? "Full preset (caption + default negative per category)" : "Preset from JSON (BPM + caption + negative)"}
+                          >
+                            {gKey}
+                            <span style={{
+                              background: active ? "#9b2de033" : "#1a1a2e",
+                              color: active ? "#c77dff" : "#333355",
+                              borderRadius: 10, padding: "1px 5px", fontSize: 10, fontWeight: 800,
+                            }}>{subgenres.length}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    
+                    {/* Category Info Card - Compact */}
+                    {(() => {
+                      const meta = getCategoryMeta(currentGenre);
+                      return (
+                        <div style={{
+                          marginTop: 12,
+                          padding: "8px 12px",
+                          background: `${meta.color}22`,
+                          border: `1px solid ${meta.color}44`,
+                          borderRadius: 6,
+                          marginBottom: 12,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                        }}>
+                          <span style={{ fontSize: 20 }}>{meta.icon}</span>
+                          <div>
+                            <div style={{ color: meta.color, fontSize: 13, fontWeight: 700 }}>
+                              {currentGenre}
+                            </div>
+                            <div style={{ color: "#6666aa", fontSize: 11 }}>
+                              {meta.description}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                    
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                      {Object.entries(allGenres[currentGenre]?.subgenres || {})
+                        .sort((a, b) => a[0].localeCompare(b[0])) // Sort subgenres alphabetically
+                        .map(([subName, preset]) => {
+                        const key = `${currentGenre}|${subName}`;
+                        const isSelected = selectedGenreSubgenre === key;
+                        
+                        // Check if this is a custom subgenre (exists in localStorage)
+                        const savedCustom = localStorage.getItem('acestep_custom_genres');
+                        let isCustom = false;
+                        if (savedCustom) {
+                          try {
+                            const customGenres = JSON.parse(savedCustom);
+                            isCustom = customGenres.genres[currentGenre]?.subgenres[subName] !== undefined;
+                          } catch {}
+                        }
+                        
+                        return (
+                          <div
+                            key={key}
+                            style={{
+                              position: "relative",
+                              display: "flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            <button
+                              onClick={() => {
+                                applyGenrePreset(preset);
+                                setSelectedGenreSubgenre(key);
+                              }}
+                              style={{
+                                background: isSelected ? "#9b2de022" : "#0a0a1a",
+                                border: `1px solid ${isSelected ? "#9b2de0" : "#2a2a4a"}`,
+                                color: isSelected ? "#c77dff" : "#6666aa",
+                                borderRadius: 6, padding: "4px 10px", fontSize: 11, cursor: "pointer",
+                                whiteSpace: "nowrap",
+                                paddingRight: isCustom ? "24px" : "10px",
+                              }}
+                              title={preset.caption ? String(preset.caption).slice(0, 120) + "…" : subName}
+                            >
+                              {subName}
+                              {preset.bpm > 0 && <span style={{ marginLeft: 4, opacity: 0.8 }}>♩{preset.bpm}</span>}
+                              {isCustom && <span style={{ marginLeft: 4, opacity: 0.6 }}>📌</span>}
+                            </button>
+                            
+                            {/* Edit/Delete button for custom subgenres only */}
+                            {isCustom && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openEditSubgenre(currentGenre, subName, preset);
+                                }}
+                                onContextMenu={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  confirmDeleteSubgenre(currentGenre, subName);
+                                }}
+                                style={{
+                                  position: "absolute",
+                                  right: "2px",
+                                  background: "transparent",
+                                  border: "none",
+                                  color: "#6666aa",
+                                  fontSize: 10,
+                                  cursor: "pointer",
+                                  padding: "2px 4px",
+                                  borderRadius: "4px",
+                                }}
+                                title="Left-click: Edit | Right-click: Delete"
+                              >
+                                ⚙️
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* 💾 Custom Subgenre Save UI */}
+                    {showCustomSubgenreInput && (
+                      <div style={{
+                        marginTop: 12,
+                        padding: "12px",
+                        background: "linear-gradient(135deg, #06d6a011, #06d6a005)",
+                        border: "1px solid #06d6a044",
+                        borderRadius: 8,
+                      }}>
+                        <div style={{ color: "#06d6a0", fontSize: 10, fontWeight: 700, marginBottom: 8, letterSpacing: 1.5, textTransform: "uppercase" }}>
+                          💾 Save Current Settings as Subgenre
+                        </div>
+                        
+                        {/* Category selector */}
+                        <div style={{ marginBottom: 8 }}>
+                          <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>
+                            📁 Category (Genre)
+                          </label>
+                          <select
+                            value={customSubgenreCategory}
+                            onChange={(e) => setCustomSubgenreCategory(e.target.value)}
+                            style={{
+                              width: "100%",
+                              background: "#080812",
+                              border: "1px solid #2a2a4a",
+                              color: "#e0e0ff",
+                              borderRadius: 6,
+                              padding: "8px 10px",
+                              fontSize: 11,
+                              cursor: "pointer",
+                            }}
+                          >
+                            <option value="">Select a category...</option>
+                            {genreKeys.map((gKey) => (
+                              <option key={gKey} value={gKey}>{gKey}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Name input */}
+                        <div style={{ marginBottom: 8 }}>
+                          <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>
+                            🏷️ Subgenre Name
+                          </label>
+                          <input
+                            type="text"
+                            value={customSubgenreName}
+                            onChange={(e) => setCustomSubgenreName(e.target.value)}
+                            placeholder="e.g., My Dark Trap, Custom Melodic..."
+                            style={{
+                              width: "100%",
+                              background: "#080812",
+                              border: "1px solid #2a2a4a",
+                              color: "#e0e0ff",
+                              borderRadius: 6,
+                              padding: "8px 10px",
+                              fontSize: 11,
+                              outline: "none",
+                              boxSizing: "border-box",
+                            }}
+                            onFocus={(e) => e.target.style.borderColor = "#06d6a0"}
+                            onBlur={(e) => e.target.style.borderColor = "#2a2a4a"}
+                          />
+                        </div>
+
+                        {/* Preview of settings to be saved */}
+                        <div style={{
+                          background: "#080812",
+                          border: "1px solid #1a1a2e",
+                          borderRadius: 6,
+                          padding: "8px",
+                          marginBottom: 8,
+                        }}>
+                          <div style={{ color: "#6666aa", fontSize: 9, marginBottom: 4 }}>📋 Settings to save:</div>
+                          <div style={{ color: "#444466", fontSize: 9, lineHeight: 1.6 }}>
+                            <div>• Prompt: <span style={{ color: "#8888aa" }}>{prompt.slice(0, 50)}{prompt.length > 50 ? '...' : ''}</span></div>
+                            <div>• BPM: <span style={{ color: "#ffd166" }}>{bpm || 'Auto'}</span></div>
+                            <div>• Key: <span style={{ color: "#ffd166" }}>{keyScale || 'Auto'}</span></div>
+                            <div>• CFG: <span style={{ color: "#00e5ff" }}>{guidanceScale}</span></div>
+                            <div>• Steps: <span style={{ color: "#06d6a0" }}>{inferSteps}</span></div>
+                            <div>• Duration: <span style={{ color: "#06d6a0" }}>{duration}s</span></div>
+                          </div>
+                        </div>
+
+                        {/* Action buttons */}
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <button
+                            onClick={saveCustomSubgenre}
+                            disabled={!customSubgenreName.trim() || !customSubgenreCategory}
+                            style={{
+                              flex: 1,
+                              background: (!customSubgenreName.trim() || !customSubgenreCategory) ? "#2a2a4a" : "#06d6a0",
+                              color: "#000",
+                              border: "none",
+                              borderRadius: 6,
+                              padding: "8px",
+                              fontSize: 11,
+                              fontWeight: 700,
+                              cursor: (!customSubgenreName.trim() || !customSubgenreCategory) ? "not-allowed" : "pointer",
+                            }}
+                          >
+                            ✅ Save Subgenre
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowCustomSubgenreInput(false);
+                              setCustomSubgenreName("");
+                              setCustomSubgenreCategory("");
+                            }}
+                            style={{
+                              background: "#e6394611",
+                              color: "#e63946",
+                              border: "1px solid #e6394633",
+                              borderRadius: 6,
+                              padding: "8px 12px",
+                              fontSize: 11,
+                              fontWeight: 700,
+                              cursor: "pointer",
+                            }}
+                          >
+                            ❌ Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* COLUMN 3: Settings */}
+        <div>
+
+          {/* Settings Header */}
+          <div style={{ ...S.card, marginBottom: 8 }}>
+            <span style={{ ...S.label, fontSize: 10, marginBottom: 12 }}>⚙️ Settings</span>
+
+            {/* Duration Slider */}
             <div style={{ marginBottom: 14 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                <span style={{ color: "#8888aa", fontSize: 12 }}>⏱ Duration</span>
-                <span style={{ color: "#ffd166", fontSize: 13, fontFamily: "monospace", fontWeight: 700 }}>{duration}s ({Math.floor(duration/60)}:{String(duration%60).padStart(2,'0')})</span>
+                <span style={{ color: "#8888aa", fontSize: 12 }}>⏱ Duration (seconds)</span>
+                <span style={{ color: "#06d6a0", fontSize: 13, fontFamily: "monospace", fontWeight: 700 }}>{duration}s</span>
               </div>
-              
-              {/* Slider + Input pentru Duration */}
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                <input 
-                  type="range" 
+                <input
+                  type="range"
                   className="duration-slider"
-                  min="15" 
-                  max="240" 
-                  value={duration} 
-                  onChange={(e) => {
-                    const val = Number(e.target.value);
-                    setDuration(val);
-                  }}
-                  style={{ 
-                    flex: 1, 
-                  }} 
+                  min="30"
+                  max="240"
+                  step="30"
+                  value={duration}
+                  onChange={(e) => setDuration(parseInt(e.target.value))}
+                  style={{ flex: 1 }}
                 />
-                <input 
-                  type="number" 
-                  min="15" 
-                  max="240" 
-                  value={duration} 
-                  onChange={(e) => {
-                    const val = Number(e.target.value);
-                    if (val >= 15 && val <= 240) {
-                      setDuration(val);
-                    }
-                  }}
-                  style={{ 
-                    width: 60, 
-                    background: "#080812", 
-                    border: "1px solid #2a2a4a", 
-                    color: "#e0e0ff", 
-                    borderRadius: 6, 
-                    padding: "4px 8px", 
+                <input
+                  type="number"
+                  min="30"
+                  max="240"
+                  step="30"
+                  value={duration}
+                  onChange={(e) => setDuration(parseInt(e.target.value) || 60)}
+                  style={{
+                    width: 60,
+                    background: "#080812",
+                    border: "1px solid #2a2a4a",
+                    color: "#e0e0ff",
+                    borderRadius: 6,
+                    padding: "4px 8px",
                     fontSize: 12,
                     fontFamily: "monospace",
                     textAlign: "center"
-                  }} 
+                  }}
                 />
               </div>
-              
-              {/* Quick preset buttons */}
               <div style={{ display: "flex", gap: 5 }}>
-                {[15, 30, 60, 120, 180, 240].map(d => (
-                  <button key={d} onClick={() => setDuration(d)} style={{
+                {[30, 60, 90, 120, 150, 180, 210, 240].map(v => (
+                  <button key={v} onClick={() => setDuration(v)} style={{
                     flex: 1, padding: "7px 2px", borderRadius: 6, fontSize: 11, fontWeight: 700,
-                    background: duration === d ? "#ffd16622" : "#0a0a1a",
-                    border: `1px solid ${duration === d ? "#ffd166" : "#2a2a4a"}`,
-                    color: duration === d ? "#ffd166" : "#444466", cursor: "pointer",
-                  }}>{d < 60 ? `${d}s` : `${d/60}m`}</button>
+                    background: duration === v ? "#06d6a022" : "#0a0a1a",
+                    border: `1px solid ${duration === v ? "#06d6a0" : "#2a2a4a"}`,
+                    color: duration === v ? "#06d6a0" : "#444466", cursor: "pointer",
+                  }}>{v}</button>
                 ))}
               </div>
             </div>
@@ -2169,44 +2937,44 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
               </div>
               {/* Slider + Input pentru Guidance Scale */}
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                <input 
-                  type="range" 
+                <input
+                  type="range"
                   className="guidance-slider"
-                  min="1" 
-                  max="20" 
+                  min="1"
+                  max="25"
                   step="0.5"
-                  value={guidanceScale} 
+                  value={guidanceScale}
                   onChange={(e) => setGuidanceScale(parseFloat(e.target.value))}
-                  style={{ flex: 1 }} 
+                  style={{ flex: 1 }}
                 />
-                <input 
-                  type="number" 
-                  min="1" 
-                  max="20" 
+                <input
+                  type="number"
+                  min="1"
+                  max="25"
                   step="0.5"
-                  value={guidanceScale} 
+                  value={guidanceScale}
                   onChange={(e) => {
                     const val = parseFloat(e.target.value);
-                    if (!isNaN(val) && val >= 1 && val <= 20) {
+                    if (!isNaN(val) && val >= 1 && val <= 25) {
                       setGuidanceScale(val);
                     }
                   }}
-                  style={{ 
-                    width: 60, 
-                    background: "#080812", 
-                    border: "1px solid #2a2a4a", 
-                    color: "#e0e0ff", 
-                    borderRadius: 6, 
-                    padding: "4px 8px", 
+                  style={{
+                    width: 60,
+                    background: "#080812",
+                    border: "1px solid #2a2a4a",
+                    color: "#e0e0ff",
+                    borderRadius: 6,
+                    padding: "4px 8px",
                     fontSize: 12,
                     fontFamily: "monospace",
                     textAlign: "center"
-                  }} 
+                  }}
                 />
               </div>
               {/* Quick preset buttons */}
               <div style={{ display: "flex", gap: 5 }}>
-                {[3, 5, 7, 9, 12].map(v => (
+                {[3, 5, 7, 9, 12, 15, 20, 25].map(v => (
                   <button key={v} onClick={() => setGuidanceScale(v)} style={{
                     flex: 1, padding: "7px 2px", borderRadius: 6, fontSize: 11, fontWeight: 700,
                     background: guidanceScale === v ? "#00e5ff22" : "#0a0a1a",
@@ -2270,6 +3038,7 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                   { v: 8,  label: "8 ⚡", tip: "Turbo" },
                   { v: 12, label: "12 🚀", tip: "Fast" },
                   { v: 20, label: "20 ✅", tip: "Balanced" },
+                  { v: 32, label: "32 🎨", tip: "High Quality" },
                   { v: 40, label: "40 🎯", tip: "Quality" },
                 ].map(s => (
                   <button key={s.v} onClick={() => setInferSteps(s.v)} title={s.tip} style={{
@@ -2483,8 +3252,8 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
           </div>
 
           {/* Negative Prompt */}
-          <div style={S.card}>
-            <span style={S.label}>🚫 Negative Prompt (Optional)</span>
+          <div style={{ ...S.card, marginBottom: 8 }}>
+            <span style={{ ...S.label, fontSize: 10, marginBottom: 12 }}>🚫 Negative Prompt (Optional)</span>
             <textarea
               value={negativePrompt}
               onChange={e => setNegativePrompt(e.target.value)}
@@ -2518,47 +3287,12 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
             </div>
           </div>
 
-          {/* Generate Button */}
-          <div style={S.card}>
-            <button
-              onClick={handleGenerate}
-              disabled={processing || !aceOnline || !prompt.trim()}
-              style={{
-                width: "100%", padding: "18px 0", borderRadius: 10,
-                background: processing ? "#1a1a2e" : (aceOnline && prompt.trim()
-                  ? "linear-gradient(135deg, #ffd166, #ff9f1c)"
-                  : "#1a1a2e"),
-                color: "#000", fontWeight: 900, fontSize: 17, border: "none",
-                cursor: (processing || !aceOnline || !prompt.trim()) ? "not-allowed" : "pointer",
-                opacity: (!aceOnline || !prompt.trim()) ? 0.5 : 1,
-                letterSpacing: 1,
-                boxShadow: aceOnline && prompt.trim() && !processing ? "0 0 20px #ffd16644" : "none",
-              }}>
-              {processing ? `⚙ ${progressLabel || "Generating..."}` : "🎵 Generate with ACE-Step"}
-            </button>
+        </div>
 
-            {processing && (
-              <div style={{ marginTop: 10 }}>
-                <div style={{ height: 6, background: "#1a1a2e", borderRadius: 3, overflow: "hidden" }}>
-                  <div style={{ height: 6, background: "linear-gradient(90deg, #ffd166, #ff9f1c)", width: `${progress}%`, transition: "width 1s", borderRadius: 3 }} />
-                </div>
-                <div style={{ color: "#6666aa", fontSize: 11, marginTop: 6, textAlign: "center" }}>{progressLabel}</div>
-              </div>
-            )}
+        {/* COLUMN 4: Result + Generate + Advanced Settings */}
+        <div>
 
-            {/* Info */}
-            <div style={{ marginTop: 12, padding: "10px 12px", background: "#0a0a1a", borderRadius: 8, border: "1px solid #1a1a2e" }}>
-              <div style={{ color: "#ffd166", fontSize: 11, fontWeight: 700, marginBottom: 6 }}>💡 ACE-Step v1.5 Info</div>
-              <div style={{ color: "#444466", fontSize: 11, lineHeight: 1.8 }}>
-                <div>• Generate full music from text (beats SUNO)</div>
-                <div>• 8GB VRAM → model 0.6B (bun) · 12GB+ → 1.7B (mai bun)</div>
-                <div>• Prima rulare descarcă ~10GB modele automat</div>
-                <div>• Timp generare: ~30-120s pentru 30s de muzică</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Result */}
+          {/* ✅ Result */}
           {result && (
             <div style={{ ...S.card, border: "1px solid #ffd16644", background: "#ffd16611" }}>
               <span style={{ ...S.label, color: "#ffd166" }}>✅ Generated!</span>
@@ -2586,81 +3320,91 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
               {!resultBpm && result && (
                 <div style={{ color: "#333355", fontSize: 10, marginBottom: 6, fontFamily: "monospace" }}>⏳ Detecting BPM & Key...</div>
               )}
-              
+
               {/* Audio Player */}
               <audio controls src={result.url} preload="metadata" style={{ width: "100%", marginBottom: 8 }} />
               <div style={{ display: "flex", gap: 8 }}>
                 <button
-                  onClick={async () => {
-                    try {
-                      const resp = await fetch(result.url);
-                      const blob = await resp.blob();
-                      const a = document.createElement("a");
-                      a.href = URL.createObjectURL(blob);
-                      a.download = result.filename;
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                      URL.revokeObjectURL(a.href);
-                    } catch (e) {
-                      alert("Download failed: " + e.message);
-                    }
+                  onClick={() => {
+                    const a = document.createElement("a");
+                    a.href = result.url;
+                    a.download = result.filename;
+                    a.click();
                   }}
-                  style={{ flex: 1, textAlign: "center", background: "#ffd16622", color: "#ffd166", border: "1px solid #ffd16644", padding: "8px", borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: "pointer" }}
-                >⬇ Download</button>
-                <button onClick={() => setResult(null)} style={{ background: "#e6394611", color: "#e63946", border: "1px solid #e6394633", padding: "8px 14px", borderRadius: 8, fontSize: 13, cursor: "pointer" }}>✕</button>
+                  style={{
+                    flex: 1, background: "#ffd166", color: "#000", border: "none", borderRadius: 6,
+                    padding: "8px", fontSize: 11, fontWeight: 700, cursor: "pointer",
+                  }}
+                >
+                  ⬇️ Download
+                </button>
+                <button
+                  onClick={() => {
+                    setUseAsCover(true);
+                    setSourceAudio(null);
+                    setSourceAudioUrl(null);
+                  }}
+                  style={{
+                    flex: 1, background: "#9b2de022", color: "#c77dff", border: "1px solid #9b2de044", borderRadius: 6,
+                    padding: "8px", fontSize: 11, fontWeight: 700, cursor: "pointer",
+                  }}
+                >
+                  🎤 Use as Cover
+                </button>
               </div>
             </div>
           )}
 
-          {/* Recent ACE tracks */}
-          {tracks.filter(t => t.isAce).length > 0 && !result && (
-            <div style={S.card}>
-              <span style={S.label}>📁 Recent ACE-Step Tracks</span>
-              {tracks.filter(t => t.isAce).slice(0, 3).map(track => (
-                <div key={track.id} style={{ background: "#0a0a1a", borderRadius: 8, padding: "8px 10px", marginBottom: 6, border: "1px solid #1a1a2e" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                    <span style={{ color: "#ffd166", fontSize: 11, fontFamily: "monospace" }}>🎵 {track.filename}</span>
-                    <div style={{ display: "flex", gap: 4 }}>
-                      <button onClick={async () => {
-                        try {
-                          const resp = await fetch(track.url);
-                          const blob = await resp.blob();
-                          const a = document.createElement("a");
-                          a.href = URL.createObjectURL(blob);
-                          a.download = track.filename;
-                          document.body.appendChild(a);
-                          a.click();
-                          document.body.removeChild(a);
-                          URL.revokeObjectURL(a.href);
-                        } catch {}
-                      }} style={{ background: "#ffd16622", color: "#ffd166", border: "1px solid #ffd16644", padding: "2px 7px", borderRadius: 4, fontSize: 10, cursor: "pointer" }}>↓</button>
-                      <button onClick={() => setTracks(prev => prev.filter(t => t.id !== track.id))} style={{ background: "#e6394611", color: "#e63946", border: "1px solid #e6394633", padding: "2px 7px", borderRadius: 4, fontSize: 10, cursor: "pointer" }}>✕</button>
-                    </div>
-                  </div>
-                  <audio controls src={track.url} style={{ width: "100%", height: 26 }} />
+          {/* 🎵 Generate Button */}
+          <div style={{ ...S.card, marginBottom: 6 }}>
+            <button
+              onClick={handleGenerate}
+              disabled={processing || !aceOnline || !prompt.trim()}
+              style={{
+                width: "100%", 
+                padding: "18px 0", 
+                borderRadius: 14,
+                background: processing ? cyberpunk.colors.bg.accent : (aceOnline && prompt.trim()
+                  ? "linear-gradient(135deg, #881133, #0a0a1a)"
+                  : cyberpunk.colors.bg.accent),
+                color: "#cc3355",
+                fontWeight: 900,
+                fontSize: 17,
+                border: `1px solid #881133`,
+                cursor: (processing || !aceOnline || !prompt.trim()) ? "not-allowed" : "pointer",
+                opacity: (!aceOnline || !prompt.trim()) ? 0.5 : 1,
+                letterSpacing: 2,
+                textTransform: "uppercase",
+                boxShadow: aceOnline && prompt.trim() && !processing ? `0 0 8px #88113333` : "none",
+                transition: "all 0.3s ease",
+              }}>
+              {processing ? `⚙ ${progressLabel || "GENERATING..."}` : "🎵 GENERATE MUSIC"}
+            </button>
+
+            {processing && (
+              <div style={{ marginTop: 14 }}>
+                <div style={{ height: 8, background: cyberpunk.colors.bg.accent, borderRadius: 4, overflow: "hidden", border: `1px solid ${cyberpunk.colors.neon.purple.primary}33` }}>
+                  <div style={{ height: 8, background: "linear-gradient(90deg, #9b2de0, #0a0a1a)", width: `${progress}%`, transition: "width 1s", borderRadius: 4, boxShadow: `0 0 15px ${cyberpunk.colors.neon.purple.glow}` }} />
                 </div>
-              ))}
-            </div>
-          )}
+                <div style={{ color: cyberpunk.colors.text.muted, fontSize: 11, marginTop: 8, textAlign: "center", letterSpacing: 1 }}>{progressLabel}</div>
+              </div>
+            )}
+          </div>
 
-        </div>
-
-        {/* RIGHT COLUMN — Advanced Settings */}
-        <div>
+          {/* ⚙️ Advanced Settings */}
           <div style={{
             background: "linear-gradient(180deg, #0a0a1a, #080812)",
             border: "1px solid #2a2a4a",
-            borderRadius: 12,
-            padding: 20,
+            borderRadius: 10,
+            padding: 10,
           }}>
-            <div style={{ color: "#8888aa", fontSize: 13, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ color: "#8888aa", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
               <span>⚙️</span> Advanced Settings
             </div>
             {/* Model Selection */}
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ color: "#ffd166", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>
-                🦁 ACE-Step Model Selection
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ color: "#ffd166", fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+                🦁 ACE-Step Model
               </div>
               <select
                 value={tensorModel}
@@ -2670,9 +3414,9 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                   background: "#080812",
                   border: "1px solid #2a2a4a",
                   color: "#e0e0ff",
-                  borderRadius: 8,
-                  padding: "12px 16px",
-                  fontSize: 13,
+                  borderRadius: 6,
+                  padding: "8px 10px",
+                  fontSize: 10,
                   cursor: "pointer",
                 }}
               >
@@ -2682,38 +3426,38 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                   </option>
                 ))}
               </select>
-              
+
               {/* Model Info */}
               {modelInfo && (
                 <div style={{
-                  marginTop: 12,
-                  padding: 12,
+                  marginTop: 8,
+                  padding: 8,
                   background: `linear-gradient(135deg, ${modelInfo.color}22, ${modelInfo.color}11)`,
                   border: `1px solid ${modelInfo.color}44`,
-                  borderRadius: 8,
+                  borderRadius: 6,
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr 1fr 1fr",
-                  gap: 8,
+                  gap: 6,
                 }}>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ color: modelInfo.color, fontSize: 16, fontWeight: 900 }}>{modelInfo.steps}</div>
-                    <div style={{ color: "#6666aa", fontSize: 10 }}>Steps</div>
+                    <div style={{ color: modelInfo.color, fontSize: 12, fontWeight: 900 }}>{modelInfo.steps}</div>
+                    <div style={{ color: "#6666aa", fontSize: 8 }}>Steps</div>
                   </div>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ color: modelInfo.cfg ? modelInfo.color : "#6666aa", fontSize: 16, fontWeight: 900 }}>
+                    <div style={{ color: modelInfo.cfg ? modelInfo.color : "#6666aa", fontSize: 12, fontWeight: 900 }}>
                       {modelInfo.cfg ? '✅' : '❌'}
                     </div>
-                    <div style={{ color: "#6666aa", fontSize: 10 }}>
-                      {modelInfo.cfg ? 'CFG Support' : 'No CFG'}
+                    <div style={{ color: "#6666aa", fontSize: 8 }}>
+                      {modelInfo.cfg ? 'CFG' : 'No CFG'}
                     </div>
                   </div>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ color: modelInfo.color, fontSize: 16, fontWeight: 900 }}>{modelInfo.vram}</div>
-                    <div style={{ color: "#6666aa", fontSize: 10 }}>VRAM</div>
+                    <div style={{ color: modelInfo.color, fontSize: 12, fontWeight: 900 }}>{modelInfo.vram}</div>
+                    <div style={{ color: "#6666aa", fontSize: 8 }}>VRAM</div>
                   </div>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ color: modelInfo.color, fontSize: 16, fontWeight: 900 }}>{modelInfo.quality}</div>
-                    <div style={{ color: "#6666aa", fontSize: 10 }}>Quality</div>
+                    <div style={{ color: modelInfo.color, fontSize: 12, fontWeight: 900 }}>{modelInfo.quality}</div>
+                    <div style={{ color: "#6666aa", fontSize: 8 }}>Quality</div>
                   </div>
                 </div>
               )}
@@ -2721,36 +3465,33 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
 
             {/* Model Loading Status */}
             <div style={{
-              marginTop: 12,
-              padding: 10,
+              marginTop: 8,
+              padding: 8,
               background: "#080812",
               border: "1px solid #2a2a4a",
               borderRadius: 6,
-              fontSize: 11,
+              fontSize: 9,
               fontFamily: "monospace",
               color: "#444466",
             }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                 <span style={{ color: "#ffd166" }}>📋</span>
-                <span>Selected Model: <strong style={{ color: modelInfo.color }}>{modelInfo.name}</strong></span>
+                <span>Model: <strong style={{ color: modelInfo.color }}>{modelInfo.name}</strong></span>
                 <span style={{ color: "#6666aa" }}>│</span>
                 <span>Steps: <strong style={{ color: "#06d6a0" }}>{modelInfo.steps}</strong></span>
                 <span style={{ color: "#6666aa" }}>│</span>
                 <span>CFG: <strong style={{ color: modelInfo.cfg ? "#06d6a0" : "#6666aa" }}>{modelInfo.cfg ? '✅' : '❌'}</strong></span>
               </div>
-              <div style={{ marginTop: 6, color: "#6666aa" }}>
-                💡 Model will be loaded automatically when you click Generate
-              </div>
             </div>
 
             {/* LM Parameters */}
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ color: "#00e5ff", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>
-                🧠 Language Model Parameters
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ color: "#00e5ff", fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+                🧠 LM Parameters
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>LM Temperature: {lmTemperature.toFixed(2)}</label>
+                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>Temp: {lmTemperature.toFixed(2)}</label>
                   <input
                     type="range" min="0.5" max="2.0" step="0.01"
                     value={lmTemperature}
@@ -2759,7 +3500,7 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                   />
                 </div>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>LM CFG Scale: {lmCfgScale.toFixed(1)}</label>
+                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>CFG: {lmCfgScale.toFixed(1)}</label>
                   <input
                     type="range" min="1.0" max="5.0" step="0.1"
                     value={lmCfgScale}
@@ -2768,16 +3509,16 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                   />
                 </div>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>Top-K: {lmTopK}</label>
+                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>Top-K: {lmTopK}</label>
                   <input
                     type="number" min="0" max="100"
                     value={lmTopK}
                     onChange={e => setLmTopK(parseInt(e.target.value) || 0)}
-                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 6, padding: "8px 12px", fontSize: 12 }}
+                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 9 }}
                   />
                 </div>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>Top-P: {lmTopP.toFixed(2)}</label>
+                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>Top-P: {lmTopP.toFixed(2)}</label>
                   <input
                     type="range" min="0.8" max="1.0" step="0.01"
                     value={lmTopP}
@@ -2789,24 +3530,24 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
             </div>
 
             {/* Generation Control */}
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ color: "#06d6a0", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>
-                ⚙ Generation Control
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ color: "#06d6a0", fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+                ⚙ Generation
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>Infer Method</label>
+                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>Method</label>
                   <select
                     value={inferMethod}
                     onChange={e => setInferMethod(e.target.value)}
-                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 6, padding: "8px 12px", fontSize: 12 }}
+                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 9 }}
                   >
-                    <option value="ode">ODE (Fast)</option>
-                    <option value="sde">SDE (Stochastic)</option>
+                    <option value="ode">ODE</option>
+                    <option value="sde">SDE</option>
                   </select>
                 </div>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>Timestep Shift: {shift.toFixed(1)}</label>
+                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>Shift: {shift.toFixed(1)}</label>
                   <input
                     type="range" min="1.0" max="5.0" step="0.1"
                     value={shift}
@@ -2816,63 +3557,91 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                   />
                 </div>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>Batch Size: {batchSize}</label>
+                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>Batch: {batchSize}</label>
                   <input
                     type="number" min="1" max="8"
                     value={batchSize}
                     onChange={e => setBatchSize(parseInt(e.target.value) || 1)}
-                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 6, padding: "8px 12px", fontSize: 12 }}
+                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 9 }}
                   />
                 </div>
               </div>
             </div>
 
             {/* Audio & VRAM */}
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ color: "#c77dff", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>
-                🔊 Audio & VRAM
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ color: "#c77dff", fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+                🔊 Audio
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 6 }}>Output Format</label>
+                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>Format</label>
                   <select
                     value={audioFormat}
                     onChange={e => setAudioFormat(e.target.value)}
-                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 6, padding: "8px 12px", fontSize: 12 }}
+                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 9 }}
                   >
-                    <option value="wav">WAV (Uncompressed - Highest Quality)</option>
-                    <option value="mp3">MP3 (320 kbps - High Quality)</option>
-                    <option value="flac">FLAC (Lossless)</option>
+                    <option value="wav">WAV</option>
+                    <option value="mp3">MP3</option>
+                    <option value="flac">FLAC</option>
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: "flex", alignItems: "center", gap: 8, color: "#6666aa", fontSize: 11, cursor: "pointer" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: 4, color: "#6666aa", fontSize: 9, cursor: "pointer" }}>
                     <input
                       type="checkbox"
                       checked={useTiledDecode}
                       onChange={e => setUseTiledDecode(e.target.checked)}
                     />
-                    Tiled Decode (VRAM optimization)
+                    Tiled Decode
                   </label>
                 </div>
               </div>
             </div>
 
+            {/* CoT Controls */}
+            {taskType !== "custom" && (
+              <div style={{ marginBottom: 12, padding: "8px 10px", borderRadius: 6, background: "#07071a", border: "1px solid #1a1a3a" }}>
+                <div style={{ fontSize: 9, color: "#444466", fontWeight: 700, marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" }}>
+                  🧠 AI Chain-of-Thought
+                </div>
+                {[
+                  { key: "cotMetas", state: useCotMetas, setter: setUseCotMetas, label: "CoT Metas", icon: "🥁", desc: "AI detects BPM, Key, Time Signature" },
+                  { key: "cotCaption", state: useCotCaption, setter: setUseCotCaption, label: "CoT Caption", icon: "🎨", desc: "AI rewrites style prompt" },
+                  { key: "cotLanguage", state: useCotLanguage, setter: setUseCotLanguage, label: "CoT Language", icon: "🌐", desc: "AI detects language from lyrics" },
+                ].map(({ key, state, setter, label, icon, desc }) => (
+                  <div key={key} style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 6, paddingBottom: 6, borderBottom: key !== "cotLanguage" ? "1px solid #12122a" : "none" }}>
+                    <div onClick={() => setter(v => !v)} style={{ width: 28, height: 16, borderRadius: 999, flexShrink: 0, marginTop: 2, background: state ? "#9b2de0" : "#1a1a3a", position: "relative", cursor: "pointer", transition: "background 0.2s" }}>
+                      <div style={{ position: "absolute", top: 2, left: state ? 14 : 2, width: 12, height: 12, borderRadius: "50%", background: state ? "#fff" : "#444466", transition: "left 0.2s" }} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2 }}>
+                        <span style={{ fontSize: 11 }}>{icon}</span>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: state ? "#c77dff" : "#444466" }}>{label}</span>
+                        <span style={{ fontSize: 8, padding: "1px 4px", borderRadius: 999, fontWeight: 700, background: state ? "#9b2de022" : "#12122a", color: state ? "#c77dff" : "#333355", border: `1px solid ${state ? "#9b2de044" : "#1a1a3a"}` }}>{state ? "ON" : "OFF"}</span>
+                      </div>
+                      <div style={{ fontSize: 8, color: "#333355", lineHeight: 1.3 }}>{desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Thinking Mode */}
             <div>
-              <label style={{ display: "flex", alignItems: "center", gap: 10, color: "#ffd166", fontSize: 12, cursor: "pointer" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, color: "#ffd166", fontSize: 9, cursor: "pointer" }}>
                 <input
                   type="checkbox"
                   checked={thinking}
                   onChange={e => setThinking(e.target.checked)}
                 />
-                💭 Thinking Mode (Use 5Hz LM for audio codes - slower but better quality)
+                💭 Thinking Mode (5Hz LM for better quality)
               </label>
             </div>
 
             {/* Clean Temp Files */}
-            <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid #2a2a4a" }}>
-              <div style={{ color: "#e63946", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #2a2a4a" }}>
+              <div style={{ color: "#e63946", fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
                 🧹 Cleanup
               </div>
               <button
@@ -2883,13 +3652,13 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: 8,
+                  gap: 6,
                   background: cleaningTemp ? "#1a1a2e" : "linear-gradient(135deg, #e6394622, #e6394644)",
                   border: "1px solid #e6394666",
                   color: cleaningTemp ? "#666688" : "#e63946",
-                  borderRadius: 8,
-                  padding: "12px 16px",
-                  fontSize: 13,
+                  borderRadius: 6,
+                  padding: "8px 12px",
+                  fontSize: 10,
                   fontWeight: 700,
                   cursor: cleaningTemp ? "not-allowed" : "pointer",
                   opacity: cleaningTemp ? 0.6 : 1,
@@ -2921,6 +3690,429 @@ const allGenres = { ...filteredApiGenres, ...QUICK_GENRES };
           </div>
         </div>
       </div>
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          MODALS: Edit Subgenre, Delete Confirm, Add Genre
+          ═══════════════════════════════════════════════════════════════════ */}
+      
+      {/* ✏️ EDIT SUBGENRE MODAL */}
+      {showEditSubgenre && editingSubgenre && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "rgba(0,0,0,0.8)",
+          zIndex: 9999,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}>
+          <div style={{
+            background: "linear-gradient(135deg, #0d0d22, #0a0a1a)",
+            border: "1px solid #2a2a4a",
+            borderRadius: 12,
+            padding: 20,
+            width: "min(500px, 95vw)",
+            maxHeight: "90vh",
+            overflowY: "auto",
+          }}>
+            <div style={{ color: "#06d6a0", fontSize: 14, fontWeight: 700, marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+              ✏️ Edit Subgenre: {editingSubgenre.subName}
+            </div>
+            
+            {/* Prompt */}
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>📝 Prompt</label>
+              <textarea
+                value={editForm.prompt}
+                onChange={(e) => setEditForm({...editForm, prompt: e.target.value})}
+                style={{
+                  width: "100%",
+                  minHeight: 60,
+                  background: "#080812",
+                  border: "1px solid #2a2a4a",
+                  color: "#e0e0ff",
+                  borderRadius: 6,
+                  padding: 8,
+                  fontSize: 11,
+                  fontFamily: "monospace",
+                  resize: "vertical",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            {/* BPM + Key */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+              <div>
+                <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>♩ BPM</label>
+                <input
+                  type="number"
+                  value={editForm.bpm}
+                  onChange={(e) => setEditForm({...editForm, bpm: parseInt(e.target.value) || 0})}
+                  style={{
+                    width: "100%",
+                    background: "#080812",
+                    border: "1px solid #2a2a4a",
+                    color: "#e0e0ff",
+                    borderRadius: 6,
+                    padding: "6px 8px",
+                    fontSize: 11,
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>🎵 Key</label>
+                <input
+                  type="text"
+                  value={editForm.key_scale}
+                  onChange={(e) => setEditForm({...editForm, key_scale: e.target.value})}
+                  placeholder="Auto"
+                  style={{
+                    width: "100%",
+                    background: "#080812",
+                    border: "1px solid #2a2a4a",
+                    color: "#e0e0ff",
+                    borderRadius: 6,
+                    padding: "6px 8px",
+                    fontSize: 11,
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* CFG + Steps */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+              <div>
+                <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>🎯 CFG Scale</label>
+                <input
+                  type="number"
+                  step="0.5"
+                  value={editForm.guidanceScale}
+                  onChange={(e) => setEditForm({...editForm, guidanceScale: parseFloat(e.target.value) || 7})}
+                  style={{
+                    width: "100%",
+                    background: "#080812",
+                    border: "1px solid #2a2a4a",
+                    color: "#e0e0ff",
+                    borderRadius: 6,
+                    padding: "6px 8px",
+                    fontSize: 11,
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>🔢 Steps</label>
+                <input
+                  type="number"
+                  value={editForm.inferSteps}
+                  onChange={(e) => setEditForm({...editForm, inferSteps: parseInt(e.target.value) || 20})}
+                  style={{
+                    width: "100%",
+                    background: "#080812",
+                    border: "1px solid #2a2a4a",
+                    color: "#e0e0ff",
+                    borderRadius: 6,
+                    padding: "6px 8px",
+                    fontSize: 11,
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Duration */}
+            <div style={{ marginBottom: 12 }}>
+              <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>⏱ Duration (seconds)</label>
+              <input
+                type="number"
+                value={editForm.duration}
+                onChange={(e) => setEditForm({...editForm, duration: parseInt(e.target.value) || 60})}
+                style={{
+                  width: "100%",
+                  background: "#080812",
+                  border: "1px solid #2a2a4a",
+                  color: "#e0e0ff",
+                  borderRadius: 6,
+                  padding: "6px 8px",
+                  fontSize: 11,
+                }}
+              />
+            </div>
+
+            {/* Negative Prompt */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>🚫 Negative Prompt</label>
+              <textarea
+                value={editForm.negativePrompt}
+                onChange={(e) => setEditForm({...editForm, negativePrompt: e.target.value})}
+                style={{
+                  width: "100%",
+                  minHeight: 40,
+                  background: "#080812",
+                  border: "1px solid #2a2a4a",
+                  color: "#e0e0ff",
+                  borderRadius: 6,
+                  padding: 8,
+                  fontSize: 11,
+                  fontFamily: "monospace",
+                  resize: "vertical",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            {/* Action buttons */}
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                onClick={saveEditSubgenre}
+                style={{
+                  flex: 1,
+                  background: "#06d6a0",
+                  color: "#000",
+                  border: "none",
+                  borderRadius: 6,
+                  padding: "10px",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                ✅ Save Changes
+              </button>
+              <button
+                onClick={() => {
+                  setShowEditSubgenre(false);
+                  setEditingSubgenre(null);
+                  // Open delete confirm for this subgenre
+                  setDeletingSubgenre({ category: editingSubgenre.category, subName: editingSubgenre.subName });
+                  setShowDeleteConfirm(true);
+                }}
+                style={{
+                  background: "#e6394611",
+                  color: "#e63946",
+                  border: "1px solid #e6394633",
+                  borderRadius: 6,
+                  padding: "10px 16px",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                🗑️ Delete
+              </button>
+              <button
+                onClick={() => {
+                  setShowEditSubgenre(false);
+                  setEditingSubgenre(null);
+                }}
+                style={{
+                  background: "#2a2a4a",
+                  color: "#e0e0ff",
+                  border: "none",
+                  borderRadius: 6,
+                  padding: "10px 16px",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                ❌ Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🗑️ DELETE CONFIRM MODAL */}
+      {showDeleteConfirm && deletingSubgenre && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "rgba(0,0,0,0.8)",
+          zIndex: 9999,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}>
+          <div style={{
+            background: "linear-gradient(135deg, #0d0d22, #0a0a1a)",
+            border: "1px solid #e6394644",
+            borderRadius: 12,
+            padding: 20,
+            width: "min(400px, 95vw)",
+          }}>
+            <div style={{ color: "#e63946", fontSize: 14, fontWeight: 700, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+              🗑️ Delete Subgenre?
+            </div>
+            
+            <div style={{ color: "#8888aa", fontSize: 11, marginBottom: 16 }}>
+              Are you sure you want to delete <strong style={{ color: "#ffd166" }}>"{deletingSubgenre.subName}"</strong> from <strong style={{ color: "#c77dff" }}>{deletingSubgenre.category}</strong>?
+              <br/><br/>
+              <span style={{ color: "#e63946" }}>This cannot be undone.</span>
+            </div>
+
+            {/* Action buttons */}
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                onClick={deleteSubgenre}
+                style={{
+                  flex: 1,
+                  background: "#e63946",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 6,
+                  padding: "10px",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                🗑️ Delete
+              </button>
+              <button
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setDeletingSubgenre(null);
+                }}
+                style={{
+                  background: "#2a2a4a",
+                  color: "#e0e0ff",
+                  border: "none",
+                  borderRadius: 6,
+                  padding: "10px 16px",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                ❌ Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ➕ ADD NEW GENRE MODAL */}
+      {showAddGenre && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "rgba(0,0,0,0.8)",
+          zIndex: 9999,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}>
+          <div style={{
+            background: "linear-gradient(135deg, #0d0d22, #0a0a1a)",
+            border: "1px solid #06d6a044",
+            borderRadius: 12,
+            padding: 20,
+            width: "min(400px, 95vw)",
+          }}>
+            <div style={{ color: "#06d6a0", fontSize: 14, fontWeight: 700, marginBottom: 12 }}>
+              ➕ Add New Genre
+            </div>
+            
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>Genre Name</label>
+              <input
+                type="text"
+                value={newGenreName}
+                onChange={(e) => setNewGenreName(e.target.value)}
+                placeholder="e.g., My Custom Genre"
+                autoFocus
+                style={{
+                  width: "100%",
+                  background: "#080812",
+                  border: "1px solid #2a2a4a",
+                  color: "#e0e0ff",
+                  borderRadius: 6,
+                  padding: "10px 12px",
+                  fontSize: 12,
+                  boxSizing: "border-box",
+                }}
+                onFocus={(e) => e.target.style.borderColor = "#06d6a0"}
+                onBlur={(e) => e.target.style.borderColor = "#2a2a4a"}
+              />
+            </div>
+
+            {/* Action buttons */}
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                onClick={addNewGenre}
+                disabled={!newGenreName.trim()}
+                style={{
+                  flex: 1,
+                  background: !newGenreName.trim() ? "#2a2a4a" : "#06d6a0",
+                  color: "#000",
+                  border: "none",
+                  borderRadius: 6,
+                  padding: "10px",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: !newGenreName.trim() ? "not-allowed" : "pointer",
+                }}
+              >
+                ✅ Create Genre
+              </button>
+              <button
+                onClick={() => {
+                  setShowAddGenre(false);
+                  setNewGenreName("");
+                }}
+                style={{
+                  background: "#2a2a4a",
+                  color: "#e0e0ff",
+                  border: "none",
+                  borderRadius: 6,
+                  padding: "10px 16px",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                ❌ Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Global Styles for Animations */}
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        
+        ::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+          background: #0a0a1a;
+          border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+          background: linear-gradient(135deg, #9b2de0, #00e5ff);
+          border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(135deg, #00e5ff, #9b2de0);
+        }
+      `}</style>
     </div>
   );
 }
