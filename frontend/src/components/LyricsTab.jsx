@@ -8,6 +8,14 @@ export default function LyricsTab({ addLog }) {
   const [searchTitle, setSearchTitle] = useState("");
   const [searching, setSearching] = useState(false);
   
+  // Genius API config state
+  const [geniusClientId, setGeniusClientId] = useState("");
+  const [geniusClientSecret, setGeniusClientSecret] = useState("");
+  const [geniusAccessToken, setGeniusAccessToken] = useState("");
+  const [showConfig, setShowConfig] = useState(false);
+  const [testingConnection, setTestingConnection] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState(null); // 'success' | 'error' | null
+  
   // Transcribe state
   const [transcribeFile, setTranscribeFile] = useState(null);
   const [transcribing, setTranscribing] = useState(false);
@@ -37,10 +45,51 @@ export default function LyricsTab({ addLog }) {
     }
   }, []);
 
+  // Test Genius API connection
+  const testConnection = async () => {
+    if (!geniusAccessToken.trim()) {
+      alert("Please enter an Access Token");
+      return;
+    }
+    
+    setTestingConnection(true);
+    setConnectionStatus(null);
+    
+    try {
+      const response = await fetch("https://api.genius.com/search?q=test", {
+        headers: {
+          "Authorization": `Bearer ${geniusAccessToken}`,
+        },
+      });
+      
+      if (response.ok) {
+        setConnectionStatus("success");
+        addLog?.("[Lyrics] Genius API connection successful!");
+        alert("✅ Connected to Genius API successfully!");
+      } else {
+        setConnectionStatus("error");
+        addLog?.("[Lyrics] Genius API connection failed");
+        alert("❌ Connection failed. Check your Access Token.");
+      }
+    } catch (err) {
+      setConnectionStatus("error");
+      addLog?.(`[Lyrics] Connection error: ${err.message}`);
+      alert("❌ Connection error: " + err.message);
+    } finally {
+      setTestingConnection(false);
+    }
+  };
+
   // Search lyrics via Genius API
   const handleSearch = async () => {
     if (!searchArtist.trim() || !searchTitle.trim()) {
       addLog?.("[Lyrics] Please enter artist and title");
+      return;
+    }
+    
+    if (!geniusAccessToken.trim()) {
+      addLog?.("[Lyrics] Please configure Genius API credentials");
+      alert("Please configure Genius API credentials first. Click '🔑 API Config' button.");
       return;
     }
     
@@ -50,6 +99,7 @@ export default function LyricsTab({ addLog }) {
     const fd = new FormData();
     fd.append("artist", searchArtist);
     fd.append("title", searchTitle);
+    fd.append("access_token", geniusAccessToken);
     
     try {
       const res = await fetch(`${API}/audio/lyrics/search`, {
@@ -278,7 +328,106 @@ ${lyrics}
 
       {/* Search Lyrics (Genius API) */}
       <div style={S.card}>
-        <span style={S.label}>🔍 Search Lyrics (Genius API)</span>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <span style={S.label}>🔍 Search Lyrics (Genius API)</span>
+          <button
+            onClick={() => setShowConfig(!showConfig)}
+            style={{
+              ...S.button(cyberpunk.neon.yellow.primary),
+              padding: "6px 12px",
+              fontSize: 10,
+            }}
+          >
+            🔑 API Config
+          </button>
+        </div>
+        
+        {/* API Config Panel */}
+        {showConfig && (
+          <div style={{
+            marginBottom: 16,
+            padding: 14,
+            background: "rgba(255,209,102,0.08)",
+            borderRadius: 10,
+            border: "1px solid #ffd16633",
+          }}>
+            <div style={{ color: cyberpunk.neon.yellow.primary, fontSize: 10, fontWeight: 800, marginBottom: 10, letterSpacing: 1 }}>
+              🔐 GENIUS API CREDENTIALS
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+              <div>
+                <label style={{ color: cyberpunk.text.secondary, fontSize: 9, marginBottom: 4, display: "block" }}>
+                  Client ID (optional)
+                </label>
+                <input
+                  type="text"
+                  value={geniusClientId}
+                  onChange={(e) => setGeniusClientId(e.target.value)}
+                  placeholder="Your Genius Client ID"
+                  style={{ ...S.input, fontSize: 11, padding: "8px 10px" }}
+                />
+              </div>
+              <div>
+                <label style={{ color: cyberpunk.text.secondary, fontSize: 9, marginBottom: 4, display: "block" }}>
+                  Client Secret (optional)
+                </label>
+                <input
+                  type="password"
+                  value={geniusClientSecret}
+                  onChange={(e) => setGeniusClientSecret(e.target.value)}
+                  placeholder="Your Genius Client Secret"
+                  style={{ ...S.input, fontSize: 11, padding: "8px 10px" }}
+                />
+              </div>
+            </div>
+            <div style={{ marginBottom: 10 }}>
+              <label style={{ color: cyberpunk.text.secondary, fontSize: 9, marginBottom: 4, display: "block" }}>
+                Access Token (required)
+              </label>
+              <input
+                type="password"
+                value={geniusAccessToken}
+                onChange={(e) => setGeniusAccessToken(e.target.value)}
+                placeholder="Your Genius Access Token"
+                style={{ ...S.input, fontSize: 11, padding: "8px 10px" }}
+              />
+            </div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <button
+                onClick={testConnection}
+                disabled={testingConnection || !geniusAccessToken}
+                style={{
+                  ...S.button(cyberpunk.neon.green.primary),
+                  opacity: testingConnection || !geniusAccessToken ? 0.5 : 1,
+                  cursor: testingConnection || !geniusAccessToken ? "not-allowed" : "pointer",
+                  padding: "6px 14px",
+                  fontSize: 10,
+                }}
+              >
+                {testingConnection ? "⏳ Testing..." : "🔌 Test Connection"}
+              </button>
+              {connectionStatus === "success" && (
+                <span style={{ color: cyberpunk.neon.green.primary, fontSize: 10, fontWeight: 700 }}>
+                  ✅ Connected
+                </span>
+              )}
+              {connectionStatus === "error" && (
+                <span style={{ color: "#ef4444", fontSize: 10, fontWeight: 700 }}>
+                  ❌ Connection Failed
+                </span>
+              )}
+            </div>
+            <div style={{ marginTop: 10, padding: 8, background: "rgba(0,229,255,0.08)", borderRadius: 6, border: "1px solid #00e5ff33" }}>
+              <div style={{ color: cyberpunk.text.muted, fontSize: 9, lineHeight: 1.5 }}>
+                💡 <strong>How to get credentials:</strong><br/>
+                1. Go to <a href="https://genius.com/api-clients" target="_blank" style={{ color: cyberpunk.neon.cyan.primary }}>genius.com/api-clients</a><br/>
+                2. Create a new API client<br/>
+                3. Copy your Access Token above
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 12, marginBottom: 12 }}>
           <div>
             <label style={{ color: cyberpunk.text.secondary, fontSize: 11, marginBottom: 6, display: "block" }}>
