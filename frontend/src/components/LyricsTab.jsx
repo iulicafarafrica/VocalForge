@@ -4,16 +4,8 @@ const API = "http://localhost:8000";
 
 export default function LyricsTab({ addLog }) {
   // Search state
-  const [searchQuery, setSearchQuery] = useState(""); // "Artist - Title" format
+  const [searchQuery, setSearchQuery] = useState("");
   const [searching, setSearching] = useState(false);
-  
-  // Genius API config state
-  const [geniusClientId, setGeniusClientId] = useState("");
-  const [geniusClientSecret, setGeniusClientSecret] = useState("");
-  const [geniusAccessToken, setGeniusAccessToken] = useState("");
-  const [showConfig, setShowConfig] = useState(false);
-  const [testingConnection, setTestingConnection] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState(null); // 'success' | 'error' | null
   
   // Transcribe state
   const [transcribeFile, setTranscribeFile] = useState(null);
@@ -23,6 +15,7 @@ export default function LyricsTab({ addLog }) {
   const [lyrics, setLyrics] = useState("");
   const [lyricsTitle, setLyricsTitle] = useState("");
   const [lyricsArtist, setLyricsArtist] = useState("");
+  const [lyricsSource, setLyricsSource] = useState("");
   
   // Library state
   const [lyricsLibrary, setLyricsLibrary] = useState([]);
@@ -32,7 +25,7 @@ export default function LyricsTab({ addLog }) {
   const [showSaveInput, setShowSaveInput] = useState(false);
   const [saveName, setSaveName] = useState("");
 
-  // Load library and Genius credentials on mount
+  // Load library on mount
   useEffect(() => {
     try {
       const saved = localStorage.getItem("vocalforge_lyrics_library");
@@ -42,77 +35,9 @@ export default function LyricsTab({ addLog }) {
     } catch (e) {
       console.error("Failed to load lyrics library:", e);
     }
-    
-    // Load Genius API credentials
-    try {
-      const savedClientId = localStorage.getItem("genius_client_id");
-      const savedClientSecret = localStorage.getItem("genius_client_secret");
-      const savedAccessToken = localStorage.getItem("genius_access_token");
-      
-      if (savedClientId) setGeniusClientId(savedClientId);
-      if (savedClientSecret) setGeniusClientSecret(savedClientSecret);
-      if (savedAccessToken) setGeniusAccessToken(savedAccessToken);
-    } catch (e) {
-      console.error("Failed to load Genius credentials:", e);
-    }
   }, []);
 
-  // Test Genius API connection
-  const testConnection = async () => {
-    if (!geniusAccessToken.trim()) {
-      alert("Please enter an Access Token");
-      return;
-    }
-    
-    // Auto-save credentials on successful test
-    saveGeniusCredentials();
-    
-    setTestingConnection(true);
-    setConnectionStatus(null);
-    
-    try {
-      // Test through backend to avoid CORS issues
-      const fd = new FormData();
-      fd.append("access_token", geniusAccessToken);
-      
-      const response = await fetch(`${API}/audio/lyrics/test-connection`, {
-        method: "POST",
-        body: fd,
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok && data.status === "success") {
-        setConnectionStatus("success");
-        addLog?.("[Lyrics] Genius API connection successful!");
-        alert("✅ Connected to Genius API successfully! Credentials saved.");
-      } else {
-        setConnectionStatus("error");
-        addLog?.("[Lyrics] Genius API connection failed");
-        alert(`❌ Connection failed: ${data.error || "Invalid token"}`);
-      }
-    } catch (err) {
-      setConnectionStatus("error");
-      addLog?.(`[Lyrics] Connection error: ${err.message}`);
-      alert("❌ Connection error: " + err.message);
-    } finally {
-      setTestingConnection(false);
-    }
-  };
-
-  // Save Genius credentials to localStorage
-  const saveGeniusCredentials = () => {
-    try {
-      if (geniusClientId) localStorage.setItem("genius_client_id", geniusClientId);
-      if (geniusClientSecret) localStorage.setItem("genius_client_secret", geniusClientSecret);
-      if (geniusAccessToken) localStorage.setItem("genius_access_token", geniusAccessToken);
-      addLog?.("[Lyrics] Genius credentials saved to localStorage");
-    } catch (e) {
-      console.error("Failed to save Genius credentials:", e);
-    }
-  };
-
-  // Search lyrics via Genius API or lyrics.ovh
+  // Search lyrics via lyrics.ovh (FREE API)
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       addLog?.("[Lyrics] Please enter artist and title");
@@ -131,17 +56,13 @@ export default function LyricsTab({ addLog }) {
       return;
     }
     
-    // Auto-save credentials
-    if (geniusAccessToken) saveGeniusCredentials();
-    
     setSearching(true);
     addLog?.(`[Lyrics] Searching: ${artist} - ${title}`);
     
     const fd = new FormData();
     fd.append("artist", artist);
     fd.append("title", title);
-    fd.append("access_token", geniusAccessToken || "");
-    fd.append("use_lyrics_ovh", "true"); // Try lyrics.ovh first (free, full lyrics)
+    fd.append("use_lyrics_ovh", "true");
     
     try {
       const res = await fetch(`${API}/audio/lyrics/search`, {
@@ -156,22 +77,18 @@ export default function LyricsTab({ addLog }) {
       setLyrics(data.lyrics);
       setLyricsArtist(data.artist);
       setLyricsTitle(data.title);
+      setLyricsSource(data.source || "lyrics.ovh");
       
-      const source = data.source || "Genius";
-      addLog?.(`[Lyrics] Found: ${data.artist} - ${data.title} (via ${source})`);
-      
-      if (data.note) {
-        addLog?.(`[Lyrics] Note: ${data.note}`);
-      }
+      addLog?.(`[Lyrics] Found: ${data.artist} - ${data.title} (${data.lyrics?.length || 0} chars)`);
     } catch (err) {
       addLog?.(`[Lyrics] Error: ${err.message}`);
-      alert(`Search failed: ${err.message}`);
+      alert(`Search failed: ${err.message}\n\nNote: Not all songs have lyrics available.`);
     } finally {
       setSearching(false);
     }
   };
 
-  // Transcribe lyrics from audio
+  // Transcribe lyrics from audio (Whisper AI)
   const handleTranscribe = async () => {
     if (!transcribeFile) {
       addLog?.("[Lyrics] Please select an audio file");
@@ -197,10 +114,12 @@ export default function LyricsTab({ addLog }) {
       setLyrics(data.lyrics);
       setLyricsTitle(transcribeFile.name);
       setLyricsArtist("Unknown");
-      addLog?.(`[Lyrics] Transcribed: ${data.lyrics.length} characters`);
+      setLyricsSource("Whisper AI");
+      
+      addLog?.(`[Lyrics] Transcribed: ${data.lyrics?.length || 0} characters`);
     } catch (err) {
       addLog?.(`[Lyrics] Error: ${err.message}`);
-      alert(`Transcription failed: ${err.message}`);
+      alert(`Transcription failed: ${err.message}\n\nMake sure Whisper is installed: pip install openai-whisper`);
     } finally {
       setTranscribing(false);
     }
@@ -216,6 +135,7 @@ export default function LyricsTab({ addLog }) {
       artist: lyricsArtist || "Unknown",
       title: lyricsTitle || "Untitled",
       lyrics: lyrics,
+      source: lyricsSource || "Manual",
       created: new Date().toLocaleString(),
     };
     
@@ -233,6 +153,7 @@ export default function LyricsTab({ addLog }) {
     setLyrics(entry.lyrics);
     setLyricsTitle(entry.title);
     setLyricsArtist(entry.artist);
+    setLyricsSource(entry.source || "Library");
     setShowLibrary(false);
     addLog?.(`[Lyrics] Loaded: ${entry.name}`);
   };
@@ -249,26 +170,21 @@ export default function LyricsTab({ addLog }) {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(lyrics);
     addLog?.("[Lyrics] Copied to clipboard");
-    alert("Lyrics copied to clipboard!");
+    alert("✅ Lyrics copied to clipboard!");
   };
 
   // Use in ACE-Step
   const useInAceStep = () => {
-    // Store in localStorage for ACE-Step to pick up
     localStorage.setItem("acestep_lyrics_from_manager", lyrics);
     addLog?.("[Lyrics] Sent to ACE-Step");
-    alert("Lyrics sent to ACE-Step! Go to ACE-Step tab and check the Lyrics field.");
+    alert("✅ Lyrics sent to ACE-Step!\n\nGo to ACE-Step tab and check the Lyrics field.");
   };
 
   // Export to file
   const exportToFile = () => {
     if (!lyrics.trim()) return;
     
-    const content = `[${lyricsTitle || "Untitled"}]
-Artist: ${lyricsArtist || "Unknown"}
-
-${lyrics}
-`;
+    const content = `[${lyricsTitle || "Untitled"}]\nArtist: ${lyricsArtist || "Unknown"}\nSource: ${lyricsSource || "Unknown"}\n\n${lyrics}\n`;
     
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -279,6 +195,15 @@ ${lyrics}
     URL.revokeObjectURL(url);
     
     addLog?.("[Lyrics] Exported to file");
+  };
+
+  // Clear lyrics
+  const clearLyrics = () => {
+    setLyrics("");
+    setLyricsTitle("");
+    setLyricsArtist("");
+    setLyricsSource("");
+    addLog?.("[Lyrics] Cleared");
   };
 
   // Cyberpunk theme
@@ -374,109 +299,26 @@ ${lyrics}
         </div>
       </div>
 
-      {/* Search Lyrics (Genius API) */}
+      {/* Search Lyrics (lyrics.ovh - FREE) */}
       <div style={S.card}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <span style={S.label}>🔍 Search Lyrics (Genius API)</span>
-          <button
-            onClick={() => setShowConfig(!showConfig)}
-            style={{
-              ...S.button(cyberpunk.neon.yellow.primary),
-              padding: "6px 12px",
-              fontSize: 10,
-            }}
-          >
-            🔑 API Config
-          </button>
-        </div>
-        
-        {/* API Config Panel */}
-        {showConfig && (
-          <div style={{
-            marginBottom: 16,
-            padding: 14,
-            background: "rgba(255,209,102,0.08)",
-            borderRadius: 10,
-            border: "1px solid #ffd16633",
+        <div style={{ marginBottom: 12 }}>
+          <span style={S.label}>🔍 Search Lyrics</span>
+          <div style={{ 
+            marginTop: 8, 
+            padding: 10, 
+            background: "rgba(6,214,160,0.08)", 
+            borderRadius: 8, 
+            border: "1px solid #06d6a033" 
           }}>
-            <div style={{ color: cyberpunk.neon.yellow.primary, fontSize: 10, fontWeight: 800, marginBottom: 10, letterSpacing: 1 }}>
-              🔐 GENIUS API CREDENTIALS
+            <div style={{ color: cyberpunk.neon.green.primary, fontSize: 10, fontWeight: 800, marginBottom: 4 }}>
+              ✅ FREE API - NO TOKEN NEEDED
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
-              <div>
-                <label style={{ color: cyberpunk.text.secondary, fontSize: 9, marginBottom: 4, display: "block" }}>
-                  Client ID (optional)
-                </label>
-                <input
-                  type="text"
-                  value={geniusClientId}
-                  onChange={(e) => setGeniusClientId(e.target.value)}
-                  placeholder="Your Genius Client ID"
-                  style={{ ...S.input, fontSize: 11, padding: "8px 10px" }}
-                />
-              </div>
-              <div>
-                <label style={{ color: cyberpunk.text.secondary, fontSize: 9, marginBottom: 4, display: "block" }}>
-                  Client Secret (optional)
-                </label>
-                <input
-                  type="password"
-                  value={geniusClientSecret}
-                  onChange={(e) => setGeniusClientSecret(e.target.value)}
-                  placeholder="Your Genius Client Secret"
-                  style={{ ...S.input, fontSize: 11, padding: "8px 10px" }}
-                />
-              </div>
-            </div>
-            <div style={{ marginBottom: 10 }}>
-              <label style={{ color: cyberpunk.text.secondary, fontSize: 9, marginBottom: 4, display: "block" }}>
-                Access Token (required)
-              </label>
-              <input
-                type="password"
-                value={geniusAccessToken}
-                onChange={(e) => setGeniusAccessToken(e.target.value)}
-                placeholder="Your Genius Access Token"
-                style={{ ...S.input, fontSize: 11, padding: "8px 10px" }}
-              />
-            </div>
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <button
-                onClick={testConnection}
-                disabled={testingConnection || !geniusAccessToken}
-                style={{
-                  ...S.button(cyberpunk.neon.green.primary),
-                  opacity: testingConnection || !geniusAccessToken ? 0.5 : 1,
-                  cursor: testingConnection || !geniusAccessToken ? "not-allowed" : "pointer",
-                  padding: "6px 14px",
-                  fontSize: 10,
-                }}
-              >
-                {testingConnection ? "⏳ Testing..." : "🔌 Test Connection"}
-              </button>
-              {connectionStatus === "success" && (
-                <span style={{ color: cyberpunk.neon.green.primary, fontSize: 10, fontWeight: 700 }}>
-                  ✅ Connected
-                </span>
-              )}
-              {connectionStatus === "error" && (
-                <span style={{ color: "#ef4444", fontSize: 10, fontWeight: 700 }}>
-                  ❌ Connection Failed
-                </span>
-              )}
-            </div>
-            <div style={{ marginTop: 10, padding: 8, background: "rgba(0,229,255,0.08)", borderRadius: 6, border: "1px solid #00e5ff33" }}>
-              <div style={{ color: cyberpunk.text.muted, fontSize: 9, lineHeight: 1.5 }}>
-                💡 <strong>How to get credentials:</strong><br/>
-                1. Go to <a href="https://genius.com/api-clients" target="_blank" style={{ color: cyberpunk.neon.cyan.primary }}>genius.com/api-clients</a><br/>
-                2. Create a new API client<br/>
-                3. Copy your Access Token above
-              </div>
+            <div style={{ color: cyberpunk.text.muted, fontSize: 9 }}>
+              Powered by lyrics.ovh • Full lyrics • No registration required
             </div>
           </div>
-        )}
-
-        {/* Single Search Input */}
+        </div>
+        
         <div style={{ marginBottom: 12 }}>
           <label style={{ color: cyberpunk.text.secondary, fontSize: 11, marginBottom: 6, display: "block" }}>
             🔍 Search (format: Artist - Title)
@@ -489,19 +331,8 @@ ${lyrics}
             style={{ ...S.input, fontSize: 13, padding: "12px 14px" }}
             onKeyPress={(e) => e.key === "Enter" && handleSearch()}
           />
-          <div style={{ 
-            marginTop: 8, 
-            padding: 8, 
-            background: "rgba(6,214,160,0.08)", 
-            borderRadius: 6, 
-            border: "1px solid #06d6a033" 
-          }}>
-            <div style={{ color: cyberpunk.neon.green.primary, fontSize: 9, fontWeight: 700, marginBottom: 4 }}>
-              ✅ Using lyrics.ovh (Free API - Full Lyrics)
-            </div>
-            <div style={{ color: cyberpunk.text.muted, fontSize: 9 }}>
-              💡 No Genius token needed! Just enter: Artist - Title
-            </div>
+          <div style={{ color: cyberpunk.text.muted, fontSize: 9, marginTop: 6 }}>
+            💡 Examples: "Taylor Swift - Shake It Off" | "Metallica - Enter Sandman" | "The Beatles - Hey Jude"
           </div>
         </div>
 
@@ -538,16 +369,28 @@ ${lyrics}
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 12,
-                padding: 12,
+                gap: 16,
+                padding: 16,
                 background: "rgba(10,10,26,0.6)",
                 border: `2px dashed ${transcribeFile ? cyberpunk.neon.green.primary : "rgba(42,42,74,0.5)"}`,
-                borderRadius: 10,
+                borderRadius: 12,
                 cursor: "pointer",
                 transition: "all 0.3s ease",
               }}
+              onMouseEnter={(e) => {
+                if (!transcribeFile) {
+                  e.currentTarget.style.borderColor = cyberpunk.neon.green.primary;
+                  e.currentTarget.style.boxShadow = `0 0 15px ${cyberpunk.neon.green.glow}`;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!transcribeFile) {
+                  e.currentTarget.style.borderColor = "rgba(42,42,74,0.5)";
+                  e.currentTarget.style.boxShadow = "none";
+                }
+              }}
             >
-              <span style={{ fontSize: 32 }}>{transcribeFile ? "🎵" : "📂"}</span>
+              <span style={{ fontSize: 36 }}>{transcribeFile ? "🎵" : "📂"}</span>
               <div style={{ flex: 1 }}>
                 <div style={{ 
                   color: transcribeFile ? cyberpunk.neon.green.primary : cyberpunk.text.secondary, 
@@ -557,7 +400,7 @@ ${lyrics}
                   {transcribeFile ? `✓ ${transcribeFile.name}` : "Click to upload audio file"}
                 </div>
                 <div style={{ color: cyberpunk.text.muted, fontSize: 10, marginTop: 4 }}>
-                  WAV, MP3, FLAC supported
+                  WAV, MP3, FLAC supported • Whisper AI transcription
                 </div>
               </div>
             </label>
@@ -569,6 +412,8 @@ ${lyrics}
               ...S.button(cyberpunk.neon.green.primary),
               opacity: transcribing || !transcribeFile ? 0.5 : 1,
               cursor: transcribing || !transcribeFile ? "not-allowed" : "pointer",
+              padding: "12px 20px",
+              fontSize: 11,
             }}
           >
             {transcribing ? "🎤 Transcribing..." : "🎤 Transcribe"}
@@ -578,7 +423,18 @@ ${lyrics}
 
       {/* Lyrics Editor */}
       <div style={S.card}>
-        <span style={S.label}>📝 Lyrics Editor</span>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <span style={S.label}>📝 Lyrics Editor</span>
+          {lyrics && (
+            <button
+              onClick={clearLyrics}
+              style={{ ...S.button("#e63946"), padding: "6px 12px", fontSize: 9 }}
+            >
+              🗑️ Clear
+            </button>
+          )}
+        </div>
+        
         <div style={{ marginBottom: 12 }}>
           <input
             type="text"
@@ -587,18 +443,29 @@ ${lyrics}
             placeholder="Song Title"
             style={{ ...S.input, marginBottom: 8 }}
           />
-          <input
-            type="text"
-            value={lyricsArtist}
-            onChange={(e) => setLyricsArtist(e.target.value)}
-            placeholder="Artist Name"
-            style={S.input}
-          />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <input
+              type="text"
+              value={lyricsArtist}
+              onChange={(e) => setLyricsArtist(e.target.value)}
+              placeholder="Artist Name"
+              style={S.input}
+            />
+            <input
+              type="text"
+              value={lyricsSource}
+              onChange={(e) => setLyricsSource(e.target.value)}
+              placeholder="Source (e.g., lyrics.ovh)"
+              style={{ ...S.input, color: cyberpunk.text.muted }}
+              readOnly
+            />
+          </div>
         </div>
+        
         <textarea
           value={lyrics}
           onChange={(e) => setLyrics(e.target.value)}
-          placeholder="Lyrics will appear here...&#10;&#10;You can also type or paste lyrics manually."
+          placeholder="Lyrics will appear here...&#10;&#10;Search for a song or transcribe from audio to see lyrics."
           rows={16}
           style={{
             ...S.input,
@@ -611,7 +478,7 @@ ${lyrics}
         />
         
         {/* Action Buttons */}
-        <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8, marginTop: 16 }}>
           <button
             onClick={() => setShowSaveInput(true)}
             disabled={!lyrics.trim()}
@@ -621,7 +488,7 @@ ${lyrics}
               cursor: !lyrics.trim() ? "not-allowed" : "pointer",
             }}
           >
-            💾 Save to Library
+            💾 Save
           </button>
           <button
             onClick={copyToClipboard}
@@ -643,7 +510,7 @@ ${lyrics}
               cursor: !lyrics.trim() ? "not-allowed" : "pointer",
             }}
           >
-            🎵 Use in ACE-Step
+            🎵 Use in ACE
           </button>
           <button
             onClick={exportToFile}
@@ -731,7 +598,7 @@ ${lyrics}
           </div>
           {lyricsLibrary.length === 0 ? (
             <div style={{ color: cyberpunk.text.muted, fontSize: 13, textAlign: "center", padding: 30 }}>
-              No saved lyrics yet. Save your first lyrics!
+              📭 No saved lyrics yet.<br/>Search for a song and click "💾 Save" to add it to your library!
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 400, overflowY: "auto" }}>
@@ -751,7 +618,7 @@ ${lyrics}
                         {entry.title}
                       </div>
                       <div style={{ color: cyberpunk.text.muted, fontSize: 10 }}>
-                        {entry.artist} • {entry.created}
+                        {entry.artist} • {entry.source || "Unknown"} • {entry.created}
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: 4 }}>
@@ -773,7 +640,7 @@ ${lyrics}
                           fontSize: 9,
                         }}
                       >
-                        🗑️ Delete
+                        🗑️
                       </button>
                     </div>
                   </div>
@@ -784,7 +651,7 @@ ${lyrics}
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                   }}>
-                    {entry.lyrics.slice(0, 100)}...
+                    {entry.lyrics?.slice(0, 80)}...
                   </div>
                 </div>
               ))}
