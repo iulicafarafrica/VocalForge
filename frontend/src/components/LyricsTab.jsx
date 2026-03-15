@@ -53,14 +53,19 @@ export default function LyricsTab({ addLog }) {
     addLog?.(`[Lyrics] Searching artist: ${searchQuery}`);
     
     try {
-      // Use lyrics.ovh search (artist only)
-      const response = await fetch(`https://api.lyrics.ovh/v1/${searchQuery}`);
+      // Call our backend which proxies to lyrics.ovh
+      const fd = new FormData();
+      fd.append("artist", searchQuery);
+      fd.append("search_type", "artist");
+      
+      const response = await fetch(`${API}/audio/lyrics/search`, {
+        method: "POST",
+        body: fd,
+      });
       
       if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error(`Artist "${searchQuery}" not found`);
-        }
-        throw new Error(`Search failed: HTTP ${response.status}`);
+        const error = await response.json();
+        throw new Error(error.detail || `Search failed: HTTP ${response.status}`);
       }
       
       const data = await response.json();
@@ -70,7 +75,7 @@ export default function LyricsTab({ addLog }) {
           artist: searchQuery,
           songs: data.songs.slice(0, 50), // Limit to 50 songs
         });
-        addLog?.(`[Lyrics] Found ${data.songs.length} songs by ${searchQuery}`);
+        addLog?.(`[Lyrics] Found ${data.count || data.songs.length} songs by ${searchQuery}`);
       } else {
         throw new Error("No songs found");
       }
@@ -92,10 +97,20 @@ export default function LyricsTab({ addLog }) {
     addLog?.(`[Lyrics] Loading: ${searchQuery} - ${songTitle}`);
     
     try {
-      const response = await fetch(`https://api.lyrics.ovh/v1/${searchQuery}/${songTitle}`);
+      // Call our backend which proxies to lyrics.ovh
+      const fd = new FormData();
+      fd.append("artist", searchQuery);
+      fd.append("title", songTitle);
+      fd.append("search_type", "song");
+      
+      const response = await fetch(`${API}/audio/lyrics/search`, {
+        method: "POST",
+        body: fd,
+      });
       
       if (!response.ok) {
-        throw new Error("Lyrics not found");
+        const error = await response.json();
+        throw new Error(error.detail || "Lyrics not found");
       }
       
       const data = await response.json();
@@ -104,7 +119,7 @@ export default function LyricsTab({ addLog }) {
         setLyrics(data.lyrics);
         setLyricsTitle(songTitle);
         setLyricsArtist(searchQuery);
-        addLog?.(`[Lyrics] Loaded: ${searchQuery} - ${songTitle} (${data.lyrics.length} chars)`);
+        addLog?.(`[Lyrics] Loaded: ${searchQuery} - ${songTitle} (${data.length || data.lyrics.length} chars)`);
       } else {
         throw new Error("No lyrics available");
       }
