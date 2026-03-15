@@ -6,22 +6,24 @@ export default function LyricsTab({ addLog }) {
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
   const [searching, setSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState(null); // { artist, songs: [] }
+  
+  // Selected song
+  const [selectedSong, setSelectedSong] = useState(null);
+  const [loadingLyrics, setLoadingLyrics] = useState(false);
+  
+  // Displayed lyrics
+  const [lyrics, setLyrics] = useState("");
+  const [lyricsTitle, setLyricsTitle] = useState("");
+  const [lyricsArtist, setLyricsArtist] = useState("");
   
   // Transcribe state
   const [transcribeFile, setTranscribeFile] = useState(null);
   const [transcribing, setTranscribing] = useState(false);
   
-  // Lyrics state
-  const [lyrics, setLyrics] = useState("");
-  const [lyricsTitle, setLyricsTitle] = useState("");
-  const [lyricsArtist, setLyricsArtist] = useState("");
-  const [lyricsSource, setLyricsSource] = useState("");
-  
   // Library state
   const [lyricsLibrary, setLyricsLibrary] = useState([]);
   const [showLibrary, setShowLibrary] = useState(false);
-  
-  // Save state
   const [showSaveInput, setShowSaveInput] = useState(false);
   const [saveName, setSaveName] = useState("");
 
@@ -37,58 +39,85 @@ export default function LyricsTab({ addLog }) {
     }
   }, []);
 
-  // Search lyrics via lyrics.ovh (FREE API)
+  // Search for artist (returns list of songs)
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
-      addLog?.("[Lyrics] Please enter artist and title");
-      alert("Please enter search in format: Artist - Title");
-      return;
-    }
-    
-    // Parse "Artist - Title" format
-    const parts = searchQuery.split(/[-–—]/);
-    const artist = parts[0]?.trim() || "";
-    const title = parts.slice(1).join("-").trim() || searchQuery;
-    
-    if (!artist || !title) {
-      addLog?.("[Lyrics] Please use format: Artist - Title");
-      alert("Please enter search in format: Artist - Title (e.g., Queen - Bohemian Rhapsody)");
+      addLog?.("[Lyrics] Please enter an artist name");
       return;
     }
     
     setSearching(true);
-    addLog?.(`[Lyrics] Searching: ${artist} - ${title}`);
-    
-    const fd = new FormData();
-    fd.append("artist", artist);
-    fd.append("title", title);
-    fd.append("use_lyrics_ovh", "true");
+    setSearchResults(null);
+    setSelectedSong(null);
+    setLyrics("");
+    addLog?.(`[Lyrics] Searching artist: ${searchQuery}`);
     
     try {
-      const res = await fetch(`${API}/audio/lyrics/search`, {
-        method: "POST",
-        body: fd,
-      });
+      // Use lyrics.ovh search (artist only)
+      const response = await fetch(`https://api.lyrics.ovh/v1/${searchQuery}`);
       
-      const data = await res.json();
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error(`Artist "${searchQuery}" not found`);
+        }
+        throw new Error(`Search failed: HTTP ${response.status}`);
+      }
       
-      if (!res.ok) throw new Error(data.detail || "Search failed");
+      const data = await response.json();
       
-      setLyrics(data.lyrics);
-      setLyricsArtist(data.artist);
-      setLyricsTitle(data.title);
-      setLyricsSource(data.source || "lyrics.ovh");
-      
-      addLog?.(`[Lyrics] Found: ${data.artist} - ${data.title} (${data.lyrics?.length || 0} chars)`);
+      if (data && data.songs && Array.isArray(data.songs)) {
+        setSearchResults({
+          artist: searchQuery,
+          songs: data.songs.slice(0, 50), // Limit to 50 songs
+        });
+        addLog?.(`[Lyrics] Found ${data.songs.length} songs by ${searchQuery}`);
+      } else {
+        throw new Error("No songs found");
+      }
     } catch (err) {
       addLog?.(`[Lyrics] Error: ${err.message}`);
-      alert(`Search failed: ${err.message}\n\nNote: Not all songs have lyrics available.`);
+      alert(`Search failed: ${err.message}\n\nTry a different artist or check spelling.`);
     } finally {
       setSearching(false);
     }
   };
 
-  // Transcribe lyrics from audio (Whisper AI)
+  // Get lyrics for selected song
+  const handleSelectSong = async (songTitle) => {
+    if (!songTitle) return;
+    
+    setLoadingLyrics(true);
+    setSelectedSong(songTitle);
+    setLyrics("");
+    addLog?.(`[Lyrics] Loading: ${searchQuery} - ${songTitle}`);
+    
+    try {
+      const response = await fetch(`https://api.lyrics.ovh/v1/${searchQuery}/${songTitle}`);
+      
+      if (!response.ok) {
+        throw new Error("Lyrics not found");
+      }
+      
+      const data = await response.json();
+      
+      if (data && data.lyrics) {
+        setLyrics(data.lyrics);
+        setLyricsTitle(songTitle);
+        setLyricsArtist(searchQuery);
+        addLog?.(`[Lyrics] Loaded: ${searchQuery} - ${songTitle} (${data.lyrics.length} chars)`);
+      } else {
+        throw new Error("No lyrics available");
+      }
+    } catch (err) {
+      addLog?.(`[Lyrics] Error: ${err.message}`);
+      alert(`Could not load lyrics for "${songTitle}"\n\nThis song may not have lyrics available.`);
+      setSelectedSong(null);
+    } finally {
+      setLoadingLyrics(false);
+    }
+  };
+
+  // Transcribe from audio
   const handleTranscribe = async () => {
     if (!transcribeFile) {
       addLog?.("[Lyrics] Please select an audio file");
@@ -112,14 +141,12 @@ export default function LyricsTab({ addLog }) {
       if (!res.ok) throw new Error(data.detail || "Transcription failed");
       
       setLyrics(data.lyrics);
-      setLyricsTitle(transcribeFile.name);
+      setLyricsTitle(transcribeFile.name.replace(/\.[^/.]+$/, ""));
       setLyricsArtist("Unknown");
-      setLyricsSource("Whisper AI");
-      
       addLog?.(`[Lyrics] Transcribed: ${data.lyrics?.length || 0} characters`);
     } catch (err) {
       addLog?.(`[Lyrics] Error: ${err.message}`);
-      alert(`Transcription failed: ${err.message}\n\nMake sure Whisper is installed: pip install openai-whisper`);
+      alert(`Transcription failed: ${err.message}`);
     } finally {
       setTranscribing(false);
     }
@@ -135,7 +162,6 @@ export default function LyricsTab({ addLog }) {
       artist: lyricsArtist || "Unknown",
       title: lyricsTitle || "Untitled",
       lyrics: lyrics,
-      source: lyricsSource || "Manual",
       created: new Date().toLocaleString(),
     };
     
@@ -153,7 +179,6 @@ export default function LyricsTab({ addLog }) {
     setLyrics(entry.lyrics);
     setLyricsTitle(entry.title);
     setLyricsArtist(entry.artist);
-    setLyricsSource(entry.source || "Library");
     setShowLibrary(false);
     addLog?.(`[Lyrics] Loaded: ${entry.name}`);
   };
@@ -163,28 +188,28 @@ export default function LyricsTab({ addLog }) {
     const updated = lyricsLibrary.filter(item => item.id !== id);
     setLyricsLibrary(updated);
     localStorage.setItem("vocalforge_lyrics_library", JSON.stringify(updated));
-    addLog?.(`[Lyrics] Deleted entry`);
+    addLog?.(`[Lyrics] Deleted`);
   };
 
   // Copy to clipboard
   const copyToClipboard = () => {
     navigator.clipboard.writeText(lyrics);
     addLog?.("[Lyrics] Copied to clipboard");
-    alert("✅ Lyrics copied to clipboard!");
+    alert("✅ Lyrics copied!");
   };
 
   // Use in ACE-Step
   const useInAceStep = () => {
     localStorage.setItem("acestep_lyrics_from_manager", lyrics);
     addLog?.("[Lyrics] Sent to ACE-Step");
-    alert("✅ Lyrics sent to ACE-Step!\n\nGo to ACE-Step tab and check the Lyrics field.");
+    alert("✅ Sent to ACE-Step!");
   };
 
   // Export to file
   const exportToFile = () => {
     if (!lyrics.trim()) return;
     
-    const content = `[${lyricsTitle || "Untitled"}]\nArtist: ${lyricsArtist || "Unknown"}\nSource: ${lyricsSource || "Unknown"}\n\n${lyrics}\n`;
+    const content = `[${lyricsTitle || "Untitled"}]\nArtist: ${lyricsArtist || "Unknown"}\n\n${lyrics}\n`;
     
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -194,24 +219,22 @@ export default function LyricsTab({ addLog }) {
     a.click();
     URL.revokeObjectURL(url);
     
-    addLog?.("[Lyrics] Exported to file");
+    addLog?.("[Lyrics] Exported");
   };
 
-  // Clear lyrics
-  const clearLyrics = () => {
+  // Clear
+  const clearAll = () => {
+    setSearchQuery("");
+    setSearchResults(null);
+    setSelectedSong(null);
     setLyrics("");
     setLyricsTitle("");
     setLyricsArtist("");
-    setLyricsSource("");
     addLog?.("[Lyrics] Cleared");
   };
 
   // Cyberpunk theme
   const cyberpunk = {
-    bg: {
-      primary: "linear-gradient(135deg, #0a0a1a 0%, #0d0d22 50%, #0a0a1a 100%)",
-      card: "linear-gradient(180deg, rgba(13,13,34,0.95) 0%, rgba(8,8,24,0.98) 100%)",
-    },
     neon: {
       purple: { primary: "#9b2de0", glow: "rgba(155,45,224,0.5)" },
       cyan: { primary: "#00e5ff", glow: "rgba(0,229,255,0.5)" },
@@ -219,10 +242,8 @@ export default function LyricsTab({ addLog }) {
       yellow: { primary: "#ffd166", glow: "rgba(255,209,102,0.5)" },
       green: { primary: "#06d6a0", glow: "rgba(6,214,160,0.5)" },
     },
-    text: {
-      primary: "#e0e0ff",
-      secondary: "#8888aa",
-      muted: "#444466",
+    bg: {
+      card: "linear-gradient(180deg, rgba(13,13,34,0.95), rgba(8,8,24,0.98))",
     },
   };
 
@@ -233,7 +254,6 @@ export default function LyricsTab({ addLog }) {
       borderRadius: 16,
       padding: 20,
       marginBottom: 16,
-      backdropFilter: "blur(10px)",
       boxShadow: "0 4px 30px rgba(0,0,0,0.3)",
     },
     label: {
@@ -249,27 +269,42 @@ export default function LyricsTab({ addLog }) {
     input: {
       background: "#0a0a1a",
       border: "1px solid rgba(42,42,74,0.5)",
-      color: cyberpunk.text.primary,
+      color: "#e0e0ff",
       borderRadius: 10,
-      padding: "10px 14px",
-      fontSize: 13,
+      padding: "12px 14px",
+      fontSize: 14,
       width: "100%",
       boxSizing: "border-box",
     },
-    button: (color) => ({
+    btn: (color) => ({
       background: `${color}22`,
       color,
       border: `1px solid ${color}44`,
       borderRadius: 8,
-      padding: "10px 20px",
+      padding: "10px 18px",
       fontSize: 11,
       fontWeight: 800,
       cursor: "pointer",
       letterSpacing: 1,
       textTransform: "uppercase",
-      boxShadow: `0 0 10px ${color}33`,
-      transition: "all 0.3s ease",
+      transition: "all 0.2s ease",
     }),
+    songBtn: {
+      background: "rgba(10,10,26,0.6)",
+      border: "1px solid rgba(42,42,74,0.5)",
+      color: "#8888aa",
+      borderRadius: 8,
+      padding: "10px 14px",
+      fontSize: 12,
+      cursor: "pointer",
+      textAlign: "left",
+      transition: "all 0.2s ease",
+    },
+    songBtnActive: {
+      background: "rgba(155,45,224,0.15)",
+      border: "1px solid #9b2de0",
+      color: "#c77dff",
+    },
   };
 
   return (
@@ -279,14 +314,14 @@ export default function LyricsTab({ addLog }) {
       <div style={{ textAlign: "center", marginBottom: 32 }}>
         <div style={{ 
           fontSize: 48, 
-          marginBottom: 8, 
+          marginBottom: 8,
           filter: `drop-shadow(0 0 20px ${cyberpunk.neon.pink.glow})`,
           animation: "pulse 2s ease-in-out infinite",
         }}>🎤</div>
         <div style={{ 
           fontSize: 28, 
           fontWeight: 900, 
-          color: cyberpunk.text.primary, 
+          color: "#e0e0ff", 
           marginBottom: 6,
           letterSpacing: 3,
           textTransform: "uppercase",
@@ -294,63 +329,151 @@ export default function LyricsTab({ addLog }) {
         }}>
           Lyrics Manager
         </div>
-        <div style={{ color: cyberpunk.text.secondary, fontSize: 13, letterSpacing: 1 }}>
-          SEARCH • TRANSCRIBE • EDIT • SAVE
+        <div style={{ color: "#8888aa", fontSize: 13, letterSpacing: 1 }}>
+          SEARCH ARTIST • SELECT SONG • VIEW LYRICS
         </div>
       </div>
 
-      {/* Search Lyrics (lyrics.ovh - FREE) */}
+      {/* Step 1: Search Artist */}
       <div style={S.card}>
-        <div style={{ marginBottom: 12 }}>
-          <span style={S.label}>🔍 Search Lyrics</span>
-          <div style={{ 
-            marginTop: 8, 
-            padding: 10, 
-            background: "rgba(6,214,160,0.08)", 
-            borderRadius: 8, 
-            border: "1px solid #06d6a033" 
-          }}>
-            <div style={{ color: cyberpunk.neon.green.primary, fontSize: 10, fontWeight: 800, marginBottom: 4 }}>
-              ✅ FREE API - NO TOKEN NEEDED
-            </div>
-            <div style={{ color: cyberpunk.text.muted, fontSize: 9 }}>
-              Powered by lyrics.ovh • Full lyrics • No registration required
-            </div>
-          </div>
-        </div>
-        
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ color: cyberpunk.text.secondary, fontSize: 11, marginBottom: 6, display: "block" }}>
-            🔍 Search (format: Artist - Title)
-          </label>
+        <span style={S.label}>🔍 Step 1: Search Artist</span>
+        <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="e.g., Queen - Bohemian Rhapsody"
-            style={{ ...S.input, fontSize: 13, padding: "12px 14px" }}
+            placeholder="Enter artist name (e.g., Queen, Taylor Swift, Metallica)"
+            style={S.input}
             onKeyPress={(e) => e.key === "Enter" && handleSearch()}
           />
-          <div style={{ color: cyberpunk.text.muted, fontSize: 9, marginTop: 6 }}>
-            💡 Examples: "Taylor Swift - Shake It Off" | "Metallica - Enter Sandman" | "The Beatles - Hey Jude"
+          <button
+            onClick={handleSearch}
+            disabled={searching || !searchQuery.trim()}
+            style={{
+              ...S.btn(cyberpunk.neon.purple.primary),
+              opacity: searching || !searchQuery.trim() ? 0.5 : 1,
+              cursor: searching || !searchQuery.trim() ? "not-allowed" : "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {searching ? "🔍 Searching..." : "🔍 Search"}
+          </button>
+          {searchResults && (
+            <button
+              onClick={clearAll}
+              style={{ ...S.btn("#e63946"), whiteSpace: "nowrap" }}
+            >
+              🗑️ Clear
+            </button>
+          )}
+        </div>
+        <div style={{ 
+          padding: 10, 
+          background: "rgba(6,214,160,0.08)", 
+          borderRadius: 8, 
+          border: "1px solid #06d6a033" 
+        }}>
+          <div style={{ color: "#06d6a0", fontSize: 10, fontWeight: 800, marginBottom: 4 }}>
+            ✅ FREE API - NO TOKEN NEEDED
+          </div>
+          <div style={{ color: "#8888aa", fontSize: 9 }}>
+            Powered by lyrics.ovh • Search artist → Select song → View full lyrics
           </div>
         </div>
-
-        <button
-          onClick={handleSearch}
-          disabled={searching || !searchQuery.trim()}
-          style={{
-            width: "100%",
-            ...S.button(cyberpunk.neon.purple.primary),
-            opacity: searching || !searchQuery.trim() ? 0.5 : 1,
-            cursor: searching || !searchQuery.trim() ? "not-allowed" : "pointer",
-            padding: "14px 0",
-            fontSize: 13,
-          }}
-        >
-          {searching ? "🔍 Searching..." : "🔍 Search Lyrics"}
-        </button>
       </div>
+
+      {/* Step 2: Song List */}
+      {searchResults && (
+        <div style={S.card}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+            <span style={S.label}>🎵 Step 2: Select Song</span>
+            <span style={{ color: "#8888aa", fontSize: 11 }}>
+              {searchResults.songs.length} songs by <strong style={{ color: cyberpunk.neon.purple.primary }}>{searchResults.artist}</strong>
+            </span>
+          </div>
+          
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", 
+            gap: 8,
+            maxHeight: "400px",
+            overflowY: "auto",
+            paddingRight: 8,
+          }}>
+            {searchResults.songs.map((song, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleSelectSong(song.title)}
+                disabled={loadingLyrics}
+                style={{
+                  ...S.songBtn,
+                  ...(selectedSong === song.title ? S.songBtnActive : {}),
+                  opacity: loadingLyrics ? 0.5 : 1,
+                  cursor: loadingLyrics ? "not-allowed" : "pointer",
+                }}
+                onMouseEnter={(e) => {
+                  if (selectedSong !== song.title) {
+                    e.currentTarget.style.background = "rgba(0,229,255,0.08)";
+                    e.currentTarget.style.borderColor = "#00e5ff44";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (selectedSong !== song.title) {
+                    e.currentTarget.style.background = "rgba(10,10,26,0.6)";
+                    e.currentTarget.style.borderColor = "rgba(42,42,74,0.5)";
+                  }
+                }}
+              >
+                <div style={{ color: selectedSong === song.title ? "#c77dff" : "#e0e0ff", fontSize: 12, fontWeight: 700, marginBottom: 4 }}>
+                  🎵 {song.title}
+                </div>
+                {selectedSong === song.title && loadingLyrics && (
+                  <div style={{ color: "#8888aa", fontSize: 10 }}>⏳ Loading lyrics...</div>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Step 3: Display Lyrics */}
+      {lyrics && (
+        <div style={S.card}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+            <span style={S.label}>📝 Lyrics</span>
+            <div style={{ display: "flex", gap: 6 }}>
+              <button onClick={() => setShowSaveInput(true)} style={{ ...S.btn(cyberpunk.neon.yellow.primary), fontSize: 9 }}>💾 Save</button>
+              <button onClick={copyToClipboard} style={{ ...S.btn(cyberpunk.neon.cyan.primary), fontSize: 9 }}>📋 Copy</button>
+              <button onClick={useInAceStep} style={{ ...S.btn(cyberpunk.neon.purple.primary), fontSize: 9 }}>🎵 Use in ACE</button>
+              <button onClick={exportToFile} style={{ ...S.btn(cyberpunk.neon.green.primary), fontSize: 9 }}>📤 Export</button>
+            </div>
+          </div>
+          
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ color: "#e0e0ff", fontSize: 16, fontWeight: 900, marginBottom: 4 }}>
+              🎵 {lyricsTitle}
+            </div>
+            <div style={{ color: "#8888aa", fontSize: 11 }}>
+              🎤 {lyricsArtist} • {lyrics.length.toLocaleString()} characters
+            </div>
+          </div>
+          
+          <textarea
+            value={lyrics}
+            onChange={(e) => setLyrics(e.target.value)}
+            rows={20}
+            style={{
+              ...S.input,
+              resize: "vertical",
+              minHeight: 400,
+              fontFamily: "monospace",
+              lineHeight: 1.6,
+              fontSize: 13,
+              whiteSpace: "pre-wrap",
+            }}
+          />
+        </div>
+      )}
 
       {/* Transcribe from Audio */}
       <div style={S.card}>
@@ -372,35 +495,23 @@ export default function LyricsTab({ addLog }) {
                 gap: 16,
                 padding: 16,
                 background: "rgba(10,10,26,0.6)",
-                border: `2px dashed ${transcribeFile ? cyberpunk.neon.green.primary : "rgba(42,42,74,0.5)"}`,
+                border: `2px dashed ${transcribeFile ? "#06d6a0" : "rgba(42,42,74,0.5)"}`,
                 borderRadius: 12,
                 cursor: "pointer",
                 transition: "all 0.3s ease",
-              }}
-              onMouseEnter={(e) => {
-                if (!transcribeFile) {
-                  e.currentTarget.style.borderColor = cyberpunk.neon.green.primary;
-                  e.currentTarget.style.boxShadow = `0 0 15px ${cyberpunk.neon.green.glow}`;
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!transcribeFile) {
-                  e.currentTarget.style.borderColor = "rgba(42,42,74,0.5)";
-                  e.currentTarget.style.boxShadow = "none";
-                }
               }}
             >
               <span style={{ fontSize: 36 }}>{transcribeFile ? "🎵" : "📂"}</span>
               <div style={{ flex: 1 }}>
                 <div style={{ 
-                  color: transcribeFile ? cyberpunk.neon.green.primary : cyberpunk.text.secondary, 
+                  color: transcribeFile ? "#06d6a0" : "#8888aa", 
                   fontSize: 13, 
                   fontWeight: 700,
                 }}>
-                  {transcribeFile ? `✓ ${transcribeFile.name}` : "Click to upload audio file"}
+                  {transcribeFile ? `✓ ${transcribeFile.name}` : "Upload audio file"}
                 </div>
-                <div style={{ color: cyberpunk.text.muted, fontSize: 10, marginTop: 4 }}>
-                  WAV, MP3, FLAC supported • Whisper AI transcription
+                <div style={{ color: "#444466", fontSize: 10, marginTop: 4 }}>
+                  WAV, MP3, FLAC • Whisper AI transcription
                 </div>
               </div>
             </label>
@@ -409,256 +520,103 @@ export default function LyricsTab({ addLog }) {
             onClick={handleTranscribe}
             disabled={transcribing || !transcribeFile}
             style={{
-              ...S.button(cyberpunk.neon.green.primary),
+              ...S.btn(cyberpunk.neon.green.primary),
               opacity: transcribing || !transcribeFile ? 0.5 : 1,
               cursor: transcribing || !transcribeFile ? "not-allowed" : "pointer",
-              padding: "12px 20px",
-              fontSize: 11,
             }}
           >
-            {transcribing ? "🎤 Transcribing..." : "🎤 Transcribe"}
+            {transcribing ? "⏳ Transcribing..." : "🎤 Transcribe"}
           </button>
         </div>
       </div>
 
-      {/* Lyrics Editor */}
-      <div style={S.card}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <span style={S.label}>📝 Lyrics Editor</span>
-          {lyrics && (
-            <button
-              onClick={clearLyrics}
-              style={{ ...S.button("#e63946"), padding: "6px 12px", fontSize: 9 }}
-            >
-              🗑️ Clear
-            </button>
-          )}
-        </div>
-        
-        <div style={{ marginBottom: 12 }}>
-          <input
-            type="text"
-            value={lyricsTitle}
-            onChange={(e) => setLyricsTitle(e.target.value)}
-            placeholder="Song Title"
-            style={{ ...S.input, marginBottom: 8 }}
-          />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            <input
-              type="text"
-              value={lyricsArtist}
-              onChange={(e) => setLyricsArtist(e.target.value)}
-              placeholder="Artist Name"
-              style={S.input}
-            />
-            <input
-              type="text"
-              value={lyricsSource}
-              onChange={(e) => setLyricsSource(e.target.value)}
-              placeholder="Source (e.g., lyrics.ovh)"
-              style={{ ...S.input, color: cyberpunk.text.muted }}
-              readOnly
-            />
-          </div>
-        </div>
-        
-        <textarea
-          value={lyrics}
-          onChange={(e) => setLyrics(e.target.value)}
-          placeholder="Lyrics will appear here...&#10;&#10;Search for a song or transcribe from audio to see lyrics."
-          rows={16}
-          style={{
-            ...S.input,
-            resize: "vertical",
-            minHeight: 300,
-            fontFamily: "monospace",
-            lineHeight: 1.6,
-            fontSize: 13,
-          }}
-        />
-        
-        {/* Action Buttons */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 8, marginTop: 16 }}>
-          <button
-            onClick={() => setShowSaveInput(true)}
-            disabled={!lyrics.trim()}
-            style={{
-              ...S.button(cyberpunk.neon.yellow.primary),
-              opacity: !lyrics.trim() ? 0.5 : 1,
-              cursor: !lyrics.trim() ? "not-allowed" : "pointer",
-            }}
-          >
-            💾 Save
-          </button>
-          <button
-            onClick={copyToClipboard}
-            disabled={!lyrics.trim()}
-            style={{
-              ...S.button(cyberpunk.neon.cyan.primary),
-              opacity: !lyrics.trim() ? 0.5 : 1,
-              cursor: !lyrics.trim() ? "not-allowed" : "pointer",
-            }}
-          >
-            📋 Copy
-          </button>
-          <button
-            onClick={useInAceStep}
-            disabled={!lyrics.trim()}
-            style={{
-              ...S.button(cyberpunk.neon.purple.primary),
-              opacity: !lyrics.trim() ? 0.5 : 1,
-              cursor: !lyrics.trim() ? "not-allowed" : "pointer",
-            }}
-          >
-            🎵 Use in ACE
-          </button>
-          <button
-            onClick={exportToFile}
-            disabled={!lyrics.trim()}
-            style={{
-              ...S.button(cyberpunk.neon.green.primary),
-              opacity: !lyrics.trim() ? 0.5 : 1,
-              cursor: !lyrics.trim() ? "not-allowed" : "pointer",
-            }}
-          >
-            📤 Export
-          </button>
-          <button
-            onClick={() => setShowLibrary(!showLibrary)}
-            style={S.button(cyberpunk.neon.pink.primary)}
-          >
-            📚 Library ({lyricsLibrary.length})
-          </button>
-        </div>
-      </div>
-
-      {/* Save Input Modal */}
-      {showSaveInput && (
+      {/* Library Modal */}
+      {showLibrary && (
         <div style={{
           position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
+          top: 0, left: 0, right: 0, bottom: 0,
           background: "rgba(0,0,0,0.8)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           zIndex: 1000,
-        }}
-        onClick={() => setShowSaveInput(false)}
-        >
-          <div
-            style={{ ...S.card, width: "min(400px, 90%)" }}
-            onClick={(e) => e.stopPropagation()}
-          >
+        }} onClick={() => setShowLibrary(false)}>
+          <div style={{ ...S.card, width: "min(500px, 90%)", maxHeight: "80vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <span style={S.label}>📚 Saved Lyrics ({lyricsLibrary.length})</span>
+              <button onClick={() => setShowLibrary(false)} style={{ ...S.btn("#e63946"), padding: "6px 12px", fontSize: 10 }}>✕ Close</button>
+            </div>
+            {lyricsLibrary.length === 0 ? (
+              <div style={{ color: "#8888aa", fontSize: 13, textAlign: "center", padding: 30 }}>
+                📭 No saved lyrics yet
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {lyricsLibrary.map((entry) => (
+                  <div key={entry.id} style={{ background: "rgba(10,10,26,0.6)", border: "1px solid rgba(42,42,74,0.5)", borderRadius: 8, padding: 12 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                      <div>
+                        <div style={{ color: "#e0e0ff", fontSize: 12, fontWeight: 700 }}>{entry.title}</div>
+                        <div style={{ color: "#8888aa", fontSize: 10 }}>{entry.artist} • {entry.created}</div>
+                      </div>
+                      <div style={{ display: "flex", gap: 4 }}>
+                        <button onClick={() => loadFromLibrary(entry)} style={{ ...S.btn(cyberpunk.neon.cyan.primary), padding: "4px 8px", fontSize: 9 }}>📂 Load</button>
+                        <button onClick={() => deleteFromLibrary(entry.id)} style={{ ...S.btn("#e63946"), padding: "4px 8px", fontSize: 9 }}>🗑️</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Save Modal */}
+      {showSaveInput && (
+        <div style={{
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0,0,0,0.8)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000,
+        }} onClick={() => setShowSaveInput(false)}>
+          <div style={{ ...S.card, width: "min(400px, 90%)" }} onClick={(e) => e.stopPropagation()}>
             <span style={S.label}>💾 Save to Library</span>
             <input
               type="text"
               value={saveName}
               onChange={(e) => setSaveName(e.target.value)}
-              placeholder="Enter a name for this lyrics"
+              placeholder="Enter a name"
               style={{ ...S.input, marginBottom: 12 }}
               autoFocus
             />
             <div style={{ display: "flex", gap: 8 }}>
-              <button
-                onClick={saveToLibrary}
-                disabled={!saveName.trim()}
-                style={{
-                  ...S.button(cyberpunk.neon.yellow.primary),
-                  flex: 1,
-                  opacity: !saveName.trim() ? 0.5 : 1,
-                }}
-              >
-                💾 Save
-              </button>
-              <button
-                onClick={() => setShowSaveInput(false)}
-                style={{ ...S.button("#e63946"), flex: 1 }}
-              >
-                ❌ Cancel
-              </button>
+              <button onClick={saveToLibrary} disabled={!saveName.trim()} style={{ ...S.btn(cyberpunk.neon.yellow.primary), flex: 1, opacity: !saveName.trim() ? 0.5 : 1 }}>💾 Save</button>
+              <button onClick={() => setShowSaveInput(false)} style={{ ...S.btn("#e63946"), flex: 1 }}>❌ Cancel</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Library Panel */}
-      {showLibrary && (
-        <div style={S.card}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <span style={S.label}>📚 Saved Lyrics Library</span>
-            <button
-              onClick={() => setShowLibrary(false)}
-              style={{ ...S.button("#e63946"), padding: "6px 12px", fontSize: 10 }}
-            >
-              ✕ Close
-            </button>
-          </div>
-          {lyricsLibrary.length === 0 ? (
-            <div style={{ color: cyberpunk.text.muted, fontSize: 13, textAlign: "center", padding: 30 }}>
-              📭 No saved lyrics yet.<br/>Search for a song and click "💾 Save" to add it to your library!
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 400, overflowY: "auto" }}>
-              {lyricsLibrary.map((entry) => (
-                <div
-                  key={entry.id}
-                  style={{
-                    background: "rgba(10,10,26,0.6)",
-                    border: "1px solid rgba(42,42,74,0.5)",
-                    borderRadius: 8,
-                    padding: 12,
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                    <div>
-                      <div style={{ color: cyberpunk.text.primary, fontSize: 12, fontWeight: 700 }}>
-                        {entry.title}
-                      </div>
-                      <div style={{ color: cyberpunk.text.muted, fontSize: 10 }}>
-                        {entry.artist} • {entry.source || "Unknown"} • {entry.created}
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", gap: 4 }}>
-                      <button
-                        onClick={() => loadFromLibrary(entry)}
-                        style={{
-                          ...S.button(cyberpunk.neon.cyan.primary),
-                          padding: "4px 8px",
-                          fontSize: 9,
-                        }}
-                      >
-                        📂 Load
-                      </button>
-                      <button
-                        onClick={() => deleteFromLibrary(entry.id)}
-                        style={{
-                          ...S.button("#e63946"),
-                          padding: "4px 8px",
-                          fontSize: 9,
-                        }}
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  </div>
-                  <div style={{
-                    color: cyberpunk.text.muted,
-                    fontSize: 10,
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}>
-                    {entry.lyrics?.slice(0, 80)}...
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      {/* Library Button (fixed bottom-right) */}
+      <button
+        onClick={() => setShowLibrary(!showLibrary)}
+        style={{
+          position: "fixed",
+          bottom: 24,
+          right: 24,
+          ...S.btn(cyberpunk.neon.pink.primary),
+          padding: "14px 20px",
+          fontSize: 12,
+          boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+          zIndex: 100,
+        }}
+      >
+        📚 Library ({lyricsLibrary.length})
+      </button>
 
       {/* Global Styles */}
       <style>{`
@@ -666,6 +624,10 @@ export default function LyricsTab({ addLog }) {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.8; transform: scale(1.05); }
         }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a1a; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #2a2a4a; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3a3a5a; }
       `}</style>
     </div>
   );
