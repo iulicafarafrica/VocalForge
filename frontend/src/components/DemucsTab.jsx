@@ -109,13 +109,7 @@ export default function DemucsTab({ addLog, tracks, setTracks }) {
     const timers = steps.map(s => setTimeout(() => { setProgress(s.pct); setProgressLabel(s.label); }, s.delay));
 
     try {
-      const res = await fetch(`${API}/demucs_separate`, { 
-        method: "POST", 
-        body: fd,
-        headers: {
-          "Authorization": `Bearer ${import.meta.env.VITE_API_TOKEN || "dev-token"}`,
-        },
-      });
+      const res = await fetch(`${API}/demucs_separate`, { method: "POST", body: fd });
       timers.forEach(clearTimeout);
       const data = await res.json();
       if (data.error) throw new Error(data.error);

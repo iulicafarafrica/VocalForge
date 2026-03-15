@@ -178,8 +178,7 @@ def _suppress_connection_reset(loop, context):
         return
     loop.default_exception_handler(context)
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request, Depends, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request, status
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -215,22 +214,6 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization"],
     allow_credentials=True,
 )
-
-# ── Security: Authentication ──────────────────────────────────────────────────
-# Bearer token authentication for API endpoints
-security = HTTPBearer()
-
-# API Token from environment variable (with fallback for development)
-API_TOKEN = os.getenv("VOCALFORGE_API_TOKEN", "dev-token-change-in-production")
-
-async def verify_auth(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Verify Bearer token authentication."""
-    if credentials.credentials != API_TOKEN:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication token"
-        )
-    return credentials.credentials
 
 # Include Audio Analysis router (BPM, Key, Chords detection)
 from endpoints.audio_analysis import router as audio_analysis_router
@@ -622,7 +605,6 @@ async def process_cover(
     instrumental_gain: float = Form(1.0),
     pad_seconds: float = Form(0.5),
     clip_seconds: float = Form(0.0),
-    auth: str = Depends(verify_auth),  # 🔒 Authentication required
 ):
     """
     Full cover pipeline with job tracking:
@@ -856,7 +838,6 @@ async def upload_model(
     pth_file: UploadFile = File(...),
     config_file: UploadFile = File(...),
     name: str = Form(""),
-    auth: str = Depends(verify_auth),  # 🔒 Authentication required
 ):
     """
     Upload a so-vits-svc model (.pth) + config.json.
@@ -919,7 +900,7 @@ def list_models():
 
 
 @app.delete("/delete_model/{model_id}")
-def delete_model(model_id: str, auth: str = Depends(verify_auth)):  # 🔒 Authentication required
+def delete_model(model_id: str):
     """Delete a model by ID."""
     model_dir = os.path.join(MODELS_DIR, model_id)
     if not os.path.isdir(model_dir):
@@ -1120,7 +1101,6 @@ async def demucs_separate(
     file: UploadFile = File(...),
     model: str = Form("htdemucs_ft"),
     mode: str = Form("stems"),  # "stems" | "vocals_only" | "instrumental_only"
-    auth: str = Depends(verify_auth),  # 🔒 Authentication required
 ):
     """
     Separate audio into stems using Demucs.
@@ -1348,7 +1328,7 @@ def clear_cache():
 
 
 @app.get("/clean_temp_files")
-async def clean_temp_files(auth: str = Depends(verify_auth)):  # 🔒 Authentication required
+async def clean_temp_files():
     """Clean temporary output files from ACE-Step and backend."""
     import shutil
     import asyncio
@@ -1410,7 +1390,7 @@ async def clean_temp_files(auth: str = Depends(verify_auth)):  # 🔒 Authentica
 
 
 @app.get("/unload_models")
-def unload_all_models(auth: str = Depends(verify_auth)):  # 🔒 Authentication required
+def unload_all_models():
     for svc in _svc_cache.values():
         try:
             svc.unload()

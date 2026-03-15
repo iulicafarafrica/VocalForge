@@ -105,13 +105,7 @@ export default function PipelineTab() {
     form.append('enable_stage4', enableStage4);
 
     try {
-      const res = await fetch(`${API}/pipeline/run`, { 
-        method: 'POST', 
-        body: form,
-        headers: {
-          "Authorization": `Bearer ${import.meta.env.VITE_API_TOKEN || "dev-token"}`,
-        },
-      });
+      const res = await fetch(`${API}/pipeline/run`, { method: 'POST', body: form });
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
       setJobId(data.job_id);
