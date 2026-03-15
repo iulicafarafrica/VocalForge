@@ -412,50 +412,107 @@ async def test_genius_connection(access_token: str = Form(...)):
 
 
 @router.post("/lyrics/search")
-async def search_lyrics(artist: str = Form(...), title: str = Form(...)):
-    """Search lyrics using Genius API."""
-    if not GENIUS_ACCESS_TOKEN:
-        raise HTTPException(status_code=500, detail="Genius API token not configured")
+async def search_lyrics(
+    artist: str = Form(...),
+    title: str = Form(...),
+    access_token: str = Form(None),
+    use_lyrics_ovh: bool = Form(False)
+):
+    """Search lyrics using Genius API or lyrics.ovh."""
     
+    # Option 1: Use lyrics.ovh (free, no token needed, returns full lyrics)
+    if use_lyrics_ovh:
+        try:
+            print(f"[lyrics.ovh] Searching: {artist} - {title}")
+            lyrics_ovh_url = f"https://api.lyrics.ovh/v1/{artist}/{title}"
+            response = requests.get(lyrics_ovh_url, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                lyrics = data.get("lyrics", "Lyrics not found")
+                
+                if lyrics and len(lyrics.strip()) > 10:
+                    print(f"[lyrics.ovh] Found lyrics: {len(lyrics)} chars")
+                    return {
+                        "status": "success",
+                        "artist": artist,
+                        "title": title,
+                        "lyrics": lyrics,
+                        "source": "lyrics.ovh",
+                        "note": "Lyrics provided by lyrics.ovh"
+                    }
+            
+            print(f"[lyrics.ovh] Not found: HTTP {response.status_code}")
+        except Exception as e:
+            print(f"[lyrics.ovh] Error: {str(e)}")
+    
+    # Option 2: Use Genius API (requires token, returns metadata + link)
+    genius_token = access_token or GENIUS_ACCESS_TOKEN
+    
+    if not genius_token:
+        raise HTTPException(status_code=500, detail="Genius API token not configured")
+
     try:
         # Step 1: Search for song
         search_url = "https://api.genius.com/search"
-        headers = {"Authorization": f"Bearer {GENIUS_ACCESS_TOKEN}"}
+        headers = {"Authorization": f"Bearer {genius_token}"}
         params = {"q": f"{artist} {title}"}
-        
+
+        print(f"[Genius Search] Searching: {artist} - {title}")
         response = requests.get(search_url, headers=headers, params=params)
-        response.raise_for_status()
+        print(f"[Genius Search] Status: {response.status_code}")
+        
+        if response.status_code != 200:
+            raise HTTPException(status_code=500, detail=f"Genius API error: HTTP {response.status_code}")
+            
         search_data = response.json()
-        
+        print(f"[Genius Search] Response: {search_data}")
+
         if not search_data.get("response", {}).get("hits"):
-            raise HTTPException(status_code=404, detail="Song not found on Genius")
-        
+            raise HTTPException(status_code=404, detail=f"Song not found on Genius. Search query: '{artist} {title}'")
+
         # Get first result
         song = search_data["response"]["hits"][0]["result"]
-        song_url = song["url"]
-        song_id = song["id"]
+        song_url = song.get("url", "N/A")
+        song_id = song.get("id")
+        song_title = song.get("title", "Unknown")
+        artist_name = song.get("primary_artist", {}).get("name", "Unknown")
         
+        print(f"[Genius Search] Found: {artist_name} - {song_title}")
+
         # Step 2: Get lyrics from song page
         lyrics_url = f"https://api.genius.com/songs/{song_id}"
         lyrics_response = requests.get(lyrics_url, headers=headers)
-        lyrics_response.raise_for_status()
         lyrics_data = lyrics_response.json()
-        
+
         lyrics = lyrics_data["response"]["song"].get("lyrics", "Lyrics not available")
         
-        # Clean up lyrics (remove [Verse], [Chorus] markers if needed)
+        # Check if lyrics is actually available (sometimes it's null)
+        if not lyrics or lyrics == "Lyrics not available":
+            return {
+                "status": "success",
+                "artist": artist_name,
+                "title": song_title,
+                "lyrics": f"[Verse 1]\n(Lyrics available on Genius - visit the link below)\n\n🔗 View on Genius: {song_url}",
+                "genius_url": song_url,
+                "song_id": song_id,
+                "note": "Full lyrics available on Genius website"
+            }
+
         return {
             "status": "success",
-            "artist": artist,
-            "title": title,
+            "artist": artist_name,
+            "title": song_title,
             "lyrics": lyrics,
             "genius_url": song_url,
             "song_id": song_id
         }
-        
+
     except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=500, detail=f"Genius API error: {str(e)}")
+        print(f"[Genius Search] Request error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Genius API connection error: {str(e)}")
     except Exception as e:
+        print(f"[Genius Search] Error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Lyrics search failed: {str(e)}")
 
 

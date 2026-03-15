@@ -112,22 +112,13 @@ export default function LyricsTab({ addLog }) {
     }
   };
 
-  // Search lyrics via Genius API
+  // Search lyrics via Genius API or lyrics.ovh
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       addLog?.("[Lyrics] Please enter artist and title");
       alert("Please enter search in format: Artist - Title");
       return;
     }
-    
-    if (!geniusAccessToken.trim()) {
-      addLog?.("[Lyrics] Please configure Genius API credentials");
-      alert("Please configure Genius API credentials first. Click '🔑 API Config' button.");
-      return;
-    }
-    
-    // Auto-save credentials
-    saveGeniusCredentials();
     
     // Parse "Artist - Title" format
     const parts = searchQuery.split(/[-–—]/);
@@ -140,13 +131,17 @@ export default function LyricsTab({ addLog }) {
       return;
     }
     
+    // Auto-save credentials
+    if (geniusAccessToken) saveGeniusCredentials();
+    
     setSearching(true);
     addLog?.(`[Lyrics] Searching: ${artist} - ${title}`);
     
     const fd = new FormData();
     fd.append("artist", artist);
     fd.append("title", title);
-    fd.append("access_token", geniusAccessToken);
+    fd.append("access_token", geniusAccessToken || "");
+    fd.append("use_lyrics_ovh", "true"); // Try lyrics.ovh first (free, full lyrics)
     
     try {
       const res = await fetch(`${API}/audio/lyrics/search`, {
@@ -161,7 +156,13 @@ export default function LyricsTab({ addLog }) {
       setLyrics(data.lyrics);
       setLyricsArtist(data.artist);
       setLyricsTitle(data.title);
-      addLog?.(`[Lyrics] Found: ${data.artist} - ${data.title}`);
+      
+      const source = data.source || "Genius";
+      addLog?.(`[Lyrics] Found: ${data.artist} - ${data.title} (via ${source})`);
+      
+      if (data.note) {
+        addLog?.(`[Lyrics] Note: ${data.note}`);
+      }
     } catch (err) {
       addLog?.(`[Lyrics] Error: ${err.message}`);
       alert(`Search failed: ${err.message}`);
@@ -488,8 +489,19 @@ ${lyrics}
             style={{ ...S.input, fontSize: 13, padding: "12px 14px" }}
             onKeyPress={(e) => e.key === "Enter" && handleSearch()}
           />
-          <div style={{ color: cyberpunk.text.muted, fontSize: 9, marginTop: 6 }}>
-            💡 Example: "Taylor Swift - Shake It Off" or "Metallica - Enter Sandman"
+          <div style={{ 
+            marginTop: 8, 
+            padding: 8, 
+            background: "rgba(6,214,160,0.08)", 
+            borderRadius: 6, 
+            border: "1px solid #06d6a033" 
+          }}>
+            <div style={{ color: cyberpunk.neon.green.primary, fontSize: 9, fontWeight: 700, marginBottom: 4 }}>
+              ✅ Using lyrics.ovh (Free API - Full Lyrics)
+            </div>
+            <div style={{ color: cyberpunk.text.muted, fontSize: 9 }}>
+              💡 No Genius token needed! Just enter: Artist - Title
+            </div>
           </div>
         </div>
 
