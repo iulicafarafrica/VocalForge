@@ -582,7 +582,7 @@ function PresetManager({
       display: "flex", alignItems: "center", justifyContent: "space-between",
     },
     tab: (active, color) => ({
-      flex: 1, padding: "8px 0", borderRadius: 8, fontSize: 12, fontWeight: 700,
+      flex: 1, padding: "6px 0", borderRadius: 8, fontSize: 11, fontWeight: 700,
       background: active ? color + "22" : "#0a0a1a",
       border: `1px solid ${active ? color : "#2a2a4a"}`,
       color: active ? color : "#444466", cursor: "pointer",
@@ -865,7 +865,7 @@ export default function AceStepTab({
   const [customReferenceAudio, setCustomReferenceAudio] = useState(null);
   const [customReferenceUrl, setCustomReferenceUrl] = useState(null);
   const [customRefStrength, setCustomRefStrength] = useState(0.7); // 0.0-1.0
-  const [customTags, setCustomTags] = useState("");
+  const [customTextures, setCustomTextures] = useState("");
   const [detectingCustom, setDetectingCustom] = useState(false);
   const [customBpm, setCustomBpm] = useState(null);
   const [customKey, setCustomKey] = useState(null);
@@ -924,8 +924,8 @@ export default function AceStepTab({
       background: cyberpunk.gradients.card, 
       border: `1px solid ${cyberpunk.colors.neon.purple.primary}22`, 
       borderRadius: 16, 
-      padding: "20px 24px", 
-      marginBottom: 20,
+      padding: "16px 20px", 
+      marginBottom: 14,
       boxShadow: `0 0 20px ${cyberpunk.colors.neon.purple.glow}11`,
     },
     label: { 
@@ -1124,12 +1124,15 @@ export default function AceStepTab({
     { category: "Identity", label: "Female", tags: "female voice", desc: "Defines the base frequency spectrum (baritone vs. soprano)." },
     { category: "Identity", label: "Male", tags: "male voice", desc: "Defines the base frequency spectrum (baritone vs. soprano)." },
     { category: "Identity", label: "Duet", tags: "male and female duet, vocal harmony interplay", desc: "Both male and female voices in harmony; call-and-response or layered duet." },
+    { category: "Identity", label: "Group Chorus", tags: "vocal ensemble, group chorus", desc: "Creates a group of voices (perfect for Afro/Tribal hooks)." },
     // Quality
     { category: "Quality", label: "Studio Clean", tags: "studio-clean, silent background", desc: "Eliminates background noise; clear studio voice." },
     { category: "Quality", label: "High Fidelity", tags: "high-fidelity, 48kHz", desc: "Increases high-frequency clarity; maximum detail." },
     { category: "Quality", label: "No Artifacts", tags: "no digital artifacts", desc: "Eliminates metallic/robotic sounds; natural sound." },
+    { category: "Quality", label: "Digital Clean", tags: "zero-noise-floor, ultra-transparent-mix, silky-smooth-highs, pure-digital-mastering, noise-gate-processing", desc: "Pristine digital production; ultra-clean modern sound." },
+    { category: "Quality", label: "No AI Voice", tags: "natural-vocal-inflection, organic-vocal-resonance, unprocessed-vocal-feel, authentic-human-delivery, emotive-voice-cracks, soft-breathing-artifacts, analog-vocal-warmth", desc: "Human-like vocals with natural imperfections; removes AI robotic sound." },
     // Performance
-    { category: "Performance", label: "Master-Class", tags: "master-class vocals, expressive, balanced", desc: "Professional compression; voice like in an expensive recording." },
+    { category: "Performance", label: "Master-Class", tags: "master-class vocals, authentic-human-inflection, soft-breathing-artifacts, organic-vocal-resonance", desc: "Professional vocals with natural human imperfections; warm and authentic delivery." },
     { category: "Performance", label: "Expressive", tags: "expressive, balanced", desc: "Balanced mix between voice and instruments; pure emotion." },
   ];
 
@@ -1154,23 +1157,24 @@ export default function AceStepTab({
     { category: "Grand-Reverb", label: "Ethereal", tags: "ethereal-hall-reverb, cavernous-space, long-vocal-tail", desc: "For dramatic pieces, where the voice needs to float in an immense space." },
     { category: "Dynamic-Grit", label: "Saturate", tags: "saturate-vocal-harmonic, grit-edge, tube-preamp-warmth", desc: "Adds that 'warm dirt' (like vinyl records) that eliminates the 'too digital' sound." },
     { category: "Wide-Stereo", label: "Wide", tags: "stereo-width-expansion, double-tracked-vocal, immersive-pan", desc: "Makes the voice sound 'bigger' than life, filling the entire sound field." },
+    { category: "Thick & Human", label: "Thick & Human", tags: "deep-chest-resonance, sub-harmonic-vocal-depth, unprocessed-vocal-grain, authentic-speech-cadence, tube-preamp-saturation", desc: "Thick, warm, human vocal character with analog warmth." },
   ];
 
-  // State for selected tag from dropdown
-  const [selectedTag, setSelectedTag] = useState("");
-  const [tagDescription, setTagDescription] = useState("");
+  // State for selected texture from dropdown
+  const [selectedTexture, setSelectedTexture] = useState("");
+  const [textureDescription, setTextureDescription] = useState("");
 
-  // Function to inject tags into prompt
-  const injectPrompt = useCallback((tags) => {
-    console.log('[Prompt Helper] Injecting tags:', tags);
+  // Function to inject texture into prompt
+  const injectPrompt = useCallback((texture) => {
+    console.log('[Prompt Helper] Injecting texture:', texture);
     setPrompt(prev => {
       const currentPrompt = (prev || '').trim();
       if (!currentPrompt) {
-        console.log('[Prompt Helper] Setting new prompt:', tags);
-        return tags;
+        console.log('[Prompt Helper] Setting new prompt:', texture);
+        return texture;
       } else {
         const separator = currentPrompt.endsWith(',') ? ' ' : ', ';
-        const newPrompt = currentPrompt + separator + tags;
+        const newPrompt = currentPrompt + separator + texture;
         console.log('[Prompt Helper] Appending to prompt:', newPrompt);
         return newPrompt;
       }
@@ -1625,7 +1629,7 @@ export default function AceStepTab({
     // Custom mode validation
     if (taskType === "custom") {
       if (!customReferenceAudio) { addLog("[ERR] Upload reference audio for Custom mode"); return; }
-      if (!customTags.trim() && !prompt.trim()) { addLog("[ERR] Enter tags or prompt for Custom mode"); return; }
+      if (!customTextures.trim() && !prompt.trim()) { addLog("[ERR] Enter tags or prompt for Custom mode"); return; }
     }
 
     // ── OPTIMIZATIONS FOR CUSTOM MODE ──────────────────────────────────────
@@ -1709,10 +1713,10 @@ export default function AceStepTab({
       fd.append("mode", "custom");
       fd.append("source_audio", customReferenceAudio);  // Use source_audio (same as audio2audio)
       fd.append("ref_audio_strength", customRefStrength);
-      if (customTags) {
-        // tags param doesn't exist in ACE-Step API - merge into prompt
+      if (customTextures) {
+        // texture param doesn't exist in ACE-Step API - merge into prompt
         const currentPrompt = fd.get("prompt") || "";
-        fd.set("prompt", customTags + (currentPrompt ? ", " + currentPrompt : ""));
+        fd.set("prompt", customTextures + (currentPrompt ? ", " + currentPrompt : ""));
       }
       // Auto-detect BPM/Key from reference and send if available
       if (customBpm && customBpm > 0) {
@@ -1830,9 +1834,13 @@ export default function AceStepTab({
     setCleanResult(null);
 
     try {
-      const res = await fetch(`${API}/clean_temp_files`);
+      const res = await fetch(`${API}/clean_temp_files`, {
+        headers: {
+          "Authorization": `Bearer ${import.meta.env.VITE_API_TOKEN || "dev-token"}`,
+        },
+      });
       const data = await res.json();
-      
+
       if (data.status === "ok") {
         setCleanResult(data);
         addLog(`🧹 Cleaned ${data.total_cleaned} temp files`);
@@ -1970,7 +1978,7 @@ export default function AceStepTab({
             display: "inline-flex", alignItems: "center", gap: 8,
             background: aceOnline === true ? cyberpunk.colors.neon.green.bg : aceOnline === false ? cyberpunk.colors.neon.red.bg : cyberpunk.colors.neon.yellow.bg,
             border: `1px solid ${aceOnline === true ? cyberpunk.colors.neon.green.primary : aceOnline === false ? cyberpunk.colors.neon.red.primary : cyberpunk.colors.neon.yellow.primary}44`,
-            borderRadius: 24, padding: "8px 16px", fontSize: 12,
+            borderRadius: 24, padding: "6px 12px", fontSize: 10,
             boxShadow: `0 0 20px ${aceOnline === true ? cyberpunk.colors.neon.green.glow : aceOnline === false ? cyberpunk.colors.neon.red.glow : cyberpunk.colors.neon.yellow.glow}22`,
           }}>
             <div style={{
@@ -1979,36 +1987,36 @@ export default function AceStepTab({
               boxShadow: `0 0 15px ${aceOnline === true ? cyberpunk.colors.neon.green.glow : aceOnline === false ? cyberpunk.colors.neon.red.glow : cyberpunk.colors.neon.yellow.glow}`,
               animation: aceOnline === null ? "pulse 1s infinite" : "none",
             }} />
-            <span style={{ color: aceOnline === true ? cyberpunk.colors.neon.green.primary : aceOnline === false ? cyberpunk.colors.neon.red.primary : cyberpunk.colors.neon.yellow.primary, fontWeight: 700, letterSpacing: 1 }}>
+            <span style={{ color: aceOnline === true ? cyberpunk.colors.neon.green.primary : aceOnline === false ? cyberpunk.colors.neon.red.primary : cyberpunk.colors.neon.yellow.primary, fontWeight: 700, letterSpacing: 0.5, fontSize: 10 }}>
               {aceOnline === null ? "Checking..." : aceOnline ? "ACE-STEP ONLINE" : "ACE-STEP OFFLINE"}
             </span>
           </div>
-          <button onClick={checkHealth} style={{ 
-            background: cyberpunk.colors.bg.secondary, 
-            border: `1px solid ${cyberpunk.colors.neon.purple.primary}33`, 
-            color: cyberpunk.colors.neon.cyan.primary, 
-            borderRadius: 10, 
-            padding: "8px 16px", 
-            fontSize: 11, 
+          <button onClick={checkHealth} style={{
+            background: cyberpunk.colors.bg.secondary,
+            border: `1px solid ${cyberpunk.colors.neon.purple.primary}33`,
+            color: cyberpunk.colors.neon.cyan.primary,
+            borderRadius: 10,
+            padding: "6px 12px",
+            fontSize: 10,
             cursor: "pointer",
             fontWeight: 700,
-            letterSpacing: 1,
+            letterSpacing: 0.5,
           }}>↻ REFRESH</button>
           <button
             onClick={() => setShowPresets(true)}
             style={{
-              background: cyberpunk.colors.neon.yellow.bg, 
+              background: cyberpunk.colors.neon.yellow.bg,
               border: `1px solid ${cyberpunk.colors.neon.yellow.primary}44`,
-              color: cyberpunk.colors.neon.yellow.primary, 
-              borderRadius: 10, 
-              padding: "8px 16px",
-              fontSize: 11, 
-              cursor: "pointer", 
+              color: cyberpunk.colors.neon.yellow.primary,
+              borderRadius: 10,
+              padding: "6px 12px",
+              fontSize: 10,
+              cursor: "pointer",
               fontWeight: 700,
-              display: "flex", 
-              alignItems: "center", 
+              display: "flex",
+              alignItems: "center",
               gap: 6,
-              letterSpacing: 1,
+              letterSpacing: 0.5,
             }}
           >
             💾 PRESETS
@@ -2035,7 +2043,7 @@ export default function AceStepTab({
       <div style={{ 
         display: "grid", 
         gridTemplateColumns: "repeat(4, 1fr)", 
-        gap: 24,
+        gap: 14,
         position: "relative",
         zIndex: 1,
       }}>
@@ -2045,7 +2053,7 @@ export default function AceStepTab({
 
           {/* ── Task Type: text2music vs audio2audio vs custom ── */}
           <div style={{ ...S.card, marginBottom: 8 }}>
-            <span style={{ ...S.label, fontSize: 13, marginBottom: 12 }}>🎯 Task Type</span>
+            <span style={{ ...S.label, fontSize: 10, marginBottom: 12 }}>🎯 Task Type</span>
             <div style={{ display: "flex", gap: 8, marginBottom: (taskType === "audio2audio" || taskType === "custom") ? 12 : 0 }}>
               {[
                 { id: "text2music", icon: "✍️", label: "Text → Music" },
@@ -2218,10 +2226,10 @@ export default function AceStepTab({
                   </div>
                 )}
 
-                {/* Tags input */}
+                {/* Texture input */}
                 <div style={{ marginBottom: 12 }}>
-                  <label style={{ color: "#8888aa", fontSize: 12, display: "block", marginBottom: 4 }}>🏷️ Genre/Style Tags</label>
-                  <input type="text" value={customTags} onChange={e => setCustomTags(e.target.value)}
+                  <label style={{ color: "#8888aa", fontSize: 12, display: "block", marginBottom: 4 }}>🏷️ Genre/Style Texture</label>
+                  <input type="text" value={customTextures} onChange={e => setCustomTextures(e.target.value)}
                     placeholder="e.g., hip-hop, trap, 140bpm, minor key, aggressive"
                     style={{
                       width: "100%", padding: "10px", borderRadius: 8, border: "1px solid #2a2a4a",
@@ -2355,17 +2363,17 @@ export default function AceStepTab({
               </div>
             </div>
 
-            {/* Tags Dropdown */}
+            {/* Texture Dropdown */}
             <div style={{ marginBottom: 8 }}>
               <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                <div style={{ color: "#8888aa", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>Tags</div>
+                <div style={{ color: "#8888aa", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>Texture</div>
                 <select
-                  value={selectedTag}
+                  value={selectedTexture}
                   onChange={(e) => {
-                    setSelectedTag(e.target.value);
+                    setSelectedTexture(e.target.value);
                     const selected = TAGS_DROPDOWN.find(t => t.label === e.target.value);
                     if (selected) {
-                      setTagDescription(selected.desc);
+                      setTextureDescription(selected.desc);
                     }
                   }}
                   style={{
@@ -2374,7 +2382,7 @@ export default function AceStepTab({
                     cursor: "pointer", outline: "none", maxWidth: 220,
                   }}
                 >
-                  <option value="">Select a tag...</option>
+                  <option value="">Select texture...</option>
                   {TAGS_DROPDOWN.map(t => (
                     <option key={t.label} value={t.label}>{t.label} ({t.category})</option>
                   ))}
@@ -2382,17 +2390,17 @@ export default function AceStepTab({
               </div>
             </div>
 
-            {/* Selected tag description + Inject button */}
-            {tagDescription && (
+            {/* Selected texture description + Inject button */}
+            {textureDescription && (
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, padding: "10px 13px", background: "#0a0a1a", borderRadius: 4, border: "1px solid #1a1a2e" }}>
-                <span style={{ color: "#6666aa", fontSize: 13, fontStyle: "italic", flex: 1 }}>{tagDescription}</span>
+                <span style={{ color: "#6666aa", fontSize: 13, fontStyle: "italic", flex: 1 }}>{textureDescription}</span>
                 <button
                   onClick={() => {
-                    const selected = TAGS_DROPDOWN.find(t => t.label === selectedTag);
+                    const selected = TAGS_DROPDOWN.find(t => t.label === selectedTexture);
                     if (selected) {
                       injectPrompt(selected.tags);
-                      setSelectedTag("");
-                      setTagDescription("");
+                      setSelectedTexture("");
+                      setTextureDescription("");
                     }
                   }}
                   style={{
@@ -2420,7 +2428,7 @@ export default function AceStepTab({
           {/* 📝 Lyrics + Vocal Language */}
           <div style={{ ...S.card, marginBottom: 8 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <span style={{ ...S.label, fontSize: 13, marginBottom: 0 }}>📝 Lyrics (Optional)</span>
+              <span style={{ ...S.label, fontSize: 10, marginBottom: 0 }}>📝 Lyrics (Optional)</span>
               <span style={{ color: "#333355", fontSize: 11, fontFamily: "monospace" }}>{wordCount} words</span>
             </div>
 
@@ -2484,8 +2492,8 @@ export default function AceStepTab({
             <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
               <button onClick={() => setLyrics("")} style={{ background: "#e6394611", color: "#e63946", border: "1px solid #e6394633", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>🗑 Clear</button>
               <button onClick={() => setLyrics("[verse]\n\n[chorus]\n\n[verse]\n\n[chorus]\n\n[bridge]\n\n[chorus]")} style={{ background: "#7209b711", color: "#9b2de0", border: "1px solid #7209b733", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>📋 Template</button>
-              <button onClick={() => setShowLyricsSaveInput(true)} style={{ background: "#06d6a011", color: "#06d6a0", border: "1px solid #06d6a033", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>💾 Save</button>
-              <button onClick={() => setShowLyricsLibrary(true)} style={{ background: "#ffd16611", color: "#ffd166", border: "1px solid #ffd16633", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>📂 Library ({lyricsLibrary.length})</button>
+              <button onClick={() => setShowLyricsSaveInput(true)} style={{ background: "#06d6a011", color: "#06d6a0", border: "1px solid #06d6a033", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>💾 Save Lyrics</button>
+              <button onClick={() => setShowLyricsLibrary(true)} style={{ background: "#ffd16611", color: "#ffd166", border: "1px solid #ffd16633", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>📚 Lyrics Library ({lyricsLibrary.length})</button>
             </div>
 
             {/* Lyrics Library */}
@@ -2522,7 +2530,7 @@ export default function AceStepTab({
 
           {/* Music Prompt */}
           <div style={{ ...S.card, marginBottom: 8 }}>
-            <span style={{ ...S.label, fontSize: 13, marginBottom: 12 }}>🎼 Music Style / Prompt</span>
+            <span style={{ ...S.label, fontSize: 10, marginBottom: 12 }}>🎼 Music Style / Prompt</span>
             <textarea
               value={prompt}
               onChange={e => setPrompt(e.target.value)}
@@ -2550,6 +2558,18 @@ export default function AceStepTab({
                   }}
                 >
                   💾 Save as Subgenre
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddGenre(true)}
+                  style={{
+                    background: "#06d6a022", border: "1px dashed #06d6a044", color: "#06d6a0",
+                    borderRadius: 6, padding: "2px 8px", fontSize: 10, cursor: "pointer", fontWeight: 600,
+                    display: "flex", alignItems: "center", gap: 4,
+                  }}
+                  title="Add a new custom genre category"
+                >
+                  ➕ Add Genre
                 </button>
               </div>
               {genrePresetsLoading && genrePresetsData === null && (
@@ -2614,27 +2634,6 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                           </button>
                         );
                       })}
-                      
-                      {/* ➕ Add New Genre Button */}
-                      <button
-                        onClick={() => setShowAddGenre(true)}
-                        style={{
-                          background: "#06d6a022",
-                          border: "1px dashed #06d6a044",
-                          color: "#06d6a0",
-                          borderRadius: 6,
-                          padding: "4px 10px",
-                          fontSize: 11,
-                          fontWeight: 700,
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 4,
-                        }}
-                        title="Add a new custom genre category"
-                      >
-                        ➕ Add Genre
-                      </button>
                     </div>
                     
                     {/* Category Info Card - Compact */}
@@ -2878,12 +2877,12 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
 
         </div>
 
-        {/* COLUMN 3: Duration + Seed */}
+        {/* COLUMN 3: Settings */}
         <div>
 
-          {/* Duration */}
+          {/* Settings Header */}
           <div style={{ ...S.card, marginBottom: 8 }}>
-            <span style={{ ...S.label, fontSize: 13, marginBottom: 12 }}>⏱ Duration</span>
+            <span style={{ ...S.label, fontSize: 10, marginBottom: 12 }}>⚙️ Settings</span>
 
             {/* Duration Slider */}
             <div style={{ marginBottom: 14 }}>
@@ -3258,7 +3257,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
 
           {/* Negative Prompt */}
           <div style={{ ...S.card, marginBottom: 8 }}>
-            <span style={{ ...S.label, fontSize: 13, marginBottom: 12 }}>🚫 Negative Prompt (Optional)</span>
+            <span style={{ ...S.label, fontSize: 10, marginBottom: 12 }}>🚫 Negative Prompt (Optional)</span>
             <textarea
               value={negativePrompt}
               onChange={e => setNegativePrompt(e.target.value)}
@@ -3361,7 +3360,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
           )}
 
           {/* 🎵 Generate Button */}
-          <div style={{ ...S.card, marginBottom: 20 }}>
+          <div style={{ ...S.card, marginBottom: 14 }}>
             <button
               onClick={handleGenerate}
               disabled={processing || !aceOnline || !prompt.trim()}
@@ -3370,17 +3369,17 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                 padding: "18px 0", 
                 borderRadius: 14,
                 background: processing ? cyberpunk.colors.bg.accent : (aceOnline && prompt.trim()
-                  ? "linear-gradient(135deg, #9b2de0, #0a0a1a)"
+                  ? "linear-gradient(135deg, #881133, #0a0a1a)"
                   : cyberpunk.colors.bg.accent),
-                color: "#fff", 
-                fontWeight: 900, 
-                fontSize: 17, 
-                border: `1px solid ${cyberpunk.colors.neon.purple.primary}66`,
+                color: "#cc3355",
+                fontWeight: 900,
+                fontSize: 17,
+                border: `1px solid #881133`,
                 cursor: (processing || !aceOnline || !prompt.trim()) ? "not-allowed" : "pointer",
                 opacity: (!aceOnline || !prompt.trim()) ? 0.5 : 1,
                 letterSpacing: 2,
                 textTransform: "uppercase",
-                boxShadow: aceOnline && prompt.trim() && !processing ? `0 0 30px ${cyberpunk.colors.neon.purple.glow}` : "none",
+                boxShadow: aceOnline && prompt.trim() && !processing ? `0 0 8px #88113333` : "none",
                 transition: "all 0.3s ease",
               }}>
               {processing ? `⚙ ${progressLabel || "GENERATING..."}` : "🎵 GENERATE MUSIC"}
