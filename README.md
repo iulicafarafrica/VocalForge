@@ -1,12 +1,12 @@
-# 🎵 VocalForge powered by Ace-step v1.5
+# 🎵 VocalForge <sup>v2.0.0</sup>
 
 <div align="center">
 
+![Cyberpunk Banner](https://img.shields.io/badge/🎵-AI_Powered_Music_Studio-purple?style=for-the-badge&logo=ableton&logoColor=white)
+
 **AI-Powered Music Production Studio**
 
-*Powered by ACE-Step v1.5*
-
-*Transform your voice, generate music, and create professional tracks with cutting-edge AI*
+*⚡ Powered by ACE-Step v1.5*
 
 [![Version](https://img.shields.io/badge/Version-2.0.0-blue?style=for-the-badge)]()
 [![Python](https://img.shields.io/badge/Python-3.10+-green?style=for-the-badge&logo=python)]()
@@ -21,22 +21,24 @@
 
 ## 📖 Overview
 
-### What is VocalForge?
-
 <div align="center">
-  
-**AI-Powered Music Production Studio**
+
+**🎛️ AI-Powered Music Production Studio**
+
+*Transform your voice, generate music, and create professional tracks with cutting-edge AI*
 
 </div>
 
-- 🎤 Transform any voice with AI-powered RVC models
-- 🎵 Generate complete songs from text prompts with ACE-Step v1.5
-- ✂️ Professional stem separation with BS-RoFormer (SDR 12.97)
-- 🔄 End-to-end pipeline: separate → convert → mix → master
-- 🎼 164 genre presets including 30 Romanian subgenres
-- 💻 Optimized for NVIDIA RTX 3070 8GB (runs on 6GB+)
+### ✨ Features
 
-### 10 Main Modules
+- 🎤 **RVC Voice Conversion** — Transform any voice with AI-powered models
+- 🎵 **ACE-Step v1.5** — Generate complete songs from text prompts
+- ✂️ **Stem Separation** — BS-RoFormer (SDR 12.97) professional quality
+- 🔄 **Pipeline v2.3** — End-to-end: separate → convert → mix → master
+- 🎼 **164 Genre Presets** — Including 30 Romanian subgenres
+- 💻 **GPU Optimized** — RTX 3070 8GB (runs on 6GB+)
+
+### 🎯 10 Main Modules
 
 | Icon | Module | Description |
 |------|--------|-------------|
@@ -51,13 +53,7 @@
 | 💻 | **Models Manager** | Upload, list RVC models |
 | 📝 | **Notes** | Personal notes with auto-save |
 
-### Quick Start
-
-<div align="center">
-  
-**Get running in under 5 minutes**
-
-</div>
+### 🚀 Quick Start
 
 ```bash
 git clone https://github.com/iulicafarafrica/VocalForge.git
@@ -135,7 +131,7 @@ START_ALL.bat    # Launch all services
 | `sft` ✅ | 50 | ~3 min | High — default |
 | `base` | 50 | ~3 min | Best — all features |
 
-**Modes:** Text→Music · Audio Cover · Repaint · 164 genre presets
+**Modes:** Text2Music · Audio Cover · Repaint · 164 genre presets
 
 ### Applio Features (v1.9.0)
 
@@ -378,118 +374,210 @@ cd ace-step && uv sync && cd ..
 
 ## 📝 Changelog
 
-### Unreleased — 2026-03-13: ACE-Step 3-Column Layout Redesign
+### Unreleased — 2026-03-15: Cyberpunk UI Redesign
 
-- ✅ 3-column grid layout (LEFT: Task+Prompt+Genres / CENTER: Lyrics+Settings+Generate / RIGHT: Advanced always visible)
+**🎨 ACE-Step Tab Cyberpunk Theme**
+- ✅ New cyberpunk theme object (cyan, purple, pink, yellow, green, red neon colors)
+- ✅ Card styles with gradient backgrounds and purple neon borders
+- ✅ Cyberpunk status badge with glow effects and pulse animation
+- ✅ Generate button: purple→black gradient with purple glow
+- ✅ Progress bar: purple gradient with glow effect
+- ✅ Custom scrollbar with purple→cyan gradient
+- ✅ Removed background grid pattern and dark background
+
+**🎨 ReadmeTab Cyberpunk Redesign**
+- ✅ Complete rewrite with cyberpunk design
+- ✅ 7 main tabs: Overview, Pipeline, Features, Install, API, Roadmap, Changelog
+- ✅ 5 sub-tabs in Features: Features, ACE-Step, Applio, RVC Rescue, GPU Info
+- ✅ Hero section with gradient text and glow effects
+- ✅ Feature cards with hover animations and neon icons
+- ✅ Pipeline stages with numbered badges
+- ✅ Interactive tab navigation with gradient active state
+- ✅ Complete documentation from README.md and CHANGELOG.md
+
+**Files Changed:**
+- `frontend/src/components/AceStepTab.jsx` (+257 lines)
+- `frontend/src/components/ReadmeTab.jsx` (+1946 lines)
+
+---
+
+### Unreleased — 2026-03-14: Genre Presets Fix + Session Memory
+
+**🔧 CRITICAL FIX: Genre Presets Display**
+- ✅ Fixed backend API array→object transformation
+- ✅ All 150+ subgenres now display correctly
+- ✅ Hidden empty genre categories from UI
+
+**🧠 NEW: Session Memory & Auto-Context**
+- ✅ SQLite-based persistent session memory
+- ✅ Auto-save session context at end of each session
+- ✅ Auto-load last session context at startup
+- ✅ CLI scripts for memory operations
+
+**🐛 FIX: CUDA Offload Issue**
+- ✅ Fixed model offloading to CPU instead of GPU
+- ✅ Generation time: 300s+ (CPU) → ~20-30s (CUDA)
+
+---
+
+### Unreleased — 2026-03-13: ACE-Step 3-Column Layout
+
+**🎨 UI Redesign**
+- ✅ 3-column grid layout for better organization
 - ✅ Container width increased 900px → 1600px
-- ✅ AI Chain-of-Thought moved from Task Type to Advanced Settings
-- ✅ Button text: "Generate with ACE-Step" → "Generate Music"
+- ✅ AI Chain-of-Thought moved to Advanced Settings
 - ✅ Status badge at top (Online/Offline + Refresh)
-- ✅ Removed header title and subtitle for cleaner UI
+- ✅ Removed header title for cleaner UI
+
+---
 
 ### Unreleased — 2026-03-12: Lyrics Library + Genre Updates
 
-- ✅ Save Lyrics feature — localStorage persistence, no server needed
+**📚 NEW: Lyrics Library Feature**
+- ✅ Save Lyrics button next to lyrics textarea
 - ✅ Lyrics Library Modal — browse, load, download, delete
-- ✅ House & Electronic: 23 subgenres (Afro House, Melodic Techno, Progressive House...)
-- ✅ Afrobeats / Afropop: 12 subgenres (Amapiano, Afro-fusion, Alté...)
-- ✅ LM parameters updated to official ACE-Step v1.5 defaults (temperature 0.85, cfg_scale 2.5, top_p 0.9)
-- ✅ Default model changed to acestep-v15-sft (50 steps)
-- ✅ backup_project.bat: size reduced by ~90%, fixed date parsing bug
+- ✅ localStorage Persistence — no server needed
+
+**🎵 Genre Presets Updates**
+- ✅ House & Electronic: 23 subgenres (Afro House, Melodic Techno...)
+- ✅ Afrobeats / Afropop: 12 subgenres (Amapiano, Afro-fusion...)
+- ✅ Genre fallback to built-in QUICK_GENRES
+
+**🔧 TECHNICAL**
+- ✅ ACE-Step official parameters alignment
+- ✅ Default model: turbo → sft (50 steps)
+- ✅ Backup script improved — 90% smaller
+
+---
 
 ### v2.0.0 — 2026-03-10: Prompt Generator + Suno AI Integration
 
-- 🆕 Prompt Generator tab: 164 subgenres, 13 styles, BPM selector, structure tags
-- 🆕 30 Romanian subgenres: Manele, Folclor, Doină, Hora, Muzică Populară
-- 🆕 5 Vocal Chain Presets: Studio Radio, Natural, Arena, Radio, Balanced
-- 🆕 Suno AI Integration (local port 8080, cookie auth, 3x retry)
-- ✅ Pipeline: vocal/instrumental mix balance fixed (+3dB vocal boost)
-- ✅ RVC defaults for singing: harvest f0, 0.40 index rate, 0.55 protect
-- ✅ Removed redundant "Voice Mix RVC" tab
-- ✅ Pipeline Tab: RVC advanced settings UI (f0_method, index_rate, etc.)
+**🆕 Prompt Generator Tab**
+- 164 subgenres, 13 styles, BPM selector, structure tags
+- 30 Romanian subgenres: Manele, Folclor, Doină, Hora
+- 5 Vocal Chain Presets: Studio Radio, Natural, Arena, Radio, Balanced
+
+**🆕 Suno AI Integration**
+- Local port 8080, cookie auth, 3x retry logic
+- One-click "Send to Suno" from Prompt Generator
+
+**✅ Fixes**
+- Pipeline vocal/instrumental mix balance (+3dB vocal boost)
+- RVC defaults for singing optimized
+- Removed redundant "Voice Mix RVC" tab
+
+---
 
 ### v2.0.0 — 2026-03-08: Pipeline v2.0 with Diffusion Refinement
 
-- 🆕 Stage 3: ACE-Step Diffusion Refinement (audio2audio, denoise 0.3-0.5)
-- ✅ VRAM Management: auto-unload RVC before Stage 3 → prevents OOM
-- ✅ Gain Staging: normalize -1dB peak, -16 LUFS, upsample 48kHz
-- ✅ Sample rate auto-resample for ACE-Step compatibility
-- 📊 Overall quality: 8/10 → 9/10 (+12.5%), pipeline stability 85% → 98%
-- 🔧 core/modules/pipeline_manager.py completely rewritten (v2.0)
-- 🔧 ace-step/acestep/api/http/audio2audio_route.py (new, ~250 lines)
+**🆕 Stage 3: ACE-Step Diffusion Refinement**
+- audio2audio mode, denoise 0.3-0.5
+- VRAM Management: auto-unload RVC before Stage 3
+
+**✅ Quality Improvements**
+- Gain Staging: normalize -1dB peak, -16 LUFS, upsample 48kHz
+- Overall quality: 8/10 → 9/10 (+12.5%)
+- Pipeline stability: 85% → 98%
+
+---
 
 ### v1.9.1 — 2026-03-08: GPU Memory Management
 
-- 🆕 core/modules/gpu_memory.py — GPUMemoryManager class
-- 🆕 backend/endpoints/gpu_info.py — 6 API endpoints (/gpu/info, /gpu/cleanup, /gpu/models...)
-- 🆕 frontend/src/components/GPUMonitor.jsx — real-time VRAM display
-- 🆕 run.bat / run_ps1.bat — universal Windows Terminal wrappers
-- 🆕 Session auto-save every 30 minutes with crash recovery
+**🆕 GPU Memory Management Module**
+- core/modules/gpu_memory.py — GPUMemoryManager class
+- 6 API endpoints (/gpu/info, /gpu/cleanup, /gpu/models...)
+- frontend/src/components/GPUMonitor.jsx — real-time VRAM display
+
+**🆕 Session Auto-Save**
+- Auto-save every 30 minutes with crash recovery
+
+---
 
 ### v1.9.0 — 2026-03-06: Applio Features Integration
 
-- 🆕 Autotune: snap F0 to musical notes (0.0-1.0 strength)
-- 🆕 Clean Audio: spectral noise reduction via noisereduce library
-- 🆕 Volume Envelope: RMS matching preserves original dynamics
-- 🆕 High-Pass Filter: Butterworth 48Hz removes rumble
-- 🔧 core/modules/audio_processing.py — new Applio utilities file
-- 📊 Singing quality: 8/10 → 9/10, Speech clarity: 7/10 → 9/10
+**🆕 Applio Features**
+- Autotune: snap F0 to musical notes (0.0-1.0 strength)
+- Clean Audio: spectral noise reduction via noisereduce
+- Volume Envelope: RMS matching preserves dynamics
+- High-Pass Filter: Butterworth 48Hz removes rumble
+
+**📊 Quality Improvements**
+- Singing quality: 8/10 → 9/10
+- Speech clarity: 7/10 → 9/10
+
+---
 
 ### v1.8.4 — 2026-03-06: RVC Rescue Post-Processing
 
-- 🆕 RVC Rescue: EQ → Compressor → Reverb → Limiter → Loudnorm chain
-- ✅ f0_method: rmvpe → harvest (smoother for singing)
-- ✅ index_rate: 0.75 → 0.40 (preserves original singing style)
-- ✅ protect: 0.33 → 0.55 (better consonant preservation)
-- 📊 Quality improvement: 5/10 (robotic) → 8/10 (musical)
+**🆕 RVC Rescue Post-Processing Chain**
+- EQ → Compressor → Reverb → Limiter → Loudnorm
+- Quality improvement: 5/10 → 8/10
+
+**✅ RVC Settings Optimized for Singing**
+- f0_method: rmvpe → harvest (smoother)
+- index_rate: 0.75 → 0.40 (preserves style)
+- protect: 0.33 → 0.55 (better consonants)
+
+---
 
 ### v1.8.3 — 2026-03-06: RVC Final Mix Integration
 
-- 🆕 Auto Pipeline now saves BOTH converted_vocals.wav + instrumental.mp3
-- 🆕 Instrumental exported at 320kbps MP3, 48kHz
-- 🆕 "Go to Final Mix" button auto-appears after pipeline completion
-- 🆕 Final Mix tab auto-loads both files, ready to mix with one click
-- 🐛 Fixed: Final Mix showing "First run Auto Pipeline" after completion
+**🆕 Auto Pipeline Outputs**
+- Saves BOTH converted_vocals.wav + instrumental.mp3
+- Instrumental exported at 320kbps MP3, 48kHz
+- "Go to Final Mix" button auto-appears after completion
+
+---
 
 ### v1.8.2 — 2026-03-06: YouTube Cover Generator + RVC v2
 
-- 🆕 YouTube Cover: Download → Separate → RVC → Mix in one click
-- 🆕 /youtube/download and /youtube/cover API endpoints
-- 🆕 RVC v2 support: 768-dim architecture, 48kHz, RMVPE++
-- 🆕 Auto-detect RVC v1 vs v2 from checkpoint
-- 🆕 MelBand cleanup, De-reverb, Denoise (all optional)
-- 📦 New deps: yt-dlp, faiss-cpu, praat-parselmouth, pyworld
-- 🐛 Fixed: BS-RoFormer model_name parameter, Unicode encoding on Windows
+**🆕 YouTube Cover Pipeline**
+- Download → Separate → RVC → Mix in one click
+- /youtube/download and /youtube/cover API endpoints
+
+**🆕 RVC v2 Support**
+- 768-dim architecture, 48kHz, RMVPE++ f0 detector
+- Auto-detect RVC v1 vs v2 from checkpoint
+
+---
 
 ### v1.8.1 — 2026-03-06: Hotfix — BS-RoFormer Fix
 
-- 🐛 Fixed Separator.load_model() parameter name (model_name → model_filename)
-- 🐛 Added .ckpt extension to BS-RoFormer model filename
-- ✅ BS-RoFormer now auto-downloads on first use (~300MB)
+**🐛 Fixed**
+- Separator.load_model() parameter name
+- .ckpt extension for BS-RoFormer model
+- Auto-download on first use (~300MB)
+
+---
 
 ### v1.8.0 — 2026-03-05: Separate / Mix / Presets Tabs
 
-- 🆕 ✂️ Separate Tab: upload song → auto-separate, one-click "Use Vocals"
-- 🆕 🎚️ Mix Tab: independent volume control 0.0-2.0x, real-time preview
-- 🆕 💾 Presets Tab: save/load all RVC settings, import community presets (JSON)
-- ✅ RVC API endpoints on port 8002
-- 🐛 Fixed: RVC working directory, Unicode encoding, config path loading
+**🆕 New Tabs**
+- ✂️ Separate Tab: upload song → auto-separate
+- 🎚️ Mix Tab: independent volume control 0.0-2.0x
+- 💾 Presets Tab: save/load all RVC settings (JSON)
+
+**✅ RVC API**
+- RVC API endpoints on port 8002
+
+---
 
 ### v1.7.0 — 2026-03-01: RVC Voice Conversion
 
-- 🆕 Complete AI voice transformation using RVC models (.pth)
-- 🆕 Pitch shifting ±12 semitones, 5 emotion controls
-- 🆕 4 pre-loaded models: FlorinSalam, JustinBieber, BadBunny, KanyeWest
-- 🗑️ Vocal2BGM deprecated (will return in future release)
+**🆕 Voice Conversion**
+- Complete AI voice transformation using RVC models
+- Pitch shifting ±12 semitones, 5 emotion controls
+- 4 pre-loaded models: FlorinSalam, JustinBieber, BadBunny, KanyeWest
+
+---
 
 ### v1.6.0 — 2026-02-15: ACE-Step Integration
 
-- 🆕 Text-to-Music generation with prompt + lyrics
-- 🆕 50+ genre presets: Hip-Hop, Pop, EDM, Manele, Reggaeton
-- 🆕 Models: Turbo (8 steps), Base (50 steps), SFT (50 steps)
-- 🆕 Repaint, Lego, Complete audio editing modes
-- 🆕 BPM/Key Detection, Seed Library, Tracks Management
-- 🔧 3-service architecture: Frontend:3000, Backend:8000, ACE-Step:8001
+**🆕 Music Generation**
+- Text-to-Music with prompt + lyrics
+- 50+ genre presets: Hip-Hop, Pop, EDM, Manele, Reggaeton
+- Models: Turbo (8 steps), Base (50 steps), SFT (50 steps)
+- Repaint, Lego, Complete audio editing modes
 
 ---
 
@@ -497,9 +585,11 @@ cd ace-step && uv sync && cd ..
 
 ### Backend won't start
 
-- `netstat -ano | findstr :8000` → check if port in use
-- `taskkill /PID <PID> /F` → kill process
-- Restart with: `start_backend.bat`
+```bash
+netstat -ano | findstr :8000  # Check if port in use
+taskkill /PID <PID> /F        # Kill process
+start_backend.bat             # Restart
+```
 
 ### RVC models not showing
 
@@ -509,9 +599,11 @@ cd ace-step && uv sync && cd ..
 
 ### YouTube Cover fails (yt-dlp missing)
 
-- `venv\Scripts\activate`
-- `pip install yt-dlp`
-- `pip install -U yt-dlp` (to update)
+```bash
+venv\Scripts\activate
+pip install yt-dlp
+pip install -U yt-dlp  # Update
+```
 
 ### CORS / Network error
 
@@ -523,7 +615,7 @@ cd ace-step && uv sync && cd ..
 
 - Set `ACESTEP_INIT_LLM=false` in .env (default)
 - Run `RESTART_ACESTEP.bat` to free RAM
-- Audio quality is IDENTICAL with LLM off — only prompt expansion differs
+- Audio quality is IDENTICAL with LLM off
 
 ---
 
@@ -531,6 +623,6 @@ cd ace-step && uv sync && cd ..
 
 **Made with ❤️ by iulicafarafrica**
 
-[MIT License](LICENSE)
+[![MIT License](https://img.shields.io/badge/License-MIT-red?style=for-the-badge)](LICENSE)
 
 </div>
