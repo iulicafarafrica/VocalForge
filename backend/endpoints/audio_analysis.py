@@ -8,6 +8,8 @@ import os
 import sys
 import uuid
 import math
+import json
+import requests
 import numpy as np
 import librosa
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
@@ -23,6 +25,9 @@ router = APIRouter(prefix="/audio", tags=["Audio Analysis"])
 
 TEMP_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "temp")
 os.makedirs(TEMP_DIR, exist_ok=True)
+
+# Genius API config
+GENIUS_ACCESS_TOKEN = os.getenv("GENIUS_ACCESS_TOKEN")
 
 
 # ── Loudness Analysis ──────────────────────────────────────────────────────────
@@ -376,6 +381,94 @@ async def audio_analysis_info():
             "vocal_range": {"description": "Voice type & range", "endpoint": "POST /audio/vocal-range", "recommended": True},
             "energy_mood": {"description": "Energy, danceability, mood", "endpoint": "POST /audio/energy-mood"},
             "frequency": {"description": "Bass/mid/high distribution", "endpoint": "POST /audio/frequency-spectrum"},
-            "full_analysis": {"description": "All analyses combined", "endpoint": "POST /audio/full-analysis", "recommended": True}
+            "full_analysis": {"description": "All analyses combined", "endpoint": "POST /audio/full-analysis", "recommended": True},
+            "lyrics_search": {"description": "Search lyrics via Genius API", "endpoint": "POST /audio/lyrics/search", "recommended": True}
         }
     }
+
+
+# ── Lyrics Search (Genius API) ────────────────────────────────────────────────
+
+@router.post("/lyrics/search")
+async def search_lyrics(artist: str = Form(...), title: str = Form(...)):
+    """Search lyrics using Genius API."""
+    if not GENIUS_ACCESS_TOKEN:
+        raise HTTPException(status_code=500, detail="Genius API token not configured")
+    
+    try:
+        # Step 1: Search for song
+        search_url = "https://api.genius.com/search"
+        headers = {"Authorization": f"Bearer {GENIUS_ACCESS_TOKEN}"}
+        params = {"q": f"{artist} {title}"}
+        
+        response = requests.get(search_url, headers=headers, params=params)
+        response.raise_for_status()
+        search_data = response.json()
+        
+        if not search_data.get("response", {}).get("hits"):
+            raise HTTPException(status_code=404, detail="Song not found on Genius")
+        
+        # Get first result
+        song = search_data["response"]["hits"][0]["result"]
+        song_url = song["url"]
+        song_id = song["id"]
+        
+        # Step 2: Get lyrics from song page
+        lyrics_url = f"https://api.genius.com/songs/{song_id}"
+        lyrics_response = requests.get(lyrics_url, headers=headers)
+        lyrics_response.raise_for_status()
+        lyrics_data = lyrics_response.json()
+        
+        lyrics = lyrics_data["response"]["song"].get("lyrics", "Lyrics not available")
+        
+        # Clean up lyrics (remove [Verse], [Chorus] markers if needed)
+        return {
+            "status": "success",
+            "artist": artist,
+            "title": title,
+            "lyrics": lyrics,
+            "genius_url": song_url,
+            "song_id": song_id
+        }
+        
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail=f"Genius API error: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lyrics search failed: {str(e)}")
+
+
+@router.post("/lyrics/from-audio")
+async def detect_lyrics_from_audio(file: UploadFile = File(...)):
+    """Detect lyrics from audio using Whisper transcription."""
+    file_id = str(uuid.uuid4())
+    file_ext = os.path.splitext(file.filename)[1] if file.filename else ".wav"
+    temp_path = os.path.join(TEMP_DIR, f"audio_{file_id}{file_ext}")
+    
+    try:
+        with open(temp_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # Load audio
+        y, sr = librosa.load(temp_path, sr=None)
+        
+        # Use Whisper for transcription (if available)
+        try:
+            import whisper
+            model = whisper.load_model("base")
+            result = model.transcribe(temp_path)
+            lyrics = result["text"]
+        except ImportError:
+            raise HTTPException(status_code=500, detail="Whisper not installed. Run: pip install openai-whisper")
+        
+        return {
+            "status": "success",
+            "filename": file.filename,
+            "lyrics": lyrics,
+            "method": "whisper_transcription"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lyrics detection failed: {str(e)}")
+    finally:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
