@@ -34,18 +34,18 @@ def calculate_loudness(y: np.ndarray, sr: int) -> Dict[str, Any]:
     
     # RMS (Root Mean Square)
     rms = librosa.feature.rms(y=y)[0]
-    rms_db = 20 * np.log10(np.mean(rms) + 1e-10)
+    rms_db = float(20 * np.log10(np.mean(rms) + 1e-10))
     
     # Approximate LUFS (simplified K-weighted)
     y_filtered = librosa.effects.preemphasis(y, coef=0.97)
-    loudness_db = 20 * np.log10(np.mean(np.abs(y_filtered)) + 1e-10)
+    loudness_db = float(20 * np.log10(np.mean(np.abs(y_filtered)) + 1e-10))
     
     # True Peak
-    true_peak = np.max(np.abs(y))
-    true_peak_db = 20 * np.log10(true_peak + 1e-10)
+    true_peak = float(np.max(np.abs(y)))
+    true_peak_db = float(20 * np.log10(true_peak + 1e-10))
     
     # Dynamic Range
-    dynamic_range = true_peak_db - rms_db
+    dynamic_range = float(true_peak_db - rms_db)
     
     # Category
     loudness_category = "Too Quiet"
@@ -92,13 +92,13 @@ def detect_vocal_range(y: np.ndarray, sr: int) -> Dict[str, Any]:
     
     min_freq = float(np.percentile(voiced_f0, 5))
     max_freq = float(np.percentile(voiced_f0, 95))
-    min_note = librosa.hz_to_note(min_freq)
-    max_note = librosa.hz_to_note(max_freq)
+    min_note = str(librosa.hz_to_note(min_freq))
+    max_note = str(librosa.hz_to_note(max_freq))
     
-    range_semitones = librosa.note_to_midi(max_note) - librosa.note_to_midi(min_note)
-    range_octaves = range_semitones / 12
+    range_semitones = float(librosa.note_to_midi(max_note) - librosa.note_to_midi(min_note))
+    range_octaves = float(range_semitones / 12)
     
-    avg_freq = np.mean(voiced_f0)
+    avg_freq = float(np.mean(voiced_f0))
     voice_type = "Unknown"
     if avg_freq > 520: voice_type = "Soprano"
     elif avg_freq > 350: voice_type = "Alto"
@@ -137,17 +137,17 @@ def analyze_energy_mood(y: np.ndarray, sr: int) -> Dict[str, Any]:
     
     rms = librosa.feature.rms(y=y)[0]
     zcr = librosa.feature.zero_crossing_rate(y)[0]
-    energy = (np.mean(rms) * 0.7 + np.mean(zcr) * 0.3) * 1000
-    energy = min(100, max(0, energy))
+    energy = float((np.mean(rms) * 0.7 + np.mean(zcr) * 0.3) * 1000)
+    energy = min(100.0, max(0.0, energy))
     
     tempo, beats = librosa.beat.beat_track(y=y, sr=sr)
-    beat_strength = np.std(beats) if len(beats) > 1 else 0
-    danceability = (60 + beat_strength * 20 + (float(tempo) / 200) * 20)
-    danceability = min(100, max(0, danceability))
+    beat_strength = float(np.std(beats)) if len(beats) > 1 else 0.0
+    danceability = float(60 + beat_strength * 20 + (float(tempo) / 200) * 20)
+    danceability = min(100.0, max(0.0, danceability))
     
     spectral_centroid = librosa.feature.spectral_centroid(y=y, sr=sr)[0]
-    valence = (np.mean(spectral_centroid) / 5000) * 100
-    valence = min(100, max(0, valence))
+    valence = float((np.mean(spectral_centroid) / 5000) * 100)
+    valence = min(100.0, max(0.0, valence))
     
     mood_labels = []
     if energy > 70: mood_labels.append("Energetic")
@@ -185,14 +185,14 @@ def analyze_frequency_spectrum(y: np.ndarray, sr: int) -> Dict[str, Any]:
     mid_mask = (freqs >= 250) & (freqs < 4000)
     high_mask = (freqs >= 4000) & (freqs <= 20000)
     
-    bass_energy = np.mean(D[bass_mask, :])
-    mid_energy = np.mean(D[mid_mask, :])
-    high_energy = np.mean(D[high_mask, :])
+    bass_energy = float(np.mean(D[bass_mask, :]))
+    mid_energy = float(np.mean(D[mid_mask, :]))
+    high_energy = float(np.mean(D[high_mask, :]))
     total = bass_energy + mid_energy + high_energy
     
-    bass_pct = (bass_energy / total) * 100 if total > 0 else 0
-    mid_pct = (mid_energy / total) * 100 if total > 0 else 0
-    high_pct = (high_energy / total) * 100 if total > 0 else 0
+    bass_pct = float((bass_energy / total) * 100) if total > 0 else 0.0
+    mid_pct = float((mid_energy / total) * 100) if total > 0 else 0.0
+    high_pct = float((high_energy / total) * 100) if total > 0 else 0.0
     
     balance_notes = []
     if bass_pct > 40: balance_notes.append("Bass-heavy")
