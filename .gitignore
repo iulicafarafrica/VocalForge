@@ -18,8 +18,9 @@ __pycache__/
 .env
 
 # ======================
-# Qwen Files
+# AI Assistant Files (DO NOT PUSH)
 # ======================
+# Qwen
 QWEN.md
 .qwen/
 output-language.md
@@ -35,6 +36,27 @@ research_session.md
 SKILL_*.md
 FILE_CREATION_GUIDE.md
 TERMINAL_WRAPPERS_STATUS.md
+
+# Roo/Cline
+.roo/
+
+# Kilo Code
+.kilocodeignore
+
+# ======================
+# Local Development Files (DO NOT PUSH)
+# ======================
+DE FACUT.txt
+cod_proiect_curat.txt
+utils_config.txt
+root_dot_env.txt
+save_session.bat
+AceStepCoduriDeSogiranta/
+SUNO_PROMPT_GENERATOR.md
+
+# Executables
+qdrant.exe
+*.exe
 
 # All Qwen-related .md files (except project documentation)
 *.md
