@@ -182,39 +182,6 @@ export default function RepaintLegoComplete() {
         </p>
       </div>
 
-      {/* Model Compatibility */}
-      <div style={{
-        ...S.card,
-        borderColor: `${cyberpunk.neon.yellow.primary}33`,
-        background: `${cyberpunk.neon.yellow.primary}08`,
-        borderLeft: `4px solid ${cyberpunk.neon.yellow.primary}`,
-        marginBottom: 20,
-      }}>
-        <span style={{ ...S.label, color: cyberpunk.neon.yellow.primary, marginBottom: 12 }}>
-          🔍 Model Compatibility
-        </span>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 8 }}>
-          {[
-            { model: 'turbo', steps: '8', status: '✅ Fast', color: cyberpunk.neon.green.primary },
-            { model: 'turbo-shift3', steps: '8', status: '✅ Fast', color: cyberpunk.neon.green.primary },
-            { model: 'base', steps: '50', status: '✅ Full + CFG', color: cyberpunk.neon.green.primary },
-            { model: 'sft', steps: '50', status: '✅ Quality + CFG', color: cyberpunk.neon.green.primary },
-          ].map((item, i) => (
-            <div key={i} style={{
-              background: `${item.color}11`,
-              border: `1px solid ${item.color}44`,
-              borderRadius: 8,
-              padding: 10,
-              textAlign: "center",
-            }}>
-              <div style={{ color: item.color, fontSize: 11, fontWeight: 800, marginBottom: 4 }}>{item.model.toUpperCase()}</div>
-              <div style={{ color: cyberpunk.text.muted, fontSize: 10 }}>{item.steps} steps</div>
-              <div style={{ color: item.color, fontSize: 10, fontWeight: 700, marginTop: 6 }}>{item.status}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* File Upload */}
       <div style={S.card}>
         <span style={S.label}>🎵 Upload Audio File</span>
@@ -435,47 +402,6 @@ export default function RepaintLegoComplete() {
           </div>
         </div>
 
-      </div>
-
-      {/* Format Selection */}
-      <div style={S.card}>
-        <span style={S.label}>📦 Output Format</span>
-        <div style={{ display: "flex", gap: 8 }}>
-          {['mp3', 'wav', 'flac'].map((fmt) => (
-            <button
-              key={fmt}
-              onClick={() => setAudioFormat(fmt)}
-              style={{
-                flex: 1,
-                padding: "10px 16px",
-                background: audioFormat === fmt ? `${cyberpunk.neon.yellow.primary}22` : "rgba(10,10,26,0.6)",
-                border: `1px solid ${audioFormat === fmt ? cyberpunk.neon.yellow.primary : "rgba(42,42,74,0.5)"}`,
-                color: audioFormat === fmt ? cyberpunk.neon.yellow.primary : cyberpunk.text.muted,
-                borderRadius: 8,
-                cursor: "pointer",
-                fontWeight: 700,
-                fontSize: 11,
-                letterSpacing: 1,
-                textTransform: "uppercase",
-                transition: "all 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                if (audioFormat !== fmt) {
-                  e.currentTarget.style.borderColor = cyberpunk.neon.yellow.primary;
-                  e.currentTarget.style.background = `${cyberpunk.neon.yellow.primary}11`;
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (audioFormat !== fmt) {
-                  e.currentTarget.style.borderColor = "rgba(42,42,74,0.5)";
-                  e.currentTarget.style.background = "rgba(10,10,26,0.6)";
-                }
-              }}
-            >
-              {fmt.toUpperCase()}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Generate Button */}
