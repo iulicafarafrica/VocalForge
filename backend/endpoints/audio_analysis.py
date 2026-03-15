@@ -333,6 +333,12 @@ async def full_audio_analysis_endpoint(file: UploadFile = File(...)):
             shutil.copyfileobj(file.file, buffer)
         y, sr = librosa.load(temp_path, sr=None)
         
+        # Basic analysis
+        from core.modules.audio_analysis import detect_bpm, detect_key, detect_time_signature
+        bpm_value, bpm_conf = detect_bpm(y, sr)
+        key_value, key_mode, key_conf = detect_key(y, sr)
+        time_sig, time_conf = detect_time_signature(y, sr)
+        
         loudness = calculate_loudness(y, sr)
         vocal_range = detect_vocal_range(y, sr)
         energy_mood = analyze_energy_mood(y, sr)
@@ -343,6 +349,9 @@ async def full_audio_analysis_endpoint(file: UploadFile = File(...)):
             "status": "success",
             "filename": file.filename,
             "duration_seconds": round(duration, 2),
+            "bpm": {"value": round(bpm_value, 1), "confidence": round(bpm_conf, 2)},
+            "key": {"value": f"{key_value} {'Major' if key_mode == 'major' else 'Minor'}", "mode": key_mode, "confidence": round(key_conf, 2)},
+            "time_signature": {"value": f"{int(time_sig)}/4", "confidence": round(time_conf, 2)},
             "loudness": loudness,
             "vocal_range": vocal_range,
             "energy_mood": energy_mood,
