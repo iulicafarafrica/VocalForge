@@ -4,8 +4,7 @@ const API = "http://localhost:8000";
 
 export default function LyricsTab({ addLog }) {
   // Search state
-  const [searchArtist, setSearchArtist] = useState("");
-  const [searchTitle, setSearchTitle] = useState("");
+  const [searchQuery, setSearchQuery] = useState(""); // "Artist - Title" format
   const [searching, setSearching] = useState(false);
   
   // Genius API config state
@@ -115,8 +114,9 @@ export default function LyricsTab({ addLog }) {
 
   // Search lyrics via Genius API
   const handleSearch = async () => {
-    if (!searchArtist.trim() || !searchTitle.trim()) {
+    if (!searchQuery.trim()) {
       addLog?.("[Lyrics] Please enter artist and title");
+      alert("Please enter search in format: Artist - Title");
       return;
     }
     
@@ -129,12 +129,23 @@ export default function LyricsTab({ addLog }) {
     // Auto-save credentials
     saveGeniusCredentials();
     
+    // Parse "Artist - Title" format
+    const parts = searchQuery.split(/[-–—]/);
+    const artist = parts[0]?.trim() || "";
+    const title = parts.slice(1).join("-").trim() || searchQuery;
+    
+    if (!artist || !title) {
+      addLog?.("[Lyrics] Please use format: Artist - Title");
+      alert("Please enter search in format: Artist - Title (e.g., Queen - Bohemian Rhapsody)");
+      return;
+    }
+    
     setSearching(true);
-    addLog?.(`[Lyrics] Searching: ${searchArtist} - ${searchTitle}`);
+    addLog?.(`[Lyrics] Searching: ${artist} - ${title}`);
     
     const fd = new FormData();
-    fd.append("artist", searchArtist);
-    fd.append("title", searchTitle);
+    fd.append("artist", artist);
+    fd.append("title", title);
     fd.append("access_token", geniusAccessToken);
     
     try {
@@ -463,47 +474,39 @@ ${lyrics}
             </div>
           </div>
         )}
-        
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: 12, marginBottom: 12 }}>
-          <div>
-            <label style={{ color: cyberpunk.text.secondary, fontSize: 11, marginBottom: 6, display: "block" }}>
-              Artist
-            </label>
-            <input
-              type="text"
-              value={searchArtist}
-              onChange={(e) => setSearchArtist(e.target.value)}
-              placeholder="e.g., Queen"
-              style={S.input}
-            />
-          </div>
-          <div>
-            <label style={{ color: cyberpunk.text.secondary, fontSize: 11, marginBottom: 6, display: "block" }}>
-              Title
-            </label>
-            <input
-              type="text"
-              value={searchTitle}
-              onChange={(e) => setSearchTitle(e.target.value)}
-              placeholder="e.g., Bohemian Rhapsody"
-              style={S.input}
-            />
-          </div>
-          <div style={{ display: "flex", alignItems: "flex-end" }}>
-            <button
-              onClick={handleSearch}
-              disabled={searching || !searchArtist || !searchTitle}
-              style={{
-                ...S.button(cyberpunk.neon.purple.primary),
-                flex: 1,
-                opacity: searching || !searchArtist || !searchTitle ? 0.5 : 1,
-                cursor: searching || !searchArtist || !searchTitle ? "not-allowed" : "pointer",
-              }}
-            >
-              {searching ? "🔍 Searching..." : "🔍 Search"}
-            </button>
+
+        {/* Single Search Input */}
+        <div style={{ marginBottom: 12 }}>
+          <label style={{ color: cyberpunk.text.secondary, fontSize: 11, marginBottom: 6, display: "block" }}>
+            🔍 Search (format: Artist - Title)
+          </label>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="e.g., Queen - Bohemian Rhapsody"
+            style={{ ...S.input, fontSize: 13, padding: "12px 14px" }}
+            onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+          />
+          <div style={{ color: cyberpunk.text.muted, fontSize: 9, marginTop: 6 }}>
+            💡 Example: "Taylor Swift - Shake It Off" or "Metallica - Enter Sandman"
           </div>
         </div>
+
+        <button
+          onClick={handleSearch}
+          disabled={searching || !searchQuery.trim()}
+          style={{
+            width: "100%",
+            ...S.button(cyberpunk.neon.purple.primary),
+            opacity: searching || !searchQuery.trim() ? 0.5 : 1,
+            cursor: searching || !searchQuery.trim() ? "not-allowed" : "pointer",
+            padding: "14px 0",
+            fontSize: 13,
+          }}
+        >
+          {searching ? "🔍 Searching..." : "🔍 Search Lyrics"}
+        </button>
       </div>
 
       {/* Transcribe from Audio */}
