@@ -50,6 +50,26 @@ export default function App() {
     return "";
   });
   const [aceDuration, setAceDuration] = useState(30);
+  
+  // Listen for lyrics updates from Lyrics Finder
+  useEffect(() => {
+    // Check for lyrics when tab changes
+    const checkForLyrics = () => {
+      try {
+        const savedLyrics = localStorage.getItem("acestep_lyrics_from_manager");
+        if (savedLyrics && savedLyrics !== aceLyrics) {
+          setAceLyrics(savedLyrics);
+          addLog(`[ACE-Step] Lyrics loaded from Lyrics Finder`);
+        }
+      } catch (e) {
+        console.error("Failed to load lyrics:", e);
+      }
+    };
+    
+    // Check every 2 seconds for new lyrics
+    const interval = setInterval(checkForLyrics, 2000);
+    return () => clearInterval(interval);
+  }, [aceLyrics, addLog]);
   const [aceGuidanceScale, setAceGuidanceScale] = useState(7.0);
   const [aceInferSteps, setAceInferSteps] = useState(50);  // 50 steps for high quality (SFT model)
   const [aceSeed, setAceSeed] = useState(-1);
