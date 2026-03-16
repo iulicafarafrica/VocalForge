@@ -38,10 +38,18 @@ export default function App() {
   // ── AceStep state lifted here so it persists across tab switches ──────────
   const [acePrompt, setAcePrompt] = useState("");
   const [aceLyrics, setAceLyrics] = useState(() => {
-    // Load lyrics from Lyrics Finder if available
+    // Load lyrics from Lyrics Finder if available (ONE TIME ONLY)
     try {
       const savedLyrics = localStorage.getItem("acestep_lyrics_from_manager");
+      const savedArtist = localStorage.getItem("acestep_lyrics_artist");
+      const savedTitle = localStorage.getItem("acestep_lyrics_title");
+      
       if (savedLyrics) {
+        // Clear the localStorage so it doesn't load again on refresh
+        localStorage.removeItem("acestep_lyrics_from_manager");
+        localStorage.removeItem("acestep_lyrics_artist");
+        localStorage.removeItem("acestep_lyrics_title");
+        console.log("[ACE-Step] Loaded lyrics from Lyrics Finder");
         return savedLyrics;
       }
     } catch (e) {
@@ -50,26 +58,6 @@ export default function App() {
     return "";
   });
   const [aceDuration, setAceDuration] = useState(30);
-  
-  // Listen for lyrics updates from Lyrics Finder
-  useEffect(() => {
-    // Check for lyrics when tab changes
-    const checkForLyrics = () => {
-      try {
-        const savedLyrics = localStorage.getItem("acestep_lyrics_from_manager");
-        if (savedLyrics && savedLyrics !== aceLyrics) {
-          setAceLyrics(savedLyrics);
-          console.log(`[ACE-Step] Lyrics loaded from Lyrics Finder`);
-        }
-      } catch (e) {
-        console.error("Failed to load lyrics:", e);
-      }
-    };
-    
-    // Check every 2 seconds for new lyrics
-    const interval = setInterval(checkForLyrics, 2000);
-    return () => clearInterval(interval);
-  }, [aceLyrics]);
   const [aceGuidanceScale, setAceGuidanceScale] = useState(7.0);
   const [aceInferSteps, setAceInferSteps] = useState(50);  // 50 steps for high quality (SFT model)
   const [aceSeed, setAceSeed] = useState(-1);
