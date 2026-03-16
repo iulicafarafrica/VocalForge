@@ -288,16 +288,17 @@ async def search_lyrics(
             
             print(f"[Genius] Found lyrics: {len(song.lyrics)} chars")
             
+            # Convert all attributes to strings (FastAPI needs JSON-serializable data)
             return {
                 "status": "success",
-                "artist": artist,
-                "title": title,
-                "lyrics": song.lyrics,
+                "artist": str(artist),
+                "title": str(title),
+                "lyrics": str(song.lyrics),
                 "source": "Genius.com",
                 "length": len(song.lyrics),
-                "url": song.url if hasattr(song, 'url') else "",
-                "album": song.album if hasattr(song, 'album') else "",
-                "release_date": song.release_date if hasattr(song, 'release_date') else ""
+                "url": str(song.url) if hasattr(song, 'url') and song.url else "",
+                "album": str(song.album) if hasattr(song, 'album') and song.album else "",
+                "release_date": str(song.release_date) if hasattr(song, 'release_date') and song.release_date else ""
             }
             
     except ImportError:
