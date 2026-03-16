@@ -59,7 +59,7 @@ export default function App() {
         const savedLyrics = localStorage.getItem("acestep_lyrics_from_manager");
         if (savedLyrics && savedLyrics !== aceLyrics) {
           setAceLyrics(savedLyrics);
-          addLog(`[ACE-Step] Lyrics loaded from Lyrics Finder`);
+          console.log(`[ACE-Step] Lyrics loaded from Lyrics Finder`);
         }
       } catch (e) {
         console.error("Failed to load lyrics:", e);
@@ -69,7 +69,7 @@ export default function App() {
     // Check every 2 seconds for new lyrics
     const interval = setInterval(checkForLyrics, 2000);
     return () => clearInterval(interval);
-  }, [aceLyrics, addLog]);
+  }, [aceLyrics]);
   const [aceGuidanceScale, setAceGuidanceScale] = useState(7.0);
   const [aceInferSteps, setAceInferSteps] = useState(50);  // 50 steps for high quality (SFT model)
   const [aceSeed, setAceSeed] = useState(-1);
