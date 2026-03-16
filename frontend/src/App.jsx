@@ -65,6 +65,41 @@ export default function App() {
     return "";
   });
   const [aceDuration, setAceDuration] = useState(30);
+  
+  // Listen for lyrics from Lyrics Finder (real-time)
+  useEffect(() => {
+    // Check immediately on mount
+    const checkLyrics = () => {
+      try {
+        const savedLyrics = localStorage.getItem("acestep_lyrics_from_manager");
+        const savedArtist = localStorage.getItem("acestep_lyrics_artist");
+        const savedTitle = localStorage.getItem("acestep_lyrics_title");
+        
+        if (savedLyrics && savedLyrics !== aceLyrics) {
+          console.log("[ACE-Step] ✅ Found lyrics from Lyrics Finder!");
+          console.log("  - Artist:", savedArtist);
+          console.log("  - Title:", savedTitle);
+          console.log("  - Length:", savedLyrics.length);
+          
+          setAceLyrics(savedLyrics);
+          
+          // Clear immediately after loading
+          localStorage.removeItem("acestep_lyrics_from_manager");
+          localStorage.removeItem("acestep_lyrics_artist");
+          localStorage.removeItem("acestep_lyrics_title");
+        }
+      } catch (e) {
+        console.error("[ACE-Step] Error loading lyrics:", e);
+      }
+    };
+    
+    // Check immediately
+    checkLyrics();
+    
+    // Then check every 1 second for new lyrics
+    const interval = setInterval(checkLyrics, 1000);
+    return () => clearInterval(interval);
+  }, [aceLyrics]);
   const [aceGuidanceScale, setAceGuidanceScale] = useState(7.0);
   const [aceInferSteps, setAceInferSteps] = useState(50);  // 50 steps for high quality (SFT model)
   const [aceSeed, setAceSeed] = useState(-1);
