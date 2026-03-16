@@ -4,7 +4,6 @@ const API = "http://localhost:8000";
 
 export default function ModelsTab({ addLog }) {
   const [hwInfo, setHwInfo] = useState(null);
-  const [vram, setVram] = useState(null);
   const [sysLogs, setSysLogs] = useState([]);
   const [loading, setLoading] = useState("");
 
@@ -15,43 +14,7 @@ export default function ModelsTab({ addLog }) {
     fetch(`${API}/hardware`).then(r => r.json()).then(setHwInfo).catch(() =>
       setHwInfo({ mode: "offline", device: "cpu", vram_gb: 0, has_cuda: false, cpu_cores: "?" })
     );
-    fetchVram();
-    
-    // Auto-refresh VRAM every 2 seconds
-    const interval = setInterval(fetchVram, 2000);
-    return () => clearInterval(interval);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const fetchVram = () => {
-    // Try /gpu/info first (more detailed), fallback to /vram_usage
-    fetch(`${API}/gpu/info`)
-      .then(r => r.json())
-      .then(data => {
-        console.log("[GPU] Info:", data);
-        // Convert /gpu/info format to match /vram_usage format
-        setVram({
-          available: data.available,
-          used_gb: data.allocated_gb || 0,
-          total_gb: data.total_gb || 8,
-          pct: data.usage_percent || 0,
-          free_gb: data.free_gb || 0,
-          gpu_name: data.gpu_name || "Unknown GPU"
-        });
-      })
-      .catch((err) => {
-        console.error("[GPU] Error fetching /gpu/info:", err);
-        // Fallback to /vram_usage
-        fetch(`${API}/vram_usage`)
-          .then(r => r.json())
-          .then(data => {
-            console.log("[VRAM] Fallback:", data);
-            setVram(data);
-          })
-          .catch(() => {
-            setVram({ available: false, used_gb: 0, total_gb: 8, pct: 0 });
-          });
-      });
-  };
 
   const action = async (endpoint, label) => {
     setLoading(endpoint);
@@ -61,15 +24,11 @@ export default function ModelsTab({ addLog }) {
       const data = await res.json();
       addSysLog(`✓ ${data.message || label + " OK"}`);
       addLog(`[OK] ${label}`);
-      fetchVram();
     } catch {
       addSysLog(`✗ ${label} failed (server offline?)`);
       addLog(`[WARN] ${label} failed`);
     } finally { setLoading(""); }
   };
-
-  const vramPct = vram?.pct || 0;
-  const vramColor = vramPct > 80 ? "#e63946" : vramPct > 60 ? "#ffd166" : "#06d6a0";
 
   const S = {
     card: { background: "linear-gradient(135deg,#0d0d22 0%,#0a0a1a 100%)", border: "1px solid #1e1e3a", borderRadius: 12, padding: 16, marginBottom: 14 },
@@ -116,63 +75,6 @@ export default function ModelsTab({ addLog }) {
           ) : (
             <div style={{ color: "#444466", fontSize: 12 }}>Loading hardware info...</div>
           )}
-        </div>
-
-        {/* VRAM Usage - Enhanced with GPU Monitor stats */}
-        <div style={S.card}>
-          <span style={S.label}>📊 VRAM Usage (GPU Monitor)</span>
-          
-          {/* VRAM Grid Stats */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, marginBottom: 12 }}>
-            <div style={{ background: "#0a0a1a", padding: 10, borderRadius: 8, border: "1px solid #1a1a2e" }}>
-              <div style={{ color: "#888", fontSize: 10, marginBottom: 4 }}>Total VRAM</div>
-              <div style={{ color: "#00e5ff", fontSize: 18, fontWeight: 700 }}>{vram?.total_gb?.toFixed(2) || "8.00"} GB</div>
-            </div>
-            <div style={{ background: "#0a0a1a", padding: 10, borderRadius: 8, border: "1px solid #1a1a2e" }}>
-              <div style={{ color: "#888", fontSize: 10, marginBottom: 4 }}>Free VRAM</div>
-              <div style={{ color: "#10b981", fontSize: 18, fontWeight: 700 }}>{((vram?.total_gb || 8) - (vram?.used_gb || 0)).toFixed(2)} GB</div>
-            </div>
-            <div style={{ background: "#0a0a1a", padding: 10, borderRadius: 8, border: "1px solid #1a1a2e" }}>
-              <div style={{ color: "#888", fontSize: 10, marginBottom: 4 }}>Allocated</div>
-              <div style={{ color: "#f59e0b", fontSize: 18, fontWeight: 700 }}>{vram?.used_gb?.toFixed(2) || "0.00"} GB</div>
-            </div>
-            <div style={{ background: "#0a0a1a", padding: 10, borderRadius: 8, border: "1px solid #1a1a2e" }}>
-              <div style={{ color: "#888", fontSize: 10, marginBottom: 4 }}>Usage</div>
-              <div style={{ color: vramColor, fontSize: 18, fontWeight: 700 }}>{vramPct.toFixed(1)}%</div>
-            </div>
-          </div>
-
-          {/* VRAM Progress Bar */}
-          <div style={{ marginBottom: 10 }}>
-            <div style={{ height: 14, background: "#0a0a1a", borderRadius: 7, overflow: "hidden", border: "1px solid #1a1a2e" }}>
-              <div style={{
-                height: 14, borderRadius: 7,
-                background: `linear-gradient(90deg, ${vramColor}, ${vramColor}88)`,
-                width: `${vramPct}%`, transition: "width 0.5s",
-                boxShadow: `0 0 8px ${vramColor}66`,
-              }} />
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
-              <span style={{ color: vramColor, fontSize: 13, fontFamily: "monospace", fontWeight: 700 }}>
-                {vram?.used_gb?.toFixed(2) || "0.00"} GB used
-              </span>
-              <span style={{ color: "#444466", fontSize: 12 }}>
-                / {vram?.total_gb?.toFixed(2) || "8.00"} GB total
-              </span>
-            </div>
-          </div>
-
-          <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={fetchVram}
-              style={{ background: "#3b82f6", color: "white", border: "none", borderRadius: 7, padding: "8px 16px", fontSize: 12, cursor: "pointer", fontWeight: 600 }}>
-              🔄 Refresh
-            </button>
-            <button onClick={() => action("clear_cache", "Clear GPU Cache")}
-              disabled={loading === "clear_cache"}
-              style={{ background: loading === "clear_cache" ? "#666" : "#ef4444", color: "white", border: "none", borderRadius: 7, padding: "8px 16px", fontSize: 12, cursor: loading === "clear_cache" ? "not-allowed" : "pointer", fontWeight: 600 }}>
-              🧹 Cleanup VRAM
-            </button>
-          </div>
         </div>
 
         {/* GPU Actions */}
