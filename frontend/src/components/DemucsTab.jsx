@@ -201,13 +201,7 @@ export default function DemucsTab({ addLog, tracks, setTracks }) {
 
       {/* Header Cyberpunk */}
       <div style={{ textAlign: "center", marginBottom: 32, position: "relative" }}>
-        <div style={{ 
-          fontSize: 48, 
-          marginBottom: 8, 
-          filter: `drop-shadow(0 0 20px ${cyberpunk.neon.cyan.glow})`,
-          animation: "pulse 2s ease-in-out infinite",
-        </div>
-
+        
         {/* SDR Ranking Bar */}
         <div style={{ 
           display: "flex", 
