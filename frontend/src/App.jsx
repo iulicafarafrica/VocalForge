@@ -19,7 +19,7 @@ const TABS = [
   { id: "Demucs",  Icon: Sliders,    label: "Stem Separation", color: "#00e5ff" },
   { id: "ACEStep", Icon: Music2,     label: "ACE-Step", color: "#ff6b9d" },
   { id: "Pipeline", Icon: Zap, label: "Vocal Pipeline", color: "#a855f7" },
-  { id: "Lyrics", Icon: Mic2, label: "Lyrics Manager", color: "#ff6b9d" },
+  { id: "Lyrics", Icon: Mic2, label: "Lyrics Finder", color: "#ff6b9d" },
   { id: "ACEAdvanced", Icon: Layers, label: "Repaint", color: "#00b4d8" },
   { id: "AudioAnalysis", Icon: Activity, label: "Audio Analysis", color: "#f59e0b" },
   { id: "Tracks",  Icon: FolderOpen, label: "Tracks", color: "#ffd166" },
