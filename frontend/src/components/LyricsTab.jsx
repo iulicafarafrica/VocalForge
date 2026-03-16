@@ -14,6 +14,7 @@ export default function LyricsTab({ addLog }) {
   
   // Lyrics state
   const [lyrics, setLyrics] = useState("");
+  const [rawLyrics, setRawLyrics] = useState("");
   const [loadingLyrics, setLoadingLyrics] = useState(false);
   
   // Error state
@@ -78,11 +79,13 @@ export default function LyricsTab({ addLog }) {
       
       if (!res.ok) throw new Error(data.detail || "Lyrics not found");
       
-      // Clean up lyrics (remove Genius metadata headers)
-      let rawLyrics = data.lyrics || "No lyrics available";
-      const cleanedLyrics = cleanLyrics(rawLyrics);
+      // Store raw lyrics (for ACE-Step) and cleaned lyrics (for display)
+      const rawLyricsData = data.lyrics || "No lyrics available";
+      setRawLyrics(rawLyricsData);
       
+      const cleanedLyrics = cleanLyrics(rawLyricsData);
       setLyrics(cleanedLyrics);
+      
       addLog?.(`[Lyrics] Loaded: ${artist} - ${title}`);
     } catch (err) {
       setError(err.message);
@@ -158,7 +161,8 @@ export default function LyricsTab({ addLog }) {
 
   // Use in ACE-Step
   const useInAceStep = () => {
-    localStorage.setItem("acestep_lyrics_from_manager", lyrics);
+    // Send RAW lyrics (with metadata) to ACE-Step - it can handle it
+    localStorage.setItem("acestep_lyrics_from_manager", rawLyrics || lyrics);
     localStorage.setItem("acestep_lyrics_artist", selectedArtist);
     localStorage.setItem("acestep_lyrics_title", selectedTitle);
     addLog?.("[Lyrics] Sent to ACE-Step");
