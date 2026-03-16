@@ -687,7 +687,7 @@ export default function LyricsTab({ addLog }) {
                         </div>
                       </div>
                       <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-                        <button onClick={() => loadFromLibrary(entry)} style={{ ...S.button(cyberpunk.neon.cyan.primary), padding: "6px 10px", fontSize: 9 }}>📂 Load</button>
+                        <button onClick={() => loadFromLibrary(entry)} style={{ ...S.button(cyberpunk.neon.cyan.primary), padding: "6px 10px", fontSize: 9 }}>🎵 Send to ACE</button>
                         <button onClick={() => editLyricsEntry(entry)} style={{ ...S.button(cyberpunk.neon.yellow.primary), padding: "6px 10px", fontSize: 9 }}>✏️ Edit</button>
                         <button onClick={() => toggleFavorite(entry.id)} style={{ ...S.button(cyberpunk.neon.yellow.primary), padding: "6px 10px", fontSize: 9 }}>{entry.favorite ? "⭐" : "☆"}</button>
                         <button onClick={() => deleteFromLibrary(entry.id)} style={{ ...S.button("#e63946"), padding: "6px 10px", fontSize: 9 }}>🗑️</button>
