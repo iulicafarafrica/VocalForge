@@ -46,20 +46,26 @@ export default function LyricsTab({ addLog }) {
   useEffect(() => {
     try {
       const saved = localStorage.getItem("vocalforge_lyrics_library");
+      console.log("[Library] Loading from localStorage:", saved ? "FOUND" : "NOT FOUND");
       if (saved) {
-        setLyricsLibrary(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        console.log("[Library] Loaded", parsed.length, "lyrics");
+        setLyricsLibrary(parsed);
+      } else {
+        console.log("[Library] No saved library found");
       }
     } catch (e) {
-      console.error("Failed to load lyrics library:", e);
+      console.error("[Library] Failed to load:", e);
     }
   }, []);
 
   // Save library to localStorage
   useEffect(() => {
     try {
+      console.log("[Library] Saving", lyricsLibrary.length, "lyrics to localStorage");
       localStorage.setItem("vocalforge_lyrics_library", JSON.stringify(lyricsLibrary));
     } catch (e) {
-      console.error("Failed to save lyrics library:", e);
+      console.error("[Library] Failed to save:", e);
     }
   }, [lyricsLibrary]);
 
