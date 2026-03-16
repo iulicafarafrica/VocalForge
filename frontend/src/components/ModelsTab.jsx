@@ -9,21 +9,18 @@ export default function ModelsTab({ addLog }) {
   
   // Cache & Storage states
   const [storageAnalysis, setStorageAnalysis] = useState(null);
-  const [recommendations, setRecommendations] = useState([]);
-  const [autoCleanupSettings, setAutoCleanupSettings] = useState(null);
   const [showAutoCleanup, setShowAutoCleanup] = useState(false);
+  const [autoCleanupSettings, setAutoCleanupSettings] = useState(null);
 
   const addSysLog = (msg) =>
     setSysLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev.slice(0, 99)]);
 
-  // Fetch hardware info on mount
+  // Fetch hardware info and storage analysis on mount
   useEffect(() => {
     fetch(`${API}/hardware`).then(r => r.json()).then(setHwInfo).catch(() =>
       setHwInfo({ mode: "offline", device: "cpu", vram_gb: 0, has_cuda: false, cpu_cores: "?" })
     );
-    // Fetch storage analysis
     fetchStorageAnalysis();
-    fetchRecommendations();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchStorageAnalysis = async () => {
@@ -36,23 +33,15 @@ export default function ModelsTab({ addLog }) {
     }
   };
 
-  const fetchRecommendations = async () => {
-    try {
-      const res = await fetch(`${API}/gpu/storage/recommendations`);
-      const data = await res.json();
-      setRecommendations(data.recommendations || []);
-    } catch (err) {
-      console.error("Failed to fetch recommendations:", err);
-    }
-  };
-
   const fetchAutoCleanupSettings = async () => {
-    try {
-      const res = await fetch(`${API}/gpu/auto-cleanup/settings`);
-      const data = await res.json();
-      setAutoCleanupSettings(data);
-    } catch (err) {
-      console.error("Failed to fetch auto-cleanup settings:", err);
+    if (showAutoCleanup && !autoCleanupSettings) {
+      try {
+        const res = await fetch(`${API}/gpu/auto-cleanup/settings`);
+        const data = await res.json();
+        setAutoCleanupSettings(data);
+      } catch (err) {
+        console.error("Failed to fetch auto-cleanup settings:", err);
+      }
     }
   };
 
@@ -80,7 +69,6 @@ export default function ModelsTab({ addLog }) {
       addSysLog(`✓ Cleared ${type} cache - ${freed.toFixed(1)} MB freed`);
       addLog(`[OK] Cleared ${type} cache (${freed.toFixed(1)} MB)`);
       fetchStorageAnalysis();
-      fetchRecommendations();
     } catch (err) {
       addSysLog(`✗ Clear cache failed: ${err.message}`);
       addLog(`[WARN] Clear cache failed`);
@@ -96,7 +84,6 @@ export default function ModelsTab({ addLog }) {
       addSysLog(`✓ Deleted ${data.files_deleted} files - ${data.mb_freed.toFixed(1)} MB freed`);
       addLog(`[OK] Cleaned old files from ${directory}`);
       fetchStorageAnalysis();
-      fetchRecommendations();
     } catch (err) {
       addSysLog(`✗ Clear old files failed: ${err.message}`);
       addLog(`[WARN] Clear old files failed`);
@@ -136,16 +123,6 @@ export default function ModelsTab({ addLog }) {
 
   const modeColors = { light: "#ffd166", full: "#06d6a0", high_end: "#00e5ff", offline: "#e63946" };
   const modeColor = modeColors[hwInfo?.mode] || "#888";
-
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case "critical": return "#ef4444";
-      case "high": return "#f59e0b";
-      case "medium": return "#3b82f6";
-      case "low": return "#10b981";
-      default: return "#6666aa";
-    }
-  };
 
   const formatMB = (mb) => {
     if (mb === undefined || mb === null) return "0 MB";
@@ -249,38 +226,23 @@ export default function ModelsTab({ addLog }) {
           )}
         </div>
 
-        {/* Smart Recommendations */}
+        {/* Quick Clean All */}
         <div style={S.card}>
-          <span style={S.label}>💡 Smart Recommendations</span>
-          {recommendations && recommendations.length > 0 ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {recommendations.slice(0, 4).map((rec, idx) => (
-                <div key={rec.id} style={{ padding: 10, background: "#0a0a1a", borderRadius: 8, border: `1px solid ${getPriorityColor(rec.priority)}44` }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: "50%", background: getPriorityColor(rec.priority) }} />
-                    <span style={{ color: "#e0e0ff", fontSize: 11, fontWeight: 700 }}>{rec.title}</span>
-                  </div>
-                  <div style={{ color: "#6666aa", fontSize: 10, marginBottom: 6 }}>{rec.description}</div>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <span style={{ color: "#06d6a0", fontSize: 10 }}>Save: {formatMB(rec.potential_savings_mb)}</span>
-                    {rec.action === "clear" || rec.action === "clear_all" ? (
-                      <button onClick={() => rec.action === "clear_all" ? clearCache("all") : clearCache(rec.target)} disabled={loading.includes(rec.target)} style={{ ...S.btnSmall(getPriorityColor(rec.priority) + "22", getPriorityColor(rec.priority)), border: `1px solid ${getPriorityColor(rec.priority)}44` }}>
-                        {loading.includes(rec.target) ? "..." : "Clean"}
-                      </button>
-                    ) : rec.action === "review_old" ? (
-                      <button onClick={() => clearOldFiles(rec.target, 30)} disabled={loading.includes(rec.target)} style={{ ...S.btnSmall(getPriorityColor(rec.priority) + "22", getPriorityColor(rec.priority)), border: `1px solid ${getPriorityColor(rec.priority)}44` }}>
-                        Review
-                      </button>
-                    ) : null}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{ color: "#10b981", fontSize: 12, textAlign: "center", padding: "20px 0" }}>
-              ✅ No recommendations - your storage is clean!
-            </div>
-          )}
+          <span style={S.label}>🗑️ Quick Clean</span>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <button onClick={() => clearCache("all")} disabled={loading === "cache_all"} style={{ ...S.btn("#e6394622", "#e63946"), border: "1px solid #e6394644" }}>
+              <span>🗑 Clear All Caches</span>
+              <span style={{ fontSize: 16 }}>›</span>
+            </button>
+            <button onClick={() => clearOldFiles("backend_output", 7)} disabled={loading.includes("clear_old")} style={{ ...S.btn("#ffd16622", "#ffd166"), border: "1px solid #ffd16644" }}>
+              <span>📁 Clean Output >7 days</span>
+              <span style={{ fontSize: 16 }}>›</span>
+            </button>
+            <button onClick={fetchStorageAnalysis} style={{ ...S.btn("#06d6a022", "#06d6a0"), border: "1px solid #06d6a044" }}>
+              <span>🔄 Refresh Analysis</span>
+              <span style={{ fontSize: 16 }}>›</span>
+            </button>
+          </div>
         </div>
       </div>
 
