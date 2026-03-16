@@ -4,16 +4,19 @@ GPU Information and Memory Management API
 - Cache management
 - Per-model VRAM tracking
 - VRAM alerts
+- Storage analysis and cleanup recommendations
 """
 
 from fastapi import APIRouter, Query
 from typing import Optional
+import os
+import time
+from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/gpu", tags=["GPU Memory"])
 
 # Import from modules
 import sys
-import os
 backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if backend_dir not in sys.path:
     sys.path.insert(0, backend_dir)
@@ -197,3 +200,314 @@ async def get_gpu_stats():
         "optimal_chunk_size": manager.get_optimal_chunk_size(),
         "timestamp": vram_info.get("timestamp", "")
     }
+
+
+@router.get("/storage/analyze")
+async def analyze_storage():
+    """
+    Analyze storage usage across all VocalForge directories.
+    
+    Returns detailed breakdown of:
+    - Cache directories
+    - Temp files
+    - Output files
+    - Model files
+    - Recommendations
+    """
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    root_dir = os.path.dirname(base_dir)
+    
+    directories = {
+        "acestep_cache": os.path.join(root_dir, "ace-step", ".cache"),
+        "backend_temp": os.path.join(base_dir, "temp"),
+        "backend_output": os.path.join(base_dir, "output"),
+        "backend_logs": os.path.join(base_dir, "logs"),
+        "rvc_models": os.path.join(root_dir, "RVCWebUI", "assets", "weights"),
+        "torch_cache": os.environ.get("TORCH_HOME", os.path.join(os.path.expanduser("~"), ".cache", "torch")),
+    }
+    
+    analysis = {}
+    total_size = 0
+    total_files = 0
+    
+    for name, path in directories.items():
+        info = _analyze_directory(path)
+        analysis[name] = info
+        total_size += info["size_bytes"]
+        total_files += info["file_count"]
+    
+    # Calculate free space on drive
+    try:
+        import shutil
+        total_disk, used_disk, free_disk = shutil.disk_usage(root_dir[:2] + ":\\")
+        disk_info = {
+            "total_gb": round(total_disk / (1024**3), 2),
+            "used_gb": round(used_disk / (1024**3), 2),
+            "free_gb": round(free_disk / (1024**3), 2),
+            "usage_percent": round((used_disk / total_disk) * 100, 1)
+        }
+    except Exception:
+        disk_info = None
+    
+    return {
+        "directories": analysis,
+        "total_size_mb": round(total_size / (1024 * 1024), 2),
+        "total_files": total_files,
+        "disk_info": disk_info,
+        "timestamp": datetime.now().isoformat(),
+    }
+
+
+def _analyze_directory(path: str) -> dict:
+    """Analyze a single directory."""
+    if not os.path.exists(path):
+        return {
+            "path": path,
+            "size_bytes": 0,
+            "file_count": 0,
+            "exists": False,
+            "oldest_file": None,
+            "newest_file": None,
+            "by_age": {"today": 0, "week": 0, "month": 0, "older": 0},
+        }
+    
+    total_size = 0
+    file_count = 0
+    oldest_time = None
+    newest_time = None
+    by_age = {"today": 0, "week": 0, "month": 0, "older": 0}
+    
+    now = datetime.now()
+    
+    for root, dirs, files in os.walk(path):
+        for filename in files:
+            filepath = os.path.join(root, filename)
+            try:
+                stat = os.stat(filepath)
+                size = stat.st_size
+                mtime = datetime.fromtimestamp(stat.st_mtime)
+                
+                total_size += size
+                file_count += 1
+                
+                # Track oldest/newest
+                if oldest_time is None or mtime < oldest_time:
+                    oldest_time = mtime
+                if newest_time is None or mtime > newest_time:
+                    newest_time = mtime
+                
+                # Categorize by age
+                age_days = (now - mtime).days
+                if age_days == 0:
+                    by_age["today"] += 1
+                elif age_days <= 7:
+                    by_age["week"] += 1
+                elif age_days <= 30:
+                    by_age["month"] += 1
+                else:
+                    by_age["older"] += 1
+                    
+            except (OSError, FileNotFoundError):
+                continue
+    
+    return {
+        "path": path,
+        "size_bytes": total_size,
+        "file_count": file_count,
+        "exists": True,
+        "oldest_file": oldest_time.isoformat() if oldest_time else None,
+        "newest_file": newest_time.isoformat() if newest_time else None,
+        "by_age": by_age,
+    }
+
+
+@router.get("/storage/recommendations")
+async def get_cleanup_recommendations():
+    """
+    Get smart cleanup recommendations based on current storage state.
+    
+    Returns actionable recommendations with priority levels.
+    """
+    analysis = await analyze_storage()
+    recommendations = []
+    
+    # Check each directory
+    for name, info in analysis["directories"].items():
+        if not info["exists"]:
+            continue
+        
+        size_mb = info["size_bytes"] / (1024 * 1024)
+        older_files = info["by_age"]["older"]
+        week_files = info["by_age"]["week"]
+        
+        # Large cache recommendation
+        if size_mb > 500:
+            recommendations.append({
+                "id": f"{name}_large",
+                "priority": "high" if size_mb > 1000 else "medium",
+                "type": "size",
+                "title": f"Large {name.replace('_', ' ').title()} ({size_mb:.0f} MB)",
+                "description": f"This directory contains {size_mb:.0f} MB. Consider clearing to free up space.",
+                "action": "clear",
+                "target": name,
+                "potential_savings_mb": round(size_mb * 0.9, 1),
+            })
+        
+        # Old files recommendation
+        if older_files > 10:
+            recommendations.append({
+                "id": f"{name}_old",
+                "priority": "medium",
+                "type": "age",
+                "title": f"{older_files} old files in {name.replace('_', ' ').title()}",
+                "description": f"You have {older_files} files older than 30 days. Consider removing outdated files.",
+                "action": "review_old",
+                "target": name,
+                "potential_savings_mb": round(size_mb * 0.5, 1),
+            })
+        
+        # Recent activity check
+        if info["file_count"] > 0 and info["newest_file"]:
+            newest = datetime.fromisoformat(info["newest_file"])
+            days_since = (datetime.now() - newest).days
+            if days_since > 14:
+                recommendations.append({
+                    "id": f"{name}_stale",
+                    "priority": "low",
+                    "type": "stale",
+                    "title": f"{name.replace('_', ' ').title()} not cleaned in {days_since} days",
+                    "description": "This directory hasn't been cleaned recently. A quick cleanup might help.",
+                    "action": "clear",
+                    "target": name,
+                    "potential_savings_mb": round(size_mb * 0.8, 1),
+                })
+    
+    # Disk space warning
+    if analysis["disk_info"] and analysis["disk_info"]["usage_percent"] > 85:
+        recommendations.append({
+            "id": "disk_critical",
+            "priority": "critical",
+            "type": "disk",
+            "title": f"Disk space critical ({analysis['disk_info']['usage_percent']}% used)",
+            "description": f"Only {analysis['disk_info']['free_gb']} GB free. Immediate cleanup recommended!",
+            "action": "clear_all",
+            "target": "all",
+            "potential_savings_mb": round(analysis["total_size_mb"] * 0.7, 1),
+        })
+    
+    # Sort by priority
+    priority_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+    recommendations.sort(key=lambda x: priority_order.get(x["priority"], 4))
+    
+    return {
+        "recommendations": recommendations,
+        "count": len(recommendations),
+        "total_potential_savings_mb": round(sum(r["potential_savings_mb"] for r in recommendations), 1),
+        "timestamp": datetime.now().isoformat(),
+    }
+
+
+@router.post("/storage/clear-old")
+async def clear_old_files(
+    directory: str = Query(..., description="Directory name to clean"),
+    days_old: int = Query(default=30, description="Remove files older than X days")
+):
+    """Remove files older than specified days from a directory."""
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    root_dir = os.path.dirname(base_dir)
+    
+    dir_map = {
+        "acestep_cache": os.path.join(root_dir, "ace-step", ".cache"),
+        "backend_temp": os.path.join(base_dir, "temp"),
+        "backend_output": os.path.join(base_dir, "output"),
+        "backend_logs": os.path.join(base_dir, "logs"),
+    }
+    
+    if directory not in dir_map:
+        return {"status": "error", "message": f"Unknown directory: {directory}"}
+    
+    path = dir_map[directory]
+    if not os.path.exists(path):
+        return {"status": "error", "message": f"Directory does not exist: {path}"}
+    
+    cutoff = datetime.now() - timedelta(days=days_old)
+    deleted_count = 0
+    deleted_size = 0
+    
+    for root, dirs, files in os.walk(path):
+        for filename in files:
+            filepath = os.path.join(root, filename)
+            try:
+                mtime = datetime.fromtimestamp(os.stat(filepath).st_mtime)
+                if mtime < cutoff:
+                    size = os.path.getsize(filepath)
+                    os.remove(filepath)
+                    deleted_count += 1
+                    deleted_size += size
+            except (OSError, FileNotFoundError):
+                continue
+    
+    # Remove empty directories
+    for root, dirs, files in os.walk(path, topdown=False):
+        for dir_name in dirs:
+            dir_path = os.path.join(root, dir_name)
+            try:
+                if not os.listdir(dir_path):
+                    os.rmdir(dir_path)
+            except OSError:
+                pass
+    
+    return {
+        "status": "ok",
+        "directory": directory,
+        "files_deleted": deleted_count,
+        "bytes_freed": deleted_size,
+        "mb_freed": round(deleted_size / (1024 * 1024), 2),
+        "days_old": days_old,
+    }
+
+
+@router.get("/auto-cleanup/settings")
+async def get_auto_cleanup_settings():
+    """Get auto-cleanup settings from config file."""
+    config_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "auto_cleanup_config.json"
+    )
+    
+    default_settings = {
+        "enabled": False,
+        "clear_temp_after_task": False,
+        "clear_output_days": 7,
+        "alert_threshold_mb": 500,
+        "auto_clear_vram_percent": 90,
+    }
+    
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r") as f:
+                settings = json.load(f)
+                return {**default_settings, **settings}
+        except Exception:
+            pass
+    
+    return default_settings
+
+
+@router.post("/auto-cleanup/settings")
+async def update_auto_cleanup_settings(settings: dict):
+    """Update auto-cleanup settings."""
+    import json
+    
+    config_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "auto_cleanup_config.json"
+    )
+    
+    allowed_keys = ["enabled", "clear_temp_after_task", "clear_output_days", "alert_threshold_mb", "auto_clear_vram_percent"]
+    filtered = {k: v for k, v in settings.items() if k in allowed_keys}
+    
+    with open(config_path, "w") as f:
+        json.dump(filtered, f, indent=2)
+    
+    return {"status": "ok", "settings": filtered}
