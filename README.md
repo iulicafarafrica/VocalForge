@@ -39,9 +39,10 @@
 - ✂️ **Stem Separation** — BS-RoFormer (SDR 12.97) professional quality
 - 🔄 **Pipeline v2.3** — End-to-end: separate → convert → mix → master
 - 🎼 **164 Genre Presets** — Including 30 Romanian subgenres
+- 🎤 **Lyrics Finder** — Search & view lyrics from 6 sources (Genius, AZLyrics, etc.)
 - 💻 **GPU Optimized** — RTX 3070 8GB (runs on 6GB+)
 
-### 🎯 10 Main Modules
+### 🎯 11 Main Modules
 
 | Icon | Module | Description |
 |------|--------|-------------|
@@ -51,6 +52,7 @@
 | 🎸 | **Prompt Generator** | 164 subgenres, 5 vocal presets |
 | 🖌️ | **Repaint** | Regenerate sections (30-60s) |
 | 📊 | **Audio Analysis** | BPM, Key, Time Signature detection |
+| 🎤 | **Lyrics Finder** | Search lyrics by artist & title |
 | 🌞 | **Suno AI** | Generate music with Suno (local cookie) |
 | 📁 | **Tracks Manager** | View, play, download tracks |
 | 💻 | **Models Manager** | Upload, list RVC models |

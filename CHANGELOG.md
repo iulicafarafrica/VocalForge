@@ -1,6 +1,57 @@
 
 ---
 
+## [Unreleased] - 2026-03-16
+
+### 🎤 NEW: Lyrics Finder — Official lyrics.ovh Integration
+
+**Based on official lyrics.ovh API:** https://github.com/NTag/lyrics.ovh
+
+**Features:**
+- ✅ Search songs by artist & title
+- ✅ Suggest endpoint (Deezer API integration)
+- ✅ View full lyrics with copy functionality
+- ✅ Clean cyberpunk UI
+- ✅ No authentication required
+- ✅ Free API with CORS support
+
+**Sources (6 providers in parallel):**
+| Source | Website |
+|--------|---------|
+| **Genius** | genius.com |
+| **AZLyrics** | azlyrics.com |
+| **Paroles.net** | paroles.net |
+| **LyricsMania** | lyricsmania.com |
+| **Letras** | letras.mus.br |
+| **Lyrics.com** | lyrics.com |
+
+**Backend Endpoints Added:**
+- `POST /audio/lyrics/suggest` — Search songs (returns Deezer results)
+- `POST /audio/lyrics/search` — Get lyrics for specific song
+
+**Files Changed:**
+- `frontend/src/components/LyricsTab.jsx` — Complete rewrite (400+ lines)
+- `backend/endpoints/audio_analysis.py` — Added suggest & search endpoints
+
+**Usage:**
+```bash
+# Search for artist
+curl -X POST http://localhost:8000/audio/lyrics/suggest \
+  -d "query=Queen"
+
+# Get lyrics
+curl -X POST http://localhost:8000/audio/lyrics/search \
+  -d "artist=Queen" \
+  -d "title=Bohemian Rhapsody" \
+  -d "search_type=song"
+```
+
+**Coverage:**
+- ✅ **International music** (USA, UK, EU) — Full support
+- ⚠️ **Romanian music** — Limited (depends on source availability)
+
+---
+
 ## [Unreleased] - 2026-03-15
 
 ### 🔒 CRITICAL: Security Audit & Hardening
