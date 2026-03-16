@@ -154,6 +154,11 @@ async def detect_time_signature_endpoint(file: UploadFile = File(...)):
 
 # ── Lyrics Search (Genius API via LyricsGenius) ────────────────────────────────
 
+# Genius API token (optional but recommended for better rate limits)
+# Set in backend/.env as GENIUS_ACCESS_TOKEN
+GENIUS_TOKEN = os.getenv("GENIUS_ACCESS_TOKEN", None)
+
+
 @router.post("/lyrics/suggest")
 async def suggest_songs(query: str = Form(...)):
     """
@@ -165,12 +170,12 @@ async def suggest_songs(query: str = Form(...)):
         
         print(f"[Genius] Suggest: {query}")
         
-        # Initialize Genius client (no token needed for basic search)
-        genius = lyricsgenius.Genius()
+        # Initialize Genius client (token optional for basic search)
+        genius = lyricsgenius.Genius(GENIUS_TOKEN) if GENIUS_TOKEN else lyricsgenius.Genius()
         genius.timeout = 10
         genius.delay = 0.5
         
-        # Search for songs using search_song
+        # Search for songs using search_songs
         results = genius.search_songs(query, per_page=10)
         
         if not results or 'hits' not in results:
@@ -228,7 +233,7 @@ async def search_lyrics(
                 raise HTTPException(status_code=400, detail="Artist name required")
             
             print(f"[Genius] Searching artist: {artist}")
-            genius = lyricsgenius.Genius()
+            genius = lyricsgenius.Genius(GENIUS_TOKEN) if GENIUS_TOKEN else lyricsgenius.Genius()
             genius.timeout = 10
             genius.delay = 0.5
             
@@ -260,7 +265,7 @@ async def search_lyrics(
                 raise HTTPException(status_code=400, detail="Artist and title required")
             
             print(f"[Genius] Searching: {artist} - {title}")
-            genius = lyricsgenius.Genius()
+            genius = lyricsgenius.Genius(GENIUS_TOKEN) if GENIUS_TOKEN else lyricsgenius.Genius()
             genius.timeout = 10
             genius.delay = 0.5
             genius.remove_section_headers = True  # Remove [Chorus], [Verse] headers
