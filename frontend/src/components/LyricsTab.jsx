@@ -206,9 +206,15 @@ export default function LyricsTab({ addLog }) {
 
   // Use in ACE-Step
   const useInAceStep = () => {
+    // Save to localStorage (for AceStepTab to read)
     localStorage.setItem("acestep_lyrics_from_manager", lyrics);
+    localStorage.setItem("acestep_lyrics_artist", selectedArtist);
+    localStorage.setItem("acestep_lyrics_title", selectedTitle);
+    
     addLog?.("[Lyrics] Sent to ACE-Step");
-    alert("✅ Lyrics sent to ACE-Step!\n\nGo to ACE-Step tab and check the Lyrics field.");
+    
+    // Show success message
+    alert("✅ Lyrics sent to ACE-Step!\n\nGo to ACE-Step tab and check the Lyrics field.\n\nThe lyrics will be automatically loaded!");
   };
 
   // Clear all

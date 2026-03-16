@@ -37,7 +37,18 @@ export default function App() {
 
   // ── AceStep state lifted here so it persists across tab switches ──────────
   const [acePrompt, setAcePrompt] = useState("");
-  const [aceLyrics, setAceLyrics] = useState("");
+  const [aceLyrics, setAceLyrics] = useState(() => {
+    // Load lyrics from Lyrics Finder if available
+    try {
+      const savedLyrics = localStorage.getItem("acestep_lyrics_from_manager");
+      if (savedLyrics) {
+        return savedLyrics;
+      }
+    } catch (e) {
+      console.error("Failed to load lyrics from Lyrics Finder:", e);
+    }
+    return "";
+  });
   const [aceDuration, setAceDuration] = useState(30);
   const [aceGuidanceScale, setAceGuidanceScale] = useState(7.0);
   const [aceInferSteps, setAceInferSteps] = useState(50);  // 50 steps for high quality (SFT model)
