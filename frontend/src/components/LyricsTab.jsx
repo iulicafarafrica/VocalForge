@@ -459,20 +459,31 @@ export default function LyricsTab({ addLog }) {
         </div>
       )}
 
-      {/* Library Button & Modal */}
-      <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 100 }}>
-        <button
-          onClick={() => setShowLibrary(!showLibrary)}
-          style={{
-            ...S.button(cyberpunk.neon.pink.primary),
-            padding: "14px 20px",
-            fontSize: 12,
-            boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
-          }}
-        >
-          📚 Library ({lyricsLibrary.length})
-        </button>
-      </div>
+      {/* Library Button - Always visible */}
+      <button
+        onClick={() => setShowLibrary(!showLibrary)}
+        style={{
+          position: "fixed",
+          bottom: 24,
+          right: 24,
+          zIndex: 9999,
+          ...S.button(cyberpunk.neon.pink.primary),
+          padding: "14px 20px",
+          fontSize: 12,
+          boxShadow: "0 4px 30px rgba(255,107,157,0.5)",
+          transition: "all 0.3s ease",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "translateY(-3px)";
+          e.currentTarget.style.boxShadow = "0 6px 40px rgba(255,107,157,0.7)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "translateY(0)";
+          e.currentTarget.style.boxShadow = "0 4px 30px rgba(255,107,157,0.5)";
+        }}
+      >
+        📚 Library ({lyricsLibrary.length})
+      </button>
 
       {/* Library Modal */}
       {showLibrary && (
