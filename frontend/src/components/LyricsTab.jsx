@@ -62,8 +62,10 @@ export default function LyricsTab({ addLog }) {
   // Save library to localStorage
   useEffect(() => {
     try {
-      console.log("[Library] Saving", lyricsLibrary.length, "lyrics to localStorage");
+      console.log("[Library] Saving", lyricsLibrary.length, "lyrics");
+      console.log("[Library] Content:", JSON.stringify(lyricsLibrary).substring(0, 100) + "...");
       localStorage.setItem("vocalforge_lyrics_library", JSON.stringify(lyricsLibrary));
+      console.log("[Library] Saved successfully!");
     } catch (e) {
       console.error("[Library] Failed to save:", e);
     }
@@ -192,7 +194,10 @@ export default function LyricsTab({ addLog }) {
   // Save to library
   const saveToLibrary = () => {
     if (!lyrics.trim() || !saveName.trim()) return;
-    
+
+    console.log("[Library] saveToLibrary called");
+    console.log("[Library] Current library size:", lyricsLibrary.length);
+
     const newEntry = {
       id: editingId || Date.now(),
       name: saveName,
@@ -201,21 +206,24 @@ export default function LyricsTab({ addLog }) {
       lyrics: editingId ? editLyrics : lyrics,
       genre: saveGenre,
       favorite: isFavorite,
-      created: editingId 
+      created: editingId
         ? lyricsLibrary.find(l => l.id === editingId)?.created || new Date().toLocaleString()
         : new Date().toLocaleString(),
       updated: new Date().toLocaleString(),
     };
-    
+
     let updated;
     if (editingId) {
       updated = lyricsLibrary.map(l => l.id === editingId ? newEntry : l);
       addLog?.(`[Library] Updated: ${saveName}`);
+      console.log("[Library] Updated existing entry");
     } else {
       updated = [newEntry, ...lyricsLibrary];
       addLog?.(`[Library] Saved: ${saveName}`);
+      console.log("[Library] Added new entry, new size:", updated.length);
     }
-    
+
+    console.log("[Library] Setting library with", updated.length, "entries");
     setLyricsLibrary(updated);
     setSaveName("");
     setSaveGenre("Other");
