@@ -215,34 +215,6 @@ export default function PipelineTab() {
 
   return (
     <div style={{ padding: '24px', maxWidth: '1100px', margin: '0 auto', color: cyberpunk.text.primary }}>
-      
-      {/* Header Cyberpunk */}
-      <div style={{ textAlign: 'center', marginBottom: 32 }}>
-        <div style={{ 
-          fontSize: 48, 
-          marginBottom: 8, 
-          filter: `drop-shadow(0 0 20px ${cyberpunk.neon.purple.glow})`,
-          animation: "pulse 2s ease-in-out infinite",
-        }}>🎙️</div>
-        <div style={{ 
-          fontSize: 28, 
-          fontWeight: 900, 
-          color: cyberpunk.text.primary, 
-          marginBottom: 6,
-          letterSpacing: 3,
-          textTransform: "uppercase",
-          textShadow: `0 0 20px ${cyberpunk.neon.purple.glow}`,
-        }}>
-          Vocal Pipeline
-        </div>
-        <div style={{ 
-          color: cyberpunk.text.secondary, 
-          fontSize: 13,
-          letterSpacing: 1,
-        }}>
-          BS-ROFORMER → RVC CONVERSION → MIX & MASTER (-14 LUFS)
-        </div>
-      </div>
 
       {/* Stage Cards */}
       <div style={{ display: 'flex', gap: '12px', marginBottom: 28, flexWrap: 'wrap' }}>
