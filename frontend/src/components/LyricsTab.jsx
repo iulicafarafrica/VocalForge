@@ -246,6 +246,14 @@ export default function LyricsTab({ addLog }) {
     setSelectedTitle(entry.title);
     setShowLibrary(false);
     addLog?.(`[Library] Loaded: ${entry.name}`);
+    
+    // Auto-send to ACE-Step
+    localStorage.setItem("acestep_lyrics_from_manager", entry.lyrics);
+    localStorage.setItem("acestep_lyrics_artist", entry.artist);
+    localStorage.setItem("acestep_lyrics_title", entry.title);
+    addLog?.(`[Library] Sent to ACE-Step: ${entry.name}`);
+    
+    alert(`✅ Lyrics loaded!\n\n"${entry.name}" has been sent to ACE-Step.\n\nGo to ACE-Step tab to generate music!`);
   };
 
   // Toggle favorite
