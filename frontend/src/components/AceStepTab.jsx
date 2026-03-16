@@ -1876,100 +1876,6 @@ export default function AceStepTab({
         onLoad={handleLoadPreset}
       />
 
-      {/* Lyrics Save Input Modal */}
-      {showLyricsSaveInput && (
-        <div style={S.overlay} onClick={e => e.target === e.currentTarget && setShowLyricsSaveInput(false)}>
-          <div style={S.modal}>
-            <div style={S.header}>
-              <div>
-                <div style={{ color: "#e0e0ff", fontSize: 16, fontWeight: 900 }}>💾 Save Lyrics</div>
-                <div style={{ color: "#444466", fontSize: 11, marginTop: 2 }}>Save to your lyrics library</div>
-              </div>
-              <button onClick={() => setShowLyricsSaveInput(false)} style={{ background: "#e6394611", color: "#e63946", border: "1px solid #e6394633", borderRadius: 8, padding: "6px 12px", fontSize: 13, cursor: "pointer", fontWeight: 700 }}>✕</button>
-            </div>
-
-            <div style={{ padding: "20px" }}>
-              <div style={{ marginBottom: 16 }}>
-                <div style={{ color: "#6666aa", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>📝 Lyrics Name</div>
-                <input
-                  type="text"
-                  value={lyricsSaveName}
-                  onChange={e => setLyricsSaveName(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && saveLyricsToLibrary()}
-                  placeholder="e.g. Love Song, Party Anthem, etc."
-                  autoFocus
-                  style={{
-                    width: "100%",
-                    background: "#080812",
-                    border: "1px solid #2a2a4a",
-                    color: "#e0e0ff",
-                    borderRadius: 8,
-                    padding: "10px 12px",
-                    fontSize: 13,
-                    outline: "none",
-                  }}
-                  onFocus={e => e.target.style.borderColor = "#06d6a0"}
-                  onBlur={e => e.target.style.borderColor = "#2a2a4a"}
-                />
-              </div>
-
-              <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={() => setShowLyricsSaveInput(false)} style={{ flex: 1, background: "#0a0a1a", color: "#6666aa", border: "1px solid #2a2a4a", borderRadius: 8, padding: "10px", fontSize: 13, cursor: "pointer" }}>Cancel</button>
-                <button onClick={saveLyricsToLibrary} disabled={!lyricsSaveName.trim()} style={{ flex: 1, background: lyricsSaveName.trim() ? "#06d6a022" : "#1a1a2e", color: lyricsSaveName.trim() ? "#06d6a0" : "#444466", border: `1px solid ${lyricsSaveName.trim() ? "#06d6a044" : "#2a2a4a"}`, borderRadius: 8, padding: "10px", fontSize: 13, cursor: lyricsSaveName.trim() ? "pointer" : "not-allowed", fontWeight: 700 }}>💾 Save Lyrics</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Lyrics Library Modal */}
-      {showLyricsLibrary && (
-        <div style={S.overlay} onClick={e => e.target === e.currentTarget && setShowLyricsLibrary(false)}>
-          <div style={{...S.modal, maxHeight: "min(85vh, 600px)"}}>
-            <div style={S.header}>
-              <div>
-                <div style={{ color: "#e0e0ff", fontSize: 16, fontWeight: 900 }}>📚 Lyrics Library</div>
-                <div style={{ color: "#444466", fontSize: 11, marginTop: 2 }}>{lyricsLibrary.length} saved lyrics</div>
-              </div>
-              <button onClick={() => setShowLyricsLibrary(false)} style={{ background: "#e6394611", color: "#e63946", border: "1px solid #e6394633", borderRadius: 8, padding: "6px 12px", fontSize: 13, cursor: "pointer", fontWeight: 700 }}>✕</button>
-            </div>
-
-            <div style={{ padding: "20px", overflowY: "auto", flex: 1 }}>
-              {lyricsLibrary.length === 0 ? (
-                <div style={{ textAlign: "center", color: "#444466", fontSize: 13, padding: "40px 20px" }}>
-                  📭 No saved lyrics yet
-                  <div style={{ fontSize: 11, marginTop: 4, color: "#6666aa" }}>Click "💾 Save" to add lyrics to your library</div>
-                </div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {lyricsLibrary.map(entry => (
-                    <div key={entry.id} style={{
-                      background: "#0a0a1a",
-                      border: "1px solid #2a2a4a",
-                      borderRadius: 8,
-                      padding: "12px",
-                    }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                        <div style={{ color: "#ffd166", fontSize: 13, fontWeight: 700 }}>💾 {entry.name}</div>
-                        <div style={{ color: "#444466", fontSize: 10 }}>{entry.createdAt}</div>
-                      </div>
-                      <div style={{ color: "#6666aa", fontSize: 11, fontFamily: "monospace", marginBottom: 8, maxHeight: 60, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "pre-wrap" }}>
-                        {entry.lyrics.slice(0, 150)}{entry.lyrics.length > 150 ? "..." : ""}
-                      </div>
-                      <div style={{ display: "flex", gap: 6 }}>
-                        <button onClick={() => loadLyricsFromLibrary(entry)} style={{ flex: 1, background: "#06d6a022", color: "#06d6a0", border: "1px solid #06d6a044", borderRadius: 6, padding: "6px", fontSize: 11, cursor: "pointer", fontWeight: 700 }}>▶ Load</button>
-                        <button onClick={() => downloadLyrics(entry)} style={{ background: "#ffd16622", color: "#ffd166", border: "1px solid #ffd16644", borderRadius: 6, padding: "6px 10px", fontSize: 11, cursor: "pointer" }}>📥</button>
-                        <button onClick={() => deleteLyricsFromLibrary(entry.id)} style={{ background: "#e6394622", color: "#e63946", border: "1px solid #e6394644", borderRadius: 6, padding: "6px 10px", fontSize: 11, cursor: "pointer" }}>🗑</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Status bar */}
       <div style={{ marginBottom: 24 }}>
         {/* Status badge */}
@@ -2492,35 +2398,7 @@ export default function AceStepTab({
             <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
               <button onClick={() => setLyrics("")} style={{ background: "#e6394611", color: "#e63946", border: "1px solid #e6394633", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>🗑 Clear</button>
               <button onClick={() => setLyrics("[verse]\n\n[chorus]\n\n[verse]\n\n[chorus]\n\n[bridge]\n\n[chorus]")} style={{ background: "#7209b711", color: "#9b2de0", border: "1px solid #7209b733", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>📋 Template</button>
-              <button onClick={() => setShowLyricsSaveInput(true)} style={{ background: "#06d6a011", color: "#06d6a0", border: "1px solid #06d6a033", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>💾 Save Lyrics</button>
-              <button onClick={() => setShowLyricsLibrary(true)} style={{ background: "#ffd16611", color: "#ffd166", border: "1px solid #ffd16633", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>📚 Lyrics Library ({lyricsLibrary.length})</button>
             </div>
-
-            {/* Lyrics Library */}
-            {showLyricsLibrary && (
-              <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #1e1e3a" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                  <span style={{ color: "#6666aa", fontSize: 10, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase" }}>📚 Saved lyrics</span>
-                  <button onClick={() => setShowLyricsLibrary(false)} style={{ background: "transparent", color: "#555577", border: "none", fontSize: 11, cursor: "pointer", padding: "2px 4px" }}>✕ Close</button>
-                </div>
-                <div style={{ maxHeight: 180, overflowY: "auto", paddingRight: 4 }}>
-                  {lyricsLibrary.length === 0 ? (
-                    <div style={{ color: "#444466", fontSize: 12, textAlign: "center", padding: "16px 8px", background: "#080812", borderRadius: 8, border: "1px solid #1a1a2e" }}>No lyrics saved</div>
-                  ) : (
-                    lyricsLibrary.map((item, idx) => (
-                      <div key={idx} style={{ display: "flex", flexDirection: "column", gap: 4, padding: "8px 10px", background: "#080812", borderRadius: 6, marginBottom: 6, border: "1px solid #1a1a2e" }}>
-                        <div style={{ color: "#e0e0ff", fontSize: 11, fontWeight: 600 }}>{item.name}</div>
-                        <div style={{ color: "#444466", fontSize: 10, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.lyrics}</div>
-                        <div style={{ display: "flex", gap: 4 }}>
-                          <button onClick={() => { setLyrics(item.lyrics); setShowLyricsLibrary(false); }} style={{ background: "#9b2de022", color: "#c77dff", border: "1px solid #9b2de044", borderRadius: 4, padding: "3px 8px", fontSize: 10, cursor: "pointer", fontWeight: 600 }}>Use</button>
-                          <button onClick={() => { const u = lyricsLibrary.filter((_, i) => i !== idx); setLyricsLibrary(u); saveLyricsToStorage(u); }} style={{ background: "transparent", color: "#555577", border: "1px solid #2a2a4a", borderRadius: 4, padding: "3px 8px", fontSize: 10, cursor: "pointer" }}>🗑</button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
           </div>
 
         </div>
