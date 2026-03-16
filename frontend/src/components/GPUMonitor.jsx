@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const GPUMonitor = () => {
   const [vramInfo, setVramInfo] = useState(null);
@@ -35,12 +35,12 @@ const GPUMonitor = () => {
 
   return (
     <div style={{padding:'16px',background:'#1f2937',borderRadius:'8px',color:'white',fontFamily:'system-ui'}}>
-      <h3>🎮 GPU Monitor (RTX 3070)</h3>
+      <h3>?? GPU Monitor (RTX 3070)</h3>
       <div>VRAM: {pct.toFixed(1)}%</div>
       <div>Total: {vramInfo.total_gb}GB | Free: {vramInfo.free_gb}GB</div>
       <div style={{display:'flex',gap:'8px',marginTop:'12px'}}>
-        <button onClick={handleCleanup}>🧹 Cleanup</button>
-        <button onClick={fetchGPUInfo}>🔄 Refresh</button>
+        <button onClick={handleCleanup}>?? Cleanup</button>
+        <button onClick={fetchGPUInfo}>?? Refresh</button>
       </div>
     </div>
   );
