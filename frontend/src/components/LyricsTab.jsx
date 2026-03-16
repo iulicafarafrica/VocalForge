@@ -3,59 +3,26 @@ import React, { useState } from "react";
 const API = "http://localhost:8000";
 
 export default function LyricsTab() {
-  // Search state
   const [artist, setArtist] = useState("");
-  const [songs, setSongs] = useState([]);
-  const [selectedSong, setSelectedSong] = useState("");
+  const [title, setTitle] = useState("");
   const [lyrics, setLyrics] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Search for artist
-  const searchArtist = async () => {
-    if (!artist.trim()) return;
-    
-    setLoading(true);
-    setError("");
-    setSongs([]);
-    setSelectedSong("");
-    setLyrics("");
-    
-    try {
-      const fd = new FormData();
-      fd.append("artist", artist);
-      fd.append("search_type", "artist");
-      
-      const res = await fetch(`${API}/audio/lyrics/search`, {
-        method: "POST",
-        body: fd,
-      });
-      
-      const data = await res.json();
-      
-      if (!res.ok) throw new Error(data.detail || "Artist not found");
-      
-      setSongs(data.songs || []);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+  const searchLyrics = async () => {
+    if (!artist.trim() || !title.trim()) {
+      setError("Please enter both artist and title");
+      return;
     }
-  };
-
-  // Get lyrics for song
-  const getLyrics = async (songTitle) => {
-    if (!songTitle) return;
     
     setLoading(true);
     setError("");
-    setSelectedSong(songTitle);
     setLyrics("");
     
     try {
       const fd = new FormData();
       fd.append("artist", artist);
-      fd.append("title", songTitle);
+      fd.append("title", title);
       fd.append("search_type", "song");
       
       const res = await fetch(`${API}/audio/lyrics/search`, {
@@ -70,32 +37,27 @@ export default function LyricsTab() {
       setLyrics(data.lyrics || "No lyrics available");
     } catch (err) {
       setError(err.message);
-      setSelectedSong("");
     } finally {
       setLoading(false);
     }
   };
 
-  // Copy lyrics
   const copyLyrics = () => {
     navigator.clipboard.writeText(lyrics);
-    alert("✅ Lyrics copied to clipboard!");
+    alert("✅ Lyrics copied!");
   };
 
-  // Clear all
   const clearAll = () => {
     setArtist("");
-    setSongs([]);
-    setSelectedSong("");
+    setTitle("");
     setLyrics("");
     setError("");
   };
 
-  // Styles
   const styles = {
     container: {
       padding: 24,
-      maxWidth: 1000,
+      maxWidth: 900,
       margin: "0 auto",
       color: "#e0e0ff",
     },
@@ -132,22 +94,6 @@ export default function LyricsTab() {
       textTransform: "uppercase",
       letterSpacing: 1,
     },
-    songButton: {
-      background: "rgba(10,10,26,0.6)",
-      border: "1px solid rgba(42,42,74,0.5)",
-      color: "#8888aa",
-      borderRadius: 8,
-      padding: "10px 14px",
-      fontSize: 12,
-      cursor: "pointer",
-      textAlign: "left",
-      transition: "all 0.2s",
-    },
-    songButtonActive: {
-      background: "rgba(155,45,224,0.15)",
-      border: "1px solid #9b2de0",
-      color: "#c77dff",
-    },
     label: {
       color: "#00e5ff",
       fontSize: 10,
@@ -180,31 +126,53 @@ export default function LyricsTab() {
         </div>
       </div>
 
-      {/* Step 1: Search Artist */}
+      {/* Search Form */}
       <div style={styles.card}>
-        <label style={styles.label}>🔍 Step 1: Search Artist</label>
-        <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-          <input
-            type="text"
-            value={artist}
-            onChange={(e) => setArtist(e.target.value)}
-            placeholder="Enter artist name (e.g., Queen, Taylor Swift, Metallica)"
-            style={styles.input}
-            onKeyPress={(e) => e.key === "Enter" && searchArtist()}
-          />
+        <label style={styles.label}>🔍 Search Lyrics</label>
+        
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+          <div>
+            <label style={{ color: "#8888aa", fontSize: 11, marginBottom: 6, display: "block" }}>
+              Artist
+            </label>
+            <input
+              type="text"
+              value={artist}
+              onChange={(e) => setArtist(e.target.value)}
+              placeholder="e.g., Queen"
+              style={styles.input}
+              onKeyPress={(e) => e.key === "Enter" && searchLyrics()}
+            />
+          </div>
+          <div>
+            <label style={{ color: "#8888aa", fontSize: 11, marginBottom: 6, display: "block" }}>
+              Title
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g., Bohemian Rhapsody"
+              style={styles.input}
+              onKeyPress={(e) => e.key === "Enter" && searchLyrics()}
+            />
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 10 }}>
           <button
-            onClick={searchArtist}
-            disabled={loading || !artist.trim()}
+            onClick={searchLyrics}
+            disabled={loading || !artist.trim() || !title.trim()}
             style={{
               ...styles.button,
-              opacity: loading || !artist.trim() ? 0.5 : 1,
-              cursor: loading || !artist.trim() ? "not-allowed" : "pointer",
-              whiteSpace: "nowrap",
+              flex: 1,
+              opacity: loading || !artist.trim() || !title.trim() ? 0.5 : 1,
+              cursor: loading || !artist.trim() || !title.trim() ? "not-allowed" : "pointer",
             }}
           >
-            {loading ? "🔍 Searching..." : "🔍 Search"}
+            {loading ? "🔍 Searching..." : "🔍 Search Lyrics"}
           </button>
-          {songs.length > 0 && (
+          {lyrics && (
             <button
               onClick={clearAll}
               style={{
@@ -218,42 +186,7 @@ export default function LyricsTab() {
         </div>
       </div>
 
-      {/* Step 2: Select Song */}
-      {songs.length > 0 && (
-        <div style={styles.card}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <label style={styles.label}>🎵 Step 2: Select Song</label>
-            <span style={{ color: "#8888aa", fontSize: 11 }}>
-              {songs.length} songs by <strong style={{ color: "#9b2de0" }}>{artist}</strong>
-            </span>
-          </div>
-          
-          <div style={{ 
-            display: "grid", 
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", 
-            gap: 8,
-            maxHeight: "400px",
-            overflowY: "auto",
-          }}>
-            {songs.map((song, idx) => (
-              <button
-                key={idx}
-                onClick={() => getLyrics(song.title)}
-                disabled={loading}
-                style={{
-                  ...styles.songButton,
-                  ...(selectedSong === song.title ? styles.songButtonActive : {}),
-                  opacity: loading ? 0.5 : 1,
-                }}
-              >
-                🎵 {song.title}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Step 3: View Lyrics */}
+      {/* Lyrics Display */}
       {lyrics && (
         <div style={styles.card}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
@@ -273,7 +206,7 @@ export default function LyricsTab() {
           
           <div style={{ marginBottom: 12 }}>
             <div style={{ color: "#e0e0ff", fontSize: 18, fontWeight: 900, marginBottom: 4 }}>
-              🎵 {selectedSong}
+              🎵 {title}
             </div>
             <div style={{ color: "#8888aa", fontSize: 12 }}>
               🎤 {artist} • {lyrics.length.toLocaleString()} characters
@@ -321,7 +254,7 @@ export default function LyricsTab() {
           ✅ FREE API — NO TOKEN NEEDED
         </div>
         <div style={{ color: "#8888aa", fontSize: 10 }}>
-          Search for an artist → Select a song → View full lyrics
+          Enter artist and song title to get full lyrics
         </div>
       </div>
 
