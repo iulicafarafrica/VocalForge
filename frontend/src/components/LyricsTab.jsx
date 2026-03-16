@@ -246,27 +246,35 @@ export default function LyricsTab({ addLog }) {
       maxWidth: 1200,
       margin: "0 auto",
       color: "#e0e0ff",
+      fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
     },
     header: {
       textAlign: "center",
       marginBottom: 24,
+      padding: 20,
+      background: "linear-gradient(135deg, rgba(155,45,224,0.1), rgba(10,10,26,0.8))",
+      border: "1px solid rgba(155,45,224,0.3)",
+      borderRadius: 16,
+      boxShadow: "0 0 30px rgba(155,45,224,0.2)",
     },
     card: {
-      background: cyberpunk.bg.card,
-      border: "1px solid rgba(48,48,80,0.5)",
+      background: "linear-gradient(135deg, rgba(13,13,34,0.95), rgba(8,8,24,0.98))",
+      border: "1px solid rgba(0,229,255,0.2)",
       borderRadius: 16,
       padding: 20,
       marginBottom: 16,
-      boxShadow: "0 4px 30px rgba(0,0,0,0.3)",
+      boxShadow: "0 4px 30px rgba(0,229,255,0.1)",
+      backdropFilter: "blur(10px)",
     },
     label: {
-      color: cyberpunk.neon.cyan.primary,
+      color: "#00e5ff",
       fontSize: 10,
       fontWeight: 800,
       letterSpacing: 2,
       textTransform: "uppercase",
       marginBottom: 14,
       display: "block",
+      textShadow: "0 0 10px rgba(0,229,255,0.5)",
     },
     input: {
       background: "#0a0a1a",
@@ -313,10 +321,22 @@ export default function LyricsTab({ addLog }) {
 
   return (
     <div style={S.container}>
-      
-      {/* Header */}
+
+      {/* Header - Cyberpunk Style */}
       <div style={S.header}>
-        <div style={{ color: cyberpunk.text.secondary, fontSize: 13, letterSpacing: 1 }}>
+        <div style={{ 
+          fontSize: 32, 
+          fontWeight: 900, 
+          background: "linear-gradient(135deg, #00e5ff, #9b2de0, #ff6b9d)",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          marginBottom: 8,
+          textTransform: "uppercase",
+          letterSpacing: 3,
+        }}>
+          🎤 Lyrics Finder
+        </div>
+        <div style={{ color: "#8888aa", fontSize: 13, letterSpacing: 1 }}>
           Powered by lyrics.ovh — Free lyrics API
         </div>
       </div>
