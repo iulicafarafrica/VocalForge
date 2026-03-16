@@ -44,16 +44,23 @@ export default function App() {
       const savedArtist = localStorage.getItem("acestep_lyrics_artist");
       const savedTitle = localStorage.getItem("acestep_lyrics_title");
       
+      console.log("[ACE-Step] Checking for lyrics from Lyrics Finder...");
+      console.log("  - savedLyrics:", savedLyrics ? `${savedLyrics.length} chars` : "NONE");
+      console.log("  - savedArtist:", savedArtist);
+      console.log("  - savedTitle:", savedTitle);
+      
       if (savedLyrics) {
         // Clear the localStorage so it doesn't load again on refresh
         localStorage.removeItem("acestep_lyrics_from_manager");
         localStorage.removeItem("acestep_lyrics_artist");
         localStorage.removeItem("acestep_lyrics_title");
-        console.log("[ACE-Step] Loaded lyrics from Lyrics Finder");
+        console.log("[ACE-Step] ✅ Loaded lyrics from Lyrics Finder");
         return savedLyrics;
+      } else {
+        console.log("[ACE-Step] ❌ No lyrics found in localStorage");
       }
     } catch (e) {
-      console.error("Failed to load lyrics from Lyrics Finder:", e);
+      console.error("[ACE-Step] Failed to load lyrics from Lyrics Finder:", e);
     }
     return "";
   });

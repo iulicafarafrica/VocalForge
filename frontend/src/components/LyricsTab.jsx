@@ -162,11 +162,23 @@ export default function LyricsTab({ addLog }) {
   // Use in ACE-Step
   const useInAceStep = () => {
     // Send RAW lyrics (with metadata) to ACE-Step - it can handle it
-    localStorage.setItem("acestep_lyrics_from_manager", rawLyrics || lyrics);
+    const lyricsToSend = rawLyrics || lyrics;
+    
+    console.log("[Lyrics Finder] Sending to ACE-Step:");
+    console.log("  - Artist:", selectedArtist);
+    console.log("  - Title:", selectedTitle);
+    console.log("  - Lyrics length:", lyricsToSend?.length || 0);
+    
+    localStorage.setItem("acestep_lyrics_from_manager", lyricsToSend);
     localStorage.setItem("acestep_lyrics_artist", selectedArtist);
     localStorage.setItem("acestep_lyrics_title", selectedTitle);
+    
+    // Verify it was saved
+    const verifySave = localStorage.getItem("acestep_lyrics_from_manager");
+    console.log("[Lyrics Finder] Verified save:", verifySave ? "YES" : "NO");
+    
     addLog?.("[Lyrics] Sent to ACE-Step");
-    alert("✅ Lyrics sent to ACE-Step!\n\nGo to ACE-Step tab and check the Lyrics field.");
+    alert("✅ Lyrics sent to ACE-Step!\n\nGo to ACE-Step tab and check the Lyrics field.\n\nLyrics length: " + (lyricsToSend?.length || 0) + " chars");
   };
 
   // Clear all
