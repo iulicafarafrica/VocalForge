@@ -206,7 +206,7 @@ export default function DemucsTab({ addLog, tracks, setTracks }) {
           marginBottom: 8, 
           filter: `drop-shadow(0 0 20px ${cyberpunk.neon.cyan.glow})`,
           animation: "pulse 2s ease-in-out infinite",
-        }}>🎛</div>
+        }}>🎚️</div>
         <div style={{ 
           fontSize: 28, 
           fontWeight: 900, 

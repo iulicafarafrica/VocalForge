@@ -259,6 +259,7 @@ export default function LyricsTab({ addLog }) {
     localStorage.setItem("acestep_lyrics_title", entry.title);
     addLog?.(`[Library] Sent to ACE-Step: ${entry.name}`);
     
+    // DON'T clear the library! Just close modal
     alert(`✅ Lyrics loaded!\n\n"${entry.name}" has been sent to ACE-Step.\n\nGo to ACE-Step tab to generate music!`);
   };
 
