@@ -194,19 +194,19 @@ export default function LyricsTab() {
 
   return (
     <div style={S.container}>
-      
+
       {/* Header */}
-      <div style={styles.header}>
-        <div style={{ 
-          fontSize: 48, 
+      <div style={S.header}>
+        <div style={{
+          fontSize: 48,
           marginBottom: 8,
           filter: `drop-shadow(0 0 20px ${cyberpunk.neon.pink.glow})`,
           animation: "pulse 2s ease-in-out infinite",
         }}>🎤</div>
-        <div style={{ 
-          fontSize: 28, 
-          fontWeight: 900, 
-          color: cyberpunk.text.primary, 
+        <div style={{
+          fontSize: 28,
+          fontWeight: 900,
+          color: cyberpunk.text.primary,
           marginBottom: 6,
           letterSpacing: 3,
           textTransform: "uppercase",
