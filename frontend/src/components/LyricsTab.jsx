@@ -78,7 +78,11 @@ export default function LyricsTab({ addLog }) {
       
       if (!res.ok) throw new Error(data.detail || "Lyrics not found");
       
-      setLyrics(data.lyrics || "No lyrics available");
+      // Clean up lyrics (remove Genius metadata headers)
+      let rawLyrics = data.lyrics || "No lyrics available";
+      const cleanedLyrics = cleanLyrics(rawLyrics);
+      
+      setLyrics(cleanedLyrics);
       addLog?.(`[Lyrics] Loaded: ${artist} - ${title}`);
     } catch (err) {
       setError(err.message);
@@ -88,6 +92,61 @@ export default function LyricsTab({ addLog }) {
     } finally {
       setLoadingLyrics(false);
     }
+  };
+
+  // Clean Genius metadata from lyrics
+  const cleanLyrics = (lyrics) => {
+    if (!lyrics) return "";
+    
+    const lines = lyrics.split('\n');
+    const cleanedLines = [];
+    let skipIntro = true;
+    
+    for (let line of lines) {
+      const trimmed = line.trim();
+      
+      // Skip metadata lines at the beginning
+      if (skipIntro) {
+        // Skip lines containing these keywords
+        const skipKeywords = [
+          'Contributors',
+          'Translations',
+          'English',
+          'Lyrics',
+          'About',
+          'Produced by',
+          'Written by',
+          'Featuring',
+          'Views',
+          'Released on',
+          'Credits'
+        ];
+        
+        // Check if line should be skipped
+        const shouldSkip = skipKeywords.some(keyword => 
+          trimmed.toLowerCase().includes(keyword.toLowerCase())
+        );
+        
+        // Also skip lines that are just numbers or very short
+        const isMetadata = /^\d+$/.test(trimmed) || (trimmed.length < 20 && /[0-9]/.test(trimmed));
+        
+        if (shouldSkip || isMetadata) {
+          continue;
+        }
+        
+        // If we find a line that looks like actual lyrics (has brackets for section or is longer)
+        if (trimmed.startsWith('[') || trimmed.length > 30) {
+          skipIntro = false;
+          cleanedLines.push(line);
+        } else {
+          cleanedLines.push(line);
+        }
+      } else {
+        cleanedLines.push(line);
+      }
+    }
+    
+    return cleanedLines.join('\n');
   };
 
   // Copy to clipboard
