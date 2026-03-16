@@ -39,7 +39,7 @@
 - ✂️ **Stem Separation** — BS-RoFormer (SDR 12.97) professional quality
 - 🔄 **Pipeline v2.3** — End-to-end: separate → convert → mix → master
 - 🎼 **164 Genre Presets** — Including 30 Romanian subgenres
-- 🎤 **Lyrics Finder** — Search & view lyrics from 6 sources (Genius, AZLyrics, etc.)
+- 🎤 **Lyrics Finder & Manager** — Search Genius.com, save library, genres, favorites, import/export
 - 💻 **GPU Optimized** — RTX 3070 8GB (runs on 6GB+)
 
 ### 🎯 11 Main Modules
@@ -52,7 +52,7 @@
 | 🎸 | **Prompt Generator** | 164 subgenres, 5 vocal presets |
 | 🖌️ | **Repaint** | Regenerate sections (30-60s) |
 | 📊 | **Audio Analysis** | BPM, Key, Time Signature detection |
-| 🎤 | **Lyrics Finder** | Search lyrics by artist & title |
+| 🎤 | **Lyrics Finder** | Search Genius.com, clean lyrics, save to library |
 | 🌞 | **Suno AI** | Generate music with Suno (local cookie) |
 | 📁 | **Tracks Manager** | View, play, download tracks |
 | 💻 | **Models Manager** | Upload, list RVC models |
@@ -221,6 +221,35 @@ Audio quality is **identical** — LLM only expands prompts automatically.
 - Automatic retry logic (3 attempts)
 - One-click "Send to Suno" from Prompt Generator
 - Full genre/style/BPM support from ACE-Step
+
+### 🎤 Lyrics Finder & Manager (v2.2.0)
+
+**Genius.com API Integration · Full Library Management**
+
+- 🔍 **Search Genius.com** — Access millions of verified lyrics
+- 🧹 **Clean Lyrics** — Automatic metadata removal (no "ContributorsTranslations")
+- 💾 **Save Library** — Unlimited local storage with localStorage
+- ⭐ **Favorites** — Mark and filter favorite lyrics
+- 🎭 **Genre Tagging** — 24 genres (Pop, Rock, Hip-Hop, Romanian, Manele, etc.)
+- ✏️ **Edit Lyrics** — Full text editor for saved lyrics
+- 📥 **Import/Export** — Import from .txt, export to .txt
+- 📋 **Quick Actions** — Copy, Send to ACE-Step, Delete, Load
+- 🔍 **Search Library** — Search by name, artist, or title
+- 🎯 **Filter System** — All / Favorites / Genre
+
+**Features:**
+- Real-time search with Genius.com API
+- Clean lyrics display (starts with [Verse], [Chorus], etc.)
+- Cyberpunk themed UI with neon effects
+- Floating library button (bottom-right)
+- Modal overlays for library and save dialogs
+- Hover animations and transitions
+- Responsive grid layout
+
+**Integration:**
+- One-click "Use in ACE" → sends lyrics to ACE-Step
+- Auto-load in ACE-Step tab (1-second polling)
+- Lyrics persist across sessions (localStorage)
 
 ---
 

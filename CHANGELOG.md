@@ -1,6 +1,171 @@
 
 ---
 
+## [v2.2.0] - 2026-03-16
+
+### 🎤 MAJOR RELEASE: Complete Lyrics Manager!
+
+**The ultimate lyrics solution for VocalForge!**
+
+---
+
+### 🎯 **HEADLINE FEATURES**
+
+#### **📚 Complete Library Management**
+- 💾 **Save Lyrics** — Save unlimited lyrics to local library
+- 📖 **View Library** — Beautiful modal overlay with all saved lyrics
+- 🔍 **Search Library** — Search by name, artist, or title
+- 🎭 **Filter System** — Filter by All / Favorites / Genre
+- ⭐ **Favorites** — Mark and filter favorite lyrics with star indicators
+- 🏷️ **Genre Tagging** — 24 genre options with visual badges
+- ✏️ **Edit Lyrics** — Full text editor for saved lyrics
+- 📥 **Import/Export** — Import from .txt, export to .txt files
+- 📋 **Quick Actions** — Copy, Send to ACE-Step, Delete, Load
+
+#### **🔍 Genius.com Integration**
+- ✅ **Official API** — Direct integration with Genius.com via LyricsGenius
+- 🧹 **Clean Lyrics** — Automatic metadata removal algorithm
+- 🎵 **Song Search** — Search millions of verified songs
+- 📝 **Complete Lyrics** — Full, verified lyrics from Genius
+
+#### **🎨 UI/UX Improvements**
+- 🎨 **Cyberpunk Theme** — Neon glow effects, dark theme
+- ✨ **Animations** — Hover effects, smooth transitions
+- 📱 **Responsive** — Works on all screen sizes
+- 🎯 **Floating Button** — Quick access to library (bottom-right)
+- 🪟 **Modal Overlays** — Clean, professional modals
+
+---
+
+### 📊 **Statistics**
+
+| Metric | Value |
+|--------|-------|
+| **New Features** | 15+ |
+| **Lines Added** | +600 |
+| **Genres Supported** | 24 |
+| **Library Actions** | 8 |
+| **UI Components** | 5 modals/overlays |
+
+---
+
+### 🎭 **Supported Genres**
+
+Pop, Rock, Hip-Hop, R&B, Electronic, Dance, Metal, Jazz, Classical, Country, Folk, Indie, Alternative, Punk, Reggae, Blues, Soul, Funk, Latin, K-Pop, J-Pop, **Romanian**, **Manele**, Other
+
+---
+
+### 🐛 **Bug Fixes**
+
+#### **Lyrics Integration**
+- 🎵 Fixed lyrics not sending to ACE-Step
+- 🧹 Fixed metadata appearing in lyrics display
+- ⚡ Fixed real-time lyrics sync with ACE-Step (1-second polling)
+- 💾 Fixed lyrics persisting after refresh (one-time load)
+
+#### **General**
+- 🔧 Fixed localStorage initialization errors
+- 🗑️ Fixed library not clearing after load
+- ⚡ Improved performance with polling optimization
+- 🐛 Fixed addLog initialization error
+
+---
+
+### 🔧 **Technical Changes**
+
+#### **Frontend**
+- `LyricsTab.jsx` — Complete rewrite (+600 lines)
+- Library modal with search/filter functionality
+- Real-time ACE-Step integration (polling every 1s)
+- LocalStorage persistence for library
+- Import/Export .txt functionality
+- Clean lyrics algorithm (metadata removal)
+
+#### **Backend**
+- `audio_analysis.py` — LyricsGenius integration
+- `/audio/lyrics/suggest` — Search songs endpoint
+- `/audio/lyrics/search` — Get lyrics endpoint
+- `lyricsgenius>=3.2.0` — New dependency
+
+#### **Dependencies**
+```txt
+lyricsgenius>=3.2.0  # Genius.com API client
+```
+
+---
+
+### 📸 **Screenshots**
+
+#### **Lyrics Search**
+```
+┌─────────────────────────────────────────┐
+│  Powered by Genius.com                  │
+├─────────────────────────────────────────┤
+│  🔍 Search Lyrics                       │
+│  [Queen Bohemian...] [🔍 Find]         │
+├─────────────────────────────────────────┤
+│  🎵 Select Song                         │
+│  ┌──────────────┬──────────────┐       │
+│  │ Bohemian...  │ We Are...    │       │
+│  │ Queen        │ Queen        │       │
+│  └──────────────┴──────────────┘       │
+└─────────────────────────────────────────┘
+```
+
+#### **Library Modal**
+```
+┌─────────────────────────────────────────┐
+│  📚 My Lyrics Library    [📥][✕]        │
+├─────────────────────────────────────────┤
+│  [🔍 Search...] [Filter ▼] [Genre ▼]   │
+├─────────────────────────────────────────┤
+│  🎵 Bohemian Rhapsody ⭐ [Rock]         │
+│  🎤 Queen • 🎵 Bohemian Rhapsody        │
+│  📅 2026-03-16 • 📝 3542 chars          │
+│  [📂][✏️][⭐][🗑️]                       │
+└─────────────────────────────────────────┘
+```
+
+---
+
+### 🔄 **Upgrade Guide**
+
+#### **For Existing Users**
+
+1. **Update dependencies:**
+   ```bash
+   cd D:\VocalForge
+   venv\Scripts\activate
+   pip install lyricsgenius>=3.2.0
+   ```
+
+2. **Restart backend:**
+   ```bash
+   taskkill /F /IM python.exe
+   start_backend.bat
+   ```
+
+3. **Hard refresh browser:**
+   ```
+   Ctrl + Shift + R
+   ```
+
+---
+
+### 📝 **Full Changelog**
+
+https://github.com/iulicafarafrica/VocalForge/compare/v2.1.0...v2.2.0
+
+---
+
+### 🙏 **Credits**
+
+- **Genius.com** — Lyrics API
+- **LyricsGenius** — Python client library (https://github.com/johnwmillr/LyricsGenius)
+- **Community** — Feature requests and bug reports
+
+---
+
 ## [Unreleased] - 2026-03-16
 
 ### 🎤 NEW: Lyrics Finder — Official lyrics.ovh Integration
