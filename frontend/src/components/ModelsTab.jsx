@@ -23,15 +23,33 @@ export default function ModelsTab({ addLog }) {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchVram = () => {
-    fetch(`${API}/vram_usage`)
+    // Try /gpu/info first (more detailed), fallback to /vram_usage
+    fetch(`${API}/gpu/info`)
       .then(r => r.json())
       .then(data => {
-        console.log("[VRAM] Updated:", data);
-        setVram(data);
+        console.log("[GPU] Info:", data);
+        // Convert /gpu/info format to match /vram_usage format
+        setVram({
+          available: data.available,
+          used_gb: data.allocated_gb || 0,
+          total_gb: data.total_gb || 8,
+          pct: data.usage_percent || 0,
+          free_gb: data.free_gb || 0,
+          gpu_name: data.gpu_name || "Unknown GPU"
+        });
       })
       .catch((err) => {
-        console.error("[VRAM] Error:", err);
-        setVram({ available: false, used_gb: 0, total_gb: 8, pct: 0 });
+        console.error("[GPU] Error fetching /gpu/info:", err);
+        // Fallback to /vram_usage
+        fetch(`${API}/vram_usage`)
+          .then(r => r.json())
+          .then(data => {
+            console.log("[VRAM] Fallback:", data);
+            setVram(data);
+          })
+          .catch(() => {
+            setVram({ available: false, used_gb: 0, total_gb: 8, pct: 0 });
+          });
       });
   };
 
