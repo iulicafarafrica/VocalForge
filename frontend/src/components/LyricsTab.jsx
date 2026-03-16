@@ -161,13 +161,14 @@ export default function LyricsTab({ addLog }) {
 
   // Use in ACE-Step
   const useInAceStep = () => {
-    // Send RAW lyrics (with metadata) to ACE-Step - it can handle it
-    const lyricsToSend = rawLyrics || lyrics;
+    // Send CLEANED lyrics (without Genius metadata) to ACE-Step
+    const lyricsToSend = lyrics; // Use cleaned lyrics, not raw
     
     console.log("[Lyrics Finder] Sending to ACE-Step:");
     console.log("  - Artist:", selectedArtist);
     console.log("  - Title:", selectedTitle);
     console.log("  - Lyrics length:", lyricsToSend?.length || 0);
+    console.log("  - Type:", lyricsToSend === rawLyrics ? "RAW (with metadata)" : "CLEANED (no metadata)");
     
     localStorage.setItem("acestep_lyrics_from_manager", lyricsToSend);
     localStorage.setItem("acestep_lyrics_artist", selectedArtist);
