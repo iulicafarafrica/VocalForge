@@ -507,7 +507,7 @@ function PresetManager({
 }) {
   const [userPresets, setUserPresets] = useState(loadPresets);
   const [saveName, setSaveName] = useState("");
-  const [saveIcon, setSaveIcon] = useState("⭐");
+  const [saveIcon, setSaveIcon] = useState("★");
   const [saveColor, setSaveColor] = useState("#ffd166");
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [activeTab, setActiveTab] = useState("load"); // "load" | "save"
@@ -670,7 +670,7 @@ function PresetManager({
               {userPresets.length > 0 && (
                 <>
                   <div style={{ color: "#444466", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", margin: "16px 0 8px" }}>
-                    ⭐ My Presets ({userPresets.length})
+                    ★ My Presets ({userPresets.length})
                   </div>
                   {userPresets.map(preset => (
                     <div key={preset.id} style={S.presetCard(preset.color)}>
