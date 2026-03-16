@@ -426,12 +426,23 @@ async def suggest_songs(query: str = Form(...)):
             return {"songs": [], "count": 0}
         
         data = response.json()
+        print(f"[lyrics.ovh] Response type: {type(data)}")
+        print(f"[lyrics.ovh] Response keys: {data.keys() if isinstance(data, dict) else 'N/A'}")
         
-        if isinstance(data, list):
+        # lyrics.ovh returns {"data": [...], "total": N}, not a direct list
+        songs = []
+        if isinstance(data, dict) and "data" in data:
+            songs = data["data"]
+        elif isinstance(data, list):
+            songs = data
+        
+        print(f"[lyrics.ovh] Found {len(songs)} songs")
+        
+        if songs:
             return {
                 "status": "success",
-                "songs": data,
-                "count": len(data),
+                "songs": songs,
+                "count": len(songs),
                 "source": "lyrics.ovh (Deezer)"
             }
         else:
