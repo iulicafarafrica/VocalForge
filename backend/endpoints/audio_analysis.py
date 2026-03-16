@@ -411,6 +411,37 @@ async def test_genius_connection(access_token: str = Form(...)):
         raise HTTPException(status_code=500, detail=f"Connection error: {str(e)}")
 
 
+@router.post("/lyrics/suggest")
+async def suggest_songs(query: str = Form(...)):
+    """
+    Search for songs using lyrics.ovh suggest endpoint.
+    Returns list of songs from Deezer API.
+    """
+    try:
+        print(f"[lyrics.ovh] Suggest: {query}")
+        suggest_url = f"https://api.lyrics.ovh/suggest/{query}"
+        response = requests.get(suggest_url, timeout=10)
+        
+        if response.status_code != 200:
+            return {"songs": [], "count": 0}
+        
+        data = response.json()
+        
+        if isinstance(data, list):
+            return {
+                "status": "success",
+                "songs": data,
+                "count": len(data),
+                "source": "lyrics.ovh (Deezer)"
+            }
+        else:
+            return {"songs": [], "count": 0}
+            
+    except requests.exceptions.RequestException as e:
+        print(f"[lyrics.ovh] Suggest error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Connection error: {str(e)}")
+
+
 @router.post("/lyrics/search")
 async def search_lyrics(
     artist: str = Form(None),
