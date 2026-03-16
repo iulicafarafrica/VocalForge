@@ -446,6 +446,7 @@ const modules = [
   { icon: "🎸", name: "Prompt Generator", desc: "164 subgenres, 5 vocal presets" },
   { icon: "🖌️", name: "Repaint", desc: "Regenerate sections (30-60s)" },
   { icon: "📊", name: "Audio Analysis", desc: "BPM, Key, Time Signature detection" },
+  { icon: "🎤", name: "Lyrics Manager", desc: "Search Genius.com, save library, genres, favorites" },
   { icon: "🌞", name: "Suno AI", desc: "Generate music with Suno (local cookie)" },
   { icon: "📁", name: "Tracks Manager", desc: "View, play, download tracks" },
   { icon: "💻", name: "Models Manager", desc: "Upload, list RVC models" },
@@ -537,6 +538,24 @@ const features = [
       "Tiled decode for long audio generation",
     ],
   },
+  {
+    Icon: Icons.Book,
+    color: theme.colors.neon.pink.primary,
+    glow: theme.colors.neon.pink.glow,
+    bg: theme.colors.neon.pink.bg,
+    title: "Lyrics Manager",
+    subtitle: "v2.2.0 - Complete Library",
+    items: [
+      "Search Genius.com — millions of verified lyrics",
+      "Save unlimited lyrics to local library",
+      "24 genres: Pop, Rock, Hip-Hop, Romanian, Manele",
+      "Favorites system with star indicators",
+      "Full text editor for saved lyrics",
+      "Import/Export .txt files",
+      "Search & filter library (All/Favorites/Genre)",
+      "One-click send to ACE-Step",
+    ],
+  },
 ];
 
 const pipelineStages = [
@@ -597,6 +616,27 @@ const vocalPresets = [
 ];
 
 const changelogData = [
+  {
+    version: "v2.2.0",
+    date: "2026-03-16",
+    color: theme.colors.neon.pink.primary,
+    highlight: true,
+    changes: [
+      "🎤 COMPLETE LYRICS MANAGER - Full library management system",
+      "🔍 Genius.com API Integration - Millions of verified lyrics",
+      "💾 Save Library - Unlimited local storage with genres & favorites",
+      "⭐ Favorites System - Mark and filter favorite lyrics",
+      "🎭 Genre Tagging - 24 genres (Pop, Rock, Hip-Hop, Romanian, Manele)",
+      "✏️ Edit Lyrics - Full text editor for saved lyrics",
+      "📥 Import/Export - Import from .txt, export to .txt files",
+      "🧹 Clean Lyrics - Automatic metadata removal algorithm",
+      "📚 Search Library - Search by name, artist, or title",
+      "🎯 Filter System - All / Favorites / Genre filtering",
+      "🎨 Cyberpunk UI - Neon effects, animations, modal overlays",
+      "🎵 ACE-Step Integration - One-click send lyrics to ACE-Step",
+      "⚡ Real-time Sync - 1-second polling for instant lyrics load",
+    ],
+  },
   {
     version: "v2.0.0",
     date: "2026-03-14",
