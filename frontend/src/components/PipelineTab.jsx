@@ -3,13 +3,13 @@ import React, { useState, useRef, useEffect } from 'react';
 const API = 'http://localhost:8000';
 
 const STAGES = [
-  { key: 'stage1_separation', label: 'Stage 1', desc: 'BS-RoFormer — Separare vocala',    icon: '🎵', color: '#6366f1' },
-  { key: 'stage2_rvc',        label: 'Stage 2', desc: 'RVC — Voice Conversion',           icon: '🎤', color: '#8b5cf6' },
-  { key: 'stage4_mix',        label: 'Stage 3', desc: 'Mix Final — Vocal + Instrumental', icon: '🎚️', color: '#ec4899' },
+  { key: 'stage1_separation', label: 'Stage 1', desc: 'BS-RoFormer — Vocal Separation',    icon: '♪', color: '#6366f1' },
+  { key: 'stage2_rvc',        label: 'Stage 2', desc: 'RVC — Voice Conversion',           icon: '⌾', color: '#8b5cf6' },
+  { key: 'stage4_mix',        label: 'Stage 3', desc: 'Mix Final — Vocal + Instrumental', icon: '⊞', color: '#ec4899' },
 ];
 
 const STATUS_COLOR = { pending: '#444', running: '#f59e0b', done: '#10b981', error: '#ef4444', skipped: '#6b7280' };
-const STATUS_LABEL = { pending: '⏳ Astept', running: '⚙️ Rulează', done: '✅ Gata', error: '❌ Eroare', skipped: '⏭️ Skip' };
+const STATUS_LABEL = { pending: '· Waiting', running: '→ Running', done: '✓ Done', error: '✕ Error', skipped: '⊳ Skip' };
 
 export default function PipelineTab() {
   const [file, setFile]             = useState(null);
@@ -135,7 +135,7 @@ export default function PipelineTab() {
       label: 'RVC Protect', val: rvcProtect, set: setRvcProtect, min: 0, max: 0.5, step: 0.01,
       display: rvcProtect.toFixed(2),
       desc: 'Protects voiceless consonants (s, t, f) from voice conversion.',
-      example: '0.55 = recomandat pentru voce  ·  0.33 = default',
+      example: '0.55 = recommended for voice  ·  0.33 = default',
       color: '#8b5cf6',
     },
     {
@@ -263,7 +263,7 @@ export default function PipelineTab() {
                 display: 'inline-block',
                 border: `1px solid ${STATUS_COLOR[st] || '#444'}44`,
               }}>
-                {STATUS_LABEL[st] || '⏳ Astept'}
+                {STATUS_LABEL[st] || '· Waiting'}
               </div>
             </div>
           );
@@ -314,7 +314,7 @@ export default function PipelineTab() {
             borderRadius: 8,
             border: `1px solid ${cyberpunk.neon.pink.primary}44`,
           }}>
-            ❌ {error}
+            ✕ {error}
           </div>
         )}
       </div>
@@ -322,7 +322,7 @@ export default function PipelineTab() {
       {/* Configuration Panel */}
       {!running && !done && (
         <div style={S.card}>
-          <span style={S.label}>⚙️ Configurare Pipeline</span>
+          <span style={S.label}>→ Configurare Pipeline</span>
 
           {/* Upload & Model Row */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
@@ -330,7 +330,7 @@ export default function PipelineTab() {
             {/* File Upload */}
             <div>
               <label style={{ fontSize: 11, color: cyberpunk.text.secondary, display: 'block', marginBottom: 8, letterSpacing: 1 }}>
-                🎵 FISIER AUDIO INPUT
+                ◼ AUDIO INPUT FILE
               </label>
               <label style={{
                 display: 'flex',
@@ -356,7 +356,7 @@ export default function PipelineTab() {
                 }
               }}
               >
-                <span style={{ fontSize: 32 }}>{file ? '🎵' : '📂'}</span>
+                <span style={{ fontSize: 32 }}>{file ? '♪' : '⊡'}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ 
                     color: file ? cyberpunk.neon.indigo.primary : cyberpunk.text.secondary, 
@@ -393,7 +393,7 @@ export default function PipelineTab() {
             {/* RVC Model */}
             <div>
               <label style={{ fontSize: 11, color: cyberpunk.text.secondary, display: 'block', marginBottom: 8, letterSpacing: 1 }}>
-                🎤 MODEL RVC
+                ⌾ MODEL RVC
               </label>
               {models.length > 0 ? (
                 <select value={rvcModel} onChange={e => setRvcModel(e.target.value)}
@@ -432,7 +432,7 @@ export default function PipelineTab() {
           {/* F0 Method */}
           <div style={{ marginBottom: 16 }}>
             <label style={{ fontSize: 11, color: cyberpunk.text.secondary, display: 'block', marginBottom: 8, letterSpacing: 1 }}>
-              🎵 F0 METHOD (PITCH EXTRACTION)
+              ◈ F0 METHOD (PITCH EXTRACTION)
             </label>
             <select value={f0Method} onChange={e => setF0Method(e.target.value)}
               style={{ 
@@ -445,21 +445,21 @@ export default function PipelineTab() {
                 fontSize: 13,
                 cursor: 'pointer',
               }}>
-              <option value="harvest">🎤 harvest — Best for singing (slow, accurate)</option>
-              <option value="rmvpe">🎙️ rmvpe — Best for speech (fast, good quality)</option>
-              <option value="crepe">🔬 crepe — High quality (very slow, GPU intensive)</option>
-              <option value="pm">⚡ pm — Fastest (poor quality, testing only)</option>
-              <option value="dio">📊 dio — Fast (decent quality)</option>
+              <option value="harvest">→ harvest — Best for singing (slow, accurate)</option>
+              <option value="rmvpe">⊳ rmvpe — Best for speech (fast, good quality)</option>
+              <option value="crepe">◈ crepe — High quality (very slow, GPU intensive)</option>
+              <option value="pm">· pm — Fastest (poor quality, testing only)</option>
+              <option value="dio">◎ dio — Fast (decent quality)</option>
             </select>
             <p style={{ fontSize: 10, color: cyberpunk.text.muted, marginTop: 6, fontStyle: 'italic' }}>
-              Recomandat: <strong style={{ color: cyberpunk.neon.green.primary }}>harvest</strong> pentru muzică, <strong style={{ color: cyberpunk.neon.yellow.primary }}>rmvpe</strong> pentru vorbire
+              Recommended: <strong style={{ color: cyberpunk.neon.green.primary }}>harvest</strong> for music, <strong style={{ color: cyberpunk.neon.yellow.primary }}>rmvpe</strong> for speech
             </p>
           </div>
 
           {/* Vocal Chain Preset */}
           <div style={{ marginBottom: 16 }}>
             <label style={{ fontSize: 11, color: cyberpunk.text.secondary, display: 'block', marginBottom: 8, letterSpacing: 1 }}>
-              🎤 VOCAL CHAIN PRESET
+              ⌾ VOCAL CHAIN PRESET
             </label>
             <select value={vocalPreset} onChange={e => setVocalPreset(e.target.value)}
               style={{ 
@@ -472,14 +472,14 @@ export default function PipelineTab() {
                 fontSize: 13,
                 cursor: 'pointer',
               }}>
-              <option value="studio_radio">🎙️ Studio Radio — Clar, compresat (pop/manele)</option>
-              <option value="natural">🎤 Natural — Minimal procesare (acoustic/folk)</option>
-              <option value="arena">🏟️ Arena — Mult reverb (concert/live)</option>
-              <option value="radio">📻 Radio — Foarte compresat (commercial)</option>
-              <option value="balanced">🎵 Balanced — Echilibrat (all-round)</option>
+              <option value="studio_radio">→ Studio Radio — Clear, compressed (pop)</option>
+              <option value="natural">⊳ Natural — Minimal procesare (acoustic/folk)</option>
+              <option value="arena">◎ Arena — Heavy reverb (concert/live)</option>
+              <option value="radio">◼ Radio — Heavily compressed (commercial)</option>
+              <option value="balanced">⊞ Balanced — All-round</option>
             </select>
             <p style={{ fontSize: 10, color: cyberpunk.text.muted, marginTop: 6, fontStyle: 'italic' }}>
-              Recomandat: <strong style={{ color: cyberpunk.neon.cyan.primary }}>Studio Radio</strong> pentru muzică românească
+              Recommended: <strong style={{ color: cyberpunk.neon.cyan.primary }}>Studio Radio</strong> for Romanian music
             </p>
           </div>
 
@@ -548,7 +548,7 @@ export default function PipelineTab() {
               border: '1px solid rgba(31,41,55,0.5)',
             }}>
               <h4 style={{ fontSize: 11, color: cyberpunk.text.secondary, marginBottom: 12, fontWeight: 700, letterSpacing: 1 }}>
-                🎛️ APPLIO (STAGE 2)
+                ⊞ APPLIO (STAGE 2)
               </h4>
               <label style={{ 
                 display: 'flex', 
@@ -568,7 +568,7 @@ export default function PipelineTab() {
                   onChange={e => setEnableAutotune(e.target.checked)}
                   style={{ marginRight: 8, accentColor: cyberpunk.neon.indigo.primary, width: 16, height: 16 }} 
                 />
-                🎵 Autotune
+                ◈ Autotune
               </label>
               {enableAutotune && (
                 <input 
@@ -604,7 +604,7 @@ export default function PipelineTab() {
                   onChange={e => setEnableHighpass(e.target.checked)}
                   style={{ marginRight: 8, accentColor: cyberpunk.neon.indigo.primary, width: 16, height: 16 }} 
                 />
-                🔊 HPF (48Hz)
+                ◎ HPF (48Hz)
               </label>
               <label style={{ 
                 display: 'flex', 
@@ -623,7 +623,7 @@ export default function PipelineTab() {
                   onChange={e => setEnableVolumeEnvelope(e.target.checked)}
                   style={{ marginRight: 8, accentColor: cyberpunk.neon.indigo.primary, width: 16, height: 16 }} 
                 />
-                📊 Vol. Envelope
+                ◈ Vol. Envelope
               </label>
             </div>
 
@@ -636,7 +636,7 @@ export default function PipelineTab() {
               boxShadow: enableStage4 ? `0 0 15px ${cyberpunk.neon.pink.glow}` : 'none',
             }}>
               <h4 style={{ fontSize: 11, color: cyberpunk.text.secondary, marginBottom: 10, fontWeight: 700, letterSpacing: 1 }}>
-                🎚️ MIX & MASTER
+                ⊞ MIX & MASTER
               </h4>
               <label style={{ 
                 display: 'flex', 
@@ -659,7 +659,7 @@ export default function PipelineTab() {
                 Enable
               </label>
               <p style={{ fontSize: 10, color: cyberpunk.text.muted, margin: 0, lineHeight: 1.6 }}>
-                Mix vocal + instrumental.
+                Vocal + instrumental mix.
                 <br />
                 Loudnorm <span style={{ color: cyberpunk.neon.green.primary, fontWeight: 700 }}>-14 LUFS</span> Spotify.
               </p>
@@ -704,7 +704,7 @@ export default function PipelineTab() {
                 : 'none';
             }}
           >
-            🚀 PORNESTE PIPELINE
+            → START PIPELINE
           </button>
         )}
         {running && (
@@ -721,7 +721,7 @@ export default function PipelineTab() {
             border: '1px solid rgba(245,158,11,0.3)',
             boxShadow: `0 0 20px ${cyberpunk.neon.yellow.glow}`,
           }}>
-            ⚙️ PROCESARE IN CURS... ({progress}%)
+            · PROCESSING... ({progress}%)
           </div>
         )}
         {(done || error) && (
@@ -748,7 +748,7 @@ export default function PipelineTab() {
               e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
             }}
           >
-            🔄 JOB NOU
+            ↺ JOB NOU
           </button>
         )}
       </div>
@@ -756,16 +756,16 @@ export default function PipelineTab() {
       {/* Results Section */}
       {done && jobId && (
         <div style={S.card}>
-          <span style={S.label}>📁 DESCARCA FISIERELE</span>
+          <span style={S.label}>▤ DOWNLOAD FILES</span>
           
           {/* Download Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10, marginBottom: 20 }}>
             {[
-              { key: 'vocals',       label: '🎵 Vocals',       color: cyberpunk.neon.indigo.primary },
-              { key: 'instrumental', label: '🎸 Instrumental', color: cyberpunk.neon.indigo.primary },
-              { key: 'rvc_raw',      label: '🎤 RVC Converted',color: cyberpunk.neon.purple.primary },
-              { key: 'final_mix',    label: '🎚️ Mix WAV',     color: cyberpunk.neon.pink.primary },
-              { key: 'final_mix_mp3',label: '🎧 Mix MP3 320k',color: '#f43f5e' },
+              { key: 'vocals',       label: '♪ Vocals',       color: cyberpunk.neon.indigo.primary },
+              { key: 'instrumental', label: '◈ Instrumental', color: cyberpunk.neon.indigo.primary },
+              { key: 'rvc_raw',      label: '⌾ RVC Converted',color: cyberpunk.neon.purple.primary },
+              { key: 'final_mix',    label: '⊞ Mix WAV',     color: cyberpunk.neon.pink.primary },
+              { key: 'final_mix_mp3',label: '◎ Mix MP3 320k',color: '#f43f5e' },
             ].map(({ key, label, color }) => (
               <a 
                 key={key} 
@@ -808,7 +808,7 @@ export default function PipelineTab() {
           </div>
 
           {/* Audio Players */}
-          <span style={S.label}>🎧 PREVIEW AUDIO</span>
+          <span style={S.label}>◎ PREVIEW AUDIO</span>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {outputs.final_mix && (
               <div style={{ 
@@ -825,7 +825,7 @@ export default function PipelineTab() {
                   marginBottom: 10,
                   letterSpacing: 1,
                 }}>
-                  🎚️ MIX FINAL — SPOTIFY READY
+                  ⊞ MIX FINAL — SPOTIFY READY
                 </div>
                 <audio controls style={{ width: '100%', marginBottom: 10 }}>
                   <source src={`${API}/pipeline/download/${jobId}/final_mix`} type="audio/wav" />
@@ -850,13 +850,13 @@ export default function PipelineTab() {
                   marginBottom: 10,
                   letterSpacing: 1,
                 }}>
-                  🎤 RVC CONVERTED
+                  ⌾ RVC CONVERTED
                 </div>
                 <audio controls style={{ width: '100%', marginBottom: 10 }}>
                   <source src={`${API}/pipeline/download/${jobId}/rvc_raw`} type="audio/wav" />
                 </audio>
                 <div style={{ fontSize: 10, color: cyberpunk.text.muted }}>
-                  Voce convertită prin RVC
+                  Voice converted via RVC
                 </div>
               </div>
             )}
@@ -875,13 +875,13 @@ export default function PipelineTab() {
                   marginBottom: 10,
                   letterSpacing: 1,
                 }}>
-                  🎵 VOCALS SEPARAT (BS-ROFORMER)
+                  ♪ VOCALS SEPARAT (BS-ROFORMER)
                 </div>
                 <audio controls style={{ width: '100%', marginBottom: 10 }}>
                   <source src={`${API}/pipeline/download/${jobId}/vocals`} type="audio/wav" />
                 </audio>
                 <div style={{ fontSize: 10, color: cyberpunk.text.muted }}>
-                  Separare vocal/instrumental SDR 12.97
+                  Vocal/instrumental separation SDR 12.97
                 </div>
               </div>
             )}
@@ -900,13 +900,13 @@ export default function PipelineTab() {
                   marginBottom: 10,
                   letterSpacing: 1,
                 }}>
-                  🎸 INSTRUMENTAL
+                  ◈ INSTRUMENTAL
                 </div>
                 <audio controls style={{ width: '100%', marginBottom: 10 }}>
                   <source src={`${API}/pipeline/download/${jobId}/instrumental`} type="audio/wav" />
                 </audio>
                 <div style={{ fontSize: 10, color: cyberpunk.text.muted }}>
-                  Pista instrumentală pentru mix final
+                  Instrumental track for final mix
                 </div>
               </div>
             )}

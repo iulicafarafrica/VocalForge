@@ -58,8 +58,8 @@ const SEPARATION_MODELS = [
 ];
 
 const STEM_ICONS = {
-  vocals: "🎤", drums: "🥁", bass: "🎸", other: "🎹",
-  guitar: "🎸", piano: "🎹", instrumental: "🎼",
+  vocals: "🎙️", drums: "◎", bass: "◈", other: "⊞",
+  guitar: "◈", piano: "⊞", instrumental: "⌾",
 };
 
 const STEM_COLORS = {
@@ -101,10 +101,10 @@ export default function DemucsTab({ addLog, tracks, setTracks }) {
     fd.append("mode", mode);
 
     const steps = [
-      { pct: 15, label: isUVR ? "⬇ Downloading model..." : "🔄 Loading model...", delay: 1500 },
-      { pct: 35, label: "🎵 Analyzing audio spectrum...", delay: 5000 },
-      { pct: 60, label: "🧠 AI separation in progress...", delay: 12000 },
-      { pct: 80, label: "💾 Encoding output files...", delay: 20000 },
+      { pct: 15, label: isUVR ? "⬇ Downloading model..." : "→ Loading model...", delay: 1500 },
+      { pct: 35, label: "⊳ Analyzing audio spectrum...", delay: 5000 },
+      { pct: 60, label: "◈ AI separation in progress...", delay: 12000 },
+      { pct: 80, label: "⊡ Encoding output files...", delay: 20000 },
     ];
     const timers = steps.map(s => setTimeout(() => { setProgress(s.pct); setProgressLabel(s.label); }, s.delay));
 
@@ -116,7 +116,7 @@ export default function DemucsTab({ addLog, tracks, setTracks }) {
 
       setResults(data.stems);
       setProgress(100);
-      setProgressLabel("✅ Separation complete!");
+      setProgressLabel("✓ Separation complete!");
       addLog(`[OK] Separation done: ${Object.keys(data.stems).length} stems | model: ${selectedModel}`);
 
       Object.entries(data.stems).forEach(([stem, url]) => {
@@ -298,7 +298,7 @@ export default function DemucsTab({ addLog, tracks, setTracks }) {
                 filter: uploadedFile ? `drop-shadow(0 0 15px ${cyberpunk.neon.cyan.glow})` : "none",
                 transition: "all 0.3s ease",
               }}>
-                {uploadedFile ? "🎵" : "📂"}
+                {uploadedFile ? "♪" : "⊡"}
               </span>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ 
@@ -330,7 +330,7 @@ export default function DemucsTab({ addLog, tracks, setTracks }) {
                   letterSpacing: 1,
                   boxShadow: `0 0 10px ${cyberpunk.neon.cyan.glow}`,
                 }}>
-                  📁 {(uploadedFile.size / 1024 / 1024).toFixed(1)} MB
+                  ▤ {(uploadedFile.size / 1024 / 1024).toFixed(1)} MB
                 </span>
                 <button 
                   onClick={() => { setUploadedFile(null); setResults(null); }}
@@ -462,7 +462,7 @@ export default function DemucsTab({ addLog, tracks, setTracks }) {
                           fontWeight: 600,
                           letterSpacing: 0.5,
                         }}>
-                          {STEM_ICONS[s] || "🎵"} {s}
+                          {STEM_ICONS[s] || "♪"} {s}
                         </span>
                       ))}
                     </div>
@@ -482,9 +482,9 @@ export default function DemucsTab({ addLog, tracks, setTracks }) {
             <span style={S.label}>③ Output Mode</span>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
-                { id: "stems", icon: "🎛", label: "All Stems", desc: `Separate all ${model?.stems.length || 2} stems individually` },
-                { id: "vocals_only", icon: "🎤", label: "Vocals Only", desc: "Extract only the vocal track" },
-                { id: "instrumental_only", icon: "🎼", label: "Instrumental Only", desc: "Remove vocals, keep everything else" },
+                { id: "stems", icon: "⊞", label: "All Stems", desc: `Separate all ${model?.stems.length || 2} stems individually` },
+                { id: "vocals_only", icon: "🎙️", label: "Vocals Only", desc: "Extract only the vocal track" },
+                { id: "instrumental_only", icon: "⌾", label: "Instrumental Only", desc: "Remove vocals, keep everything else" },
               ].map(opt => {
                 const isActive = mode === opt.id;
                 return (
@@ -591,7 +591,7 @@ export default function DemucsTab({ addLog, tracks, setTracks }) {
                   : "none";
               }}
             >
-              {processing ? `⚙ ${progressLabel || "Processing..."}` : "🎛 Separate Stems"}
+              {processing ? `· ${progressLabel || "Processing..."}` : "→ Separate Stems"}
             </button>
 
             {processing && (
@@ -694,7 +694,7 @@ export default function DemucsTab({ addLog, tracks, setTracks }) {
                 color: cyberpunk.neon.green.primary,
                 textShadow: `0 0 10px ${cyberpunk.neon.green.glow}`,
               }}>
-                ✅ STEMS READY — DOWNLOAD BELOW
+                ✓ STEMS READY — DOWNLOAD BELOW
               </span>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {Object.entries(results).map(([stem, url]) => (
@@ -721,7 +721,7 @@ export default function DemucsTab({ addLog, tracks, setTracks }) {
                         fontWeight: 800,
                         letterSpacing: 0.5,
                       }}>
-                        {STEM_ICONS[stem] || "🎵"} {stem.charAt(0).toUpperCase() + stem.slice(1)}
+                        {STEM_ICONS[stem] || "♪"} {stem.charAt(0).toUpperCase() + stem.slice(1)}
                       </span>
                       <a href={`${API}${url}`} download style={{
                         background: `${STEM_COLORS[stem] || cyberpunk.neon.cyan.primary}22`,

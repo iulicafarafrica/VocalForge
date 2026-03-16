@@ -10,6 +10,7 @@ export default function ModelsTab({ addLog }) {
   const addSysLog = (msg) =>
     setSysLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev.slice(0, 99)]);
 
+  // Fetch hardware info on mount
   useEffect(() => {
     fetch(`${API}/hardware`).then(r => r.json()).then(setHwInfo).catch(() =>
       setHwInfo({ mode: "offline", device: "cpu", vram_gb: 0, has_cuda: false, cpu_cores: "?" })
@@ -87,25 +88,25 @@ export default function ModelsTab({ addLog }) {
               <span>🧹 Clear GPU Cache</span>
               <span style={{ fontSize: 16 }}>›</span>
             </button>
-            <button onClick={() => action("unload_models", "Unload Models")}
-              disabled={loading === "unload_models"}
+            <button onClick={() => action("gpu/unload-all", "Unload Models")}
+              disabled={loading === "gpu/unload-all"}
               style={{ ...S.btn("#ffd16622", "#ffd166"), border: "1px solid #ffd16644" }}>
-              <span>📤 Unload Models</span>
+              <span>📤 Unload All Models</span>
               <span style={{ fontSize: 16 }}>›</span>
             </button>
-            <button onClick={() => action("list_models", "Reload Models")}
-              disabled={loading === "list_models"}
+            <button onClick={() => action("gpu/cleanup", "Auto Cleanup")}
+              disabled={loading === "gpu/cleanup"}
               style={{ ...S.btn("#00e5ff22", "#00e5ff"), border: "1px solid #00e5ff44" }}>
-              <span>🔄 Reload Models</span>
+              <span>🔄 Auto Cleanup</span>
               <span style={{ fontSize: 16 }}>›</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* System Log */}
       <div>
-        <div style={{ ...S.card, maxHeight: 520, overflowY: "auto" }}>
+        {/* System Log */}
+        <div style={{ ...S.card, maxHeight: 400, overflowY: "auto" }}>
           <span style={S.label}>📋 System Log</span>
           {sysLogs.length === 0 && (
             <div style={{ color: "#333355", fontSize: 12, textAlign: "center", padding: "20px 0" }}>

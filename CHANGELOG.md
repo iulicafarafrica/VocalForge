@@ -1,6 +1,137 @@
 
 ---
 
+## [v2.2.1] - 2026-03-16
+
+### 🔧 Models & GPU Tab Cleanup + Lyrics Fix
+
+**Streamlined GPU monitoring and fixed lyrics integration!**
+
+---
+
+### 🎯 **HEADLINE CHANGES**
+
+#### **📊 Models & GPU Tab Simplified**
+- 🗑️ **Removed Real-time VRAM Monitor** — Cleaned up complex monitoring UI
+- 🗑️ **Removed Cache Management Panel** — Simplified interface
+- 🗑️ **Removed Loaded Models Display** — Reduced clutter
+- 🗑️ **Removed VRAM History Chart** — Focused on core functionality
+- ✅ **Kept Essential Features** — Hardware info, GPU actions, system log, health check
+
+**What Remains in Models & GPU:**
+| Section | Description |
+|---------|-------------|
+| 🖥 Hardware | GPU/CPU info (device, VRAM, CUDA, cores) |
+| ⚡ GPU Actions | Clear Cache, Unload Models, Auto Cleanup |
+| 📋 System Log | Action history |
+| ❤ Health | Health check button |
+
+#### **🎤 Lyrics "Use in ACE" Fixed**
+- 🐛 **Fixed lyrics not sending to ACE-Step** — Real-time sync now works
+- ✨ **Custom Event System** — Uses `window.dispatchEvent` for instant sync
+- 🔄 **Backward Compatible** — Still uses localStorage for persistence
+- 📦 **Works from Library** — Load from library also sends to ACE-Step
+
+**Technical Implementation:**
+```javascript
+// LyricsTab.jsx dispatches event
+const event = new CustomEvent("acestep-lyrics-update", {
+  detail: { lyrics, artist, title }
+});
+window.dispatchEvent(event);
+
+// App.jsx listens and updates state
+useEffect(() => {
+  const handleLyricsUpdate = (event) => {
+    const { lyrics, artist, title } = event.detail;
+    setAceLyrics(lyrics);
+  };
+  window.addEventListener("acestep-lyrics-update", handleLyricsUpdate);
+}, [addLog]);
+```
+
+---
+
+### 📦 **Backend Changes**
+
+#### **New GPU Memory Module**
+- ✨ `backend/modules/gpu_memory.py` — GPU memory management (NEW)
+  - `GPUMemoryManager` class with VRAM tracking
+  - VRAM history (60 samples)
+  - Cache size detection
+  - Per-model VRAM tracking
+  - Auto-cleanup based on usage
+  - VRAM alerts (85%/95% thresholds)
+
+#### **New API Endpoints**
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/gpu/vram/history` | GET | VRAM usage history |
+| `/gpu/vram/alerts` | GET | VRAM alerts |
+| `/gpu/cache/size` | GET | Cache directory sizes |
+| `/gpu/cache/clear` | POST | Clear caches (selective) |
+| `/gpu/stats` | GET | Comprehensive GPU stats |
+| `/gpu/optimal-chunk-size` | GET | Recommended chunk size |
+| `/gpu/register-model` | GET | Register model in VRAM |
+
+**Note:** Backend endpoints created but UI removed for simplicity.
+
+---
+
+### 🎨 **Frontend Changes**
+
+#### **Files Modified**
+| File | Changes |
+|------|---------|
+| `frontend/src/App.jsx` | Added custom event listener for lyrics sync |
+| `frontend/src/components/ModelsTab.jsx` | Removed VRAM monitoring, simplified to 4 sections |
+| `frontend/src/components/LyricsTab.jsx` | Added custom event dispatch for "Use in ACE" |
+
+#### **Code Reduction**
+- **ModelsTab.jsx:** 455 → 140 lines (-69%)
+- **Bundle size:** 494.51 kB → 485.69 kB (-9 kB / -1.7%)
+
+---
+
+### 🐛 **Bug Fixes**
+
+#### **Lyrics Integration**
+- 🎵 Fixed "Use in ACE" button not sending lyrics
+- 🧹 Fixed initialization error (`Cannot access 'addLog' before initialization`)
+- ⚡ Fixed real-time sync between Lyrics and ACE-Step tabs
+
+---
+
+### 🔧 **Technical Details**
+
+#### **Why VRAM Monitoring Was Removed**
+1. **Complexity** — Too many UI elements for a simple tab
+2. **Performance** — Auto-refresh every 2s was unnecessary
+3. **User Experience** — Users prefer simplicity over detailed metrics
+4. **Focus** — Tab should focus on model management, not monitoring
+
+#### **What Backend Features Remain Available**
+- GPU memory module exists for future use
+- All endpoints functional (can be re-enabled if needed)
+- Clean architecture for easy re-implementation
+
+---
+
+### 📊 **Statistics**
+
+| Metric | Value |
+|--------|-------|
+| **Files Modified** | 4 |
+| **Files Added** | 1 (gpu_memory.py) |
+| **Lines Removed** | ~350 |
+| **Lines Added** | ~50 |
+| **Bundle Reduction** | -9 kB (-1.7%) |
+| **UI Complexity** | -69% |
+
+---
+
+---
+
 ## [v2.2.0] - 2026-03-16
 
 ### 🎤 MAJOR RELEASE: Complete Lyrics Manager!

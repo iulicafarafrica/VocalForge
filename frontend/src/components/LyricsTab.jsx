@@ -289,13 +289,22 @@ export default function LyricsTab({ addLog }) {
     setShowLibrary(false);
     addLog?.(`[Library] Loaded: ${entry.name}`);
 
-    // Auto-send to ACE-Step
+    // Auto-send to ACE-Step via custom event
+    const event = new CustomEvent("acestep-lyrics-update", {
+      detail: {
+        lyrics: entry.lyrics,
+        artist: entry.artist,
+        title: entry.title,
+      },
+    });
+    window.dispatchEvent(event);
+
+    // Also save to localStorage for persistence
     localStorage.setItem("acestep_lyrics_from_manager", entry.lyrics);
     localStorage.setItem("acestep_lyrics_artist", entry.artist);
     localStorage.setItem("acestep_lyrics_title", entry.title);
-    addLog?.(`[Library] Sent to ACE-Step: ${entry.name}`);
 
-    // DON'T clear the library! Just close modal
+    addLog?.(`[Library] Sent to ACE-Step: ${entry.name}`);
     alert(`✅ Lyrics loaded!\n\n"${entry.name}" has been sent to ACE-Step.\n\nGo to ACE-Step tab to generate music!`);
   };
 
@@ -324,11 +333,22 @@ export default function LyricsTab({ addLog }) {
   // Use in ACE-Step
   const useInAceStep = () => {
     const lyricsToSend = lyrics;
-    
+
+    // Save to localStorage for persistence (backward compatibility)
     localStorage.setItem("acestep_lyrics_from_manager", lyricsToSend);
     localStorage.setItem("acestep_lyrics_artist", selectedArtist);
     localStorage.setItem("acestep_lyrics_title", selectedTitle);
-    
+
+    // Dispatch custom event for real-time sync
+    const event = new CustomEvent("acestep-lyrics-update", {
+      detail: {
+        lyrics: lyricsToSend,
+        artist: selectedArtist,
+        title: selectedTitle,
+      },
+    });
+    window.dispatchEvent(event);
+
     addLog?.("[Lyrics] Sent to ACE-Step");
     alert("✅ Lyrics sent to ACE-Step!\n\nGo to ACE-Step tab and check the Lyrics field.");
   };

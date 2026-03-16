@@ -1,4 +1,4 @@
-# 🎵 VocalForge <sup>v2.1.0</sup>
+# 🎵 VocalForge <sup>v2.2.1</sup>
 
 <div align="center">
 
@@ -10,7 +10,7 @@
 
 *⚡ Powered by ACE-Step v1.5*
 
-[![Version](https://img.shields.io/badge/Version-2.1.0-blue?style=for-the-badge)]()
+[![Version](https://img.shields.io/badge/Version-2.2.1-blue?style=for-the-badge)]()
 [![Python](https://img.shields.io/badge/Python-3.10+-green?style=for-the-badge&logo=python)]()
 [![GPU](https://img.shields.io/badge/GPU-NVIDIA%20CUDA-orange?style=for-the-badge&logo=nvidia)]()
 [![License](https://img.shields.io/badge/License-MIT-red?style=for-the-badge)]()
@@ -449,6 +449,37 @@ VOCALFORGE_API_TOKEN=your-secure-token-here
 ---
 
 ## 📝 Changelog
+
+### v2.2.1 — 2026-03-16: Models & GPU Tab Cleanup + Lyrics Fix
+
+**🔧 Models & GPU Tab Simplified**
+- ✅ Removed Real-time VRAM Monitor (complex UI with charts, alerts)
+- ✅ Removed Cache Management Panel (individual cache controls)
+- ✅ Removed Loaded Models Display (per-model VRAM tracking)
+- ✅ Kept essentials: Hardware Info, GPU Actions, System Log, Health Check
+- ✅ Reduced complexity: 455 → 140 lines (-69%)
+
+**🎤 Lyrics "Use in ACE" Fixed**
+- ✅ Custom event system for real-time sync between tabs
+- ✅ Fixed lyrics not sending to ACE-Step tab
+- ✅ Fixed initialization error (`addLog` before initialization)
+- ✅ Works from both search results and library load
+- ✅ Backward compatible with localStorage persistence
+
+**📦 Backend: GPU Memory Module (NEW)**
+- ✅ `backend/modules/gpu_memory.py` — VRAM tracking & management
+- ✅ 8 new API endpoints: `/gpu/vram/history`, `/gpu/vram/alerts`, `/gpu/cache/size`, etc.
+- ✅ VRAM history (60 samples), cache detection, per-model tracking
+- ✅ Auto-cleanup on 80%/90% VRAM thresholds
+- ✅ Note: Backend features built but UI simplified for better UX
+
+**📊 Impact**
+- Bundle size: 494.51 kB → 485.69 kB (-9 kB)
+- UI complexity reduced by 69%
+- Files modified: 4 (App.jsx, ModelsTab.jsx, LyricsTab.jsx, gpu_info.py)
+- Files added: 1 (gpu_memory.py)
+
+---
 
 ### Unreleased — 2026-03-15: Cyberpunk UI Redesign
 

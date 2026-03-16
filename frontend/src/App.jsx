@@ -56,6 +56,7 @@ export default function App() {
     }
     return "";
   });
+
   const [aceDuration, setAceDuration] = useState(30);
   const [aceGuidanceScale, setAceGuidanceScale] = useState(7.0);
   const [aceInferSteps, setAceInferSteps] = useState(50);  // 50 steps for high quality (SFT model)
@@ -92,6 +93,21 @@ export default function App() {
   const addLog = useCallback((msg) => {
     setLogs(prev => [...prev.slice(-499), msg]);
   }, []);
+
+  // Listen for lyrics updates from Lyrics Finder tab (real-time sync)
+  useEffect(() => {
+    const handleLyricsUpdate = (event) => {
+      const { lyrics, artist, title } = event.detail || {};
+      if (lyrics) {
+        console.log("[ACE-Step] Received lyrics from Lyrics Finder:", artist, "-", title);
+        setAceLyrics(lyrics);
+        addLog?.(`[Lyrics] Loaded from Lyrics Finder: ${artist} - ${title}`);
+      }
+    };
+
+    window.addEventListener("acestep-lyrics-update", handleLyricsUpdate);
+    return () => window.removeEventListener("acestep-lyrics-update", handleLyricsUpdate);
+  }, [addLog]);
 
   useEffect(() => {
     fetch(`${API}/hardware`)
