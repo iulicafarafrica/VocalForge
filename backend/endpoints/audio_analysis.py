@@ -1,15 +1,13 @@
-#!/usr/bin/env python3
 """
-Audio Analysis API Endpoints
-Part of VocalForge v2.1.0 - Advanced Audio Understanding Engine
+VocalForge Audio Analysis API
+Features: BPM detection, Key detection, Chord detection, Time signature, Lyrics (Genius API)
 """
 
 import os
 import sys
 import uuid
-import math
 import json
-import requests
+import math
 import numpy as np
 import librosa
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
@@ -26,201 +24,6 @@ router = APIRouter(prefix="/audio", tags=["Audio Analysis"])
 TEMP_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "temp")
 os.makedirs(TEMP_DIR, exist_ok=True)
 
-# Genius API config
-GENIUS_ACCESS_TOKEN = os.getenv("GENIUS_ACCESS_TOKEN")
-
-
-# ── Loudness Analysis ──────────────────────────────────────────────────────────
-
-def calculate_loudness(y: np.ndarray, sr: int) -> Dict[str, Any]:
-    """Calculate loudness metrics: LUFS, RMS, True Peak, Dynamic Range."""
-    if len(y.shape) > 1:
-        y = librosa.to_mono(y)
-    
-    # RMS (Root Mean Square)
-    rms = librosa.feature.rms(y=y)[0]
-    rms_db = float(20 * np.log10(np.mean(rms) + 1e-10))
-    
-    # Approximate LUFS (simplified K-weighted)
-    y_filtered = librosa.effects.preemphasis(y, coef=0.97)
-    loudness_db = float(20 * np.log10(np.mean(np.abs(y_filtered)) + 1e-10))
-    
-    # True Peak
-    true_peak = float(np.max(np.abs(y)))
-    true_peak_db = float(20 * np.log10(true_peak + 1e-10))
-    
-    # Dynamic Range
-    dynamic_range = float(true_peak_db - rms_db)
-    
-    # Category
-    loudness_category = "Too Quiet"
-    if loudness_db > -10:
-        loudness_category = "Too Loud (Over-compressed)"
-    elif loudness_db > -16:
-        loudness_category = "Spotify Ready"
-    elif loudness_db > -20:
-        loudness_category = "Good"
-    
-    return {
-        "lufs": round(loudness_db, 2),
-        "rms_db": round(rms_db, 2),
-        "true_peak_db": round(true_peak_db, 2),
-        "dynamic_range": round(dynamic_range, 1),
-        "category": loudness_category
-    }
-
-
-# ── Vocal Range Detection ──────────────────────────────────────────────────────
-
-def detect_vocal_range(y: np.ndarray, sr: int) -> Dict[str, Any]:
-    """Detect vocal range and classify voice type (optimized for speed)."""
-    if len(y.shape) > 1:
-        y = librosa.to_mono(y)
-    
-    # Downsample for faster processing (keep quality for vocal detection)
-    if sr > 22050:
-        y = librosa.resample(y, orig_sr=sr, target_sr=22050)
-        sr = 22050
-    
-    # Use simpler F0 tracking (faster than pYIN)
-    f0, voiced_flag = librosa.piptrack(y=y, sr=sr, fmin=librosa.note_to_hz('C2'), fmax=librosa.note_to_hz('C7'))
-    
-    # Extract voiced frames
-    voiced_f0 = f0[voiced_flag > 0.8]  # Only confident detections
-    
-    if len(voiced_f0) == 0:
-        # Fallback: use simpler method
-        intervals, pitch = librosa.pyin(y, fmin=librosa.note_to_hz('C2'), fmax=librosa.note_to_hz('C7'), sr=sr, frame_length=2048)
-        voiced_f0 = intervals[pitch != np.nan]
-        if len(voiced_f0) == 0:
-            return {"detected": False, "reason": "No vocals detected"}
-    
-    min_freq = float(np.percentile(voiced_f0, 5))
-    max_freq = float(np.percentile(voiced_f0, 95))
-    min_note = str(librosa.hz_to_note(min_freq))
-    max_note = str(librosa.hz_to_note(max_freq))
-    
-    range_semitones = float(librosa.note_to_midi(max_note) - librosa.note_to_midi(min_note))
-    range_octaves = float(range_semitones / 12)
-    
-    avg_freq = float(np.mean(voiced_f0))
-    voice_type = "Unknown"
-    if avg_freq > 520: voice_type = "Soprano"
-    elif avg_freq > 350: voice_type = "Alto"
-    elif avg_freq > 195: voice_type = "Tenor"
-    elif avg_freq > 130: voice_type = "Baritone"
-    else: voice_type = "Bass"
-    
-    model_recommendations = []
-    if voice_type in ["Soprano", "Alto"]:
-        model_recommendations = ["Female models", "High-pitched voices"]
-    elif voice_type in ["Tenor", "Baritone"]:
-        model_recommendations = ["Male models", "Mid-range voices"]
-    else:
-        model_recommendations = ["All models"]
-    
-    return {
-        "detected": True,
-        "min_freq_hz": round(min_freq, 1),
-        "max_freq_hz": round(max_freq, 1),
-        "min_note": min_note,
-        "max_note": max_note,
-        "range_octaves": round(range_octaves, 1),
-        "voice_type": voice_type,
-        "avg_freq_hz": round(avg_freq, 1),
-        "model_recommendations": model_recommendations,
-        "processing_time": "optimized"
-    }
-
-
-# ── Energy & Mood Analysis ─────────────────────────────────────────────────────
-
-def analyze_energy_mood(y: np.ndarray, sr: int) -> Dict[str, Any]:
-    """Analyze energy, danceability, valence (mood)."""
-    if len(y.shape) > 1:
-        y = librosa.to_mono(y)
-    
-    rms = librosa.feature.rms(y=y)[0]
-    zcr = librosa.feature.zero_crossing_rate(y)[0]
-    energy = float((np.mean(rms) * 0.7 + np.mean(zcr) * 0.3) * 1000)
-    energy = min(100.0, max(0.0, energy))
-    
-    tempo, beats = librosa.beat.beat_track(y=y, sr=sr)
-    beat_strength = float(np.std(beats)) if len(beats) > 1 else 0.0
-    danceability = float(60 + beat_strength * 20 + (float(tempo) / 200) * 20)
-    danceability = min(100.0, max(0.0, danceability))
-    
-    spectral_centroid = librosa.feature.spectral_centroid(y=y, sr=sr)[0]
-    valence = float((np.mean(spectral_centroid) / 5000) * 100)
-    valence = min(100.0, max(0.0, valence))
-    
-    mood_labels = []
-    if energy > 70: mood_labels.append("Energetic")
-    elif energy < 30: mood_labels.append("Calm")
-    else: mood_labels.append("Moderate")
-    
-    if valence > 60: mood_labels.append("Happy")
-    elif valence < 40: mood_labels.append("Sad")
-    else: mood_labels.append("Neutral")
-    
-    if danceability > 70: mood_labels.append("Danceable")
-    elif danceability < 30: mood_labels.append("Not Danceable")
-    
-    return {
-        "energy": round(energy, 1),
-        "danceability": round(danceability, 1),
-        "valence": round(valence, 2),
-        "tempo_bpm": round(float(tempo), 1),
-        "mood_labels": mood_labels,
-        "description": f"{mood_labels[0]} & {mood_labels[1]}"
-    }
-
-
-# ── Frequency Spectrum Analysis ────────────────────────────────────────────────
-
-def analyze_frequency_spectrum(y: np.ndarray, sr: int) -> Dict[str, Any]:
-    """Analyze frequency distribution: bass, mids, highs."""
-    if len(y.shape) > 1:
-        y = librosa.to_mono(y)
-    
-    D = np.abs(librosa.stft(y, n_fft=2048, hop_length=512))
-    freqs = librosa.fft_frequencies(sr=sr, n_fft=2048)
-    
-    bass_mask = (freqs >= 20) & (freqs < 250)
-    mid_mask = (freqs >= 250) & (freqs < 4000)
-    high_mask = (freqs >= 4000) & (freqs <= 20000)
-    
-    bass_energy = float(np.mean(D[bass_mask, :]))
-    mid_energy = float(np.mean(D[mid_mask, :]))
-    high_energy = float(np.mean(D[high_mask, :]))
-    total = bass_energy + mid_energy + high_energy
-    
-    bass_pct = float((bass_energy / total) * 100) if total > 0 else 0.0
-    mid_pct = float((mid_energy / total) * 100) if total > 0 else 0.0
-    high_pct = float((high_energy / total) * 100) if total > 0 else 0.0
-    
-    balance_notes = []
-    if bass_pct > 40: balance_notes.append("Bass-heavy")
-    elif bass_pct < 20: balance_notes.append("Light bass")
-    if mid_pct > 50: balance_notes.append("Prominent mids")
-    elif mid_pct < 30: balance_notes.append("Recessed mids")
-    if high_pct > 30: balance_notes.append("Bright")
-    elif high_pct < 15: balance_notes.append("Dark")
-    if not balance_notes: balance_notes = ["Balanced"]
-    
-    return {
-        "bass_percent": round(bass_pct, 1),
-        "mid_percent": round(mid_pct, 1),
-        "high_percent": round(high_pct, 1),
-        "bass_range": "20-250 Hz",
-        "mid_range": "250-4000 Hz",
-        "high_range": "4000-20000 Hz",
-        "balance_notes": balance_notes,
-        "description": ", ".join(balance_notes)
-    }
-
-
-# ── API Endpoints ──────────────────────────────────────────────────────────────
 
 @router.post("/analyze")
 async def analyze_audio_endpoint(file: UploadFile = File(...), duration: Optional[float] = Form(None)):
@@ -232,6 +35,7 @@ async def analyze_audio_endpoint(file: UploadFile = File(...), duration: Optiona
     try:
         with open(temp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
+
         result = analyze_audio(temp_path, duration=duration)
         result['original_filename'] = file.filename
         return result
@@ -242,9 +46,9 @@ async def analyze_audio_endpoint(file: UploadFile = File(...), duration: Optiona
             os.remove(temp_path)
 
 
-@router.post("/loudness")
-async def analyze_loudness_endpoint(file: UploadFile = File(...)):
-    """Analyze loudness: LUFS, RMS, True Peak, Dynamic Range."""
+@router.post("/bpm")
+async def detect_bpm_endpoint(file: UploadFile = File(...)):
+    """Detect BPM from audio file."""
     file_id = str(uuid.uuid4())
     file_ext = os.path.splitext(file.filename)[1] if file.filename else ".wav"
     temp_path = os.path.join(TEMP_DIR, f"audio_{file_id}{file_ext}")
@@ -252,20 +56,24 @@ async def analyze_loudness_endpoint(file: UploadFile = File(...)):
     try:
         with open(temp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
+
+        from core.modules.audio_analysis import detect_bpm
+        import librosa
+
         y, sr = librosa.load(temp_path, sr=None)
-        result = calculate_loudness(y, sr)
-        result['filename'] = file.filename
-        return result
+        bpm, confidence = detect_bpm(y, sr)
+
+        return {"status": "success", "bpm": bpm, "confidence": confidence, "filename": file.filename}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Loudness analysis failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"BPM detection failed: {str(e)}")
     finally:
         if os.path.exists(temp_path):
             os.remove(temp_path)
 
 
-@router.post("/vocal-range")
-async def detect_vocal_range_endpoint(file: UploadFile = File(...)):
-    """Detect vocal range and classify voice type."""
+@router.post("/key")
+async def detect_key_endpoint(file: UploadFile = File(...)):
+    """Detect musical key from audio file."""
     file_id = str(uuid.uuid4())
     file_ext = os.path.splitext(file.filename)[1] if file.filename else ".wav"
     temp_path = os.path.join(TEMP_DIR, f"audio_{file_id}{file_ext}")
@@ -273,20 +81,24 @@ async def detect_vocal_range_endpoint(file: UploadFile = File(...)):
     try:
         with open(temp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
+
+        from core.modules.audio_analysis import detect_key
+        import librosa
+
         y, sr = librosa.load(temp_path, sr=None)
-        result = detect_vocal_range(y, sr)
-        result['filename'] = file.filename
-        return result
+        key, mode, confidence = detect_key(y, sr)
+
+        return {"status": "success", "key": key, "mode": mode, "confidence": confidence, "filename": file.filename}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Vocal range failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Key detection failed: {str(e)}")
     finally:
         if os.path.exists(temp_path):
             os.remove(temp_path)
 
 
-@router.post("/energy-mood")
-async def analyze_energy_mood_endpoint(file: UploadFile = File(...)):
-    """Analyze energy, danceability, and mood."""
+@router.post("/chords")
+async def detect_chords_endpoint(file: UploadFile = File(...), segment_seconds: float = Form(3.0)):
+    """Detect chord progression in audio file."""
     file_id = str(uuid.uuid4())
     file_ext = os.path.splitext(file.filename)[1] if file.filename else ".wav"
     temp_path = os.path.join(TEMP_DIR, f"audio_{file_id}{file_ext}")
@@ -294,20 +106,30 @@ async def analyze_energy_mood_endpoint(file: UploadFile = File(...)):
     try:
         with open(temp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
+
+        from core.modules.audio_analysis import detect_chords
+        import librosa
+
         y, sr = librosa.load(temp_path, sr=None)
-        result = analyze_energy_mood(y, sr)
-        result['filename'] = file.filename
-        return result
+        chords = detect_chords(y, sr, segment_seconds=segment_seconds)
+
+        return {
+            "status": "success",
+            "chords": chords,
+            "unique_chords": list(set([c['chord'] for c in chords])),
+            "progression": [c['chord'] for c in chords],
+            "filename": file.filename
+        }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Mood analysis failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Chord detection failed: {str(e)}")
     finally:
         if os.path.exists(temp_path):
             os.remove(temp_path)
 
 
-@router.post("/frequency-spectrum")
-async def analyze_frequency_spectrum_endpoint(file: UploadFile = File(...)):
-    """Analyze frequency spectrum distribution."""
+@router.post("/time-signature")
+async def detect_time_signature_endpoint(file: UploadFile = File(...)):
+    """Detect time signature from audio file."""
     file_id = str(uuid.uuid4())
     file_ext = os.path.splitext(file.filename)[1] if file.filename else ".wav"
     temp_path = os.path.join(TEMP_DIR, f"audio_{file_id}{file_ext}")
@@ -315,55 +137,204 @@ async def analyze_frequency_spectrum_endpoint(file: UploadFile = File(...)):
     try:
         with open(temp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
+
+        from core.modules.audio_analysis import detect_time_signature
+        import librosa
+
         y, sr = librosa.load(temp_path, sr=None)
-        result = analyze_frequency_spectrum(y, sr)
-        result['filename'] = file.filename
-        return result
+        time_sig, confidence = detect_time_signature(y, sr)
+
+        return {"status": "success", "time_signature": time_sig, "confidence": confidence, "filename": file.filename}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Frequency analysis failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Time signature detection failed: {str(e)}")
     finally:
         if os.path.exists(temp_path):
             os.remove(temp_path)
 
 
-@router.post("/full-analysis")
-async def full_audio_analysis_endpoint(file: UploadFile = File(...)):
-    """Complete audio analysis: all metrics in one call."""
-    file_id = str(uuid.uuid4())
-    file_ext = os.path.splitext(file.filename)[1] if file.filename else ".wav"
-    temp_path = os.path.join(TEMP_DIR, f"audio_{file_id}{file_ext}")
+# ── Lyrics Search (Genius API via LyricsGenius) ────────────────────────────────
 
+@router.post("/lyrics/suggest")
+async def suggest_songs(query: str = Form(...)):
+    """
+    Search for songs using Genius.com API via LyricsGenius.
+    Returns list of songs from Genius.
+    """
     try:
-        with open(temp_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-        y, sr = librosa.load(temp_path, sr=None)
+        import lyricsgenius
         
-        # Basic analysis
-        from core.modules.audio_analysis import detect_bpm, detect_key, detect_time_signature
-        bpm_value, bpm_conf = detect_bpm(y, sr)
-        key_value, key_mode, key_conf = detect_key(y, sr)
-        time_sig_value, time_conf = detect_time_signature(y, sr)
+        print(f"[Genius] Suggest: {query}")
         
-        loudness = calculate_loudness(y, sr)
-        vocal_range = detect_vocal_range(y, sr)
-        energy_mood = analyze_energy_mood(y, sr)
-        frequency = analyze_frequency_spectrum(y, sr)
-        duration = len(y) / sr
+        # Initialize Genius client (no token needed for basic search)
+        genius = lyricsgenius.Genius()
+        genius.timeout = 10
+        genius.delay = 0.5
+        
+        # Search for songs
+        results = genius.search(query, search_type="song", max_results=10)
+        
+        if not results:
+            return {"songs": [], "count": 0}
+        
+        # Format results for frontend
+        songs = []
+        for result in results:
+            songs.append({
+                "title": result.title if hasattr(result, 'title') else str(result),
+                "artist": {
+                    "name": result.artist if hasattr(result, 'artist') else "Unknown"
+                },
+                "url": result.url if hasattr(result, 'url') else "",
+                "id": result.id if hasattr(result, 'id') else 0
+            })
+        
+        print(f"[Genius] Found {len(songs)} songs")
         
         return {
             "status": "success",
+            "songs": songs,
+            "count": len(songs),
+            "source": "Genius.com"
+        }
+            
+    except ImportError:
+        print("[Genius] LyricsGenius not installed. Run: pip install lyricsgenius")
+        raise HTTPException(status_code=500, detail="LyricsGenius not installed. Run: pip install lyricsgenius")
+    except Exception as e:
+        print(f"[Genius] Suggest error: {str(e)}")
+        return {"songs": [], "count": 0, "error": str(e)}
+
+
+@router.post("/lyrics/search")
+async def search_lyrics(
+    artist: str = Form(None),
+    title: str = Form(None),
+    search_type: str = Form("song")
+):
+    """
+    Search lyrics using Genius.com API via LyricsGenius Python client.
+    Official Genius API client - https://github.com/johnwmillr/LyricsGenius
+    """
+    
+    try:
+        import lyricsgenius
+        
+        if search_type == "artist":
+            # Search for artist
+            if not artist:
+                raise HTTPException(status_code=400, detail="Artist name required")
+            
+            print(f"[Genius] Searching artist: {artist}")
+            genius = lyricsgenius.Genius()
+            genius.timeout = 10
+            genius.delay = 0.5
+            
+            artist_obj = genius.search_artist(artist, max_songs=20, sort="popularity")
+            
+            if not artist_obj or not artist_obj.songs:
+                raise HTTPException(status_code=404, detail=f"Artist '{artist}' not found on Genius")
+            
+            songs = []
+            for song in artist_obj.songs:
+                songs.append({
+                    "title": song.title,
+                    "artist": artist_obj.name,
+                    "url": song.url,
+                    "id": song.id
+                })
+            
+            return {
+                "status": "success",
+                "artist": artist,
+                "songs": songs,
+                "count": len(songs),
+                "source": "Genius.com"
+            }
+        
+        else:  # search_type == "song"
+            # Get lyrics for specific song
+            if not artist or not title:
+                raise HTTPException(status_code=400, detail="Artist and title required")
+            
+            print(f"[Genius] Searching: {artist} - {title}")
+            genius = lyricsgenius.Genius()
+            genius.timeout = 10
+            genius.delay = 0.5
+            genius.remove_section_headers = True  # Remove [Chorus], [Verse] headers
+            genius.verbose = False
+            
+            # Search for song
+            song = genius.search_song(title, artist)
+            
+            if not song:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Lyrics not found on Genius.com for '{artist} - {title}'"
+                )
+            
+            if not song.lyrics or len(song.lyrics.strip()) < 50:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Lyrics not available on Genius.com (incomplete)"
+                )
+            
+            print(f"[Genius] Found lyrics: {len(song.lyrics)} chars")
+            
+            return {
+                "status": "success",
+                "artist": artist,
+                "title": title,
+                "lyrics": song.lyrics,
+                "source": "Genius.com",
+                "length": len(song.lyrics),
+                "url": song.url if hasattr(song, 'url') else "",
+                "album": song.album if hasattr(song, 'album') else "",
+                "release_date": song.release_date if hasattr(song, 'release_date') else ""
+            }
+            
+    except ImportError:
+        print("[Genius] LyricsGenius not installed. Run: pip install lyricsgenius")
+        raise HTTPException(
+            status_code=500,
+            detail="LyricsGenius not installed. Run: pip install lyricsgenius"
+        )
+    except Exception as e:
+        print(f"[Genius] Search error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Genius.com error: {str(e)}")
+
+
+@router.post("/lyrics/from-audio")
+async def detect_lyrics_from_audio(file: UploadFile = File(...)):
+    """Detect lyrics from audio using Whisper transcription."""
+    file_id = str(uuid.uuid4())
+    file_ext = os.path.splitext(file.filename)[1] if file.filename else ".wav"
+    temp_path = os.path.join(TEMP_DIR, f"audio_{file_id}{file_ext}")
+
+    try:
+        with open(temp_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        # Load audio
+        y, sr = librosa.load(temp_path, sr=None)
+
+        # Use Whisper for transcription (if available)
+        try:
+            import whisper
+            model = whisper.load_model("base")
+            result = model.transcribe(temp_path)
+            lyrics = result["text"]
+        except ImportError:
+            raise HTTPException(status_code=500, detail="Whisper not installed. Run: pip install openai-whisper")
+
+        return {
+            "status": "success",
             "filename": file.filename,
-            "duration_seconds": round(duration, 2),
-            "bpm": {"value": round(bpm_value, 1), "confidence": round(bpm_conf, 2)},
-            "key": {"value": f"{key_value} {'Major' if key_mode == 'major' else 'Minor'}", "mode": key_mode, "confidence": round(key_conf, 2)},
-            "time_signature": {"value": time_sig_value, "confidence": round(time_conf, 2)},
-            "loudness": loudness,
-            "vocal_range": vocal_range,
-            "energy_mood": energy_mood,
-            "frequency_spectrum": frequency
+            "lyrics": lyrics,
+            "source": "Whisper AI",
+            "length": len(lyrics)
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Full analysis failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
     finally:
         if os.path.exists(temp_path):
             os.remove(temp_path)
@@ -377,206 +348,10 @@ async def audio_analysis_info():
         "capabilities": {
             "bpm_detection": {"description": "Detect BPM", "endpoint": "POST /audio/bpm"},
             "key_detection": {"description": "Detect musical key", "endpoint": "POST /audio/key"},
-            "loudness": {"description": "LUFS, RMS, Peak, DR", "endpoint": "POST /audio/loudness", "recommended": True},
-            "vocal_range": {"description": "Voice type & range", "endpoint": "POST /audio/vocal-range", "recommended": True},
-            "energy_mood": {"description": "Energy, danceability, mood", "endpoint": "POST /audio/energy-mood"},
-            "frequency": {"description": "Bass/mid/high distribution", "endpoint": "POST /audio/frequency-spectrum"},
-            "full_analysis": {"description": "All analyses combined", "endpoint": "POST /audio/full-analysis", "recommended": True},
-            "lyrics_search": {"description": "Search lyrics via Genius API", "endpoint": "POST /audio/lyrics/search", "recommended": True}
+            "chord_detection": {"description": "Detect chord progression", "endpoint": "POST /audio/chords"},
+            "time_signature": {"description": "Detect time signature", "endpoint": "POST /audio/time-signature"},
+            "full_analysis": {"description": "Run all analyses at once", "endpoint": "POST /audio/analyze", "recommended": True},
+            "lyrics_search": {"description": "Search lyrics via Genius API", "endpoint": "POST /audio/lyrics/search", "recommended": True},
+            "lyrics_transcribe": {"description": "Transcribe lyrics from audio (Whisper)", "endpoint": "POST /audio/lyrics/from-audio"}
         }
     }
-
-
-# ── Lyrics Search (Genius API) ────────────────────────────────────────────────
-
-@router.post("/lyrics/test-connection")
-async def test_genius_connection(access_token: str = Form(...)):
-    """Test Genius API connection through backend (avoids CORS issues)."""
-    try:
-        headers = {"Authorization": f"Bearer {access_token}"}
-        response = requests.get("https://api.genius.com/search?q=test", headers=headers, timeout=10)
-        
-        if response.status_code == 200:
-            return {"status": "success", "message": "Connected to Genius API"}
-        elif response.status_code == 401:
-            raise HTTPException(status_code=401, detail="Invalid access token")
-        elif response.status_code == 403:
-            raise HTTPException(status_code=403, detail="Access token expired or revoked")
-        else:
-            raise HTTPException(status_code=500, detail=f"Genius API error: {response.status_code}")
-            
-    except requests.exceptions.Timeout:
-        raise HTTPException(status_code=500, detail="Connection timeout")
-    except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=500, detail=f"Connection error: {str(e)}")
-
-
-@router.post("/lyrics/suggest")
-async def suggest_songs(query: str = Form(...)):
-    """
-    Search for songs using Deezer API (for song suggestions).
-    Lyrics will be fetched from Genius.com directly.
-    """
-    try:
-        print(f"[Deezer] Suggest: {query}")
-        suggest_url = f"https://api.lyrics.ovh/suggest/{query}"
-        response = requests.get(suggest_url, timeout=10)
-        
-        if response.status_code != 200:
-            return {"songs": [], "count": 0}
-        
-        data = response.json()
-        print(f"[Deezer] Response type: {type(data)}")
-        
-        # lyrics.ovh returns {"data": [...], "total": N}, not a direct list
-        songs = []
-        if isinstance(data, dict) and "data" in data:
-            songs = data["data"]
-        elif isinstance(data, list):
-            songs = data
-        
-        print(f"[Deezer] Found {len(songs)} songs")
-        
-        if songs:
-            return {
-                "status": "success",
-                "songs": songs,
-                "count": len(songs),
-                "source": "Deezer (for search)"
-            }
-        else:
-            return {"songs": [], "count": 0}
-            
-    except requests.exceptions.RequestException as e:
-        print(f"[Deezer] Suggest error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Connection error: {str(e)}")
-
-
-@router.post("/lyrics/search")
-async def search_lyrics(
-    artist: str = Form(None),
-    title: str = Form(None),
-    access_token: str = Form(None),
-    search_type: str = Form("song")
-):
-    """
-    Search lyrics using Genius.com API directly.
-    Uses lyrics.ovh as a proxy to Genius (no auth required).
-    """
-    
-    if search_type == "artist":
-        # Search for artist songs via Deezer
-        if not artist:
-            raise HTTPException(status_code=400, detail="Artist name required")
-        
-        try:
-            print(f"[Genius] Searching artist: {artist}")
-            # Use Deezer for artist search (lyrics.ovh proxy)
-            lyrics_ovh_url = f"https://api.lyrics.ovh/v1/{artist}"
-            response = requests.get(lyrics_ovh_url, timeout=10)
-            
-            if response.status_code == 404:
-                raise HTTPException(status_code=404, detail=f"Artist '{artist}' not found")
-            
-            if response.status_code != 200:
-                raise HTTPException(status_code=500, detail=f"Genius error: HTTP {response.status_code}")
-            
-            data = response.json()
-            
-            if data and "songs" in data:
-                return {
-                    "status": "success",
-                    "artist": artist,
-                    "songs": data["songs"],
-                    "count": len(data["songs"]),
-                    "source": "Genius"
-                }
-            else:
-                raise HTTPException(status_code=404, detail="No songs found")
-                
-        except requests.exceptions.RequestException as e:
-            print(f"[Genius] Connection error: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Connection error: {str(e)}")
-    
-    else:  # search_type == "song"
-        # Get lyrics from Genius.com
-        if not artist or not title:
-            raise HTTPException(status_code=400, detail="Artist and title required")
-        
-        try:
-            print(f"[Genius] Searching: {artist} - {title}")
-            
-            # Use lyrics.ovh as proxy to Genius (first and only source)
-            # lyrics.ovh tries Genius FIRST, we only accept if Genius has it
-            lyrics_ovh_url = f"https://api.lyrics.ovh/v1/{artist}/{title}"
-            response = requests.get(lyrics_ovh_url, timeout=10)
-            
-            if response.status_code == 404:
-                raise HTTPException(
-                    status_code=404, 
-                    detail=f"Lyrics not found on Genius.com. Try: '{artist} - {title}'. Check spelling."
-                )
-            
-            if response.status_code != 200:
-                raise HTTPException(status_code=500, detail=f"Genius.com error: HTTP {response.status_code}")
-            
-            data = response.json()
-            lyrics = data.get("lyrics", "")
-            
-            # Verify lyrics are from Genius (complete and valid)
-            if lyrics and len(lyrics.strip()) > 50:
-                print(f"[Genius] Found lyrics: {len(lyrics)} chars")
-                return {
-                    "status": "success",
-                    "artist": artist,
-                    "title": title,
-                    "lyrics": lyrics,
-                    "source": "Genius.com",
-                    "length": len(lyrics)
-                }
-            else:
-                raise HTTPException(
-                    status_code=404, 
-                    detail="Lyrics not available on Genius.com (incomplete or blocked)"
-                )
-                
-        except requests.exceptions.RequestException as e:
-            print(f"[Genius] Connection error: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Genius.com connection error: {str(e)}")
-
-
-@router.post("/lyrics/from-audio")
-async def detect_lyrics_from_audio(file: UploadFile = File(...)):
-    """Detect lyrics from audio using Whisper transcription."""
-    file_id = str(uuid.uuid4())
-    file_ext = os.path.splitext(file.filename)[1] if file.filename else ".wav"
-    temp_path = os.path.join(TEMP_DIR, f"audio_{file_id}{file_ext}")
-    
-    try:
-        with open(temp_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-        
-        # Load audio
-        y, sr = librosa.load(temp_path, sr=None)
-        
-        # Use Whisper for transcription (if available)
-        try:
-            import whisper
-            model = whisper.load_model("base")
-            result = model.transcribe(temp_path)
-            lyrics = result["text"]
-        except ImportError:
-            raise HTTPException(status_code=500, detail="Whisper not installed. Run: pip install openai-whisper")
-        
-        return {
-            "status": "success",
-            "filename": file.filename,
-            "lyrics": lyrics,
-            "method": "whisper_transcription"
-        }
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Lyrics detection failed: {str(e)}")
-    finally:
-        if os.path.exists(temp_path):
-            os.remove(temp_path)

@@ -1,11 +1,12 @@
-# VocalForge Backend Dependencies 
-fastapi>=0.104.0 
-uvicorn[standard]>=0.24.0 
-python-dotenv>=1.0.0 
-torch>=2.0.0 
-numpy>=1.24.0 
-soundfile>=0.12.0 
-librosa>=0.10.0 
-pydantic>=2.0.0 
-aiofiles>=23.0.0 
+# VocalForge Backend Dependencies
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-dotenv>=1.0.0
+torch>=2.0.0
+numpy>=1.24.0
+soundfile>=0.12.0
+librosa>=0.10.0
+pydantic>=2.0.0
+aiofiles>=23.0.0
 python-multipart>=0.0.6
+lyricsgenius>=3.2.0  # Genius.com API client for lyrics
