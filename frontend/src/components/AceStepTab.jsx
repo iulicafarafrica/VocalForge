@@ -28,8 +28,8 @@ const PRESETS_KEY = "acestep_presets_v1";
 const DEFAULT_PRESETS = [
   {
     id: "default_generate",
-    name: "🎵 Generate Track",
-    icon: "🎵",
+    name: "Generate Track",
+    icon: "🎶",
     color: "#ffd166",
     builtIn: true,
     settings: {
@@ -48,8 +48,8 @@ const DEFAULT_PRESETS = [
   },
   {
     id: "default_cover",
-    name: "🎵 Audio Cover",
-    icon: "🎤",
+    name: "Audio Cover",
+    icon: "🎙",
     color: "#c77dff",
     builtIn: true,
     settings: {
@@ -68,7 +68,7 @@ const DEFAULT_PRESETS = [
   },
   {
     id: "default_turbo",
-    name: "⚡ Turbo Fast",
+    name: "Turbo Fast",
     icon: "⚡",
     color: "#06d6a0",
     builtIn: true,
@@ -88,8 +88,8 @@ const DEFAULT_PRESETS = [
   },
   {
     id: "default_quality",
-    name: "🎯 Max Quality",
-    icon: "🎯",
+    name: "Max Quality",
+    icon: "◈",
     color: "#00e5ff",
     builtIn: true,
     settings: {
@@ -541,7 +541,7 @@ function PresetManager({
     setUserPresets(updated);
     savePresetsToStorage(updated);
     setSaveName("");
-    showNotif(`✅ Preset "${newPreset.name}" saved!`);
+    showNotif(`✓ Preset "${newPreset.name}" saved!`);
     setActiveTab("load");
   };
 
@@ -555,7 +555,7 @@ function PresetManager({
 
   const handleLoad = (preset) => {
     onLoad(preset.settings);
-    showNotif(`✅ Preset "${preset.name}" loaded!`);
+    showNotif(`✓ Preset "${preset.name}" loaded!`);
     setTimeout(() => onClose(), 800);
   };
 
@@ -605,7 +605,7 @@ function PresetManager({
     }),
   };
 
-  const ICONS = ["⭐", "🎵", "🎤", "🎸", "🎹", "🎺", "🥁", "🎼", "🎧", "🔥", "⚡", "🌙", "🌊", "🎯", "💎", "🚀"];
+  const ICONS = ["★", "♪", "♫", "♬", "♩", "🎶", "🎙", "🎸", "🎹", "🎺", "🥁", "🎧", "⚡", "◈", "▣", "◆", "◇"];
   const COLORS = ["#ffd166", "#c77dff", "#06d6a0", "#00e5ff", "#e63946", "#ff9f1c", "#9b2de0", "#4cc9f0"];
 
   return (
@@ -965,7 +965,7 @@ export default function AceStepTab({
       desc: "8 steps │ ~1 min │ Fast", 
       color: "#06d6a0", 
       steps: 8, 
-      cfg: false,  // ❌ No CFG support
+      cfg: false,  // ✗ No CFG support
       features: "Text2Music, Cover, Repaint",
       vram: "~4-5GB",
       quality: "Very High",
@@ -980,7 +980,7 @@ export default function AceStepTab({
       desc: "Hybrid │ ~2 min │ Balanced", 
       color: "#ffd166", 
       steps: 32,  // Hybrid steps (between turbo 8 and sft 50)
-      cfg: true,  // ✅ CFG support
+      cfg: true,  // ✓ CFG support
       features: "Text2Music, Cover, Repaint",
       vram: "~5-6GB",
       quality: "High",
@@ -995,7 +995,7 @@ export default function AceStepTab({
       desc: "50 steps │ ~3 min │ Quality", 
       color: "#c77dff", 
       steps: 50, 
-      cfg: true,  // ✅ CFG support
+      cfg: true,  // ✓ CFG support
       features: "Text2Music, Cover, Repaint",
       vram: "~6-7GB",
       quality: "High",
@@ -1010,7 +1010,7 @@ export default function AceStepTab({
       desc: "50 steps │ ~3 min │ Enhanced", 
       color: "#00e5ff", 
       steps: 50,  // Same as base
-      cfg: true,  // ✅ CFG support
+      cfg: true,  // ✓ CFG support
       features: "Text2Music, Cover, Repaint",
       vram: "~7-8GB",
       quality: "High",
@@ -1025,7 +1025,7 @@ export default function AceStepTab({
       desc: "50 steps │ ~4 min │ All Features", 
       color: "#118ab2", 
       steps: 50, 
-      cfg: true,  // ✅ CFG support
+      cfg: true,  // ✓ CFG support
       features: "All Features + Extract/Lego/Complete",
       vram: "~7-8GB",
       quality: "Medium",
@@ -1064,46 +1064,46 @@ export default function AceStepTab({
   // Task type model compatibility
   const taskTypeModelSupport = {
     text2music: {
-      'acestep-v15-turbo': { supported: true, note: '✅ Fast (8 steps), No CFG' },
-      'acestep-v15-sft-turbo_0.5': { supported: true, note: '✅ Balanced (20 steps)' },
-      'acestep-v15-sft': { supported: true, note: '✅ High quality (50 steps)' },
-      'acestep-v15-base-sft': { supported: true, note: '✅ Enhanced (50 steps)' },
-      'acestep-v15-base': { supported: true, note: '✅ All features (50 steps)' },
+      'acestep-v15-turbo': { supported: true, note: '✓ Fast (8 steps), No CFG' },
+      'acestep-v15-sft-turbo_0.5': { supported: true, note: '✓ Balanced (20 steps)' },
+      'acestep-v15-sft': { supported: true, note: '✓ High quality (50 steps)' },
+      'acestep-v15-base-sft': { supported: true, note: '✓ Enhanced (50 steps)' },
+      'acestep-v15-base': { supported: true, note: '✓ All features (50 steps)' },
     },
     audio2audio: {
-      'acestep-v15-turbo': { supported: true, note: '✅ Fast (8 steps), No CFG' },
-      'acestep-v15-sft-turbo_0.5': { supported: true, note: '✅ Balanced (20 steps)' },
-      'acestep-v15-sft': { supported: true, note: '✅ High quality (50 steps)' },
-      'acestep-v15-base-sft': { supported: true, note: '✅ Enhanced (50 steps)' },
-      'acestep-v15-base': { supported: true, note: '✅ All features (50 steps)' },
+      'acestep-v15-turbo': { supported: true, note: '✓ Fast (8 steps), No CFG' },
+      'acestep-v15-sft-turbo_0.5': { supported: true, note: '✓ Balanced (20 steps)' },
+      'acestep-v15-sft': { supported: true, note: '✓ High quality (50 steps)' },
+      'acestep-v15-base-sft': { supported: true, note: '✓ Enhanced (50 steps)' },
+      'acestep-v15-base': { supported: true, note: '✓ All features (50 steps)' },
     },
     repaint: {
-      'acestep-v15-turbo': { supported: true, note: '✅ Fast (8 steps)' },
-      'acestep-v15-sft-turbo_0.5': { supported: true, note: '✅ Balanced (20 steps)' },
-      'acestep-v15-sft': { supported: true, note: '✅ High quality (50 steps)' },
-      'acestep-v15-base-sft': { supported: true, note: '✅ Enhanced (50 steps)' },
-      'acestep-v15-base': { supported: true, note: '✅ All features (50 steps)' },
+      'acestep-v15-turbo': { supported: true, note: '✓ Fast (8 steps)' },
+      'acestep-v15-sft-turbo_0.5': { supported: true, note: '✓ Balanced (20 steps)' },
+      'acestep-v15-sft': { supported: true, note: '✓ High quality (50 steps)' },
+      'acestep-v15-base-sft': { supported: true, note: '✓ Enhanced (50 steps)' },
+      'acestep-v15-base': { supported: true, note: '✓ All features (50 steps)' },
     },
     lego: {
-      'acestep-v15-turbo': { supported: false, note: '❌ Base model only' },
-      'acestep-v15-sft-turbo_0.5': { supported: false, note: '❌ Base model only' },
-      'acestep-v15-sft': { supported: false, note: '❌ Base model only' },
-      'acestep-v15-base-sft': { supported: false, note: '❌ Base model only' },
-      'acestep-v15-base': { supported: true, note: '✅ Exclusive feature' },
+      'acestep-v15-turbo': { supported: false, note: '✗ Base model only' },
+      'acestep-v15-sft-turbo_0.5': { supported: false, note: '✗ Base model only' },
+      'acestep-v15-sft': { supported: false, note: '✗ Base model only' },
+      'acestep-v15-base-sft': { supported: false, note: '✗ Base model only' },
+      'acestep-v15-base': { supported: true, note: '✓ Exclusive feature' },
     },
     complete: {
-      'acestep-v15-turbo': { supported: false, note: '❌ Base model only' },
-      'acestep-v15-sft-turbo_0.5': { supported: false, note: '❌ Base model only' },
-      'acestep-v15-sft': { supported: false, note: '❌ Base model only' },
-      'acestep-v15-base-sft': { supported: false, note: '❌ Base model only' },
-      'acestep-v15-base': { supported: true, note: '✅ Exclusive feature' },
+      'acestep-v15-turbo': { supported: false, note: '✗ Base model only' },
+      'acestep-v15-sft-turbo_0.5': { supported: false, note: '✗ Base model only' },
+      'acestep-v15-sft': { supported: false, note: '✗ Base model only' },
+      'acestep-v15-base-sft': { supported: false, note: '✗ Base model only' },
+      'acestep-v15-base': { supported: true, note: '✓ Exclusive feature' },
     },
     extract: {
-      'acestep-v15-turbo': { supported: false, note: '❌ Base model only' },
-      'acestep-v15-sft-turbo_0.5': { supported: false, note: '❌ Base model only' },
-      'acestep-v15-sft': { supported: false, note: '❌ Base model only' },
-      'acestep-v15-base-sft': { supported: false, note: '❌ Base model only' },
-      'acestep-v15-base': { supported: true, note: '✅ Exclusive feature' },
+      'acestep-v15-turbo': { supported: false, note: '✗ Base model only' },
+      'acestep-v15-sft-turbo_0.5': { supported: false, note: '✗ Base model only' },
+      'acestep-v15-sft': { supported: false, note: '✗ Base model only' },
+      'acestep-v15-base-sft': { supported: false, note: '✗ Base model only' },
+      'acestep-v15-base': { supported: true, note: '✓ Exclusive feature' },
     },
   };
 
@@ -1289,7 +1289,7 @@ export default function AceStepTab({
     setBpm(bpmVal > 0 && bpmVal <= 300 ? bpmVal : 0);
     setKeyScale(typeof keyVal === "string" && keyVal !== "auto" ? keyVal : "");
     setInstrumental(!!preset.instrumental);
-    // ✅ Apply guidanceScale and inferSteps from preset
+    // ✓ Apply guidanceScale and inferSteps from preset
     if (preset.guidanceScale !== undefined) setGuidanceScale(preset.guidanceScale);
     if (preset.inferSteps !== undefined) setInferSteps(preset.inferSteps);
   };
@@ -1364,8 +1364,8 @@ export default function AceStepTab({
     setShowCustomSubgenreInput(false);
     
     // Show success message
-    console.log(`[Custom Subgenre] ✅ Saved "${customSubgenreName}" in ${customSubgenreCategory}`);
-    alert(`✅ Subgenre "${customSubgenreName}" saved in ${customSubgenreCategory}!`);
+    console.log(`[Custom Subgenre] ✓ Saved "${customSubgenreName}" in ${customSubgenreCategory}`);
+    alert(`✓ Subgenre "${customSubgenreName}" saved in ${customSubgenreCategory}!`);
   };
 
   // ── Edit Custom Subgenre ───────────────────────────────────────────────────
@@ -1434,8 +1434,8 @@ export default function AceStepTab({
     setShowEditSubgenre(false);
     setEditingSubgenre(null);
     
-    console.log(`[Edit Subgenre] ✅ Updated "${subName}" in ${category}`);
-    alert(`✅ Subgenre "${subName}" updated!`);
+    console.log(`[Edit Subgenre] ✓ Updated "${subName}" in ${category}`);
+    alert(`✓ Subgenre "${subName}" updated!`);
   };
 
   // ── Delete Custom Subgenre ─────────────────────────────────────────────────
@@ -1492,8 +1492,8 @@ export default function AceStepTab({
       setSelectedGenreSubgenre("");
     }
     
-    console.log(`[Delete Subgenre] ✅ Deleted "${subName}" from ${category}`);
-    alert(`✅ Subgenre "${subName}" deleted from ${category}!`);
+    console.log(`[Delete Subgenre] ✓ Deleted "${subName}" from ${category}`);
+    alert(`✓ Subgenre "${subName}" deleted from ${category}!`);
   };
 
   // ── Add New Genre ──────────────────────────────────────────────────────────
@@ -1534,8 +1534,8 @@ export default function AceStepTab({
     setShowAddGenre(false);
     setNewGenreName("");
     
-    console.log(`[Add Genre] ✅ Added new genre "${newGenreName}"`);
-    alert(`✅ New genre "${newGenreName}" created!`);
+    console.log(`[Add Genre] ✓ Added new genre "${newGenreName}"`);
+    alert(`✓ New genre "${newGenreName}" created!`);
   };
 
   // ── Preset load handler ────────────────────────────────────────────────────
@@ -1802,7 +1802,7 @@ export default function AceStepTab({
       setTracks(prev => [t, ...prev]);
       setResult(t);
       setProgress(100);
-      setProgressLabel("✅ Done!");
+      setProgressLabel("✓ Done!");
       addLog(`[OK] ACE-Step done: ${data.filename} (${data.duration_sec}s, ${data.processing_time_sec}s)`);
 
       // Auto-detect BPM/Key of generated track
@@ -2722,7 +2722,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                               cursor: (!customSubgenreName.trim() || !customSubgenreCategory) ? "not-allowed" : "pointer",
                             }}
                           >
-                            ✅ Save Subgenre
+                            ✓ Save Subgenre
                           </button>
                           <button
                             onClick={() => {
@@ -2741,7 +2741,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                               cursor: "pointer",
                             }}
                           >
-                            ❌ Cancel
+                            ✗ Cancel
                           </button>
                         </div>
                       </div>
@@ -2919,7 +2919,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                 {[
                   { v: 8,  label: "8 ⚡", tip: "Turbo" },
                   { v: 12, label: "12 🚀", tip: "Fast" },
-                  { v: 20, label: "20 ✅", tip: "Balanced" },
+                  { v: 20, label: "20 ✓", tip: "Balanced" },
                   { v: 32, label: "32 🎨", tip: "High Quality" },
                   { v: 40, label: "40 🎯", tip: "Quality" },
                 ].map(s => (
@@ -3174,10 +3174,10 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
         {/* COLUMN 4: Result + Generate + Advanced Settings */}
         <div>
 
-          {/* ✅ Result */}
+          {/* ✓ Result */}
           {result && (
             <div style={{ ...S.card, border: "1px solid #ffd16644", background: "#ffd16611" }}>
-              <span style={{ ...S.label, color: "#ffd166" }}>✅ Generated!</span>
+              <span style={{ ...S.label, color: "#ffd166" }}>✓ Generated!</span>
               <div style={{ color: "#ffd166", fontSize: 11, fontFamily: "monospace", marginBottom: 4 }}>🎵 {result.filename}</div>
               <div style={{ color: "#444466", fontSize: 10, marginBottom: 6 }}>"{result.prompt}"</div>
               {(resultBpm || resultKey || result.seed !== undefined) && (
@@ -3406,7 +3406,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   </div>
                   <div style={{ textAlign: "center" }}>
                     <div style={{ color: modelInfo.cfg ? modelInfo.color : "#6666aa", fontSize: 12, fontWeight: 900 }}>
-                      {modelInfo.cfg ? '✅' : '❌'}
+                      {modelInfo.cfg ? '✓' : '✗'}
                     </div>
                     <div style={{ color: "#6666aa", fontSize: 8 }}>
                       {modelInfo.cfg ? 'CFG' : 'No CFG'}
@@ -3441,7 +3441,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                 <span style={{ color: "#6666aa" }}>│</span>
                 <span>Steps: <strong style={{ color: "#06d6a0" }}>{modelInfo.steps}</strong></span>
                 <span style={{ color: "#6666aa" }}>│</span>
-                <span>CFG: <strong style={{ color: modelInfo.cfg ? "#06d6a0" : "#6666aa" }}>{modelInfo.cfg ? '✅' : '❌'}</strong></span>
+                <span>CFG: <strong style={{ color: modelInfo.cfg ? "#06d6a0" : "#6666aa" }}>{modelInfo.cfg ? '✓' : '✗'}</strong></span>
               </div>
             </div>
 
@@ -3840,7 +3840,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   cursor: "pointer",
                 }}
               >
-                ✅ Save Changes
+                ✓ Save Changes
               </button>
               <button
                 onClick={() => {
@@ -3879,7 +3879,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   cursor: "pointer",
                 }}
               >
-                ❌ Cancel
+                ✗ Cancel
               </button>
             </div>
           </div>
@@ -3951,7 +3951,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   cursor: "pointer",
                 }}
               >
-                ❌ Cancel
+                ✗ Cancel
               </button>
             </div>
           </div>
@@ -4023,7 +4023,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   cursor: !newGenreName.trim() ? "not-allowed" : "pointer",
                 }}
               >
-                ✅ Create Genre
+                ✓ Create Genre
               </button>
               <button
                 onClick={() => {
@@ -4041,7 +4041,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   cursor: "pointer",
                 }}
               >
-                ❌ Cancel
+                ✗ Cancel
               </button>
             </div>
           </div>
