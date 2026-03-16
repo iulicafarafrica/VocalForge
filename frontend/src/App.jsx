@@ -29,7 +29,7 @@ const TABS = [
 
 export default function App() {
   const [tab, setTab] = useState("Demucs");
-  const [logs, setLogs] = useState([`[OK] VocalForge v1.7 loaded — ${new Date().toLocaleTimeString()}`]);
+  const [logs, setLogs] = useState([`[OK] VocalForge v2.2.0 loaded — ${new Date().toLocaleTimeString()}`]);
   const [showLogs, setShowLogs] = useState(false);
   const [tracks, setTracks] = useState([]);
   const [models, setModels] = useState([]);
@@ -364,7 +364,7 @@ export default function App() {
         position: "sticky", bottom: 0, background: "#080812", zIndex: 99,
       }}>
         <div style={{ color: "#333355", fontSize: 11, fontFamily: "monospace" }}>
-          VocalForge v1.7 · Beta Ready
+          VocalForge v2.2.0 · Lyrics Manager Complete
         </div>
         <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
           <span style={{
