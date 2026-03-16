@@ -368,7 +368,7 @@ const DEFAULT_CAT_META = {
     lm_negative_prompt: "orchestral symphony, smooth jazz, four-on-the-floor EDM, cheesy pop chorus, country twang",
     bpm: 0,
     instrumental: false,
-    icon: "🎤",
+    icon: "🎙",
     color: "#c77dff",
     description: "Trap, drill, phonk, boom bap",
     order: 1,
@@ -386,7 +386,7 @@ const DEFAULT_CAT_META = {
     lm_negative_prompt: "trap 808 dominance, autotune pop, EDM drops, smooth jazz ballad, lo-fi chill, orchestral waltz outside symphonic metal",
     bpm: 0,
     instrumental: false,
-    icon: "🎸",
+    icon: "♪",
     color: "#e63946",
     description: "Rock, metalcore, nu-metal",
     order: 3,
@@ -431,7 +431,7 @@ const DEFAULT_CAT_META = {
     lm_negative_prompt: "orchestral symphony, smooth jazz, metal guitars, lo-fi chill",
     bpm: 0,
     instrumental: false,
-    icon: "🎹",
+    icon: "♫",
     color: "#e63946",
     description: "Arabic pop, mahraganat, fusion",
     order: 8,
@@ -449,13 +449,13 @@ const DEFAULT_CAT_META = {
     lm_negative_prompt: "slow ballad, orchestral strings, smooth R&B, reggae skank, acoustic folk",
     bpm: 0,
     instrumental: false,
-    icon: "🥁",
+    icon: "♩",
     color: "#4ecdc4",
     description: "170+ BPM, liquid, neurofunk",
     order: 10,
   },
   "default": {
-    icon: "🎵",
+    icon: "🎶",
     color: "#8888aa",
     description: "Alege un gen",
     order: 99,
@@ -550,7 +550,7 @@ function PresetManager({
     setUserPresets(updated);
     savePresetsToStorage(updated);
     setConfirmDelete(null);
-    showNotif("🗑 Preset deleted", "#e63946");
+    showNotif("✕ Preset deleted", "#e63946");
   };
 
   const handleLoad = (preset) => {
@@ -605,7 +605,7 @@ function PresetManager({
     }),
   };
 
-  const ICONS = ["★", "♪", "♫", "♬", "♩", "🎶", "🎙", "🎸", "🎹", "🎺", "🥁", "🎧", "⚡", "◈", "▣", "◆", "◇"];
+  const ICONS = ["★", "♪", "♫", "♬", "♩", "🎶", "🎙", "♪", "♫", "🎺", "♩", "🎧", "⚡", "◈", "▣", "◆", "◇"];
   const COLORS = ["#ffd166", "#c77dff", "#06d6a0", "#00e5ff", "#e63946", "#ff9f1c", "#9b2de0", "#4cc9f0"];
 
   return (
@@ -614,7 +614,7 @@ function PresetManager({
         {/* Header */}
         <div style={S.header}>
           <div>
-            <div style={{ color: "#e0e0ff", fontSize: 16, fontWeight: 900 }}>💾 Preset Settings</div>
+            <div style={{ color: "#e0e0ff", fontSize: 16, fontWeight: 900 }}>▣ Preset Settings</div>
             <div style={{ color: "#444466", fontSize: 11, marginTop: 2 }}>Save and load ACE-Step configurations</div>
           </div>
           <button onClick={onClose} style={{ background: "#e6394611", color: "#e63946", border: "1px solid #e6394633", borderRadius: 8, padding: "6px 12px", fontSize: 13, cursor: "pointer", fontWeight: 700 }}>✕</button>
@@ -633,7 +633,7 @@ function PresetManager({
             📂 Load Preset ({allPresets.length})
           </button>
           <button style={S.tab(activeTab === "save", "#06d6a0")} onClick={() => setActiveTab("save")}>
-            💾 Save Current
+            ▣ Save Current
           </button>
         </div>
 
@@ -653,7 +653,7 @@ function PresetManager({
                   <div style={{ flex: 1 }}>
                     <div style={{ color: preset.color, fontSize: 13, fontWeight: 700 }}>{preset.name}</div>
                     <div style={{ color: "#444466", fontSize: 10, marginTop: 2 }}>
-                      {preset.settings.taskType === "audio2audio" ? "🎤 Audio Cover" : "✍️ Text → Music"} ·
+                      {preset.settings.taskType === "audio2audio" ? "🎙 Audio Cover" : "✍️ Text → Music"} ·
                       {" "}{preset.settings.duration}s · {preset.settings.inferSteps} steps · CFG {preset.settings.guidanceScale}
                     </div>
                     <div style={{ color: "#333355", fontSize: 10, marginTop: 1, fontFamily: "monospace" }}>
@@ -678,7 +678,7 @@ function PresetManager({
                       <div style={{ flex: 1 }}>
                         <div style={{ color: preset.color, fontSize: 13, fontWeight: 700 }}>{preset.name}</div>
                         <div style={{ color: "#444466", fontSize: 10, marginTop: 2 }}>
-                          {preset.settings.taskType === "audio2audio" ? "🎤 Audio Cover" : "✍️ Text → Music"} ·
+                          {preset.settings.taskType === "audio2audio" ? "🎙 Audio Cover" : "✍️ Text → Music"} ·
                           {" "}{preset.settings.duration}s · {preset.settings.inferSteps} steps · CFG {preset.settings.guidanceScale}
                         </div>
                         {preset.createdAt && (
@@ -695,7 +695,7 @@ function PresetManager({
                             <button onClick={() => setConfirmDelete(null)} style={S.btn("#1a1a2e", "#6666aa", "#2a2a4a")}>✕</button>
                           </div>
                         ) : (
-                          <button onClick={() => setConfirmDelete(preset.id)} style={S.btn("#e6394611", "#e63946", "#e6394633")}>🗑</button>
+                          <button onClick={() => setConfirmDelete(preset.id)} style={S.btn("#e6394611", "#e63946", "#e6394633")}>✕</button>
                         )}
                       </div>
                     </div>
@@ -722,10 +722,10 @@ function PresetManager({
 
               {/* Current settings preview */}
               <div style={{ background: "#080812", border: "1px solid #1a1a2e", borderRadius: 8, padding: "10px 12px", marginBottom: 14 }}>
-                <div style={{ color: "#6666aa", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>📋 Current Settings</div>
+                <div style={{ color: "#6666aa", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>◧ Current Settings</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 12px" }}>
                   {[
-                    ["Task", currentSettings.taskType === "audio2audio" ? "🎤 Audio Cover" : "✍️ Text→Music"],
+                    ["Task", currentSettings.taskType === "audio2audio" ? "🎙 Audio Cover" : "✍️ Text→Music"],
                     ["Duration", `${currentSettings.duration}s`],
                     ["CFG Scale", currentSettings.guidanceScale],
                     ["Steps", currentSettings.inferSteps],
@@ -797,7 +797,7 @@ function PresetManager({
                   <div style={{ flex: 1 }}>
                     <div style={{ color: saveColor, fontSize: 13, fontWeight: 700 }}>{saveIcon} {saveName}</div>
                     <div style={{ color: "#444466", fontSize: 10, marginTop: 2 }}>
-                      {currentSettings.taskType === "audio2audio" ? "🎤 Audio Cover" : "✍️ Text → Music"} ·
+                      {currentSettings.taskType === "audio2audio" ? "🎙 Audio Cover" : "✍️ Text → Music"} ·
                       {" "}{currentSettings.duration}s · {currentSettings.inferSteps} steps
                     </div>
                   </div>
@@ -816,7 +816,7 @@ function PresetManager({
                   cursor: saveName.trim() ? "pointer" : "not-allowed",
                   letterSpacing: 1,
                 }}>
-                💾 Save Preset
+                ▣ Save Preset
               </button>
             </div>
           )}
@@ -991,7 +991,7 @@ export default function AceStepTab({
     },
     { 
       id: "acestep-v15-sft", 
-      name: "🎵 SFT", 
+      name: "🎶 SFT", 
       desc: "50 steps │ ~3 min │ Quality", 
       color: "#c77dff", 
       steps: 50, 
@@ -1006,7 +1006,7 @@ export default function AceStepTab({
     },
     { 
       id: "acestep-v15-base-sft", 
-      name: "🎯 Base-SFT", 
+      name: "◉ Base-SFT", 
       desc: "50 steps │ ~3 min │ Enhanced", 
       color: "#00e5ff", 
       steps: 50,  // Same as base
@@ -1021,7 +1021,7 @@ export default function AceStepTab({
     },
     { 
       id: "acestep-v15-base", 
-      name: "🎯 Base", 
+      name: "◉ Base", 
       desc: "50 steps │ ~4 min │ All Features", 
       color: "#118ab2", 
       steps: 50, 
@@ -1109,7 +1109,7 @@ export default function AceStepTab({
 
   // ── Vocal Language Options ────────────────────────────────────────────────
   const VOCAL_LANGUAGES = [
-    { code: "unknown", name: "🎵 Instrumental / Auto", native: "Auto-detect" },
+    { code: "unknown", name: "🎶 Instrumental / Auto", native: "Auto-detect" },
     { code: "ro", name: "Romanian", native: "Română" },
     { code: "en", name: "English", native: "English" },
     { code: "es", name: "Spanish", native: "Español" },
@@ -1569,20 +1569,20 @@ export default function AceStepTab({
     saveLyricsToStorage(updated);
     setLyricsSaveName("");
     setShowLyricsSaveInput(false);
-    addLog(`📚 Lyrics saved: ${lyricsSaveName}`);
+    addLog(`◫ Lyrics saved: ${lyricsSaveName}`);
   };
 
   const loadLyricsFromLibrary = (entry) => {
     setLyrics(entry.lyrics);
     setShowLyricsLibrary(false);
-    addLog(`📚 Lyrics loaded: ${entry.name}`);
+    addLog(`◫ Lyrics loaded: ${entry.name}`);
   };
 
   const deleteLyricsFromLibrary = (id) => {
     const updated = lyricsLibrary.filter(l => l.id !== id);
     setLyricsLibrary(updated);
     saveLyricsToStorage(updated);
-    addLog(`📚 Lyrics deleted`);
+    addLog(`◫ Lyrics deleted`);
   };
 
   const downloadLyrics = (entry) => {
@@ -1668,12 +1668,12 @@ export default function AceStepTab({
     console.log(`[ACE-Step] =========================`);
 
     // Also show in app Logs Panel
-    addLog(`🎵 Model: ${modelName} (${effectiveSteps} steps)`);
+    addLog(`🎶 Model: ${modelName} (${effectiveSteps} steps)`);
     addLog(`🎛 CFG: ${guidanceScale} | Duration: ${effectiveDuration}s | Lang: ${vocalLanguage}`);
     if (isCustom) addLog(`🎨 Custom Mode: LLM disabled (using reference audio)`);
     if (isText2Music) addLog(`📝 Text-to-Music: CoT caption disabled (respecting BPM/prompt)`);
-    if (bpm > 0) addLog(`🥁 BPM: ${bpm}`);
-    if (keyScale) addLog(`🎹 Key: ${keyScale}`);
+    if (bpm > 0) addLog(`♩ BPM: ${bpm}`);
+    if (keyScale) addLog(`♫ Key: ${keyScale}`);
 
     addLog(`[OK] ACE-Step: generating ${effectiveDuration}s | "${prompt.slice(0, 50)}..."`);
 
@@ -1770,10 +1770,10 @@ export default function AceStepTab({
 
     // Fake progress animation
     const progressSteps = [
-      { pct: 15, label: "🎵 Loading ACE-Step model...", delay: 2000 },
+      { pct: 15, label: "🎶 Loading ACE-Step model...", delay: 2000 },
       { pct: 30, label: "🎼 Encoding music prompt...", delay: 5000 },
-      { pct: 50, label: "🎹 Generating melody (diffusion)...", delay: 10000 },
-      { pct: 70, label: "🎤 Adding vocals from lyrics...", delay: 15000 },
+      { pct: 50, label: "♫ Generating melody (diffusion)...", delay: 10000 },
+      { pct: 70, label: "🎙 Adding vocals from lyrics...", delay: 15000 },
       { pct: 85, label: "🎛 Finalizing audio...", delay: 20000 },
     ];
     const timers = progressSteps.map(s =>
@@ -1925,7 +1925,7 @@ export default function AceStepTab({
               letterSpacing: 0.5,
             }}
           >
-            💾 PRESETS
+            ▣ PRESETS
           </button>
         </div>
       </div>
@@ -1959,11 +1959,11 @@ export default function AceStepTab({
 
           {/* ── Task Type: text2music vs audio2audio vs custom ── */}
           <div style={{ ...S.card, marginBottom: 8 }}>
-            <span style={{ ...S.label, fontSize: 10, marginBottom: 12 }}>🎯 Task Type</span>
+            <span style={{ ...S.label, fontSize: 10, marginBottom: 12 }}>◉ Task Type</span>
             <div style={{ display: "flex", gap: 8, marginBottom: (taskType === "audio2audio" || taskType === "custom") ? 12 : 0 }}>
               {[
                 { id: "text2music", icon: "✍️", label: "Text → Music" },
-                { id: "audio2audio", icon: "🎵", label: "Audio Cover" },
+                { id: "audio2audio", icon: "🎶", label: "Audio Cover" },
                 { id: "custom", icon: "🎨", label: "Custom" },
               ].map(t => (
                 <button key={t.id} onClick={() => {
@@ -2013,12 +2013,12 @@ export default function AceStepTab({
                       }} />
                     {sourceAudio ? (
                       <div>
-                        <div style={{ color: "#c77dff", fontSize: 13, fontWeight: 700 }}>🎵 {sourceAudio.name}</div>
+                        <div style={{ color: "#c77dff", fontSize: 13, fontWeight: 700 }}>🎶 {sourceAudio.name}</div>
                         <div style={{ color: "#444466", fontSize: 11 }}>{(sourceAudio.size / 1024 / 1024).toFixed(1)} MB</div>
                       </div>
                     ) : (
                       <div>
-                        <div style={{ fontSize: 24, marginBottom: 4 }}>🎵</div>
+                        <div style={{ fontSize: 24, marginBottom: 4 }}>🎶</div>
                         <div style={{ color: "#6666aa", fontSize: 12 }}>Drop source audio here or click to browse</div>
                         <div style={{ color: "#333355", fontSize: 11, marginTop: 4 }}>WAV, MP3, FLAC supported</div>
                       </div>
@@ -2036,7 +2036,7 @@ export default function AceStepTab({
                         <span style={{ background: "#c77dff22", color: "#c77dff", border: "1px solid #c77dff44", borderRadius: 6, padding: "3px 10px", fontSize: 12, fontFamily: "monospace" }}>♩ {sourceBpm} BPM</span>
                       )}
                       {sourceKey && (
-                        <span style={{ background: "#c77dff22", color: "#c77dff", border: "1px solid #c77dff44", borderRadius: 6, padding: "3px 10px", fontSize: 12, fontFamily: "monospace" }}>🎵 {sourceKey}</span>
+                        <span style={{ background: "#c77dff22", color: "#c77dff", border: "1px solid #c77dff44", borderRadius: 6, padding: "3px 10px", fontSize: 12, fontFamily: "monospace" }}>🎶 {sourceKey}</span>
                       )}
                       {sourceBpm && (
                         <button
@@ -2126,7 +2126,7 @@ export default function AceStepTab({
                         <span style={{ background: "#c77dff22", color: "#c77dff", border: "1px solid #c77dff44", borderRadius: 6, padding: "3px 10px", fontSize: 12, fontFamily: "monospace" }}>♩ {customBpm} BPM</span>
                       )}
                       {customKey && (
-                        <span style={{ background: "#c77dff22", color: "#c77dff", border: "1px solid #c77dff44", borderRadius: 6, padding: "3px 10px", fontSize: 12, fontFamily: "monospace" }}>🎵 {customKey}</span>
+                        <span style={{ background: "#c77dff22", color: "#c77dff", border: "1px solid #c77dff44", borderRadius: 6, padding: "3px 10px", fontSize: 12, fontFamily: "monospace" }}>🎶 {customKey}</span>
                       )}
                     </div>
                   </div>
@@ -2190,10 +2190,10 @@ export default function AceStepTab({
             )}
           </div>
 
-          {/* 🎯 Prompt Helper */}
+          {/* ◉ Prompt Helper */}
           <div style={{ marginBottom: 14, padding: "10px 0", borderTop: "1px solid #2a2a4a" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <span style={{ color: "#06d6a0", fontSize: 11, fontWeight: 700 }}>🎯 Prompt Helper</span>
+              <span style={{ color: "#06d6a0", fontSize: 11, fontWeight: 700 }}>◉ Prompt Helper</span>
               <span style={{ color: "#6666aa", fontSize: 10 }}>Click to inject tags</span>
             </div>
 
@@ -2396,8 +2396,8 @@ export default function AceStepTab({
               onBlur={e => e.target.style.borderColor = "#2a2a4a"}
             />
             <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-              <button onClick={() => setLyrics("")} style={{ background: "#e6394611", color: "#e63946", border: "1px solid #e6394633", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>🗑 Clear</button>
-              <button onClick={() => setLyrics("[verse]\n\n[chorus]\n\n[verse]\n\n[chorus]\n\n[bridge]\n\n[chorus]")} style={{ background: "#7209b711", color: "#9b2de0", border: "1px solid #7209b733", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>📋 Template</button>
+              <button onClick={() => setLyrics("")} style={{ background: "#e6394611", color: "#e63946", border: "1px solid #e6394633", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>✕ Clear</button>
+              <button onClick={() => setLyrics("[verse]\n\n[chorus]\n\n[verse]\n\n[chorus]\n\n[bridge]\n\n[chorus]")} style={{ background: "#7209b711", color: "#9b2de0", border: "1px solid #7209b733", borderRadius: 5, padding: "4px 10px", fontSize: 11, cursor: "pointer" }}>◧ Template</button>
             </div>
           </div>
 
@@ -2435,7 +2435,7 @@ export default function AceStepTab({
                     borderRadius: 6, padding: "2px 8px", fontSize: 10, cursor: "pointer", fontWeight: 600,
                   }}
                 >
-                  💾 Save as Subgenre
+                  ▣ Save as Subgenre
                 </button>
                 <button
                   type="button"
@@ -2621,7 +2621,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                       })}
                     </div>
 
-                    {/* 💾 Custom Subgenre Save UI */}
+                    {/* ▣ Custom Subgenre Save UI */}
                     {showCustomSubgenreInput && (
                       <div style={{
                         marginTop: 12,
@@ -2631,7 +2631,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                         borderRadius: 8,
                       }}>
                         <div style={{ color: "#06d6a0", fontSize: 10, fontWeight: 700, marginBottom: 8, letterSpacing: 1.5, textTransform: "uppercase" }}>
-                          💾 Save Current Settings as Subgenre
+                          ▣ Save Current Settings as Subgenre
                         </div>
                         
                         {/* Category selector */}
@@ -2694,7 +2694,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                           padding: "8px",
                           marginBottom: 8,
                         }}>
-                          <div style={{ color: "#6666aa", fontSize: 9, marginBottom: 4 }}>📋 Settings to save:</div>
+                          <div style={{ color: "#6666aa", fontSize: 9, marginBottom: 4 }}>◧ Settings to save:</div>
                           <div style={{ color: "#444466", fontSize: 9, lineHeight: 1.6 }}>
                             <div>• Prompt: <span style={{ color: "#8888aa" }}>{prompt.slice(0, 50)}{prompt.length > 50 ? '...' : ''}</span></div>
                             <div>• BPM: <span style={{ color: "#ffd166" }}>{bpm || 'Auto'}</span></div>
@@ -2814,7 +2814,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
             {/* Guidance Scale */}
             <div style={{ marginBottom: 14 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                <span style={{ color: "#8888aa", fontSize: 12 }}>🎯 Guidance Scale (CFG)</span>
+                <span style={{ color: "#8888aa", fontSize: 12 }}>◉ Guidance Scale (CFG)</span>
                 <span style={{ color: "#00e5ff", fontSize: 13, fontFamily: "monospace", fontWeight: 700 }}>{guidanceScale.toFixed(1)}</span>
               </div>
               {/* Slider + Input pentru Guidance Scale */}
@@ -2874,7 +2874,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                 <span style={{ color: "#06d6a0", fontSize: 13, fontFamily: "monospace", fontWeight: 700 }}>
                   {inferSteps}
                   {inferSteps <= 12 && <span style={{ color: "#ffd166", fontSize: 10, marginLeft: 6 }}>⚡ Turbo</span>}
-                  {inferSteps >= 40 && <span style={{ color: "#9b2de0", fontSize: 10, marginLeft: 6 }}>🎯 Quality</span>}
+                  {inferSteps >= 40 && <span style={{ color: "#9b2de0", fontSize: 10, marginLeft: 6 }}>◉ Quality</span>}
                 </span>
               </div>
               {/* Slider + Input pentru Infer Steps */}
@@ -2921,7 +2921,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   { v: 12, label: "12 🚀", tip: "Fast" },
                   { v: 20, label: "20 ✓", tip: "Balanced" },
                   { v: 32, label: "32 🎨", tip: "High Quality" },
-                  { v: 40, label: "40 🎯", tip: "Quality" },
+                  { v: 40, label: "40 ◉", tip: "Quality" },
                 ].map(s => (
                   <button key={s.v} onClick={() => setInferSteps(s.v)} title={s.tip} style={{
                     flex: 1, padding: "7px 2px", borderRadius: 6, fontSize: 11, fontWeight: 700,
@@ -3012,7 +3012,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ marginBottom: 6 }}>
-                    <span style={{ color: "#8888aa", fontSize: 12 }}>🎵 Key</span>
+                    <span style={{ color: "#8888aa", fontSize: 12 }}>🎶 Key</span>
                   </div>
                   <select value={keyScale} onChange={e => setKeyScale(e.target.value)}
                     style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: keyScale ? "#e0e0ff" : "#444466", borderRadius: 6, padding: "6px 8px", fontSize: 12 }}>
@@ -3040,7 +3040,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   borderRadius: 8, padding: "8px 12px", fontSize: 11, cursor: "pointer", fontWeight: 600,
                   display: "flex", alignItems: "center", gap: 6,
                 }} title="Saved seeds">
-                  <span style={{ opacity: 0.9 }}>📚</span>
+                  <span style={{ opacity: 0.9 }}>◫</span>
                   <span>Library</span>
                   {seedLibrary.length > 0 && (
                     <span style={{ background: "#9b2de033", color: "#c77dff", borderRadius: 10, padding: "1px 6px", fontSize: 10, fontWeight: 700 }}>{seedLibrary.length}</span>
@@ -3054,7 +3054,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   {!seedSaveInput ? (
                     <button onClick={() => { setSeedSaveName(""); setSeedSaveInput(true); }}
                       style={{ width: "100%", background: "#1a1a2e", color: "#8888aa", border: "1px dashed #2a2a4a", borderRadius: 8, padding: "6px 10px", fontSize: 11, cursor: "pointer" }}>
-                      💾 Save seed <strong style={{ color: "#c77dff", fontFamily: "monospace" }}>#{seed}</strong> to library
+                      ▣ Save seed <strong style={{ color: "#c77dff", fontFamily: "monospace" }}>#{seed}</strong> to library
                     </button>
                   ) : (
                     <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
@@ -3089,7 +3089,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   borderTop: "1px solid #1e1e3a",
                 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                    <span style={{ color: "#6666aa", fontSize: 10, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase" }}>📚 Saved seeds</span>
+                    <span style={{ color: "#6666aa", fontSize: 10, fontWeight: 600, letterSpacing: 1.5, textTransform: "uppercase" }}>◫ Saved seeds</span>
                     <button onClick={() => setShowSeedLib(false)} style={{ background: "transparent", color: "#555577", border: "none", fontSize: 11, cursor: "pointer", padding: "2px 4px" }}>✕ Close</button>
                   </div>
                   <div style={{ maxHeight: 200, overflowY: "auto", paddingRight: 4 }}>
@@ -3122,7 +3122,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                             <button onClick={() => { setSeed(entry.seed); setShowSeedLib(false); }}
                               style={{ background: "#9b2de022", color: "#c77dff", border: "1px solid #9b2de044", borderRadius: 6, padding: "5px 10px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>Use</button>
                             <button onClick={() => { const u = seedLibrary.filter(s => s.id !== entry.id); setSeedLibrary(u); saveSeedsToStorage(u); }}
-                              style={{ background: "transparent", color: "#555577", border: "1px solid #2a2a4a", borderRadius: 6, padding: "5px 8px", fontSize: 11, cursor: "pointer" }} title="Delete">🗑</button>
+                              style={{ background: "transparent", color: "#555577", border: "1px solid #2a2a4a", borderRadius: 6, padding: "5px 8px", fontSize: 11, cursor: "pointer" }} title="Delete">✕</button>
                           </div>
                         </div>
                       ))
@@ -3164,7 +3164,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                 }}>{p.label}</button>
               ))}
               {negativePrompt && (
-                <button onClick={() => setNegativePrompt("")} style={{ background: "#e6394611", color: "#e63946", border: "1px solid #e6394633", borderRadius: 5, padding: "3px 8px", fontSize: 10, cursor: "pointer" }}>🗑 Clear</button>
+                <button onClick={() => setNegativePrompt("")} style={{ background: "#e6394611", color: "#e63946", border: "1px solid #e6394633", borderRadius: 5, padding: "3px 8px", fontSize: 10, cursor: "pointer" }}>✕ Clear</button>
               )}
             </div>
           </div>
@@ -3178,12 +3178,12 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
           {result && (
             <div style={{ ...S.card, border: "1px solid #ffd16644", background: "#ffd16611" }}>
               <span style={{ ...S.label, color: "#ffd166" }}>✓ Generated!</span>
-              <div style={{ color: "#ffd166", fontSize: 11, fontFamily: "monospace", marginBottom: 4 }}>🎵 {result.filename}</div>
+              <div style={{ color: "#ffd166", fontSize: 11, fontFamily: "monospace", marginBottom: 4 }}>🎶 {result.filename}</div>
               <div style={{ color: "#444466", fontSize: 10, marginBottom: 6 }}>"{result.prompt}"</div>
               {(resultBpm || resultKey || result.seed !== undefined) && (
                 <div style={{ display: "flex", gap: 6, marginBottom: 8, flexWrap: "wrap" }}>
                   {resultBpm && <span style={{ background: "#ffd16622", color: "#ffd166", border: "1px solid #ffd16644", borderRadius: 6, padding: "3px 10px", fontSize: 12, fontFamily: "monospace" }}>♩ {resultBpm} BPM</span>}
-                  {resultKey && <span style={{ background: "#ffd16622", color: "#ffd166", border: "1px solid #ffd16644", borderRadius: 6, padding: "3px 10px", fontSize: 12, fontFamily: "monospace" }}>🎵 {resultKey}</span>}
+                  {resultKey && <span style={{ background: "#ffd16622", color: "#ffd166", border: "1px solid #ffd16644", borderRadius: 6, padding: "3px 10px", fontSize: 12, fontFamily: "monospace" }}>🎶 {resultKey}</span>}
                   {result.seed !== undefined && result.seed !== null && (
                     <span
                       title="Click to reuse this seed"
@@ -3213,7 +3213,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                 marginBottom: 12,
               }}>
                 <div style={{ color: cyberpunk.colors.neon.purple.primary, fontSize: 10, fontWeight: 800, letterSpacing: 2, marginBottom: 10, textTransform: "uppercase" }}>
-                  🎵 Generated Track
+                  🎶 Generated Track
                 </div>
                 <audio controls src={result.url} preload="metadata" style={{ width: "100%", marginBottom: 12 }} />
                 <div style={{ display: "flex", gap: 8 }}>
@@ -3309,14 +3309,14 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                       e.currentTarget.style.boxShadow = `0 0 10px ${cyberpunk.colors.neon.cyan.glow}`;
                     }}
                   >
-                    🎤 Use as Cover
+                    🎙 Use as Cover
                   </button>
                 </div>
               </div>
             </div>
           )}
 
-          {/* 🎵 Generate Button */}
+          {/* 🎶 Generate Button */}
           <div style={{ ...S.card, marginBottom: 14 }}>
             <button
               onClick={handleGenerate}
@@ -3339,7 +3339,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                 boxShadow: aceOnline && prompt.trim() && !processing ? `0 0 8px #88113333` : "none",
                 transition: "all 0.3s ease",
               }}>
-              {processing ? `⚙ ${progressLabel || "GENERATING..."}` : "🎵 GENERATE MUSIC"}
+              {processing ? `⚙ ${progressLabel || "GENERATING..."}` : "🎶 GENERATE MUSIC"}
             </button>
 
             {processing && (
@@ -3436,7 +3436,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
               color: "#444466",
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                <span style={{ color: "#ffd166" }}>📋</span>
+                <span style={{ color: "#ffd166" }}>◧</span>
                 <span>Model: <strong style={{ color: modelInfo.color }}>{modelInfo.name}</strong></span>
                 <span style={{ color: "#6666aa" }}>│</span>
                 <span>Steps: <strong style={{ color: "#06d6a0" }}>{modelInfo.steps}</strong></span>
@@ -3567,7 +3567,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   🧠 AI Chain-of-Thought
                 </div>
                 {[
-                  { key: "cotMetas", state: useCotMetas, setter: setUseCotMetas, label: "CoT Metas", icon: "🥁", desc: "AI detects BPM, Key, Time Signature" },
+                  { key: "cotMetas", state: useCotMetas, setter: setUseCotMetas, label: "CoT Metas", icon: "♩", desc: "AI detects BPM, Key, Time Signature" },
                   { key: "cotCaption", state: useCotCaption, setter: setUseCotCaption, label: "CoT Caption", icon: "🎨", desc: "AI rewrites style prompt" },
                   { key: "cotLanguage", state: useCotLanguage, setter: setUseCotLanguage, label: "CoT Language", icon: "🌐", desc: "AI detects language from lyrics" },
                 ].map(({ key, state, setter, label, icon, desc }) => (
@@ -3725,7 +3725,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                 />
               </div>
               <div>
-                <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>🎵 Key</label>
+                <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>🎶 Key</label>
                 <input
                   type="text"
                   value={editForm.key_scale}
@@ -3747,7 +3747,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
             {/* CFG + Steps */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
               <div>
-                <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>🎯 CFG Scale</label>
+                <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>◉ CFG Scale</label>
                 <input
                   type="number"
                   step="0.5"
@@ -3861,7 +3861,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   cursor: "pointer",
                 }}
               >
-                🗑️ Delete
+                ✕️ Delete
               </button>
               <button
                 onClick={() => {
@@ -3886,7 +3886,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
         </div>
       )}
 
-      {/* 🗑️ DELETE CONFIRM MODAL */}
+      {/* ✕️ DELETE CONFIRM MODAL */}
       {showDeleteConfirm && deletingSubgenre && (
         <div style={{
           position: "fixed",
@@ -3908,7 +3908,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
             width: "min(400px, 95vw)",
           }}>
             <div style={{ color: "#e63946", fontSize: 14, fontWeight: 700, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-              🗑️ Delete Subgenre?
+              ✕️ Delete Subgenre?
             </div>
             
             <div style={{ color: "#8888aa", fontSize: 11, marginBottom: 16 }}>
@@ -3933,7 +3933,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   cursor: "pointer",
                 }}
               >
-                🗑️ Delete
+                ✕️ Delete
               </button>
               <button
                 onClick={() => {
