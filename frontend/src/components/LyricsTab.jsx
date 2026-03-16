@@ -226,12 +226,17 @@ export default function LyricsTab({ addLog }) {
 
     console.log("[Library] Setting library with", updated.length, "entries");
     console.log("[Library] First entry:", updated[0]?.name);
+    console.log("[Library] Full updated array:", JSON.stringify(updated).substring(0, 200));
     setLyricsLibrary(updated);
     
     // EXPLICIT SAVE to localStorage (not via useEffect)
     try {
       localStorage.setItem("vocalforge_lyrics_library", JSON.stringify(updated));
       console.log("[Library] ✅ Saved to localStorage!");
+      
+      // VERIFY immediately after save
+      const verify = localStorage.getItem("vocalforge_lyrics_library");
+      console.log("[Library] VERIFY after save:", verify ? JSON.parse(verify).length : "NULL");
     } catch (e) {
       console.error("[Library] Failed to save:", e);
     }
@@ -267,8 +272,12 @@ export default function LyricsTab({ addLog }) {
     setLyricsLibrary(updated);
     addLog?.(`[Library] Deleted entry`);
     
+    console.log("[Library] 🗑️ deleteFromLibrary - saving", updated.length, "entries");
+    console.trace("[Library] Delete called from:");
+    
     // EXPLICIT SAVE
     localStorage.setItem("vocalforge_lyrics_library", JSON.stringify(updated));
+    console.log("[Library] ✅ Saved after delete!");
   };
 
   // Load from library
@@ -297,8 +306,12 @@ export default function LyricsTab({ addLog }) {
     );
     setLyricsLibrary(updated);
     
+    console.log("[Library] ⭐ toggleFavorite - saving", updated.length, "entries");
+    console.trace("[Library] Toggle called from:");
+    
     // EXPLICIT SAVE
     localStorage.setItem("vocalforge_lyrics_library", JSON.stringify(updated));
+    console.log("[Library] ✅ Saved after toggle!");
   };
 
   // Copy to clipboard
