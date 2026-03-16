@@ -193,7 +193,17 @@ export default function LyricsTab({ addLog }) {
 
   // Save to library
   const saveToLibrary = () => {
-    if (!lyrics.trim() || !saveName.trim()) return;
+    console.log("[Library] saveToLibrary - START");
+    console.log("[Library] lyrics.length:", lyrics?.length);
+    console.log("[Library] saveName:", saveName);
+    console.log("[Library] lyrics.trim():", lyrics?.trim()?.length);
+    console.log("[Library] saveName.trim():", saveName?.trim()?.length);
+    
+    if (!lyrics?.trim() || !saveName.trim()) {
+      console.error("[Library] FAILED - empty lyrics or name!");
+      alert("❌ Cannot save: lyrics or name is empty!");
+      return;
+    }
 
     console.log("[Library] saveToLibrary called");
     console.log("[Library] Current library size:", lyricsLibrary.length);
@@ -224,13 +234,20 @@ export default function LyricsTab({ addLog }) {
     }
 
     console.log("[Library] Setting library with", updated.length, "entries");
+    console.log("[Library] First entry:", updated[0]?.name);
     setLyricsLibrary(updated);
+    
+    // Verify it was set
+    console.log("[Library] After setState, library size will be:", updated.length);
+    
     setSaveName("");
     setSaveGenre("Other");
     setIsFavorite(false);
     setShowSaveModal(false);
     setEditingId(null);
     setEditLyrics("");
+    
+    console.log("[Library] saveToLibrary - END");
   };
 
   // Edit lyrics
