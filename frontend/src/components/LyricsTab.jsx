@@ -203,16 +203,16 @@ export default function LyricsTab() {
           filter: `drop-shadow(0 0 20px ${cyberpunk.neon.pink.glow})`,
           animation: "pulse 2s ease-in-out infinite",
         }}>🎤</div>
-        <div style={{
-          fontSize: 28,
-          fontWeight: 900,
-          color: cyberpunk.text.primary,
+        <div style={{ 
+          fontSize: 28, 
+          fontWeight: 900, 
+          color: cyberpunk.text.primary, 
           marginBottom: 6,
           letterSpacing: 3,
           textTransform: "uppercase",
           textShadow: `0 0 20px ${cyberpunk.neon.pink.glow}`,
         }}>
-          Lyrics Search
+          Lyrics Finder
         </div>
         <div style={{ color: cyberpunk.text.secondary, fontSize: 13, letterSpacing: 1 }}>
           Powered by lyrics.ovh — Free lyrics API
@@ -221,7 +221,7 @@ export default function LyricsTab() {
 
       {/* Step 1: Search */}
       <div style={S.card}>
-        <label style={S.label}>🔍 Step 1: Search for a Song</label>
+        <label style={S.label}>🔍 Step 1: Find a Song</label>
         <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
           <input
             type="text"
@@ -242,7 +242,7 @@ export default function LyricsTab() {
               minWidth: 140,
             }}
           >
-            {searching ? "🔍 Searching..." : "🔍 Search"}
+            {searching ? "🔍 Finding..." : "🔍 Find Lyrics"}
           </button>
           {suggestions.length > 0 && (
             <button
@@ -278,7 +278,7 @@ export default function LyricsTab() {
       {suggestions.length > 0 && (
         <div style={S.card}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-            <label style={S.label}>🎵 Step 2: Select a Song</label>
+            <label style={S.label}>🎵 Step 2: Choose a Song</label>
             <span style={{ color: cyberpunk.text.muted, fontSize: 11 }}>
               {suggestions.length} results for "<strong style={{ color: cyberpunk.neon.purple.primary }}>{searchQuery}</strong>"
             </span>
