@@ -170,22 +170,23 @@ async def suggest_songs(query: str = Form(...)):
         genius.timeout = 10
         genius.delay = 0.5
         
-        # Search for songs
-        results = genius.search(query, search_type="song", max_results=10)
+        # Search for songs using search_song
+        results = genius.search_songs(query, per_page=10)
         
-        if not results:
+        if not results or 'hits' not in results:
             return {"songs": [], "count": 0}
         
         # Format results for frontend
         songs = []
-        for result in results:
+        for hit in results.get('hits', [])[:10]:
+            song = hit.get('result', {})
             songs.append({
-                "title": result.title if hasattr(result, 'title') else str(result),
+                "title": song.get('title', 'Unknown'),
                 "artist": {
-                    "name": result.artist if hasattr(result, 'artist') else "Unknown"
+                    "name": song.get('primary_artist', {}).get('name', 'Unknown')
                 },
-                "url": result.url if hasattr(result, 'url') else "",
-                "id": result.id if hasattr(result, 'id') else 0
+                "url": song.get('url', ''),
+                "id": song.get('id', 0)
             })
         
         print(f"[Genius] Found {len(songs)} songs")
@@ -202,6 +203,8 @@ async def suggest_songs(query: str = Form(...)):
         raise HTTPException(status_code=500, detail="LyricsGenius not installed. Run: pip install lyricsgenius")
     except Exception as e:
         print(f"[Genius] Suggest error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return {"songs": [], "count": 0, "error": str(e)}
 
 
@@ -300,6 +303,8 @@ async def search_lyrics(
         )
     except Exception as e:
         print(f"[Genius] Search error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Genius.com error: {str(e)}")
 
 
