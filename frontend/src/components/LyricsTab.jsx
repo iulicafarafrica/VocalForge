@@ -195,25 +195,8 @@ export default function LyricsTab() {
   return (
     <div style={S.container}>
 
-      {/* Header */}
-      <div style={S.header}>
-        <div style={{
-          fontSize: 48,
-          marginBottom: 8,
-          filter: `drop-shadow(0 0 20px ${cyberpunk.neon.pink.glow})`,
-          animation: "pulse 2s ease-in-out infinite",
-        }}>🎤</div>
-        <div style={{ 
-          fontSize: 28, 
-          fontWeight: 900, 
-          color: cyberpunk.text.primary, 
-          marginBottom: 6,
-          letterSpacing: 3,
-          textTransform: "uppercase",
-          textShadow: `0 0 20px ${cyberpunk.neon.pink.glow}`,
-        }}>
-          Lyrics Finder
-        </div>
+      {/* Header - Simplified */}
+      <div style={{ textAlign: "center", marginBottom: 24 }}>
         <div style={{ color: cyberpunk.text.secondary, fontSize: 13, letterSpacing: 1 }}>
           Powered by lyrics.ovh — Free lyrics API
         </div>
@@ -221,7 +204,7 @@ export default function LyricsTab() {
 
       {/* Step 1: Search */}
       <div style={S.card}>
-        <label style={S.label}>🔍 Step 1: Find a Song</label>
+        <label style={S.label}>🔍 Search</label>
         <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
           <input
             type="text"
@@ -239,18 +222,18 @@ export default function LyricsTab() {
               opacity: searching || !searchQuery.trim() ? 0.5 : 1,
               cursor: searching || !searchQuery.trim() ? "not-allowed" : "pointer",
               whiteSpace: "nowrap",
-              minWidth: 140,
+              minWidth: 120,
             }}
           >
-            {searching ? "🔍 Finding..." : "🔍 Find Lyrics"}
+            {searching ? "⏳ Finding..." : "🔍 Find"}
           </button>
-          {suggestions.length > 0 && (
+          {(suggestions.length > 0 || lyrics) && (
             <button
               onClick={clearAll}
               style={{
                 ...S.button("#e63946"),
                 whiteSpace: "nowrap",
-                minWidth: 100,
+                minWidth: 80,
               }}
             >
               🗑️ Clear
