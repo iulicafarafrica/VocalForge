@@ -138,34 +138,7 @@ export default function RepaintLegoComplete() {
   return (
     <div style={{ padding: 24, maxWidth: 1000, margin: "0 auto" }}>
       
-      {/* Header */}
-      <div style={{ textAlign: "center", marginBottom: 32 }}>
-        <div style={{ 
-          fontSize: 48, 
-          marginBottom: 8, 
-          filter: `drop-shadow(0 0 20px ${cyberpunk.neon.purple.glow})`,
-          animation: "pulse 2s ease-in-out infinite",
-        }}>🖌️</div>
-        <div style={{ 
-          fontSize: 28, 
-          fontWeight: 900, 
-          color: cyberpunk.text.primary, 
-          marginBottom: 6,
-          letterSpacing: 3,
-          textTransform: "uppercase",
-          textShadow: `0 0 20px ${cyberpunk.neon.purple.glow}`,
-          background: 'linear-gradient(135deg, #9b5de5, #00e5ff)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-        }}>
-          Repaint
-        </div>
-        <div style={{ color: cyberpunk.text.secondary, fontSize: 13, letterSpacing: 1 }}>
-          REGENERATE SPECIFIC SECTIONS WITHOUT RECREATING EVERYTHING
-        </div>
-      </div>
-
-      {/* Info Card */}
+      {/* Repaint / Lego / Complete */}
       <div style={{
         ...S.card,
         borderLeft: `4px solid ${cyberpunk.neon.purple.primary}`,
