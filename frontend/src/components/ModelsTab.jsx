@@ -26,9 +26,11 @@ export default function ModelsTab({ addLog }) {
     fetch(`${API}/vram_usage`)
       .then(r => r.json())
       .then(data => {
+        console.log("[VRAM] Updated:", data);
         setVram(data);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("[VRAM] Error:", err);
         setVram({ available: false, used_gb: 0, total_gb: 8, pct: 0 });
       });
   };
