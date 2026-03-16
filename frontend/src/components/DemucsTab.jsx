@@ -206,26 +206,8 @@ export default function DemucsTab({ addLog, tracks, setTracks }) {
           marginBottom: 8, 
           filter: `drop-shadow(0 0 20px ${cyberpunk.neon.cyan.glow})`,
           animation: "pulse 2s ease-in-out infinite",
-        }}>🎚️</div>
-        <div style={{ 
-          fontSize: 28, 
-          fontWeight: 900, 
-          color: cyberpunk.text.primary, 
-          marginBottom: 6,
-          letterSpacing: 3,
-          textTransform: "uppercase",
-          textShadow: `0 0 20px ${cyberpunk.neon.cyan.glow}`,
-        }}>
-          Stem Separation
         </div>
-        <div style={{ 
-          color: cyberpunk.text.secondary, 
-          fontSize: 13,
-          letterSpacing: 1,
-        }}>
-          AI-POWERED AUDIO SEPARATION — BS-ROFORMER · DEMUCS · UVR
-        </div>
-        
+
         {/* SDR Ranking Bar */}
         <div style={{ 
           display: "flex", 
