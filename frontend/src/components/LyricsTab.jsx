@@ -59,17 +59,8 @@ export default function LyricsTab({ addLog }) {
     }
   }, []);
 
-  // Save library to localStorage
-  useEffect(() => {
-    try {
-      console.log("[Library] Saving", lyricsLibrary.length, "lyrics");
-      console.log("[Library] Content:", JSON.stringify(lyricsLibrary).substring(0, 100) + "...");
-      localStorage.setItem("vocalforge_lyrics_library", JSON.stringify(lyricsLibrary));
-      console.log("[Library] Saved successfully!");
-    } catch (e) {
-      console.error("[Library] Failed to save:", e);
-    }
-  }, [lyricsLibrary]);
+  // REMOVED: Auto-save useEffect (was causing data loss on HMR)
+  // Now we save explicitly in saveToLibrary, deleteFromLibrary, toggleFavorite
 
   // Search for songs
   const handleSearch = async () => {
@@ -237,6 +228,14 @@ export default function LyricsTab({ addLog }) {
     console.log("[Library] First entry:", updated[0]?.name);
     setLyricsLibrary(updated);
     
+    // EXPLICIT SAVE to localStorage (not via useEffect)
+    try {
+      localStorage.setItem("vocalforge_lyrics_library", JSON.stringify(updated));
+      console.log("[Library] ✅ Saved to localStorage!");
+    } catch (e) {
+      console.error("[Library] Failed to save:", e);
+    }
+    
     // Verify it was set
     console.log("[Library] After setState, library size will be:", updated.length);
     
@@ -263,10 +262,13 @@ export default function LyricsTab({ addLog }) {
   // Delete from library
   const deleteFromLibrary = (id) => {
     if (!confirm("Are you sure you want to delete this lyrics?")) return;
-    
+
     const updated = lyricsLibrary.filter(l => l.id !== id);
     setLyricsLibrary(updated);
     addLog?.(`[Library] Deleted entry`);
+    
+    // EXPLICIT SAVE
+    localStorage.setItem("vocalforge_lyrics_library", JSON.stringify(updated));
   };
 
   // Load from library
@@ -277,23 +279,26 @@ export default function LyricsTab({ addLog }) {
     setSelectedTitle(entry.title);
     setShowLibrary(false);
     addLog?.(`[Library] Loaded: ${entry.name}`);
-    
+
     // Auto-send to ACE-Step
     localStorage.setItem("acestep_lyrics_from_manager", entry.lyrics);
     localStorage.setItem("acestep_lyrics_artist", entry.artist);
     localStorage.setItem("acestep_lyrics_title", entry.title);
     addLog?.(`[Library] Sent to ACE-Step: ${entry.name}`);
-    
+
     // DON'T clear the library! Just close modal
     alert(`✅ Lyrics loaded!\n\n"${entry.name}" has been sent to ACE-Step.\n\nGo to ACE-Step tab to generate music!`);
   };
 
   // Toggle favorite
   const toggleFavorite = (id) => {
-    const updated = lyricsLibrary.map(l => 
+    const updated = lyricsLibrary.map(l =>
       l.id === id ? { ...l, favorite: !l.favorite } : l
     );
     setLyricsLibrary(updated);
+    
+    // EXPLICIT SAVE
+    localStorage.setItem("vocalforge_lyrics_library", JSON.stringify(updated));
   };
 
   // Copy to clipboard
