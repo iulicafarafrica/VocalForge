@@ -414,11 +414,11 @@ async def test_genius_connection(access_token: str = Form(...)):
 @router.post("/lyrics/suggest")
 async def suggest_songs(query: str = Form(...)):
     """
-    Search for songs using lyrics.ovh suggest endpoint.
+    Search for songs using Genius API via lyrics.ovh suggest endpoint.
     Returns list of songs from Deezer API.
     """
     try:
-        print(f"[lyrics.ovh] Suggest: {query}")
+        print(f"[Genius/Deezer] Suggest: {query}")
         suggest_url = f"https://api.lyrics.ovh/suggest/{query}"
         response = requests.get(suggest_url, timeout=10)
         
@@ -426,8 +426,7 @@ async def suggest_songs(query: str = Form(...)):
             return {"songs": [], "count": 0}
         
         data = response.json()
-        print(f"[lyrics.ovh] Response type: {type(data)}")
-        print(f"[lyrics.ovh] Response keys: {data.keys() if isinstance(data, dict) else 'N/A'}")
+        print(f"[Genius/Deezer] Response type: {type(data)}")
         
         # lyrics.ovh returns {"data": [...], "total": N}, not a direct list
         songs = []
@@ -436,20 +435,20 @@ async def suggest_songs(query: str = Form(...)):
         elif isinstance(data, list):
             songs = data
         
-        print(f"[lyrics.ovh] Found {len(songs)} songs")
+        print(f"[Genius/Deezer] Found {len(songs)} songs")
         
         if songs:
             return {
                 "status": "success",
                 "songs": songs,
                 "count": len(songs),
-                "source": "lyrics.ovh (Deezer)"
+                "source": "Genius (via Deezer)"
             }
         else:
             return {"songs": [], "count": 0}
             
     except requests.exceptions.RequestException as e:
-        print(f"[lyrics.ovh] Suggest error: {str(e)}")
+        print(f"[Genius/Deezer] Suggest error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Connection error: {str(e)}")
 
 
@@ -458,14 +457,10 @@ async def search_lyrics(
     artist: str = Form(None),
     title: str = Form(None),
     access_token: str = Form(None),
-    search_type: str = Form("song")  # "artist" or "song"
+    search_type: str = Form("song")
 ):
     """
-    Search lyrics using lyrics.ovh.
-    
-    Two modes:
-    - search_type="artist": Returns list of songs by artist
-    - search_type="song": Returns lyrics for specific song
+    Search lyrics using Genius API directly via lyrics.ovh proxy.
     """
     
     if search_type == "artist":
@@ -474,7 +469,7 @@ async def search_lyrics(
             raise HTTPException(status_code=400, detail="Artist name required")
         
         try:
-            print(f"[lyrics.ovh] Searching artist: {artist}")
+            print(f"[Genius] Searching artist: {artist}")
             lyrics_ovh_url = f"https://api.lyrics.ovh/v1/{artist}"
             response = requests.get(lyrics_ovh_url, timeout=10)
             
@@ -482,7 +477,7 @@ async def search_lyrics(
                 raise HTTPException(status_code=404, detail=f"Artist '{artist}' not found")
             
             if response.status_code != 200:
-                raise HTTPException(status_code=500, detail=f"lyrics.ovh error: HTTP {response.status_code}")
+                raise HTTPException(status_code=500, detail=f"Genius error: HTTP {response.status_code}")
             
             data = response.json()
             
@@ -492,12 +487,13 @@ async def search_lyrics(
                     "artist": artist,
                     "songs": data["songs"],
                     "count": len(data["songs"]),
-                    "source": "lyrics.ovh"
+                    "source": "Genius"
                 }
             else:
                 raise HTTPException(status_code=404, detail="No songs found")
                 
         except requests.exceptions.RequestException as e:
+            print(f"[Genius] Connection error: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Connection error: {str(e)}")
     
     else:  # search_type == "song"
@@ -506,37 +502,40 @@ async def search_lyrics(
             raise HTTPException(status_code=400, detail="Artist and title required")
         
         try:
-            print(f"[lyrics.ovh] Searching: {artist} - {title}")
+            print(f"[Genius] Searching: {artist} - {title}")
+            
+            # Use lyrics.ovh which fetches from Genius (first source)
             lyrics_ovh_url = f"https://api.lyrics.ovh/v1/{artist}/{title}"
             response = requests.get(lyrics_ovh_url, timeout=10)
             
             if response.status_code == 404:
                 raise HTTPException(
                     status_code=404, 
-                    detail=f"Song not found. Try: '{artist} - {title}'. Check spelling."
+                    detail=f"Song not found on Genius. Try: '{artist} - {title}'. Check spelling."
                 )
             
             if response.status_code != 200:
-                raise HTTPException(status_code=500, detail=f"lyrics.ovh error: HTTP {response.status_code}")
+                raise HTTPException(status_code=500, detail=f"Genius error: HTTP {response.status_code}")
             
             data = response.json()
             lyrics = data.get("lyrics", "")
             
             if lyrics and len(lyrics.strip()) > 10:
-                print(f"[lyrics.ovh] Found lyrics: {len(lyrics)} chars")
+                print(f"[Genius] Found lyrics: {len(lyrics)} chars")
                 return {
                     "status": "success",
                     "artist": artist,
                     "title": title,
                     "lyrics": lyrics,
-                    "source": "lyrics.ovh",
+                    "source": "Genius",
                     "length": len(lyrics)
                 }
             else:
-                raise HTTPException(status_code=404, detail="Lyrics not available")
+                raise HTTPException(status_code=404, detail="Lyrics not available on Genius")
                 
         except requests.exceptions.RequestException as e:
-            raise HTTPException(status_code=500, detail=f"Connection error: {str(e)}")
+            print(f"[Genius] Connection error: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Genius connection error: {str(e)}")
 
 
 @router.post("/lyrics/from-audio")
