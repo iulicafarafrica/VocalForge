@@ -2410,19 +2410,21 @@ async def ace_generate(
     import httpx
     import urllib.parse
 
-    # Check ACE-Step is online
-    try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            health = await client.get(f"{ACE_STEP_API}/health")
-            if health.status_code != 200:
+    # Check ACE-Step is online (with retry)
+    for retry in range(3):
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                health = await client.get(f"{ACE_STEP_API}/health")
+                if health.status_code == 200:
+                    break
+        except Exception as e:
+            if retry < 2:
+                await asyncio.sleep(1)  # Wait 1s before retry
+            else:
                 return JSONResponse(status_code=503, content={
-                    "error": "ACE-Step API server is not running. Start it with start_acestep.bat"
+                    "error": "ACE-Step API server is offline. Run start_acestep.bat first.",
+                    "hint": "d:\\VocalForge\\start_acestep.bat"
                 })
-    except Exception:
-        return JSONResponse(status_code=503, content={
-            "error": "ACE-Step API server is offline. Run start_acestep.bat first.",
-            "hint": "d:\\VocalForge\\start_acestep.bat"
-        })
 
     job_id = uuid.uuid4().hex
     t_start = time.time()
@@ -2431,7 +2433,7 @@ async def ace_generate(
     print(f"[ACE {job_id[:8]}] Generating: prompt='{prompt[:60]}' | duration={duration}s | steps={infer_steps} | model={dit_model}")
 
     try:
-        async with httpx.AsyncClient(timeout=300.0) as client:
+        async with httpx.AsyncClient(timeout=600.0, limits=httpx.Limits(max_keepalive_connections=5, max_connections=10)) as client:
             # Step 0: Ensure requested model is loaded (lazy loading support)
             # Call /v1/init to load model on-demand if not already loaded
             model_init_needed = False
