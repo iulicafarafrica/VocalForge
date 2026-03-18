@@ -767,18 +767,19 @@ export default function PipelineTab() {
               { key: 'final_mix',    label: '⊞ Mix WAV',     color: cyberpunk.neon.pink.primary },
               { key: 'final_mix_mp3',label: '◎ Mix MP3 320k',color: '#f43f5e' },
             ].map(({ key, label, color }) => (
-              <a 
-                key={key} 
+              <a
+                key={key}
                 href={`${API}/pipeline/download/${jobId}/${key}`}
+                download=""
                 style={{
-                  display: 'block', 
-                  padding: '14px 12px', 
+                  display: 'block',
+                  padding: '14px 12px',
                   background: "rgba(31,41,55,0.6)",
-                  borderRadius: 10, 
-                  color: color, 
+                  borderRadius: 10,
+                  color: color,
                   textDecoration: 'none',
-                  fontSize: 11, 
-                  fontWeight: 700, 
+                  fontSize: 11,
+                  fontWeight: 700,
                   border: `1px solid ${color}44`,
                   opacity: outputs[key] ? 1 : 0.4,
                   pointerEvents: outputs[key] ? 'auto' : 'none',
