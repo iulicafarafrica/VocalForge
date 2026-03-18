@@ -178,9 +178,9 @@ async def separate_vocals(
         return JSONResponse({
             "status": "ok",
             "job_id": job_id,
-            "vocals_url": f"/audio/{vocals_filename}",
+            "vocals_url": f"/tracks/{vocals_filename}",
             "vocals_filename": vocals_filename,
-            "instrumental_url": f"/audio/{instrumental_filename}" if instrumental_filename else None,
+            "instrumental_url": f"/tracks/{instrumental_filename}" if instrumental_filename else None,
             "instrumental_filename": instrumental_filename,
         })
 
@@ -441,7 +441,7 @@ async def rvc_convert(
         return JSONResponse({
             "status": "ok",
             "filename": out_filename,
-            "url": f"/audio/{out_filename}",
+            "url": f"/tracks/{out_filename}",
             "duration_sec": out_duration,
             "size_mb": round(size_mb, 2),
             "sample_rate": out_sr,
