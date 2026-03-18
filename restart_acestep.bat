@@ -23,11 +23,11 @@ echo  [OK] ACE-Step oprit.
 echo  [>>] Curatare RAM...
 timeout /t 2 /nobreak >nul
 
-:: ---- Reporneste ACE-Step cu LLM activat ----
+:: ---- Reporneste ACE-Step cu LLM dezactivat ----
 echo  [>>] Repornesc ACE-Step...
 echo.
 
-start "ACE-Step API" cmd /k "cd /d D:\VocalForge\ace-step && call .venv\Scripts\activate.bat && set ACESTEP_INIT_LLM=true && set ACESTEP_NO_INIT=1 && set ACESTEP_OFFLOAD_TO_CPU=true && set ACESTEP_VAE_ON_CPU=0 && set XFORMERS_FORCE_DISABLE_TRITON=1 && python acestep/api_server.py --host 0.0.0.0 --port 8001"
+start "ACE-Step API" cmd /k "cd /d D:\VocalForge\ace-step && call .venv\Scripts\activate.bat && set ACESTEP_INIT_LLM=false && set ACESTEP_NO_INIT=1 && set ACESTEP_OFFLOAD_TO_CPU=true && set ACESTEP_VAE_ON_CPU=0 && set XFORMERS_FORCE_DISABLE_TRITON=1 && python acestep/api_server.py --host 0.0.0.0 --port 8001"
 
 echo.
 echo  [OK] ACE-Step repornit!
