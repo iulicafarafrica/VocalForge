@@ -2410,23 +2410,29 @@ async def ace_generate(
     import httpx
     import urllib.parse
 
+    logger.info(f"[ACE] Received generation request: duration={duration}s, model={dit_model}, prompt='{prompt[:50]}...'")
+    job_id = uuid.uuid4().hex
+
     # Check ACE-Step is online (with retry)
     for retry in range(3):
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 health = await client.get(f"{ACE_STEP_API}/health")
                 if health.status_code == 200:
+                    print(f"[ACE {job_id[:8]}] ✓ ACE-Step online (attempt {retry+1})")
                     break
+                print(f"[ACE {job_id[:8]}] ⚠ ACE-Step returned status {health.status_code}")
         except Exception as e:
+            print(f"[ACE {job_id[:8]}] ⚠ Health check failed (attempt {retry+1}): {e}")
             if retry < 2:
                 await asyncio.sleep(1)  # Wait 1s before retry
             else:
+                logger.error("[ACE] ACE-Step server is offline after 3 retries")
                 return JSONResponse(status_code=503, content={
                     "error": "ACE-Step API server is offline. Run start_acestep.bat first.",
                     "hint": "d:\\VocalForge\\start_acestep.bat"
                 })
 
-    job_id = uuid.uuid4().hex
     t_start = time.time()
     use_random = seed < 0
     actual_seed = seed if seed >= 0 else random.randint(0, 2**31)
