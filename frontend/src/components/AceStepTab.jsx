@@ -2773,7 +2773,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   type="range"
                   className="duration-slider"
                   min="30"
-                  max="240"
+                  max="300"
                   step="30"
                   value={duration}
                   onChange={(e) => setDuration(parseInt(e.target.value))}
@@ -2782,7 +2782,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                 <input
                   type="number"
                   min="30"
-                  max="240"
+                  max="300"
                   step="30"
                   value={duration}
                   onChange={(e) => setDuration(parseInt(e.target.value) || 60)}
@@ -2800,7 +2800,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                 />
               </div>
               <div style={{ display: "flex", gap: 5 }}>
-                {[30, 60, 90, 120, 150, 180, 210, 240].map(v => (
+                {[30, 60, 90, 120, 150, 180, 210, 240, 270, 300].map(v => (
                   <button key={v} onClick={() => setDuration(v)} style={{
                     flex: 1, padding: "7px 2px", borderRadius: 6, fontSize: 11, fontWeight: 700,
                     background: duration === v ? "#06d6a022" : "#0a0a1a",

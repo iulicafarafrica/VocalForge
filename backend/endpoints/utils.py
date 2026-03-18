@@ -1,6 +1,7 @@
 import os
 import uuid
 import torch
+import gc
 import logging
 from datetime import datetime
 
@@ -44,6 +45,8 @@ def process_vocal(file, mode, seed=None):
 
     if device.type == "cuda":
         torch.cuda.empty_cache()
+        torch.cuda.synchronize()
+        gc.collect()
         logger.info("[Vocal] GPU cache cleared")
 
     return output_path, metadata
@@ -70,6 +73,8 @@ def process_instrument(file, instrument, mode):
 
     if device.type == "cuda":
         torch.cuda.empty_cache()
+        torch.cuda.synchronize()
+        gc.collect()
         logger.info("[Instrument] GPU cache cleared")
 
     return output_path, metadata

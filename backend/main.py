@@ -739,6 +739,13 @@ async def process_cover(
     finally:
         try:
             shutil.rmtree(job_dir, ignore_errors=True)
+            # Free GPU memory after processing
+            import gc
+            import torch
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+                torch.cuda.synchronize()
+            gc.collect()
         except Exception:
             pass
 
@@ -826,7 +833,17 @@ async def preview_cover(
             "traceback": traceback.format_exc(),
         })
     finally:
-        shutil.rmtree(job_dir, ignore_errors=True)
+        try:
+            shutil.rmtree(job_dir, ignore_errors=True)
+            # Free GPU memory after processing
+            import gc
+            import torch
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+                torch.cuda.synchronize()
+            gc.collect()
+        except Exception:
+            pass
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -2468,14 +2485,14 @@ async def ace_generate(
                 try:
                     init_response = await client.post(
                         f"{ACE_STEP_API}/v1/init",
-                        json={"model": dit_model, "init_llm": False},
+                        json={"model": dit_model, "init_llm": True},
                         timeout=180.0  # Model loading can take 2-3 minutes
                     )
                     if init_response.status_code == 200:
                         init_data = init_response.json()
                         loaded_model = init_data.get("data", {}).get("loaded_model", dit_model)
                         print(f"[ACE {job_id[:8]}] ✅ Model loaded: {loaded_model}")
-                        
+
                         # Wait a moment for model to fully initialize
                         await asyncio.sleep(2)
                     else:
@@ -2817,11 +2834,11 @@ async def ace_generate(
                     # This fixes the issue where RAM usage grows from 2GB → 13GB → 21GB → 32GB+ freeze
                     import gc
                     import torch
-                    
+
                     gc.collect()  # Force garbage collection
                     torch.cuda.empty_cache()  # Clear CUDA cache
                     print(f"[ACE {job_id[:8]}] 🧹 RAM cleanup: gc.collect() + torch.cuda.empty_cache()")
-                    
+
                     # Note: ACE-Step model stays loaded in RAM (no /v1/unload endpoint)
                     # With ACESTEP_INIT_LLM=false, RAM usage should stay at ~2-4GB per generation
                     # If RAM still grows, restart ACE-Step API after 3-4 generations

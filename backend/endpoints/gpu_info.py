@@ -59,10 +59,20 @@ async def unload_model(model_name: str):
 
 @router.post("/unload-all")
 async def unload_all_models():
-    """Unload all models from VRAM tracking."""
+    """Unload all models from VRAM and free GPU memory."""
+    import gc
+    import torch
+    
     manager = get_gpu_manager()
     count = len(manager.loaded_models)
     manager.loaded_models.clear()
+    
+    # Force free GPU memory
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        torch.cuda.synchronize()
+    gc.collect()
+    
     return {"status": "ok", "models_unloaded": count}
 
 

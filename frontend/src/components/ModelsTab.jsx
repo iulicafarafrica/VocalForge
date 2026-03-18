@@ -49,7 +49,7 @@ export default function ModelsTab({ addLog }) {
     setLoading(endpoint);
     addSysLog(`${label}...`);
     try {
-      const res = await fetch(`${API}/${endpoint}`);
+      const res = await fetch(`${API}/${endpoint}`, { method: "POST" });
       const data = await res.json();
       addSysLog(`✓ ${data.message || label + " OK"}`);
       addLog(`[OK] ${label}`);
@@ -235,7 +235,7 @@ export default function ModelsTab({ addLog }) {
               <span style={{ fontSize: 16 }}>›</span>
             </button>
             <button onClick={() => clearOldFiles("backend_output", 7)} disabled={loading.includes("clear_old")} style={{ ...S.btn("#ffd16622", "#ffd166"), border: "1px solid #ffd16644" }}>
-              <span>📁 Clean Output >7 days</span>
+              <span>📁 Clean Output &gt;7 days</span>
               <span style={{ fontSize: 16 }}>›</span>
             </button>
             <button onClick={fetchStorageAnalysis} style={{ ...S.btn("#06d6a022", "#06d6a0"), border: "1px solid #06d6a044" }}>
