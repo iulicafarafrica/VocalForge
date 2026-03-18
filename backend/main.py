@@ -2468,7 +2468,7 @@ async def ace_generate(
                 try:
                     init_response = await client.post(
                         f"{ACE_STEP_API}/v1/init",
-                        json={"model": dit_model, "init_llm": False},
+                        json={"model": dit_model, "init_llm": True},
                         timeout=180.0  # Model loading can take 2-3 minutes
                     )
                     if init_response.status_code == 200:
