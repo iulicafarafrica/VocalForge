@@ -80,7 +80,7 @@ export default function PipelineTab() {
           .then(d => setOutputs(d.outputs || {}));
       }
     };
-    es.onerror = () => { setError('Conexiune pierduta cu serverul.'); setRunning(false); es.close(); };
+    es.onerror = () => { setError('Connection lost to server.'); setRunning(false); es.close(); };
   };
 
   const handleRun = async () => {
@@ -473,13 +473,13 @@ export default function PipelineTab() {
                 cursor: 'pointer',
               }}>
               <option value="studio_radio">→ Studio Radio — Clear, compressed (pop)</option>
-              <option value="natural">⊳ Natural — Minimal procesare (acoustic/folk)</option>
+              <option value="natural">⊳ Natural — Minimal processing (acoustic/folk)</option>
               <option value="arena">◎ Arena — Heavy reverb (concert/live)</option>
               <option value="radio">◼ Radio — Heavily compressed (commercial)</option>
               <option value="balanced">⊞ Balanced — All-round</option>
             </select>
             <p style={{ fontSize: 10, color: cyberpunk.text.muted, marginTop: 6, fontStyle: 'italic' }}>
-              Recommended: <strong style={{ color: cyberpunk.neon.cyan.primary }}>Studio Radio</strong> for Romanian music
+              Recommended: <strong style={{ color: cyberpunk.neon.cyan.primary }}>Studio Radio</strong> for vocal tracks
             </p>
           </div>
 
@@ -748,7 +748,7 @@ export default function PipelineTab() {
               e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
             }}
           >
-            ↺ JOB NOU
+            ↺ NEW JOB
           </button>
         )}
       </div>
@@ -876,7 +876,7 @@ export default function PipelineTab() {
                   marginBottom: 10,
                   letterSpacing: 1,
                 }}>
-                  ♪ VOCALS SEPARAT (BS-ROFORMER)
+                  ♪ VOCALS SEPARATED (BS-ROFORMER)
                 </div>
                 <audio controls style={{ width: '100%', marginBottom: 10 }}>
                   <source src={`${API}/pipeline/download/${jobId}/vocals`} type="audio/wav" />

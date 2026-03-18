@@ -147,24 +147,46 @@ async def stream_progress(job_id: str):
 @router.get("/download/{job_id}/{file_type}")
 async def download_file(job_id: str, file_type: str, request: Request):
     from starlette.responses import StreamingResponse
-    
+    import subprocess
+
     job = get_job(job_id)
     if not job:
-        raise HTTPException(status_code=404, detail="Job negasit")
+        raise HTTPException(status_code=404, detail="Job not found")
 
-    path_map = {
-        "vocals":       job.vocals_path,
-        "instrumental": job.instrumental_path,
-        "rvc_raw":      job.rvc_output_path,
-        "final":        job.refined_vocals_path,
-        "final_mix":    job.final_mix_path,
-        # MP3 variant of final mix
-        "final_mix_mp3": (job.final_mix_path or "").replace(".wav", ".mp3"),
-    }
-
-    path = path_map.get(file_type)
+    # Check if MP3 is requested but doesn't exist - create it from WAV
+    if file_type == "final_mix_mp3":
+        wav_path = job.final_mix_path
+        mp3_path = wav_path.replace(".wav", ".mp3") if wav_path else None
+        
+        if not mp3_path or not os.path.exists(mp3_path):
+            # MP3 doesn't exist - create it from WAV
+            if wav_path and os.path.exists(wav_path):
+                try:
+                    subprocess.run([
+                        'ffmpeg', '-y', '-i', wav_path,
+                        '-codec:a', 'libmp3lame', '-b:a', '320k',
+                        mp3_path
+                    ], check=True, capture_output=True)
+                    print(f"[Pipeline] Created MP3: {mp3_path}")
+                except subprocess.CalledProcessError as e:
+                    print(f"[Pipeline] MP3 conversion failed: {e.stderr.decode()}")
+                    raise HTTPException(status_code=500, detail="MP3 conversion failed")
+            else:
+                raise HTTPException(status_code=404, detail="Final mix WAV not found")
+        
+        path = mp3_path
+    else:
+        path_map = {
+            "vocals":       job.vocals_path,
+            "instrumental": job.instrumental_path,
+            "rvc_raw":      job.rvc_output_path,
+            "final":        job.refined_vocals_path,
+            "final_mix":    job.final_mix_path,
+        }
+        path = path_map.get(file_type)
+    
     if not path or not os.path.exists(path):
-        raise HTTPException(status_code=404, detail=f"Fisier '{file_type}' nu e gata")
+        raise HTTPException(status_code=404, detail=f"File '{file_type}' not ready")
 
     ext      = os.path.splitext(path)[1]
     media    = "audio/mpeg" if ext == ".mp3" else "audio/wav"
