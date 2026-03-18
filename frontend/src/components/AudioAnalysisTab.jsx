@@ -29,7 +29,22 @@ export default function AudioAnalysisTab({ addLog }) {
       const res = await fetch(`${API}/audio/${endpoint}`, { method: "POST", body: fd });
       if (!res.ok) throw new Error((await res.json()).detail || "Analysis failed");
       const data = await res.json();
-      setResult(data);
+      
+      // Merge results into existing result object
+      setResult(prev => {
+        const updated = { ...prev, ...data };
+        // Merge specific fields
+        if (data.loudness) updated.loudness = data.loudness;
+        if (data.vocal_range) updated.vocal_range = data.vocal_range;
+        if (data.energy_mood) updated.energy_mood = data.energy_mood;
+        if (data.frequency_spectrum) updated.frequency_spectrum = data.frequency_spectrum;
+        if (data.bpm) updated.bpm = data.bpm;
+        if (data.key) updated.key = data.key;
+        if (data.chords) updated.chords = data.chords;
+        if (data.time_signature) updated.time_signature = data.time_signature;
+        return updated;
+      });
+      
       addLog?.(`[Audio Analysis] ${endpoint} complete`);
     } catch (err) {
       setError(err.message);
@@ -39,7 +54,30 @@ export default function AudioAnalysisTab({ addLog }) {
     }
   };
 
-  const handleFullAnalysis = () => runAnalysis("full-analysis");
+  const handleFullAnalysis = () => runAnalysis("analyze");
+
+  const handleIndividualAnalysis = async (tab) => {
+    if (!file) return;
+    
+    // Map tabs to endpoints
+    const endpointMap = {
+      loudness: "loudness",
+      vocal: "vocal-range",
+      mood: "energy-mood",
+      frequency: "frequency"
+    };
+    
+    const endpoint = endpointMap[tab];
+    if (endpoint) {
+      // First run full analysis if no result exists
+      if (!result || Object.keys(result).length === 0) {
+        await runAnalysis("analyze");
+      } else {
+        // Run individual analysis
+        await runAnalysis(endpoint);
+      }
+    }
+  };
 
   const S = {
     card: {
@@ -215,10 +253,10 @@ export default function AudioAnalysisTab({ addLog }) {
           <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
             <button style={S.tabBtn(activeTab === "full", "#00e5ff")} onClick={() => setActiveTab("full")}>📊 Full Analysis</button>
             <button style={S.tabBtn(activeTab === "basic", "#ffd166")} onClick={() => setActiveTab("basic")}>🎵 BPM & Key</button>
-            <button style={S.tabBtn(activeTab === "loudness", "#06d6a0")} onClick={() => setActiveTab("loudness")}>📈 Loudness</button>
-            <button style={S.tabBtn(activeTab === "vocal", "#c77dff")} onClick={() => setActiveTab("vocal")}>🎤 Vocal</button>
-            <button style={S.tabBtn(activeTab === "mood", "#10b981")} onClick={() => setActiveTab("mood")}>⚡ Energy</button>
-            <button style={S.tabBtn(activeTab === "frequency", "#ff9f1c")} onClick={() => setActiveTab("frequency")}>📉 Frequency</button>
+            <button style={S.tabBtn(activeTab === "loudness", "#06d6a0")} onClick={(e) => { setActiveTab("loudness"); handleIndividualAnalysis("loudness"); }}>📈 Loudness</button>
+            <button style={S.tabBtn(activeTab === "vocal", "#c77dff")} onClick={(e) => { setActiveTab("vocal"); handleIndividualAnalysis("vocal"); }}>🎤 Vocal</button>
+            <button style={S.tabBtn(activeTab === "mood", "#10b981")} onClick={(e) => { setActiveTab("mood"); handleIndividualAnalysis("mood"); }}>⚡ Energy</button>
+            <button style={S.tabBtn(activeTab === "frequency", "#ff9f1c")} onClick={(e) => { setActiveTab("frequency"); handleIndividualAnalysis("frequency"); }}>📉 Frequency</button>
           </div>
 
           {/* FULL ANALYSIS */}

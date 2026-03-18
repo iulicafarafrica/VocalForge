@@ -443,8 +443,6 @@ class RVCModel:
     
     def unload_model(self):
         """Unload current model and free VRAM"""
-        import gc
-        
         if self.current_model:
             print(f"[RVC] Unloading model: {self.current_model}")
             self.vc.get_vc("")  # Empty sid unloads model
@@ -453,8 +451,6 @@ class RVCModel:
 
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
-                torch.cuda.synchronize()
-                gc.collect()
                 print(f"[RVC] VRAM cleared")
 
 
