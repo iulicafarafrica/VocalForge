@@ -108,30 +108,33 @@ async def _process_noise_removal(input_path: str, job_id: str, strength: str):
     
     # Strength presets - ffmpeg filter chains
     # NOTE: No lowpass to preserve brightness/highs
+    # Highpass set to 40Hz to preserve musical bass (kick/bass guitar)
     PRESETS = {
         "light": {
-            "highpass": "80",
-            "lowpass": "",        # NO lowpass - preserve brightness
-            "afftdn": "nr=15",    # Gentle noise reduction
+            "highpass": "40",       # Only remove sub-bass rumble
+            "lowpass": "",          # NO lowpass - preserve brightness
+            "afftdn": "nr=15",      # Gentle noise reduction
         },
         "medium": {
-            "highpass": "100",
-            "lowpass": "",        # NO lowpass
-            "afftdn": "nr=20",    # Moderate noise reduction
+            "highpass": "50",       # Slightly more aggressive
+            "lowpass": "",          # NO lowpass
+            "afftdn": "nr=20",      # Moderate noise reduction
         },
         "aggressive": {
-            "highpass": "120",
-            "lowpass": "",        # NO lowpass
-            "afftdn": "nr=25",    # Strong noise reduction
+            "highpass": "60",       # More aggressive on rumble
+            "lowpass": "",          # NO lowpass
+            "afftdn": "nr=25",      # Strong noise reduction
         },
     }
     
     preset = PRESETS.get(strength, PRESETS["medium"])
     
     # Build filter chain
-    filters = [
-        f"highpass=f={preset['highpass']}",      # Remove rumble
-    ]
+    filters = []
+    
+    # Add highpass only if specified (preserve bass)
+    if preset['highpass']:
+        filters.append(f"highpass=f={preset['highpass']}")
     
     # Add lowpass only if specified (preserve brightness)
     if preset['lowpass']:
