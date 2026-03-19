@@ -3557,7 +3557,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   </select>
                 </div>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>🎧 Enhancement</label>
+                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>🔇 Noise Hiss Remover</label>
                   <select
                     value={audioEnhance ? enhanceStrength : "off"}
                     onChange={e => {
