@@ -77,36 +77,24 @@ function TrackRow({ track, onDelete, isSegment = false }) {
   const handleAnalyze = async () => {
     if (analyzing) return;
     setAnalyzing(true);
-    
+
     try {
-      const response = await fetch(`${API}/detect_bpm_key`, {
-        method: 'POST',
-        body: (() => {
-          const fd = new FormData();
-          fd.append('file', new File([], track.filename, { type: 'audio/wav' }));
-          return fd;
-        })(),
-        headers: {
-          // Need to fetch actual audio blob
-        }
-      });
-      
       // Fetch actual audio file
       const audioBlob = await fetch(track.url).then(r => r.blob());
       const fd = new FormData();
       fd.append('file', audioBlob, 'audio.wav');
-      
+
       const result = await fetch(`${API}/detect_bpm_key`, {
         method: 'POST',
         body: fd
       });
-      
+
       const data = await result.json();
       if (data.status === 'ok') {
         setAnalysis(data);
         // Save to track metadata
-        const updatedTracks = tracks.map(t => 
-          t.id === track.id 
+        const updatedTracks = tracks.map(t =>
+          t.id === track.id
             ? { ...t, analysis: data, metadata: { ...t.metadata, bpm: data.bpm, key: data.key } }
             : t
         );

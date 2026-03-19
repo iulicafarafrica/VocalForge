@@ -15,3 +15,7 @@ OUTPUT_DIR = os.path.join(
 
 # Ensure output directory exists
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# Ensure tracks folder exists (for serving static files)
+TRACKS_DIR = OUTPUT_DIR
+os.makedirs(TRACKS_DIR, exist_ok=True)

@@ -23,10 +23,60 @@ export default function RepaintLegoComplete() {
   const [startTime, setStartTime] = useState(0);
   const [endTime, setEndTime] = useState(30);
   const [lyrics, setLyrics] = useState('');
+  const [ditModel, setDitModel] = useState('acestep-v15-turbo');
+  const [bpm, setBpm] = useState(0);
+  const [timeSignature, setTimeSignature] = useState('');
+  const [vocalLanguage, setVocalLanguage] = useState('unknown');
 
   const fileInputRef = useRef(null);
 
-  const ditModel = 'acestep-v15-turbo';
+  const TENSOR_MODELS = [
+    {
+      id: "acestep-v15-turbo",
+      name: "◈ Turbo",
+      desc: "8 steps │ ~1 min │ Fast",
+      color: "#06d6a0",
+      steps: 8,
+    },
+    {
+      id: "acestep-v15-sft-turbo_0.5",
+      name: "◈ SFT-Turbo 0.5",
+      desc: "Hybrid │ ~2 min │ Balanced",
+      color: "#ffd166",
+      steps: 32,
+    },
+    {
+      id: "acestep-v15-sft",
+      name: "♫ SFT",
+      desc: "50 steps │ ~3 min │ Quality",
+      color: "#c77dff",
+      steps: 50,
+    },
+    {
+      id: "acestep-v15-base-sft",
+      name: "◉ Base-SFT",
+      desc: "50 steps │ ~3 min │ Enhanced",
+      color: "#00e5ff",
+      steps: 50,
+    },
+    {
+      id: "acestep-v15-base",
+      name: "◉ Base",
+      desc: "50 steps │ ~4 min │ All Features",
+      color: "#118ab2",
+      steps: 50,
+    },
+  ];
+
+  const modelInfo = TENSOR_MODELS.find(m => m.id === ditModel) || TENSOR_MODELS[0];
+
+  // Auto-adjust inferSteps when model changes
+  useEffect(() => {
+    const currentModel = TENSOR_MODELS.find(m => m.id === ditModel);
+    if (currentModel && currentModel.steps) {
+      setInferSteps(currentModel.steps);
+    }
+  }, [ditModel]);
 
   // Cyberpunk theme colors
   const cyberpunk = {
@@ -101,17 +151,21 @@ export default function RepaintLegoComplete() {
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('prompt', prompt);
-    formData.append('guidance_scale', guidanceScale);
-    formData.append('seed', seed);
-    formData.append('infer_steps', inferSteps);
-    formData.append('key_scale', keyScale);
+    formData.append('prompt', prompt || '');
+    formData.append('guidance_scale', guidanceScale.toString());
+    formData.append('seed', seed.toString());
+    formData.append('infer_steps', inferSteps.toString());
+    formData.append('key_scale', keyScale || '');
     formData.append('audio_format', audioFormat);
     formData.append('dit_model', ditModel);
-    formData.append('start_time', startTime);
-    formData.append('end_time', endTime);
-    formData.append('lyrics', lyrics);
-    formData.append('audio_cover_strength', audioCoverStrength);
+    formData.append('start_time', startTime.toString());
+    formData.append('end_time', endTime.toString());
+    formData.append('lyrics', lyrics || '');
+    formData.append('audio_cover_strength', audioCoverStrength.toString());
+    formData.append('bpm', bpm.toString());
+    formData.append('time_signature', timeSignature || '');
+    formData.append('vocal_language', vocalLanguage);
+    formData.append('thinking', 'true');
 
     try {
       const endpoint = '/acestep/repaint';
@@ -285,9 +339,122 @@ export default function RepaintLegoComplete() {
         />
       </div>
 
+      {/* Model Selection */}
+      <div style={S.card}>
+        <span style={S.label}>🦁 ACE-Step Model</span>
+        <select
+          value={ditModel}
+          onChange={(e) => setDitModel(e.target.value)}
+          style={{
+            ...S.input,
+            fontSize: 11,
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          {TENSOR_MODELS.map(model => (
+            <option key={model.id} value={model.id}>
+              {model.name} — {model.desc}
+            </option>
+          ))}
+        </select>
+
+        {/* Model Info */}
+        {modelInfo && (
+          <div style={{
+            marginTop: 10,
+            padding: 10,
+            background: `linear-gradient(135deg, ${modelInfo.color}22, ${modelInfo.color}11)`,
+            border: `1px solid ${modelInfo.color}44`,
+            borderRadius: 8,
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr 1fr",
+            gap: 8,
+          }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ color: modelInfo.color, fontSize: 14, fontWeight: 900 }}>{modelInfo.steps}</div>
+              <div style={{ color: cyberpunk.text.muted, fontSize: 9 }}>Steps</div>
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ color: modelInfo.color, fontSize: 14, fontWeight: 900 }}>{modelInfo.id}</div>
+              <div style={{ color: cyberpunk.text.muted, fontSize: 9 }}>Model</div>
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ color: cyberpunk.neon.green.primary, fontSize: 14, fontWeight: 900 }}>✓ Repaint</div>
+              <div style={{ color: cyberpunk.text.muted, fontSize: 9 }}>Supported</div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Advanced Settings Grid */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, marginBottom: 16 }}>
-        
+
+        {/* BPM */}
+        <div style={S.card}>
+          <span style={S.label}>🎵 BPM</span>
+          <input
+            type="number"
+            value={bpm}
+            onChange={(e) => setBpm(Number(e.target.value))}
+            placeholder="0 = auto"
+            min="0"
+            max="300"
+            style={{ ...S.input, marginTop: 8 }}
+          />
+          <div style={{ color: cyberpunk.text.muted, fontSize: 10, marginTop: 6 }}>
+            0 = Auto-detect | 30-300 = Manual
+          </div>
+        </div>
+
+        {/* Time Signature */}
+        <div style={S.card}>
+          <span style={S.label}>🎼 Time Signature</span>
+          <select
+            value={timeSignature}
+            onChange={(e) => setTimeSignature(e.target.value)}
+            style={{ ...S.input, marginTop: 8 }}
+          >
+            <option value="">Auto</option>
+            <option value="2">2/2</option>
+            <option value="3">3/4</option>
+            <option value="4">4/4</option>
+            <option value="6">6/8</option>
+          </select>
+          <div style={{ color: cyberpunk.text.muted, fontSize: 10, marginTop: 6 }}>
+            Leave empty for auto-detect
+          </div>
+        </div>
+
+        {/* Vocal Language */}
+        <div style={S.card}>
+          <span style={S.label}>🎤 Vocal Language</span>
+          <select
+            value={vocalLanguage}
+            onChange={(e) => setVocalLanguage(e.target.value)}
+            style={{ ...S.input, marginTop: 8 }}
+          >
+            <option value="unknown">Unknown / Auto</option>
+            <option value="en">English</option>
+            <option value="ro">Romanian</option>
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="it">Italian</option>
+            <option value="pt">Portuguese</option>
+            <option value="ru">Russian</option>
+            <option value="zh">Chinese</option>
+            <option value="ja">Japanese</option>
+            <option value="ko">Korean</option>
+            <option value="ar">Arabic</option>
+            <option value="tr">Turkish</option>
+            <option value="hi">Hindi</option>
+          </select>
+          <div style={{ color: cyberpunk.text.muted, fontSize: 10, marginTop: 6 }}>
+            Language for vocal generation
+          </div>
+        </div>
+
         {/* Guidance Scale */}
         <div style={S.card}>
           <span style={S.label}>🎯 Guidance Scale</span>
@@ -469,16 +636,16 @@ export default function RepaintLegoComplete() {
             ✅ Repaint Complete!
           </span>
           <div style={{ marginTop: 12 }}>
-            <audio controls src={result.url} style={{ width: "100%", marginBottom: 12 }} />
+            <audio controls src={`${API_BASE}${result.url}`} style={{ width: "100%", marginBottom: 12 }} />
             <div style={{ display: "flex", gap: 8 }}>
               <button
                 onClick={async () => {
                   try {
                     // Fetch the file as blob to force download
-                    const response = await fetch(result.url);
+                    const response = await fetch(`${API_BASE}${result.url}`);
                     const blob = await response.blob();
                     const blobUrl = window.URL.createObjectURL(blob);
-                    
+
                     // Create download link
                     const a = document.createElement('a');
                     a.href = blobUrl;
@@ -490,7 +657,7 @@ export default function RepaintLegoComplete() {
                   } catch (err) {
                     // Fallback: direct download
                     const a = document.createElement('a');
-                    a.href = result.url;
+                    a.href = `${API_BASE}${result.url}`;
                     a.download = result.filename || 'repaint-output.mp3';
                     a.target = '_blank';
                     a.click();

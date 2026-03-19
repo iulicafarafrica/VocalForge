@@ -323,3 +323,4 @@ Claude Setup.exe
 !lora_config.json
 !eslint.config.js
 .aider*
+"llama-*.zip"  

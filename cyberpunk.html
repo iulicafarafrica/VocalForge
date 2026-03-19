@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyberpunk</title>
+  <style>
+    :root {
+      --neon: #0ff;
+      --pink: #f0f;
+      --bg: #0a0a0a;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--neon);
+      font-family: 'Courier New', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    h1 {
+      font-size: 3rem;
+      text-shadow: 0 0 10px var(--neon), 0 0 20px var(--neon), 0 0 40px var(--neon);
+      margin-bottom: 20px;
+    }
+    p {
+      font-size: 1.2rem;
+      opacity: 0.8;
+      margin-bottom: 30px;
+    }
+    .btn {
+      padding: 15px 40px;
+      background: transparent;
+      border: 2px solid var(--neon);
+      color: var(--neon);
+      font-family: inherit;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.3s;
+      text-decoration: none;
+    }
+    .btn:hover {
+      background: var(--neon);
+      color: var(--bg);
+      box-shadow: 0 0 20px var(--neon), 0 0 40px var(--neon);
+    }
+  </style>
+</head>
+<body>
+  <h1>CYBERPUNK</h1>
+  <p>Bine ai venit în viitorul neon.</p>
+  <a href="#" class="btn">ENTER</a>
+</body>
+</html>
