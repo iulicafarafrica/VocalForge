@@ -1260,25 +1260,25 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
             print(f"[Audio Enhancement] ⚠️ FFmpeg not found. Install ffmpeg first.")
             return False
         
-        # Strength presets - ffmpeg filter chains
+        # Strength presets - ffmpeg filter chains (NO REVERB)
         PRESETS = {
             "low": {
                 "highpass": "80",           # HPF @ 80Hz
                 "eq": "equalizer=f=250:t=q:w=1:g=-3,equalizer=f=3000:t=q:w=1:g=2",  # Light EQ
                 "loudnorm": "I=-16:TP=-1.5:LRA=11",  # -16 LUFS
-                "reverb": "",               # No reverb
+                "reverb": "",               # NO REVERB
             },
             "medium": {
                 "highpass": "80",
                 "eq": "equalizer=f=300:t=q:w=1:g=-2,equalizer=f=3500:t=q:w=1:g=2.5,equalizer=f=7000:t=q:w=1:g=-2,equalizer=f=11000:t=q:w=1:g=1.5",  # Tenor profile
                 "loudnorm": "I=-14:TP=-1.5:LRA=11",  # -14 LUFS (streaming standard)
-                "reverb": "aecho=0.8:0.9:1000:0.3",  # Light reverb
+                "reverb": "",               # NO REVERB
             },
             "high": {
                 "highpass": "90",           # More aggressive HPF
                 "eq": "equalizer=f=350:t=q:w=1:g=-3,equalizer=f=4000:t=q:w=1:g=3,equalizer=f=8000:t=q:w=1:g=-3,equalizer=f=12000:t=q:w=1:g=2",  # Female profile
                 "loudnorm": "I=-12:TP=-1.5:LRA=11",  # -12 LUFS (louder)
-                "reverb": "aecho=0.8:0.9:800:0.4",  # Medium reverb
+                "reverb": "",               # NO REVERB
             },
         }
         
