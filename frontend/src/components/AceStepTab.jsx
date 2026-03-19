@@ -1761,7 +1761,8 @@ export default function AceStepTab({
     fd.append("audio_format", audioFormat);
     
     // Audio enhancement (post-processing)
-    fd.append("audio_enhance", audioEnhance);
+    // Convert boolean to string for FormData
+    fd.append("audio_enhance", audioEnhance ? "true" : "false");
     fd.append("enhance_strength", enhanceStrength);
 
     // Tiled decode (always enabled by default for VRAM optimization)

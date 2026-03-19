@@ -2507,7 +2507,7 @@ async def ace_generate(
     batch_size: int = Form(1),                # 1=save VRAM, 2+=faster but more VRAM
     use_tiled_decode: bool = Form(True),      # VAE decode optimization
     # Audio Enhancement (post-processing)
-    audio_enhance: bool = Form(True),         # Apply hiss removal + loudness norm
+    audio_enhance: str = Form("true"),        # "true" or "false"
     enhance_strength: str = Form("light"),    # light/medium/aggressive
     # Custom mode extra fields (ignored by backend, accepted to avoid 422)
     mode: str = Form(""),
@@ -2957,7 +2957,10 @@ async def ace_generate(
 
                     # ========== AUDIO ENHANCEMENT (Post-processing) ==========
                     # Apply hiss removal + loudness normalization if enabled
-                    if audio_enhance:
+                    # Convert string to bool: "true" -> True, "false" -> False
+                    enhance_enabled = audio_enhance.lower() == "true"
+                    
+                    if enhance_enabled:
                         try:
                             from endpoints.audio_enhancer import enhance_audio_file
                             print(f"[ACE {job_id[:8]}] 🎧 Applying audio enhancement ({enhance_strength})...")
