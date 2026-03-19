@@ -1,4 +1,4 @@
-# 🎵 VocalForge <sup>v2.2.1</sup>
+# 🎵 VocalForge <sup>v3.0.0</sup>
 
 <div align="center">
 
