@@ -131,19 +131,23 @@ async def _process_noise_removal(input_path: str, job_id: str, strength: str):
     
     # Build filter chain
     filters = []
-    
+
     # Add highpass only if specified (preserve bass)
     if preset['highpass']:
         filters.append(f"highpass=f={preset['highpass']}")
-    
+
     # Add lowpass only if specified (preserve brightness)
-    if preset['lowpass']:
+    if preset.get('lowpass', ''):
         filters.append(f"lowpass=f={preset['lowpass']}")
-    
+
     # Add noise reduction if specified
-    if preset['afftdn']:
+    if preset.get('afftdn', ''):
         filters.append(f"afftdn={preset['afftdn']}")
-    
+
+    # Add EQ if specified (for targeting specific frequencies)
+    if preset.get('eq', ''):
+        filters.append(preset['eq'])
+
     # Always add loudness normalization
     filters.append("loudnorm=I=-14:TP=-1.5:LRA=11")
 
@@ -330,9 +334,9 @@ def enhance_audio_file(file_path: str, strength: str = "light") -> str:
     
     # Presets (same as above)
     PRESETS = {
-        "light": {"highpass": "20", "afftdn": "nr=15"},      # Gentle hiss reduction
-        "medium": {"highpass": "20", "afftdn": "nr=20"},     # Moderate hiss reduction
-        "aggressive": {"highpass": "20", "afftdn": "nr=25"}, # Strong hiss reduction
+        "light": {"highpass": "20", "afftdn": "nr=15"},       # Gentle hiss reduction
+        "medium": {"highpass": "20", "afftdn": "nr=20", "eq": "equalizer=f=5000:t=q:w=1:g=-3,equalizer=f=8000:t=q:w=1:g=-4,equalizer=f=12000:t=q:w=1:g=-5"},  # Target hiss frequencies (5kHz+)
+        "aggressive": {"highpass": "20", "afftdn": "nr=25"},  # Strong hiss reduction
     }
     
     preset = PRESETS.get(strength, PRESETS["light"])
@@ -341,9 +345,14 @@ def enhance_audio_file(file_path: str, strength: str = "light") -> str:
     filters = [
         f"highpass=f={preset['highpass']}",
         f"afftdn={preset['afftdn']}",
-        "loudnorm=I=-14:TP=-1.5:LRA=11",
     ]
     
+    # Add EQ if specified (for medium preset)
+    if preset.get('eq', ''):
+        filters.append(preset['eq'])
+    
+    filters.append("loudnorm=I=-14:TP=-1.5:LRA=11")
+
     filter_chain = ','.join(filters)
     
     # Run ffmpeg
