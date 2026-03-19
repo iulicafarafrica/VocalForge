@@ -1275,21 +1275,23 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None):
                         y=y[:, ch],
                         sr=sr,
                         
-                        # Noise reduction strength
-                        prop_decrease=0.75,      # Reduce noise by 75% (preserve some ambiance)
+                        # Noise reduction strength (0.0 to 1.0)
+                        prop_decrease=0.75,      # Reduce noise by 75%
                         
-                        # Frequency smoothing
-                        freq_smooth_time=0.004,  # 4ms smoothing (preserve transients)
-                        
-                        # Time smoothing  
-                        time_smooth_time=0.004,  # 4ms smoothing (avoid artifacts)
+                        # Smoothing to avoid artifacts
+                        freq_mask_smooth_time=0.004,  # Frequency smoothing
+                        time_mask_smooth_time=0.004,  # Time smoothing
                         
                         # Noise gate
                         threshold=(-50, -20),    # Gate between -50dB and -20dB
                         
-                        # Preserve audio quality
+                        # Quality preservation
                         use_spectral_subtraction=True,  # Better for music
                         stationary=True,                # Assume stationary noise (hiss)
+                        
+                        # Avoid musical artifacts
+                        n_std_noise=1.5,         # Conservative noise estimation
+                        n_jobs=1,                # Single-threaded (more stable)
                     )
                 
                 print(f"[Audio Enhancement] ✅ Noisereduce complete")
