@@ -1227,6 +1227,86 @@ async def demucs_separate(
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+# Audio Post-Processing (Noise Reduction + Bass Boost)
+# ──────────────────────────────────────────────────────────────────────────────
+
+def apply_audio_enhancement(audio_path: str, output_path: str = None):
+    """
+    Apply noise reduction and bass boost to generated audio.
+    
+    Enhancements:
+    1. Noise Gate - removes background hiss in silent parts
+    2. Bass Boost - +3dB at 60-120Hz for stronger bass
+    3. Low-pass Filter - removes ultrasonic noise >18kHz
+    4. Limiter - prevents clipping from bass boost
+    
+    Processing time: ~3-5 seconds for typical 3-minute track
+    """
+    try:
+        import soundfile as sf
+        from scipy.signal import butter, lfilter, sosfilt
+        import numpy as np
+        
+        if output_path is None:
+            output_path = audio_path
+        
+        # Load audio
+        y, sr = sf.read(audio_path, dtype='float32')
+        
+        # If stereo, process both channels
+        is_stereo = len(y.shape) > 1
+        if not is_stereo:
+            y = y.reshape(-1, 1)
+        
+        # 1. NOISE GATE (threshold: -50dB)
+        threshold = np.max(np.abs(y), axis=0) * 0.003  # -50dB
+        for ch in range(y.shape[1]):
+            y[np.abs(y[:, ch]) < threshold[ch], ch] = 0
+        
+        # 2. BASS BOOST (+3dB at 80Hz using peaking EQ)
+        bass_freq = 80  # Hz
+        bass_gain = 3  # dB
+        q_factor = 1.0
+        
+        A = 10 ** (bass_gain / 40)
+        w0 = 2 * np.pi * bass_freq / sr
+        alpha = np.sin(w0) / (2 * q_factor)
+        
+        b = [1 + alpha * A, -2 * np.cos(w0), 1 - alpha * A]
+        a = [1 + alpha / A, -2 * np.cos(w0), 1 - alpha / A]
+        
+        for ch in range(y.shape[1]):
+            y[:, ch] = lfilter(b, a, y[:, ch])
+        
+        # 3. LOW-PASS FILTER @ 18kHz (remove ultrasonic noise)
+        cutoff = 18000  # Hz
+        nyquist = 0.5 * sr
+        if cutoff < nyquist:
+            sos = butter(4, cutoff / nyquist, btype='low', output='sos')
+            for ch in range(y.shape[1]):
+                y[:, ch] = sosfilt(sos, y[:, ch])
+        
+        # 4. LIMITER (prevent clipping, threshold: -1dB)
+        max_level = 0.89  # -1dB
+        current_peak = np.max(np.abs(y))
+        if current_peak > max_level:
+            y = y * (max_level / current_peak)
+        
+        # Save enhanced audio
+        if is_stereo:
+            sf.write(output_path, y, sr)
+        else:
+            sf.write(output_path, y.flatten(), sr)
+        
+        print(f"[Audio Enhancement] Applied: noise gate, bass boost (+3dB@80Hz), low-pass @18kHz")
+        return True
+        
+    except Exception as e:
+        print(f"[Audio Enhancement] Failed: {e}")
+        return False
+
+
+# ──────────────────────────────────────────────────────────────────────────────
 # BPM & Key Detection
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -2608,7 +2688,7 @@ async def ace_generate(
             # CRITICAL: For Text-to-Music, disable CoT to respect user BPM/key/prompt
             
             # Audio quality enhancement prompt (appended to all text2music generations)
-            AUDIO_QUALITY_PROMPT = ", no digital artifacts, zero-noise-floor, ultra-transparent-mix, silky-smooth-highs, pure-digital-mastering, noise-gate-processing, studio-clean, silent background"
+            AUDIO_QUALITY_PROMPT = ", clean studio quality, noise-free"
             
             # Negative prompt: lm_negative_prompt is for LLM only (disabled)
             # DiT model doesn't support negative prompting (uses CFG instead)
@@ -2669,7 +2749,7 @@ async def ace_generate(
                 "seed": actual_seed,
                 
                 # Audio format
-                "audio_format": audio_format if audio_format in ("mp3", "flac", "wav") else "mp3",
+                "audio_format": audio_format if audio_format in ("mp3", "flac", "wav") else "wav",  # Default to WAV for best quality
                 
                 # Inference method
                 "infer_method": infer_method,
@@ -2945,6 +3025,19 @@ async def ace_generate(
                     duration_sec = round(len(audio_data) / audio_sr, 2)
 
                     print(f"[ACE {job_id[:8]}] Done in {t_sec}s — {duration_sec}s audio ({out_size_mb}MB)")
+
+                    # ========== AUDIO ENHANCEMENT (Noise Reduction + Bass Boost) ==========
+                    # Apply post-processing to improve audio quality
+                    # Only for WAV output (lossless processing)
+                    if audio_format == "wav":
+                        print(f"[ACE {job_id[:8]}] 🔧 Applying audio enhancement...")
+                        enhance_success = apply_audio_enhancement(out_path)
+                        if enhance_success:
+                            print(f"[ACE {job_id[:8]}] ✅ Audio enhancement complete (+3-5s)")
+                            out_size_mb = round(os.path.getsize(out_path) / 1024 / 1024, 2)
+                        else:
+                            print(f"[ACE {job_id[:8]}] ⚠️ Audio enhancement failed, using original")
+                    # =======================================================================
 
                     # RAM Management: Force garbage collection to prevent memory leaks
                     # This fixes the issue where RAM usage grows from 2GB → 13GB → 21GB → 32GB+ freeze
