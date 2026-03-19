@@ -2607,9 +2607,17 @@ async def ace_generate(
             # ACE-Step API: prompt = style/emotion/instruments ONLY
             # CRITICAL: For Text-to-Music, disable CoT to respect user BPM/key/prompt
             
+            # Audio quality enhancement prompt (appended to all text2music generations)
+            AUDIO_QUALITY_PROMPT = ", no digital artifacts, zero-noise-floor, ultra-transparent-mix, silky-smooth-highs, pure-digital-mastering, noise-gate-processing, studio-clean, silent background"
+            
             # Negative prompt: lm_negative_prompt is for LLM only (disabled)
             # DiT model doesn't support negative prompting (uses CFG instead)
             neg = ""  # Not used - DiT has no negative prompt
+            
+            # Enhance prompt with audio quality for text2music
+            effective_prompt = prompt.strip() if prompt else ""
+            if task_type == "text2music" and effective_prompt:
+                effective_prompt = effective_prompt + AUDIO_QUALITY_PROMPT
 
             # ── Optimizări pentru audio cover ──────────────────────────────────
             effective_duration = duration  # folosim durata exactă setată de utilizator
@@ -2629,7 +2637,7 @@ async def ace_generate(
             
             task_payload = {
                 # Core parameters (ACE-Step official - GenerateMusicRequest)
-                "prompt": prompt.strip() if prompt else "",
+                "prompt": effective_prompt,  # Enhanced with audio quality for text2music
                 "global_caption": "",  # For lego SFT (empty for text2music)
                 "lyrics": "" if instrumental else (lyrics.strip() if lyrics else ""),
                 
