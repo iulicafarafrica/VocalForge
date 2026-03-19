@@ -1306,6 +1306,8 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
         
         print(f"[Audio Enhancement] Applying audio-optimizer ({strength})...")
         print(f"[Audio Enhancement] Filters: {filter_chain}")
+        print(f"[Audio Enhancement] Input: {audio_path}")
+        print(f"[Audio Enhancement] Output: {output_path}")
         
         # Run ffmpeg
         cmd = [
@@ -1317,15 +1319,23 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
             output_path
         ]
         
+        print(f"[Audio Enhancement] Running: {' '.join(cmd)}")
+        
         result = subprocess.run(cmd, capture_output=True, text=True)
         
-        if result.returncode != 0:
-            print(f"[Audio Enhancement] ❌ FFmpeg failed: {result.stderr}")
+        # Log ffmpeg output
+        if result.returncode == 0:
+            # Parse ffmpeg output for audio info
+            for line in result.stderr.split('\n'):
+                if 'Stream #' in line and 'Audio:' in line:
+                    print(f"[Audio Enhancement] {line.strip()}")
+            print(f"[Audio Enhancement] ✅ Audio-optimizer complete")
+            print(f"[Audio Enhancement] Output: {output_path}")
+            return True
+        else:
+            print(f"[Audio Enhancement] ❌ FFmpeg failed (code {result.returncode})")
+            print(f"[Audio Enhancement] FFmpeg stderr: {result.stderr[:500]}")
             return False
-        
-        print(f"[Audio Enhancement] ✅ Audio-optimizer complete")
-        print(f"[Audio Enhancement] Output: {output_path}")
-        return True
         
     except Exception as e:
         print(f"[Audio Enhancement] ❌ Failed: {e}")
