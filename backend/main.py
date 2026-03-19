@@ -1232,25 +1232,25 @@ async def demucs_separate(
 
 def apply_audio_enhancement(audio_path: str, output_path: str = None):
     """
-    Apply AI-powered noise reduction using RNNoise.
+    Apply AI-powered noise reduction using noisereduce (spectral gating).
     
     Enhancement:
-    - RNNoise AI Denoising: Removes background hiss while preserving audio quality
+    - Noisereduce AI Denoising: Removes background hiss while preserving audio quality
     - Processing time: ~3-5 seconds for typical 3-minute track
     
-    RNNoise is a professional AI denoising library used by Discord, Zoom, etc.
+    Noisereduce uses spectral gating - same technique as iZotope RX, Adobe Audition.
     """
     try:
         import soundfile as sf
         import numpy as np
         
-        # Try to import rnnoise (optional dependency)
+        # Try to import noisereduce (optional dependency)
         try:
-            import rnnoise
-            rnnoise_available = True
+            import noisereduce as nr
+            noisereduce_available = True
         except ImportError:
-            print(f"[Audio Enhancement] ⚠️ RNNoise not installed. Install with: pip install rnnoise")
-            rnnoise_available = False
+            print(f"[Audio Enhancement] ⚠️ Noisereduce not installed. Install with: pip install noisereduce")
+            noisereduce_available = False
         
         if output_path is None:
             output_path = audio_path
@@ -1263,55 +1263,41 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None):
         if not is_stereo:
             y = y.reshape(-1, 1)
         
-        # ========== RNNOISE AI DENOISING ==========
-        if rnnoise_available:
-            print(f"[Audio Enhancement] Applying RNNoise AI denoising...")
+        # ========== NOISEREDUCE AI DENOISING ==========
+        if noisereduce_available:
+            print(f"[Audio Enhancement] Applying Noisereduce AI denoising...")
             try:
-                # RNNoise expects mono 48kHz audio
                 # Process each channel separately
                 for ch in range(y.shape[1]):
-                    # Resample to 48kHz if needed
-                    if sr != 48000:
-                        import librosa
-                        channel_48k = librosa.resample(y[:, ch], orig_sr=sr, target_sr=48000)
-                    else:
-                        channel_48k = y[:, ch]
-                    
-                    # RNNoise processes in frames of 480 samples (10ms at 48kHz)
-                    frame_size = 480
-                    n_frames = len(channel_48k) // frame_size
-                    
-                    denoised_48k = np.zeros(len(channel_48k))
-                    
-                    # Create RNNoise state
-                    rn = rnnoise.RNNoise()
-                    
-                    # Process frame by frame
-                    for i in range(n_frames):
-                        start = i * frame_size
-                        end = start + frame_size
-                        frame = channel_48k[start:end]
+                    # Apply spectral gating noise reduction
+                    # Parameters optimized for music (preserve quality)
+                    y[:, ch] = nr.reduce_noise(
+                        y=y[:, ch],
+                        sr=sr,
                         
-                        # Apply RNNoise
-                        denoised_frame = rn.process_frame(frame)
-                        denoised_48k[start:end] = denoised_frame
-                    
-                    # Resample back to original sample rate
-                    if sr != 48000:
-                        import librosa
-                        y[:, ch] = librosa.resample(denoised_48k, orig_sr=48000, target_sr=sr)
-                    else:
-                        y[:, ch] = denoised_48k
-                    
-                    # Clean up
-                    del rn
+                        # Noise reduction strength
+                        prop_decrease=0.75,      # Reduce noise by 75% (preserve some ambiance)
+                        
+                        # Frequency smoothing
+                        freq_smooth_time=0.004,  # 4ms smoothing (preserve transients)
+                        
+                        # Time smoothing  
+                        time_smooth_time=0.004,  # 4ms smoothing (avoid artifacts)
+                        
+                        # Noise gate
+                        threshold=(-50, -20),    # Gate between -50dB and -20dB
+                        
+                        # Preserve audio quality
+                        use_spectral_subtraction=True,  # Better for music
+                        stationary=True,                # Assume stationary noise (hiss)
+                    )
                 
-                print(f"[Audio Enhancement] ✅ RNNoise complete")
+                print(f"[Audio Enhancement] ✅ Noisereduce complete")
                 
             except Exception as e:
-                print(f"[Audio Enhancement] ⚠️ RNNoise failed: {e}, using original audio")
+                print(f"[Audio Enhancement] ⚠️ Noisereduce failed: {e}, using original audio")
         else:
-            print(f"[Audio Enhancement] ⚠️ RNNoise not available, skipping denoising")
+            print(f"[Audio Enhancement] ⚠️ Noisereduce not available, skipping denoising")
         
         # Save enhanced audio
         if is_stereo:

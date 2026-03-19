@@ -10,4 +10,4 @@ pydantic>=2.0.0
 aiofiles>=23.0.0
 python-multipart>=0.0.6
 lyricsgenius>=3.2.0  # Genius.com API client for lyrics
-rnnoise>=0.2.0  # AI-powered noise reduction (Discord, Zoom quality)
+noisereduce>=3.0.0  # AI-powered noise reduction (spectral gating, like iZotope RX)
