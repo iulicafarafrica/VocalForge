@@ -1265,24 +1265,24 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
         if output_path is None:
             output_path = audio_path
         
-        # Strength presets - optimized for DRUMS hiss (preserve vocals)
+        # Strength presets - optimized for DRUMS hiss (preserve vocals) + MORE BASS
         PRESETS = {
             "low": {
                 "prop_decrease": 0.25,     # Very gentle (preserve vocals)
                 "lowpass_freq": 19000,     # Only remove extreme highs
-                "bass_boost_db": 3,
+                "bass_boost_db": 6,        # +6dB @ 80Hz (noticeable boost)
                 "bass_freq": 80,
             },
             "medium": {
                 "prop_decrease": 0.35,     # Conservative
                 "lowpass_freq": 17000,     # Remove cymbal hiss
-                "bass_boost_db": 4,
+                "bass_boost_db": 8,        # +8dB @ 80Hz (strong boost)
                 "bass_freq": 80,
             },
             "high": {
                 "prop_decrease": 0.45,     # Moderate
                 "lowpass_freq": 15000,     # Aggressive on hiss
-                "bass_boost_db": 5,
+                "bass_boost_db": 10,       # +10dB @ 80Hz (very strong)
                 "bass_freq": 80,
             },
         }
