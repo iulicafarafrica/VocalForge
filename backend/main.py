@@ -1232,22 +1232,24 @@ async def demucs_separate(
 
 @app.post("/detect_bpm_key")
 async def detect_bpm_key(file: UploadFile = File(...)):
-    """Detect BPM, musical key, time signature and duration from uploaded audio."""
+    """Detect BPM, musical key, time signature, duration, loudness, frequency spectrum, and energy/mood."""
     try:
         import librosa
+        from scipy.signal import butter, lfilter
 
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
             tmp.write(await file.read())
             tmp_path = tmp.name
 
-        y, sr = librosa.load(tmp_path, sr=None, duration=30)
+        # Load first 30 seconds (fast analysis)
+        y, sr = librosa.load(tmp_path, sr=None, duration=30, mono=True)
         os.unlink(tmp_path)
 
-        # BPM Detection
-        tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
+        # ========== BPM Detection ==========
+        tempo, beats = librosa.beat.beat_track(y=y, sr=sr)
         bpm = round(float(tempo), 1)
 
-        # Key Detection (Krumhansl-Schmuckler profiles)
+        # ========== Key Detection ==========
         major_profile = np.array([6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88])
         minor_profile = np.array([6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17])
 
@@ -1255,17 +1257,14 @@ async def detect_bpm_key(file: UploadFile = File(...)):
         avg_chroma = np.mean(chroma, axis=1)
 
         note_names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-
         best_score = -np.inf
         best_key = "C major"
 
         for i in range(12):
             rotated_major = np.roll(major_profile, i)
             rotated_minor = np.roll(minor_profile, i)
-
             score_major = np.corrcoef(avg_chroma, rotated_major)[0, 1]
             score_minor = np.corrcoef(avg_chroma, rotated_minor)[0, 1]
-
             if score_major > best_score:
                 best_score = score_major
                 best_key = f"{note_names[i]} major"
@@ -1273,45 +1272,134 @@ async def detect_bpm_key(file: UploadFile = File(...)):
                 best_score = score_minor
                 best_key = f"{note_names[i]} minor"
 
-        # Time Signature Estimation (simplified)
-        # Analyze beat strength patterns
+        # ========== Time Signature ==========
         onset_env = librosa.onset.onset_strength(y=y, sr=sr)
-        tempo, beats = librosa.beat.beat_track(y=y, sr=sr)
-        
-        # Calculate beat intervals
         if len(beats) > 1:
-            beat_intervals = np.diff(beats)
-            # Check for common time signatures
-            # 4/4: Most common, even intervals
-            # 3/4: Waltz pattern (strong-weak-weak)
-            # 6/8: Compound duple (two groups of three)
-            
-            # Simple heuristic: variance in beat strength
             beat_strength = onset_env[beats.astype(int)]
             variance = np.var(beat_strength)
-            
             if variance < 0.1:
-                time_sig = "4"  # 4/4 - most common
+                time_sig = "4"
             elif variance < 0.3:
-                time_sig = "3"  # 3/4 - waltz
+                time_sig = "3"
             else:
-                time_sig = "4"  # Default to 4/4
+                time_sig = "4"
         else:
             time_sig = "4"
 
-        # Duration
+        # ========== Duration ==========
         duration = round(librosa.get_duration(y=y, sr=sr), 1)
+
+        # ========== LOUDNESS ANALYSIS ==========
+        # RMS (Root Mean Square)
+        rms = librosa.feature.rms(y=y, frame_length=2048, hop_length=512)[0]
+        rms_db = librosa.amplitude_to_db(rms, ref=np.max)
+        avg_rms_db = round(float(np.mean(rms_db)), 2)
+
+        # True Peak
+        true_peak = float(np.max(np.abs(y)))
+        true_peak_db = round(20 * np.log10(true_peak + 1e-10), 2)
+
+        # Dynamic Range (difference between peak and RMS)
+        dynamic_range = round(true_peak_db - avg_rms_db, 2)
+
+        # LUFS approximation (simplified K-weighting)
+        y_mono = y if len(y.shape) == 1 else np.mean(y, axis=1)
+        b, a = butter(2, 150 / (sr / 2), btype='high')
+        y_filtered = lfilter(b, a, y_mono)
+        power = np.mean(y_filtered ** 2)
+        lufs = round(10 * np.log10(power + 1e-10) - 0.691, 2)
+
+        # Loudness category
+        if lufs > -10:
+            loudness_category = "Very Loud (Club/DJ)"
+        elif lufs > -14:
+            loudness_category = "Loud (Streaming)"
+        elif lufs > -18:
+            loudness_category = "Moderate"
+        else:
+            loudness_category = "Quiet"
+
+        # ========== FREQUENCY SPECTRUM ==========
+        # Use mel spectrogram for frequency analysis
+        mel = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=128, hop_length=512)
+        mel_db = librosa.power_to_db(mel, ref=np.max)
+        
+        # Split into bass/mid/high bands
+        bass_bands = mel_db[:40, :]  # ~20-250 Hz
+        mid_bands = mel_db[40:90, :]  # ~250-4000 Hz
+        high_bands = mel_db[90:, :]  # ~4000-20000 Hz
+        
+        total_energy = np.sum(mel_db) + 1e-6
+        bass_percent = int(np.clip(np.sum(bass_bands) / total_energy * 100, 0, 100))
+        mid_percent = int(np.clip(np.sum(mid_bands) / total_energy * 100, 0, 100))
+        high_percent = 100 - bass_percent - mid_percent  # Ensure sums to 100
+
+        # Frequency description
+        if bass_percent > 45:
+            freq_description = "Bass-heavy"
+        elif bass_percent < 20:
+            freq_description = "Treble-heavy"
+        else:
+            freq_description = "Balanced"
+        if high_percent > 30:
+            freq_description += " - Bright"
+
+        # ========== ENERGY & MOOD ==========
+        # Energy (based on RMS)
+        energy = round(float(np.clip(np.mean(rms) * 500, 0, 100)), 1)
+        
+        # Danceability (based on onset strength variance)
+        onset_variance = float(np.std(onset_env))
+        danceability = round(float(np.clip(onset_variance * 50, 0, 100)), 1)
+        
+        # Valence (positivity - based on chroma distribution)
+        chroma_std = np.std(chroma)
+        valence = round(float(np.clip(0.5 + (chroma_std - 0.3) / 0.4, 0, 1)), 2)
+        
+        # Mood labels
+        mood_labels = []
+        if energy > 70:
+            mood_labels.append("Energetic")
+        elif energy < 30:
+            mood_labels.append("Calm")
+        if valence > 0.6:
+            mood_labels.append("Happy")
+        elif valence < 0.4:
+            mood_labels.append("Sad")
+        if not mood_labels:
+            mood_labels.append("Neutral")
 
         return {
             "bpm": bpm,
             "key": best_key,
             "time_signature": time_sig,
             "duration": duration,
+            "loudness": {
+                "lufs": lufs,
+                "rms_db": avg_rms_db,
+                "true_peak_db": true_peak_db,
+                "dynamic_range": dynamic_range,
+                "category": loudness_category,
+            },
+            "frequency_spectrum": {
+                "bass_percent": bass_percent,
+                "mid_percent": mid_percent,
+                "high_percent": high_percent,
+                "description": freq_description,
+            },
+            "energy_mood": {
+                "energy": energy,
+                "danceability": danceability,
+                "valence": valence,
+                "mood_labels": mood_labels,
+                "description": f"Energy: {energy:.0f}%, Danceability: {danceability:.0f}%",
+            },
             "status": "ok"
         }
 
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        import traceback
+        return JSONResponse(status_code=500, content={"error": str(e), "traceback": traceback.format_exc()})
 
 
 # ──────────────────────────────────────────────────────────────────────────────
