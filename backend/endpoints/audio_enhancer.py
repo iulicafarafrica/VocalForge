@@ -330,9 +330,9 @@ def enhance_audio_file(file_path: str, strength: str = "light") -> str:
     
     # Presets (same as above)
     PRESETS = {
-        "light": {"highpass": "20", "afftdn": "nr=15"},
-        "medium": {"highpass": "20", "afftdn": "nr=20"},
-        "aggressive": {"highpass": "20", "afftdn": "nr=25"},
+        "light": {"highpass": "20", "afftdn": "nr=25"},      # Moderate hiss reduction
+        "medium": {"highpass": "20", "afftdn": "nr=35"},     # Strong hiss reduction
+        "aggressive": {"highpass": "20", "afftdn": "nr=45"}, # Very strong hiss reduction
     }
     
     preset = PRESETS.get(strength, PRESETS["light"])
