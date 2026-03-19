@@ -340,7 +340,7 @@ def enhance_audio_file(file_path: str, strength: str = "light") -> str:
     }
     
     preset = PRESETS.get(strength, PRESETS["light"])
-    
+
     # Build filter chain
     filters = [
         f"highpass=f={preset['highpass']}",
@@ -350,10 +350,13 @@ def enhance_audio_file(file_path: str, strength: str = "light") -> str:
     # Add EQ if specified (for medium preset)
     if preset.get('eq', ''):
         filters.append(preset['eq'])
+        print(f"[Audio Enhancer] 🎚️ EQ applied: {preset['eq']}")
     
     filters.append("loudnorm=I=-14:TP=-1.5:LRA=11")
 
     filter_chain = ','.join(filters)
+    
+    print(f"[Audio Enhancer] Filters: {filter_chain}")
     
     # Run ffmpeg
     cmd = [
