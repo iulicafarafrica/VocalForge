@@ -1248,7 +1248,10 @@ export default function AceStepTab({
       }
     };
 
-    fetch(`${API}/acestep_genre_presets`, { signal: controller.signal })
+    fetch(`${API}/acestep_genre_presets`, { 
+      method: 'GET',
+      signal: controller.signal 
+    })
       .then((r) => r.json())
       .then(applyData)
       .catch(() => {

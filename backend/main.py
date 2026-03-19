@@ -2591,7 +2591,7 @@ async def ace_generate(
     # Check ACE-Step is online (with retry)
     for retry in range(3):
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            async with httpx.AsyncClient(timeout=30.0) as client:
                 health = await client.get(f"{ACE_STEP_API}/health")
                 if health.status_code == 200:
                     print(f"[ACE {job_id[:8]}] ✓ ACE-Step online (attempt {retry+1})")
@@ -2600,7 +2600,7 @@ async def ace_generate(
         except Exception as e:
             print(f"[ACE {job_id[:8]}] ⚠ Health check failed (attempt {retry+1}): {e}")
             if retry < 2:
-                await asyncio.sleep(1)  # Wait 1s before retry
+                await asyncio.sleep(2)  # Wait 2s before retry (ACE-Step may be waking up)
             else:
                 logger.error("[ACE] ACE-Step server is offline after 3 retries")
                 return JSONResponse(status_code=503, content={
@@ -2620,7 +2620,7 @@ async def ace_generate(
             model_init_needed = False
             try:
                 # First check if model is already loaded via /v1/models
-                models_response = await client.get(f"{ACE_STEP_API}/v1/models", timeout=10.0)
+                models_response = await client.get(f"{ACE_STEP_API}/v1/models", timeout=30.0)
                 if models_response.status_code == 200:
                     models_data = models_response.json()
                     # Handle both wrapped {code, data} and direct responses
