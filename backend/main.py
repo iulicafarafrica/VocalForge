@@ -1265,25 +1265,25 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
         if output_path is None:
             output_path = audio_path
         
-        # Strength presets - optimized for DRUMS hiss (preserve vocals) + MORE BASS
+        # Strength presets - optimized for DRUMS hiss (preserve vocals) + DEEP BASS
         PRESETS = {
             "low": {
-                "prop_decrease": 0.25,     # Very gentle (preserve vocals)
-                "lowpass_freq": 19000,     # Only remove extreme highs
-                "bass_boost_db": 6,        # +6dB @ 80Hz (noticeable boost)
-                "bass_freq": 80,
+                "prop_decrease": 0.30,     # Gentle noise reduction
+                "lowpass_freq": 15000,     # Remove highs above 15kHz
+                "bass_boost_db": 6,        # +6dB @ 60Hz (deep bass)
+                "bass_freq": 60,           # Deeper than 80Hz, no hiss
             },
             "medium": {
-                "prop_decrease": 0.35,     # Conservative
-                "lowpass_freq": 17000,     # Remove cymbal hiss
-                "bass_boost_db": 8,        # +8dB @ 80Hz (strong boost)
-                "bass_freq": 80,
+                "prop_decrease": 0.40,     # Moderate noise reduction
+                "lowpass_freq": 14000,     # Remove cymbals hiss
+                "bass_boost_db": 8,        # +8dB @ 60Hz (strong deep bass)
+                "bass_freq": 60,
             },
             "high": {
-                "prop_decrease": 0.45,     # Moderate
-                "lowpass_freq": 15000,     # Aggressive on hiss
-                "bass_boost_db": 10,       # +10dB @ 80Hz (very strong)
-                "bass_freq": 80,
+                "prop_decrease": 0.50,     # Aggressive noise reduction
+                "lowpass_freq": 13000,     # Very aggressive on hiss
+                "bass_boost_db": 10,       # +10dB @ 60Hz (very strong)
+                "bass_freq": 60,
             },
         }
         
