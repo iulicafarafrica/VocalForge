@@ -98,7 +98,13 @@ async def _process_noise_removal(input_path: str, job_id: str, strength: str):
     - medium: Moderate noise reduction
     - aggressive: Strong noise reduction
     """
-    output_path = os.path.join(TEMP_DIR, f"cleaned_{job_id}.wav")
+    # Save to output directory (so /tracks/ can serve it)
+    from pathlib import Path
+    output_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "output")
+    os.makedirs(output_dir, exist_ok=True)
+    
+    output_filename = f"cleaned_{job_id}.wav"
+    output_path = os.path.join(output_dir, output_filename)
     
     # Strength presets - ffmpeg filter chains
     PRESETS = {
@@ -151,9 +157,9 @@ async def _process_noise_removal(input_path: str, job_id: str, strength: str):
     print(f"[Audio Enhancer] ✅ Noise removal complete")
     
     return [{
-        "filename": f"cleaned_{job_id}.wav",
+        "filename": output_filename,
         "path": output_path,
-        "url": f"/tracks/cleaned_{job_id}.wav",
+        "url": f"/tracks/{output_filename}",
         "type": "cleaned_audio",
     }]
 
@@ -164,8 +170,14 @@ async def _process_vocal_separation(input_path: str, job_id: str):
     Note: This is a simple frequency-based separation.
     For better results, use Demucs or Spleeter.
     """
-    vocals_path = os.path.join(TEMP_DIR, f"vocals_{job_id}.wav")
-    instrumental_path = os.path.join(TEMP_DIR, f"instrumental_{job_id}.wav")
+    # Save to output directory (so /tracks/ can serve it)
+    output_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "output")
+    os.makedirs(output_dir, exist_ok=True)
+    
+    vocals_filename = f"vocals_{job_id}.wav"
+    instrumental_filename = f"instrumental_{job_id}.wav"
+    vocals_path = os.path.join(output_dir, vocals_filename)
+    instrumental_path = os.path.join(output_dir, instrumental_filename)
     
     # Simple vocal extraction using sidechain filtering
     # This is a basic approach - Demucs would be better for production
@@ -216,15 +228,15 @@ async def _process_vocal_separation(input_path: str, job_id: str):
     
     return [
         {
-            "filename": f"vocals_{job_id}.wav",
+            "filename": vocals_filename,
             "path": vocals_path,
-            "url": f"/tracks/vocals_{job_id}.wav",
+            "url": f"/tracks/{vocals_filename}",
             "type": "vocals",
         },
         {
-            "filename": f"instrumental_{job_id}.wav",
+            "filename": instrumental_filename,
             "path": instrumental_path,
-            "url": f"/tracks/instrumental_{job_id}.wav",
+            "url": f"/tracks/{instrumental_filename}",
             "type": "instrumental",
         },
     ]
