@@ -1370,24 +1370,24 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
                 
                 print(f"[Audio Enhancement] ✅ Stage 3: Bass boost (+{bass_gain_db}dB @ {bass_freq}Hz)")
         
-        # ========== STAGE 4: LOUDNESS MATCHING ==========
+        # ========== STAGE 4: LOUDNESS MATCHING + VOLUME BOOST ==========
         # Measure processed loudness
         processed_rms = np.sqrt(np.mean(audio ** 2))
         processed_peak = np.max(np.abs(audio))
         
-        # Calculate gain to match original loudness
+        # Calculate gain to match original loudness + BOOST volume by 20%
         if processed_rms > 0:
-            gain_factor = original_rms / processed_rms
+            gain_factor = (original_rms / processed_rms) * 1.20  # +20% volume boost
             audio = audio * gain_factor
             
-            # Prevent clipping - limit to original peak or 0.95 (whichever is lower)
-            max_allowed = min(original_peak, 0.95)
+            # Prevent clipping - limit to 0.98 (max volume without clipping)
+            max_allowed = 0.98
             current_peak = np.max(np.abs(audio))
             if current_peak > max_allowed:
                 audio = audio * (max_allowed / current_peak)
                 print(f"[Audio Enhancement] ✅ Limited to prevent clipping")
             
-            print(f"[Audio Enhancement] ✅ Stage 4: Loudness matched (gain={gain_factor:.4f})")
+            print(f"[Audio Enhancement] ✅ Stage 4: Loudness matched + volume boosted (+20%)")
         
         # Save output (24-bit WAV for quality)
         if is_mono:
