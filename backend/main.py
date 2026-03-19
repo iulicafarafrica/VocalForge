@@ -3067,20 +3067,20 @@ async def ace_generate(
 
                     print(f"[ACE {job_id[:8]}] Done in {t_sec}s — {duration_sec}s audio ({out_size_mb}MB)")
 
-                    # ========== AUDIO ENHANCEMENT (SunoDehiss) - DISABLED ==========
-                    # DISABLED FOR TESTING - Uncomment to re-enable SunoDehiss
-                    # if audio_format == "wav" and ai_denoising_strength != "off":
-                    #     enhance_start = time.time()
-                    #     print(f"[ACE {job_id[:8]}] 🔧 Applying SunoDehiss ({ai_denoising_strength})...")
-                    #     enhance_success = apply_audio_enhancement(out_path, strength=ai_denoising_strength)
-                    #     enhance_time = round(time.time() - enhance_start, 1)
-                    #     if enhance_success:
-                    #         print(f"[ACE {job_id[:8]}] ✅ SunoDehiss complete (+{enhance_time}s)")
-                    #         out_size_mb = round(os.path.getsize(out_path) / 1024 / 1024, 2)
-                    #     else:
-                    #         print(f"[ACE {job_id[:8]}] ⚠️ SunoDehiss failed, using original")
-                    # elif audio_format == "wav" and ai_denoising_strength == "off":
-                    #     print(f"[ACE {job_id[:8]}] ⚠️ AI Dehissing disabled by user")
+                    # ========== AUDIO ENHANCEMENT (audio-optimizer) ==========
+                    # Apply ffmpeg-based audio enhancement (WAV only)
+                    if audio_format == "wav" and ai_denoising_strength != "off":
+                        enhance_start = time.time()
+                        print(f"[ACE {job_id[:8]}] 🔧 Applying audio-optimizer ({ai_denoising_strength})...")
+                        enhance_success = apply_audio_enhancement(out_path, strength=ai_denoising_strength)
+                        enhance_time = round(time.time() - enhance_start, 1)
+                        if enhance_success:
+                            print(f"[ACE {job_id[:8]}] ✅ Audio-optimizer complete (+{enhance_time}s)")
+                            out_size_mb = round(os.path.getsize(out_path) / 1024 / 1024, 2)
+                        else:
+                            print(f"[ACE {job_id[:8]}] ⚠️ Audio-optimizer failed, using original")
+                    elif audio_format == "wav" and ai_denoising_strength == "off":
+                        print(f"[ACE {job_id[:8]}] ⚠️ Audio enhancement disabled by user")
                     # =======================================================
 
                     # RAM Management: Force garbage collection to prevent memory leaks
