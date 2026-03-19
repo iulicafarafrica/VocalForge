@@ -1232,174 +1232,99 @@ async def demucs_separate(
 
 def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: str = "medium"):
     """
-    SunoDehiss-inspired audio dehissing for AI-generated music.
+    Audio Optimizer - ffmpeg-based professional audio enhancement.
+    Based on: https://github.com/TonyBY/audio-optimizer
     
-    Optimized for drums/cymbals hiss (vocal stays clean).
-    
-    Complete pipeline:
-    1. Gentle noise reduction (doesn't affect vocals)
-    2. Low-pass filter (removes cymbal/drums hiss)
-    3. BASS BOOST (rich, warm bass at 80Hz)
-    4. Loudness matching (preserves original volume)
+    Pipeline:
+    1. High-pass filter @ 80Hz (remove rumble)
+    2. Parametric EQ (vocal profile: tenor)
+    3. Loudness normalization (-14 LUFS for streaming)
+    4. Light reverb (optional)
     
     Strength presets:
-    - low: noise -25%, lowpass 19kHz, bass +3dB
-    - medium: noise -35%, lowpass 17kHz, bass +4dB
-    - high: noise -45%, lowpass 15kHz, bass +5dB
-    
-    Reference: https://github.com/riskbreaker113/SunoDehiss
+    - low: light EQ, -16 LUFS, no reverb
+    - medium: full EQ, -14 LUFS, light reverb
+    - high: aggressive EQ, -12 LUFS, medium reverb
     """
     try:
-        import soundfile as sf
-        import numpy as np
-        from scipy.signal import butter, sosfilt
-        
-        # Try to import noisereduce
-        try:
-            import noisereduce as nr
-            noisereduce_available = True
-        except ImportError:
-            print(f"[Audio Enhancement] ⚠️ Noisereduce not installed. Install with: pip install noisereduce")
-            return False
+        import subprocess
+        import os
         
         if output_path is None:
             output_path = audio_path
         
-        # Strength presets - optimized for DRUMS hiss (preserve vocals) + DEEP BASS
+        # Check if ffmpeg is available
+        try:
+            subprocess.run(['ffmpeg', '-version'], capture_output=True, check=True)
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            print(f"[Audio Enhancement] ⚠️ FFmpeg not found. Install ffmpeg first.")
+            return False
+        
+        # Strength presets - ffmpeg filter chains
         PRESETS = {
             "low": {
-                "prop_decrease": 0.30,     # Gentle noise reduction
-                "lowpass_freq": 15000,     # Remove highs above 15kHz
-                "bass_boost_db": 6,        # +6dB @ 60Hz (deep bass)
-                "bass_freq": 60,           # Deeper than 80Hz, no hiss
+                "highpass": "80",           # HPF @ 80Hz
+                "eq": "equalizer=f=250:t=q:w=1:g=-3,equalizer=f=3000:t=q:w=1:g=2",  # Light EQ
+                "loudnorm": "I=-16:TP=-1.5:LRA=11",  # -16 LUFS
+                "reverb": "",               # No reverb
             },
             "medium": {
-                "prop_decrease": 0.40,     # Moderate noise reduction
-                "lowpass_freq": 14000,     # Remove cymbals hiss
-                "bass_boost_db": 8,        # +8dB @ 60Hz (strong deep bass)
-                "bass_freq": 60,
+                "highpass": "80",
+                "eq": "equalizer=f=300:t=q:w=1:g=-2,equalizer=f=3500:t=q:w=1:g=2.5,equalizer=f=7000:t=q:w=1:g=-2,equalizer=f=11000:t=q:w=1:g=1.5",  # Tenor profile
+                "loudnorm": "I=-14:TP=-1.5:LRA=11",  # -14 LUFS (streaming standard)
+                "reverb": "aecho=0.8:0.9:1000:0.3",  # Light reverb
             },
             "high": {
-                "prop_decrease": 0.50,     # Aggressive noise reduction
-                "lowpass_freq": 13000,     # Very aggressive on hiss
-                "bass_boost_db": 10,       # +10dB @ 60Hz (very strong)
-                "bass_freq": 60,
+                "highpass": "90",           # More aggressive HPF
+                "eq": "equalizer=f=350:t=q:w=1:g=-3,equalizer=f=4000:t=q:w=1:g=3,equalizer=f=8000:t=q:w=1:g=-3,equalizer=f=12000:t=q:w=1:g=2",  # Female profile
+                "loudnorm": "I=-12:TP=-1.5:LRA=11",  # -12 LUFS (louder)
+                "reverb": "aecho=0.8:0.9:800:0.4",  # Medium reverb
             },
         }
         
         preset = PRESETS.get(strength, PRESETS["medium"])
         
-        # Load audio
-        audio, sr = sf.read(audio_path, dtype='float64')
+        # Build ffmpeg filter chain
+        filters = []
         
-        # Measure ORIGINAL loudness (RMS) before processing
-        original_rms = np.sqrt(np.mean(audio ** 2))
-        original_peak = np.max(np.abs(audio))
-        print(f"[Audio Enhancement] Original: RMS={original_rms:.4f}, Peak={original_peak:.4f}")
+        # Stage 1: High-pass filter
+        filters.append(f"highpass=f={preset['highpass']}")
         
-        # If mono, convert to 2D for consistent processing
-        is_mono = audio.ndim == 1
-        if is_mono:
-            audio = audio.reshape(-1, 1)
+        # Stage 2: Parametric EQ
+        if preset['eq']:
+            filters.append(preset['eq'])
         
-        # ========== STAGE 1: GENTLE NOISE REDUCTION (preserve vocals) ==========
-        if noisereduce_available:
-            print(f"[Audio Enhancement] Stage 1: Noise reduction ({strength})...")
-            try:
-                channels = []
-                for ch in range(audio.shape[1]):
-                    ch_cleaned = nr.reduce_noise(
-                        y=audio[:, ch],
-                        sr=sr,
-                        stationary=True,
-                        prop_decrease=preset["prop_decrease"],
-                        n_fft=2048,
-                        freq_mask_smooth_hz=1000,    # More smoothing = preserve vocals
-                        time_mask_smooth_ms=100,     # More smoothing = natural
-                        n_std_thresh_stationary=2.5, # Higher = only obvious noise
-                    )
-                    channels.append(ch_cleaned)
-                audio = np.column_stack(channels)
-                print(f"[Audio Enhancement] ✅ Stage 1: Noise reduction complete (gentle)")
-            except Exception as e:
-                print(f"[Audio Enhancement] ⚠️ Stage 1 failed: {e}")
-        else:
-            print(f"[Audio Enhancement] ⚠️ Noisereduce not available")
+        # Stage 3: Loudness normalization
+        filters.append(f"loudnorm={preset['loudnorm']}")
+        
+        # Stage 4: Reverb (if enabled)
+        if preset['reverb']:
+            filters.append(preset['reverb'])
+        
+        # Join filters
+        filter_chain = ','.join(filters)
+        
+        print(f"[Audio Enhancement] Applying audio-optimizer ({strength})...")
+        print(f"[Audio Enhancement] Filters: {filter_chain}")
+        
+        # Run ffmpeg
+        cmd = [
+            'ffmpeg', '-y',
+            '-i', audio_path,
+            '-af', filter_chain,
+            '-ar', '44100',  # 44.1kHz sample rate
+            '-acodec', 'pcm_s24le',  # 24-bit WAV
+            output_path
+        ]
+        
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            print(f"[Audio Enhancement] ❌ FFmpeg failed: {result.stderr}")
             return False
         
-        # ========== STAGE 2: LOW-PASS FILTER (remove drums/cymbals hiss) ==========
-        lowpass_freq = preset["lowpass_freq"]
-        if lowpass_freq is not None:
-            nyquist = sr / 2.0
-            if lowpass_freq < nyquist:
-                normalized_cutoff = lowpass_freq / nyquist
-                sos = butter(5, normalized_cutoff, btype='low', output='sos')
-                
-                for ch in range(audio.shape[1]):
-                    audio[:, ch] = sosfilt(sos, audio[:, ch])
-                
-                print(f"[Audio Enhancement] ✅ Stage 2: Low-pass filter @ {lowpass_freq/1000}kHz (removes drums hiss)")
-        
-        # ========== STAGE 3: BASS BOOST (rich, warm bass) ==========
-        bass_freq = preset["bass_freq"]
-        bass_gain_db = preset["bass_boost_db"]
-        
-        if bass_gain_db > 0:
-            from scipy.signal import lfilter
-            
-            nyquist = sr / 2.0
-            if bass_freq < nyquist:
-                # Low-shelf boost for bass
-                A = 10 ** (bass_gain_db / 40.0)
-                w0 = 2 * np.pi * bass_freq / sr
-                alpha = np.sin(w0) / (2 * 1.0)  # Q=1.0 for smooth bass
-                
-                b = [A * ((A + 1) - (A - 1) * np.cos(w0) + 2 * np.sqrt(A) * alpha),
-                     2 * A * ((A - 1) - (A + 1) * np.cos(w0)),
-                     A * ((A + 1) - (A - 1) * np.cos(w0) - 2 * np.sqrt(A) * alpha)]
-                a = [(A + 1) + (A - 1) * np.cos(w0) + 2 * np.sqrt(A) * alpha,
-                     -2 * ((A - 1) + (A + 1) * np.cos(w0)),
-                     (A + 1) + (A - 1) * np.cos(w0) - 2 * np.sqrt(A) * alpha]
-                
-                # Normalize
-                b = [x / a[0] for x in b]
-                a = [x / a[0] for x in a]
-                
-                for ch in range(audio.shape[1]):
-                    audio[:, ch] = lfilter(b, a, audio[:, ch])
-                
-                print(f"[Audio Enhancement] ✅ Stage 3: Bass boost (+{bass_gain_db}dB @ {bass_freq}Hz)")
-        
-        # ========== STAGE 4: LOUDNESS MATCHING + VOLUME BOOST ==========
-        # Measure processed loudness
-        processed_rms = np.sqrt(np.mean(audio ** 2))
-        processed_peak = np.max(np.abs(audio))
-        
-        # Calculate gain to match original loudness + BOOST volume by 20%
-        if processed_rms > 0:
-            gain_factor = (original_rms / processed_rms) * 1.20  # +20% volume boost
-            audio = audio * gain_factor
-            
-            # Prevent clipping - limit to 0.98 (max volume without clipping)
-            max_allowed = 0.98
-            current_peak = np.max(np.abs(audio))
-            if current_peak > max_allowed:
-                audio = audio * (max_allowed / current_peak)
-                print(f"[Audio Enhancement] ✅ Limited to prevent clipping")
-            
-            print(f"[Audio Enhancement] ✅ Stage 4: Loudness matched + volume boosted (+20%)")
-        
-        # Save output (24-bit WAV for quality)
-        if is_mono:
-            sf.write(output_path, audio.flatten(), sr, subtype='PCM_24')
-        else:
-            sf.write(output_path, audio, sr, subtype='PCM_24')
-        
-        # Verify output
-        verify_audio, _ = sf.read(output_path, dtype='float64')
-        verify_rms = np.sqrt(np.mean(verify_audio ** 2))
-        print(f"[Audio Enhancement] ✅ Output: RMS={verify_rms:.4f} (original: {original_rms:.4f})")
-        print(f"[Audio Enhancement] ✅ SunoDehiss complete - drums hiss removed, bass boosted")
+        print(f"[Audio Enhancement] ✅ Audio-optimizer complete")
+        print(f"[Audio Enhancement] Output: {output_path}")
         return True
         
     except Exception as e:
@@ -3132,20 +3057,20 @@ async def ace_generate(
 
                     print(f"[ACE {job_id[:8]}] Done in {t_sec}s — {duration_sec}s audio ({out_size_mb}MB)")
 
-                    # ========== AUDIO ENHANCEMENT (SunoDehiss) ==========
-                    # Apply dehissing for AI-generated music (WAV only)
-                    if audio_format == "wav" and ai_denoising_strength != "off":
-                        enhance_start = time.time()
-                        print(f"[ACE {job_id[:8]}] 🔧 Applying SunoDehiss ({ai_denoising_strength})...")
-                        enhance_success = apply_audio_enhancement(out_path, strength=ai_denoising_strength)
-                        enhance_time = round(time.time() - enhance_start, 1)
-                        if enhance_success:
-                            print(f"[ACE {job_id[:8]}] ✅ SunoDehiss complete (+{enhance_time}s)")
-                            out_size_mb = round(os.path.getsize(out_path) / 1024 / 1024, 2)
-                        else:
-                            print(f"[ACE {job_id[:8]}] ⚠️ SunoDehiss failed, using original")
-                    elif audio_format == "wav" and ai_denoising_strength == "off":
-                        print(f"[ACE {job_id[:8]}] ⚠️ AI Dehissing disabled by user")
+                    # ========== AUDIO ENHANCEMENT (SunoDehiss) - DISABLED ==========
+                    # DISABLED FOR TESTING - Uncomment to re-enable SunoDehiss
+                    # if audio_format == "wav" and ai_denoising_strength != "off":
+                    #     enhance_start = time.time()
+                    #     print(f"[ACE {job_id[:8]}] 🔧 Applying SunoDehiss ({ai_denoising_strength})...")
+                    #     enhance_success = apply_audio_enhancement(out_path, strength=ai_denoising_strength)
+                    #     enhance_time = round(time.time() - enhance_start, 1)
+                    #     if enhance_success:
+                    #         print(f"[ACE {job_id[:8]}] ✅ SunoDehiss complete (+{enhance_time}s)")
+                    #         out_size_mb = round(os.path.getsize(out_path) / 1024 / 1024, 2)
+                    #     else:
+                    #         print(f"[ACE {job_id[:8]}] ⚠️ SunoDehiss failed, using original")
+                    # elif audio_format == "wav" and ai_denoising_strength == "off":
+                    #     print(f"[ACE {job_id[:8]}] ⚠️ AI Dehissing disabled by user")
                     # =======================================================
 
                     # RAM Management: Force garbage collection to prevent memory leaks
