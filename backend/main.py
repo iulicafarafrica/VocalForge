@@ -1270,28 +1270,17 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None):
                 # Process each channel separately
                 for ch in range(y.shape[1]):
                     # Apply spectral gating noise reduction
-                    # Parameters optimized for music (preserve quality)
+                    # Official parameters from: https://github.com/timsainb/noisereduce
                     y[:, ch] = nr.reduce_noise(
                         y=y[:, ch],
                         sr=sr,
-                        
-                        # Noise reduction strength (0.0 to 1.0)
-                        prop_decrease=0.75,      # Reduce noise by 75%
-                        
-                        # Smoothing to avoid artifacts
-                        freq_mask_smooth_time=0.004,  # Frequency smoothing
-                        time_mask_smooth_time=0.004,  # Time smoothing
-                        
-                        # Noise gate
-                        threshold=(-50, -20),    # Gate between -50dB and -20dB
-                        
-                        # Quality preservation
-                        use_spectral_subtraction=True,  # Better for music
-                        stationary=True,                # Assume stationary noise (hiss)
-                        
-                        # Avoid musical artifacts
-                        n_std_noise=1.5,         # Conservative noise estimation
-                        n_jobs=1,                # Single-threaded (more stable)
+                        stationary=True,              # For constant hiss/floor noise
+                        prop_decrease=0.75,           # Reduce noise by 75%
+                        n_fft=2048,                   # Better for music (93ms @ 44.1kHz)
+                        n_std_thresh_stationary=1.5,  # Threshold between signal/noise
+                        freq_mask_smooth_hz=500,      # Frequency smoothing (Hz)
+                        time_mask_smooth_ms=50,       # Time smoothing (ms)
+                        n_jobs=1,                     # Single-threaded (stable)
                     )
                 
                 print(f"[Audio Enhancement] ✅ Noisereduce complete")
