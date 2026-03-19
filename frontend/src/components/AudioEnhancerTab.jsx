@@ -226,9 +226,9 @@ export default function AudioEnhancerTab({ addLog }) {
           <span style={S.label}>💪 Noise Reduction Strength</span>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12 }}>
             {[
-              { value: "light", label: "🌱 Light", desc: "Gentle reduction" },
-              { value: "medium", label: "⚖️ Medium", desc: "Balanced" },
-              { value: "aggressive", label: "🔥 Aggressive", desc: "Strong reduction" },
+              { value: "light", label: "🌱 Light", desc: "Gentle reduction (nr=15)" },
+              { value: "medium", label: "⚖️ Medium", desc: "EQ targets hiss 5kHz+ (nr=20)" },
+              { value: "aggressive", label: "🔥 Aggressive", desc: "Strong reduction (nr=25)" },
             ].map(({ value, label, desc }) => (
               <label
                 key={value}
