@@ -286,7 +286,7 @@ async def _process_source_separation(input_path: str, job_id: str):
         # Collect output files
         stems_dir = os.path.join(output_dir, "htdemucs", os.path.splitext(os.path.basename(input_path))[0])
         output_files = []
-        
+
         for stem in ['drums', 'bass', 'other', 'vocals']:
             stem_path = os.path.join(stems_dir, f"{stem}.wav")
             if os.path.exists(stem_path):
@@ -296,13 +296,75 @@ async def _process_source_separation(input_path: str, job_id: str):
                     "url": f"/tracks/{stem}_{job_id}.wav",
                     "type": f"stem_{stem}",
                 })
-        
+
         print(f"[Audio Enhancer] ✅ Demucs separation complete")
         return output_files
-    
+
     else:
         # Fallback: simple ffmpeg filtering
         raise HTTPException(
             status_code=501,
             detail="Demucs not installed. Install with: pip install demucs"
         )
+
+
+# =============================================================================
+# Standalone enhancement function (for integration with ACE-Step)
+# =============================================================================
+
+def enhance_audio_file(file_path: str, strength: str = "light") -> str:
+    """
+    Apply audio enhancement to a file (in-place).
+    
+    Args:
+        file_path: Path to audio file
+        strength: "light", "medium", or "aggressive"
+    
+    Returns:
+        Same file_path (file is modified in-place)
+    """
+    import tempfile
+    
+    # Create temp file for output
+    temp_output = tempfile.mktemp(suffix="_enhanced.wav")
+    
+    # Presets (same as above)
+    PRESETS = {
+        "light": {"highpass": "20", "afftdn": "nr=15"},
+        "medium": {"highpass": "20", "afftdn": "nr=20"},
+        "aggressive": {"highpass": "20", "afftdn": "nr=25"},
+    }
+    
+    preset = PRESETS.get(strength, PRESETS["light"])
+    
+    # Build filter chain
+    filters = [
+        f"highpass=f={preset['highpass']}",
+        f"afftdn={preset['afftdn']}",
+        "loudnorm=I=-14:TP=-1.5:LRA=11",
+    ]
+    
+    filter_chain = ','.join(filters)
+    
+    # Run ffmpeg
+    cmd = [
+        'ffmpeg', '-y',
+        '-i', file_path,
+        '-af', filter_chain,
+        '-ar', '44100',
+        '-acodec', 'pcm_s24le',
+        temp_output
+    ]
+    
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    
+    if result.returncode != 0:
+        print(f"[Audio Enhancer] ⚠️ Enhancement failed: {result.stderr[:500]}")
+        return file_path  # Return original if failed
+    
+    # Replace original with enhanced
+    import shutil
+    shutil.move(temp_output, file_path)
+    
+    print(f"[Audio Enhancer] ✅ Enhanced ({strength}): {file_path}")
+    return file_path

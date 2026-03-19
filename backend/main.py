@@ -2506,6 +2506,9 @@ async def ace_generate(
     # VRAM & Performance
     batch_size: int = Form(1),                # 1=save VRAM, 2+=faster but more VRAM
     use_tiled_decode: bool = Form(True),      # VAE decode optimization
+    # Audio Enhancement (post-processing)
+    audio_enhance: bool = Form(True),         # Apply hiss removal + loudness norm
+    enhance_strength: str = Form("light"),    # light/medium/aggressive
     # Custom mode extra fields (ignored by backend, accepted to avoid 422)
     mode: str = Form(""),
     ref_audio_strength: float = Form(0.5),
@@ -2951,6 +2954,20 @@ async def ace_generate(
                     duration_sec = round(len(audio_data) / audio_sr, 2)
 
                     print(f"[ACE {job_id[:8]}] Done in {t_sec}s — {duration_sec}s audio ({out_size_mb}MB)")
+
+                    # ========== AUDIO ENHANCEMENT (Post-processing) ==========
+                    # Apply hiss removal + loudness normalization if enabled
+                    if audio_enhance:
+                        try:
+                            from endpoints.audio_enhancer import enhance_audio_file
+                            print(f"[ACE {job_id[:8]}] 🎧 Applying audio enhancement ({enhance_strength})...")
+                            enhance_start = time.time()
+                            enhance_audio_file(out_path, strength=enhance_strength)
+                            enhance_time = round(time.time() - enhance_start, 1)
+                            print(f"[ACE {job_id[:8]}] ✅ Enhancement complete (+{enhance_time}s)")
+                        except Exception as enhance_err:
+                            print(f"[ACE {job_id[:8]}] ⚠️ Enhancement failed: {enhance_err}")
+                    # ===========================================================
 
                     # RAM Management: Force garbage collection to prevent memory leaks
                     # This fixes the issue where RAM usage grows from 2GB → 13GB → 21GB → 32GB+ freeze

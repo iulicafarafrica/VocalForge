@@ -879,6 +879,8 @@ export default function AceStepTab({
   const [instrumental, setInstrumental] = useState(false);
   const [vocalLanguage, setVocalLanguage] = useState("en");  // Default: English
   const [audioFormat, setAudioFormat] = useState("wav");  // Default: WAV (uncompressed)
+  const [audioEnhance, setAudioEnhance] = useState(true);  // Default: Enable enhancement
+  const [enhanceStrength, setEnhanceStrength] = useState("light");  // light/medium/aggressive
   const [inferMethod, setInferMethod] = useState("ode");
   const [shift, setShift] = useState(3.0);
   const [useTiledDecode, setUseTiledDecode] = useState(true);
@@ -1757,6 +1759,10 @@ export default function AceStepTab({
 
     // Audio format
     fd.append("audio_format", audioFormat);
+    
+    // Audio enhancement (post-processing)
+    fd.append("audio_enhance", audioEnhance);
+    fd.append("enhance_strength", enhanceStrength);
 
     // Tiled decode (always enabled by default for VRAM optimization)
     fd.append("use_tiled_decode", useTiledDecode);
@@ -3537,7 +3543,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
               <div style={{ color: "#c77dff", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
                 ◉ Audio
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
                 <div>
                   <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>Format</label>
                   <select
@@ -3548,6 +3554,27 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                     <option value="wav">WAV</option>
                     <option value="mp3">MP3</option>
                     <option value="flac">FLAC</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>🎧 Enhancement</label>
+                  <select
+                    value={audioEnhance ? enhanceStrength : "off"}
+                    onChange={e => {
+                      const val = e.target.value;
+                      if (val === "off") {
+                        setAudioEnhance(false);
+                      } else {
+                        setAudioEnhance(true);
+                        setEnhanceStrength(val);
+                      }
+                    }}
+                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
+                  >
+                    <option value="off">OFF</option>
+                    <option value="light">Light</option>
+                    <option value="medium">Medium</option>
+                    <option value="aggressive">Aggressive</option>
                   </select>
                 </div>
                 <div>
