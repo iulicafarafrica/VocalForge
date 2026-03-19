@@ -108,20 +108,20 @@ async def _process_noise_removal(input_path: str, job_id: str, strength: str):
     
     # Strength presets - ffmpeg filter chains
     # NOTE: No lowpass to preserve brightness/highs
-    # Highpass set to 40Hz to preserve musical bass (kick/bass guitar)
+    # Highpass set to 20Hz to only remove infrasound (keep all musical bass)
     PRESETS = {
         "light": {
-            "highpass": "40",       # Only remove sub-bass rumble
+            "highpass": "20",       # Only remove infrasound (< 20Hz)
             "lowpass": "",          # NO lowpass - preserve brightness
             "afftdn": "nr=15",      # Gentle noise reduction
         },
         "medium": {
-            "highpass": "50",       # Slightly more aggressive
+            "highpass": "20",       # Same - preserve all bass
             "lowpass": "",          # NO lowpass
             "afftdn": "nr=20",      # Moderate noise reduction
         },
         "aggressive": {
-            "highpass": "60",       # More aggressive on rumble
+            "highpass": "20",       # Same - preserve all bass
             "lowpass": "",          # NO lowpass
             "afftdn": "nr=25",      # Strong noise reduction
         },
