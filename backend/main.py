@@ -1234,18 +1234,24 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
     """
     SunoDehiss-inspired audio dehissing for AI-generated music.
     
-    Uses spectral noise reduction with loudness matching to preserve original volume and bass.
+    Complete pipeline:
+    1. Spectral noise reduction (removes hiss)
+    2. High-shelf EQ (tames harsh highs above 14kHz)
+    3. Low-pass filter (removes ultrasonic artifacts)
+    4. BASS BOOST (rich, warm bass at 80Hz)
+    5. Loudness matching (preserves original volume)
     
     Strength presets:
-    - low: prop_decrease=0.35 (very conservative)
-    - medium: prop_decrease=0.50 (conservative)
-    - high: prop_decrease=0.65 (moderate)
+    - low: noise -35%, highshelf -1.5dB, lowpass disabled, bass +3dB
+    - medium: noise -50%, highshelf -2.5dB, lowpass 17.5kHz, bass +4dB
+    - high: noise -65%, highshelf -4.0dB, lowpass 16kHz, bass +5dB
     
     Reference: https://github.com/riskbreaker113/SunoDehiss
     """
     try:
         import soundfile as sf
         import numpy as np
+        from scipy.signal import butter, sosfilt
         
         # Try to import noisereduce
         try:
@@ -1258,11 +1264,29 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
         if output_path is None:
             output_path = audio_path
         
-        # Strength presets - CONSERVATIVE to preserve bass and volume
+        # Strength presets - with BASS BOOST for rich, warm bass
         PRESETS = {
-            "low": {"prop_decrease": 0.35},    # Very light touch
-            "medium": {"prop_decrease": 0.50}, # Conservative
-            "high": {"prop_decrease": 0.65},   # Moderate (max recommended)
+            "low": {
+                "prop_decrease": 0.35,
+                "lowpass_freq": None,
+                "highshelf_db": -1.5,
+                "bass_boost_db": 3,    # +3dB @ 80Hz
+                "bass_freq": 80,
+            },
+            "medium": {
+                "prop_decrease": 0.50,
+                "lowpass_freq": 17500,
+                "highshelf_db": -2.5,
+                "bass_boost_db": 4,    # +4dB @ 80Hz
+                "bass_freq": 80,
+            },
+            "high": {
+                "prop_decrease": 0.65,
+                "lowpass_freq": 16000,
+                "highshelf_db": -4.0,
+                "bass_boost_db": 5,    # +5dB @ 80Hz
+                "bass_freq": 80,
+            },
         }
         
         preset = PRESETS.get(strength, PRESETS["medium"])
@@ -1280,9 +1304,9 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
         if is_mono:
             audio = audio.reshape(-1, 1)
         
-        # ========== SPECTRAL NOISE REDUCTION ONLY ==========
+        # ========== STAGE 1: SPECTRAL NOISE REDUCTION ==========
         if noisereduce_available:
-            print(f"[Audio Enhancement] Applying SunoDehiss ({strength})...")
+            print(f"[Audio Enhancement] Stage 1: Noise reduction ({strength})...")
             try:
                 channels = []
                 for ch in range(audio.shape[1]):
@@ -1292,21 +1316,79 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
                         stationary=True,
                         prop_decrease=preset["prop_decrease"],
                         n_fft=2048,
-                        freq_mask_smooth_hz=800,    # More smoothing = preserve music
-                        time_mask_smooth_ms=80,     # More smoothing = natural sound
-                        n_std_thresh_stationary=2.0, # Higher = only remove obvious noise
+                        freq_mask_smooth_hz=800,
+                        time_mask_smooth_ms=80,
+                        n_std_thresh_stationary=2.0,
                     )
                     channels.append(ch_cleaned)
                 audio = np.column_stack(channels)
-                print(f"[Audio Enhancement] ✅ Noise reduction complete")
+                print(f"[Audio Enhancement] ✅ Stage 1: Noise reduction complete")
             except Exception as e:
-                print(f"[Audio Enhancement] ⚠️ Failed: {e}")
-                return False
+                print(f"[Audio Enhancement] ⚠️ Stage 1 failed: {e}")
         else:
             print(f"[Audio Enhancement] ⚠️ Noisereduce not available")
             return False
         
-        # ========== MATCH ORIGINAL LOUDNESS ==========
+        # ========== STAGE 2: HIGH-SHELF EQ (tame harsh highs) ==========
+        shelf_freq = 14000
+        gain_db = preset["highshelf_db"]
+        
+        if gain_db < 0:
+            nyquist = sr / 2.0
+            if shelf_freq < nyquist:
+                normalized_freq = shelf_freq / nyquist
+                sos = butter(2, normalized_freq, btype='high', output='sos')
+                gain_linear = 10 ** (gain_db / 20.0)
+                scale = gain_linear - 1.0
+                
+                for ch in range(audio.shape[1]):
+                    highs = sosfilt(sos, audio[:, ch])
+                    audio[:, ch] = audio[:, ch] + scale * highs
+                
+                print(f"[Audio Enhancement] ✅ Stage 2: High-shelf EQ ({gain_db}dB @ {shelf_freq/1000}kHz)")
+        
+        # ========== STAGE 3: LOW-PASS FILTER ==========
+        lowpass_freq = preset["lowpass_freq"]
+        if lowpass_freq is not None:
+            nyquist = sr / 2.0
+            if lowpass_freq < nyquist:
+                normalized_cutoff = lowpass_freq / nyquist
+                sos = butter(5, normalized_cutoff, btype='low', output='sos')
+                
+                for ch in range(audio.shape[1]):
+                    audio[:, ch] = sosfilt(sos, audio[:, ch])
+                
+                print(f"[Audio Enhancement] ✅ Stage 3: Low-pass filter @ {lowpass_freq/1000}kHz")
+        
+        # ========== STAGE 4: BASS BOOST (rich, warm bass) ==========
+        bass_freq = preset["bass_freq"]
+        bass_gain_db = preset["bass_boost_db"]
+        
+        if bass_gain_db > 0:
+            nyquist = sr / 2.0
+            if bass_freq < nyquist:
+                # Low-shelf boost for bass
+                A = 10 ** (bass_gain_db / 40.0)
+                w0 = 2 * np.pi * bass_freq / sr
+                alpha = np.sin(w0) / (2 * 1.0)  # Q=1.0 for smooth bass
+                
+                b = [A * ((A + 1) - (A - 1) * np.cos(w0) + 2 * np.sqrt(A) * alpha),
+                     2 * A * ((A - 1) - (A + 1) * np.cos(w0)),
+                     A * ((A + 1) - (A - 1) * np.cos(w0) - 2 * np.sqrt(A) * alpha)]
+                a = [(A + 1) + (A - 1) * np.cos(w0) + 2 * np.sqrt(A) * alpha,
+                     -2 * ((A - 1) + (A + 1) * np.cos(w0)),
+                     (A + 1) + (A - 1) * np.cos(w0) - 2 * np.sqrt(A) * alpha]
+                
+                # Normalize
+                b = b / a[0]
+                a = a / a[0]
+                
+                for ch in range(audio.shape[1]):
+                    audio[:, ch] = sosfilt([b], [1], audio[:, ch])
+                
+                print(f"[Audio Enhancement] ✅ Stage 4: Bass boost (+{bass_gain_db}dB @ {bass_freq}Hz)")
+        
+        # ========== STAGE 5: LOUDNESS MATCHING ==========
         # Measure processed loudness
         processed_rms = np.sqrt(np.mean(audio ** 2))
         processed_peak = np.max(np.abs(audio))
@@ -1316,14 +1398,14 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
             gain_factor = original_rms / processed_rms
             audio = audio * gain_factor
             
-            # Prevent clipping - limit to original peak or 0.99 (whichever is lower)
-            max_allowed = min(original_peak, 0.99)
+            # Prevent clipping - limit to original peak or 0.95 (whichever is lower)
+            max_allowed = min(original_peak, 0.95)
             current_peak = np.max(np.abs(audio))
             if current_peak > max_allowed:
                 audio = audio * (max_allowed / current_peak)
                 print(f"[Audio Enhancement] ✅ Limited to prevent clipping")
             
-            print(f"[Audio Enhancement] ✅ Loudness matched: gain={gain_factor:.4f}")
+            print(f"[Audio Enhancement] ✅ Stage 5: Loudness matched (gain={gain_factor:.4f})")
         
         # Save output (24-bit WAV for quality)
         if is_mono:
@@ -1335,7 +1417,7 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
         verify_audio, _ = sf.read(output_path, dtype='float64')
         verify_rms = np.sqrt(np.mean(verify_audio ** 2))
         print(f"[Audio Enhancement] ✅ Output: RMS={verify_rms:.4f} (original: {original_rms:.4f})")
-        print(f"[Audio Enhancement] ✅ SunoDehiss complete - volume & bass preserved")
+        print(f"[Audio Enhancement] ✅ SunoDehiss complete - bass boosted, volume preserved")
         return True
         
     except Exception as e:
