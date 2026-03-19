@@ -112,17 +112,17 @@ async def _process_noise_removal(input_path: str, job_id: str, strength: str):
         "light": {
             "highpass": "80",
             "lowpass": "",        # NO lowpass - preserve brightness
-            "afftdn": "nr=15:nf=-15",  # Gentle noise reduction
+            "afftdn": "nr=15",    # Gentle noise reduction
         },
         "medium": {
             "highpass": "100",
             "lowpass": "",        # NO lowpass
-            "afftdn": "nr=20:nf=-20",  # Moderate noise reduction
+            "afftdn": "nr=20",    # Moderate noise reduction
         },
         "aggressive": {
             "highpass": "120",
             "lowpass": "",        # NO lowpass
-            "afftdn": "nr=25:nf=-25",  # Strong noise reduction
+            "afftdn": "nr=25",    # Strong noise reduction
         },
     }
     
