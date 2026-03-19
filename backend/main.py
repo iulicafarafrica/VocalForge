@@ -1345,6 +1345,8 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
         bass_gain_db = preset["bass_boost_db"]
         
         if bass_gain_db > 0:
+            from scipy.signal import lfilter
+            
             nyquist = sr / 2.0
             if bass_freq < nyquist:
                 # Low-shelf boost for bass
@@ -1360,11 +1362,11 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
                      (A + 1) + (A - 1) * np.cos(w0) - 2 * np.sqrt(A) * alpha]
                 
                 # Normalize
-                b = b / a[0]
-                a = a / a[0]
+                b = [x / a[0] for x in b]
+                a = [x / a[0] for x in a]
                 
                 for ch in range(audio.shape[1]):
-                    audio[:, ch] = sosfilt([b], [1], audio[:, ch])
+                    audio[:, ch] = lfilter(b, a, audio[:, ch])
                 
                 print(f"[Audio Enhancement] ✅ Stage 3: Bass boost (+{bass_gain_db}dB @ {bass_freq}Hz)")
         
