@@ -107,21 +107,22 @@ async def _process_noise_removal(input_path: str, job_id: str, strength: str):
     output_path = os.path.join(output_dir, output_filename)
     
     # Strength presets - ffmpeg filter chains
+    # NOTE: No lowpass to preserve brightness/highs
     PRESETS = {
         "light": {
             "highpass": "80",
-            "lowpass": "16000",
-            "afftdn": "nr=20:nf=-20",
+            "lowpass": "",        # NO lowpass - preserve brightness
+            "afftdn": "nr=15:nf=-15",  # Gentle noise reduction
         },
         "medium": {
             "highpass": "100",
-            "lowpass": "14000",
-            "afftdn": "nr=30:nf=-25",
+            "lowpass": "",        # NO lowpass
+            "afftdn": "nr=20:nf=-20",  # Moderate noise reduction
         },
         "aggressive": {
             "highpass": "120",
-            "lowpass": "12000",
-            "afftdn": "nr=40:nf=-30",
+            "lowpass": "",        # NO lowpass
+            "afftdn": "nr=25:nf=-25",  # Strong noise reduction
         },
     }
     
@@ -130,11 +131,19 @@ async def _process_noise_removal(input_path: str, job_id: str, strength: str):
     # Build filter chain
     filters = [
         f"highpass=f={preset['highpass']}",      # Remove rumble
-        f"lowpass=f={preset['lowpass']}",        # Remove hiss
-        f"afftdn={preset['afftdn']}",            # Spectral noise reduction
-        "loudnorm=I=-14:TP=-1.5:LRA=11",         # Loudness normalization
     ]
     
+    # Add lowpass only if specified (preserve brightness)
+    if preset['lowpass']:
+        filters.append(f"lowpass=f={preset['lowpass']}")
+    
+    # Add noise reduction if specified
+    if preset['afftdn']:
+        filters.append(f"afftdn={preset['afftdn']}")
+    
+    # Always add loudness normalization
+    filters.append("loudnorm=I=-14:TP=-1.5:LRA=11")
+
     filter_chain = ','.join(filters)
     
     print(f"[Audio Enhancer] Noise removal ({strength}): {filter_chain}")
