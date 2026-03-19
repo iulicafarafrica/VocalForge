@@ -1307,7 +1307,11 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
         print(f"[Audio Enhancement] Applying audio-optimizer ({strength})...")
         print(f"[Audio Enhancement] Filters: {filter_chain}")
         print(f"[Audio Enhancement] Input: {audio_path}")
-        print(f"[Audio Enhancement] Output: {output_path}")
+        
+        # Create temp output path (can't read/write same file)
+        import tempfile
+        temp_output = tempfile.mktemp(suffix="_optimized.wav")
+        print(f"[Audio Enhancement] Temp output: {temp_output}")
         
         # Run ffmpeg
         cmd = [
@@ -1316,7 +1320,7 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
             '-af', filter_chain,
             '-ar', '44100',  # 44.1kHz sample rate
             '-acodec', 'pcm_s24le',  # 24-bit WAV
-            output_path
+            temp_output
         ]
         
         print(f"[Audio Enhancement] Running: {' '.join(cmd)}")
@@ -1325,6 +1329,10 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
         
         # Log ffmpeg output
         if result.returncode == 0:
+            # Replace original with optimized
+            import shutil
+            shutil.move(temp_output, output_path)
+            
             # Parse ffmpeg output for audio info
             for line in result.stderr.split('\n'):
                 if 'Stream #' in line and 'Audio:' in line:
@@ -1335,6 +1343,12 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
         else:
             print(f"[Audio Enhancement] ❌ FFmpeg failed (code {result.returncode})")
             print(f"[Audio Enhancement] FFmpeg stderr: {result.stderr[:500]}")
+            # Clean up temp file if it exists
+            if os.path.exists(temp_output):
+                try:
+                    os.remove(temp_output)
+                except:
+                    pass
             return False
         
     except Exception as e:
