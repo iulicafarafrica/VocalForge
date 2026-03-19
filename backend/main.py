@@ -1230,22 +1230,121 @@ async def demucs_separate(
 # Audio Post-Processing (Noise Reduction + Bass Boost)
 # ──────────────────────────────────────────────────────────────────────────────
 
-def apply_audio_enhancement(audio_path: str, output_path: str = None):
+def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: str = "medium"):
     """
-    Placeholder for future audio enhancement.
-    Currently disabled - no processing applied.
+    SunoDehiss-inspired audio dehissing for AI-generated music.
+    
+    Uses a 3-stage pipeline:
+    1. Spectral noise reduction (noisereduce stationary mode)
+    2. High-shelf EQ (cut highs above 14kHz)
+    3. Low-pass filter (optional, based on strength)
+    
+    Strength presets:
+    - low: prop_decrease=0.4, no lowpass, highshelf -1.5dB
+    - medium: prop_decrease=0.6, lowpass 17.5kHz, highshelf -2.5dB
+    - high: prop_decrease=0.8, lowpass 16kHz, highshelf -4.0dB
+    
+    Reference: https://github.com/riskbreaker113/SunoDehiss
     """
     try:
         import soundfile as sf
+        import numpy as np
+        from scipy.signal import butter, sosfilt
+        
+        # Try to import noisereduce
+        try:
+            import noisereduce as nr
+            noisereduce_available = True
+        except ImportError:
+            print(f"[Audio Enhancement] ⚠️ Noisereduce not installed. Install with: pip install noisereduce")
+            noisereduce_available = False
         
         if output_path is None:
             output_path = audio_path
         
-        # No processing - just save as-is
-        y, sr = sf.read(audio_path, dtype='float32')
-        sf.write(output_path, y, sr)
+        # Strength presets (from SunoDehiss)
+        PRESETS = {
+            "low": {"prop_decrease": 0.4, "lowpass_freq": None, "highshelf_db": -1.5},
+            "medium": {"prop_decrease": 0.6, "lowpass_freq": 17500, "highshelf_db": -2.5},
+            "high": {"prop_decrease": 0.8, "lowpass_freq": 16000, "highshelf_db": -4.0},
+        }
         
-        print(f"[Audio Enhancement] ⚠️ Disabled - no processing applied")
+        preset = PRESETS.get(strength, PRESETS["medium"])
+        
+        # Load audio
+        audio, sr = sf.read(audio_path, dtype='float64')
+        
+        # If mono, convert to 2D for consistent processing
+        is_mono = audio.ndim == 1
+        if is_mono:
+            audio = audio.reshape(-1, 1)
+        
+        # ========== STAGE 1: SPECTRAL NOISE REDUCTION ==========
+        if noisereduce_available:
+            print(f"[Audio Enhancement] Applying SunoDehiss ({strength})...")
+            try:
+                channels = []
+                for ch in range(audio.shape[1]):
+                    ch_cleaned = nr.reduce_noise(
+                        y=audio[:, ch],
+                        sr=sr,
+                        stationary=True,
+                        prop_decrease=preset["prop_decrease"],
+                        n_fft=2048,
+                        freq_mask_smooth_hz=500,
+                    )
+                    channels.append(ch_cleaned)
+                audio = np.column_stack(channels)
+                print(f"[Audio Enhancement] ✅ Stage 1: Noise reduction complete")
+            except Exception as e:
+                print(f"[Audio Enhancement] ⚠️ Stage 1 failed: {e}")
+        else:
+            print(f"[Audio Enhancement] ⚠️ Noisereduce not available, skipping Stage 1")
+        
+        # ========== STAGE 2: HIGH-SHELF EQ (cut highs above 14kHz) ==========
+        shelf_freq = 14000
+        gain_db = preset["highshelf_db"]
+        
+        if gain_db < 0:
+            nyquist = sr / 2.0
+            if shelf_freq < nyquist:
+                normalized_freq = shelf_freq / nyquist
+                sos = butter(2, normalized_freq, btype='high', output='sos')
+                gain_linear = 10 ** (gain_db / 20.0)
+                scale = gain_linear - 1.0
+                
+                for ch in range(audio.shape[1]):
+                    highs = sosfilt(sos, audio[:, ch])
+                    audio[:, ch] = audio[:, ch] + scale * highs
+                
+                print(f"[Audio Enhancement] ✅ Stage 2: High-shelf EQ ({gain_db}dB @ {shelf_freq/1000}kHz)")
+        
+        # ========== STAGE 3: LOW-PASS FILTER ==========
+        lowpass_freq = preset["lowpass_freq"]
+        if lowpass_freq is not None:
+            nyquist = sr / 2.0
+            if lowpass_freq < nyquist:
+                normalized_cutoff = lowpass_freq / nyquist
+                sos = butter(5, normalized_cutoff, btype='low', output='sos')
+                
+                for ch in range(audio.shape[1]):
+                    audio[:, ch] = sosfilt(sos, audio[:, ch])
+                
+                print(f"[Audio Enhancement] ✅ Stage 3: Low-pass filter @ {lowpass_freq/1000}kHz")
+        
+        # ========== PREVENT CLIPPING ==========
+        peak = np.max(np.abs(audio))
+        if peak > 1.0:
+            audio = audio / peak * 0.99
+            print(f"[Audio Enhancement] ✅ Normalized (peak was {peak:.3f})")
+        
+        # Save output (24-bit WAV for quality)
+        if is_mono:
+            sf.write(output_path, audio.flatten(), sr, subtype='PCM_24')
+        else:
+            sf.write(output_path, audio, sr, subtype='PCM_24')
+        
+        print(f"[Audio Enhancement] ✅ SunoDehiss complete")
         return True
         
     except Exception as e:
@@ -2976,6 +3075,20 @@ async def ace_generate(
                     duration_sec = round(len(audio_data) / audio_sr, 2)
 
                     print(f"[ACE {job_id[:8]}] Done in {t_sec}s — {duration_sec}s audio ({out_size_mb}MB)")
+
+                    # ========== AUDIO ENHANCEMENT (SunoDehiss) ==========
+                    # Apply dehissing for AI-generated music (WAV only)
+                    if audio_format == "wav":
+                        enhance_start = time.time()
+                        print(f"[ACE {job_id[:8]}] 🔧 Applying SunoDehiss (medium strength)...")
+                        enhance_success = apply_audio_enhancement(out_path, strength="medium")
+                        enhance_time = round(time.time() - enhance_start, 1)
+                        if enhance_success:
+                            print(f"[ACE {job_id[:8]}] ✅ SunoDehiss complete (+{enhance_time}s)")
+                            out_size_mb = round(os.path.getsize(out_path) / 1024 / 1024, 2)
+                        else:
+                            print(f"[ACE {job_id[:8]}] ⚠️ SunoDehiss failed, using original")
+                    # =======================================================
 
                     # RAM Management: Force garbage collection to prevent memory leaks
                     # This fixes the issue where RAM usage grows from 2GB → 13GB → 21GB → 32GB+ freeze
