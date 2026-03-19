@@ -190,8 +190,6 @@ export default function AudioEnhancerTab({ addLog }) {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
           {[
             { value: "noise_removal", label: "🔇 Noise Removal", desc: "Remove hiss, hum, static" },
-            { value: "vocal_separation", label: "🎤 Vocal Separation", desc: "Extract vocals" },
-            { value: "source_separation", label: "🎸 Source Separation", desc: "Separate stems (Demucs)" },
           ].map(({ value, label, desc }) => (
             <label
               key={value}
