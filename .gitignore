@@ -43,9 +43,18 @@ TERMINAL_WRAPPERS_STATUS.md
 # Kilo Code
 .kilocodeignore
 
+# OpenCode
+.opencode/
+.opencodeignore
+
 # ======================
 # Local Development Files (DO NOT PUSH)
 # ======================
+- Copy.env
+5.9.0
+START_ALL - Copy - Copy.bat
+caca.html
+configure_pip_cache.bat
 DE FACUT.txt
 cod_proiect_curat.txt
 utils_config.txt
