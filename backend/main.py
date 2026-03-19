@@ -2579,15 +2579,24 @@ async def ace_generate(
             # Initialize model if needed
             if model_init_needed:
                 try:
+                    # LLM Configuration for RTX 3070 8GB (Tier 3)
+                    # Use PyTorch backend (vllm has CUDA graph issues on Windows)
+                    # enforce_eager=True disables CUDA graphs (prevents captures_underway.empty() error)
                     init_response = await client.post(
                         f"{ACE_STEP_API}/v1/init",
-                        json={"model": dit_model, "init_llm": False},  # LLM disabled
+                        json={
+                            "model": dit_model,
+                            "init_llm": False,  # Keep LLM disabled by default (user can enable manually)
+                            "lm_backend": "pt",  # PyTorch backend (more stable than vllm on Windows)
+                            "enforce_eager": True,  # Disable CUDA graphs (fixes captures_underway.empty())
+                            "gpu_memory_utilization": 0.3,  # Conservative for 8GB VRAM
+                        },
                         timeout=180.0
                     )
                     if init_response.status_code == 200:
                         init_data = init_response.json()
                         loaded_model = init_data.get("data", {}).get("loaded_model", dit_model)
-                        print(f"[ACE {job_id[:8]}] ✅ Model loaded: {loaded_model} (LLM disabled)")
+                        print(f"[ACE {job_id[:8]}] ✅ Model loaded: {loaded_model} (LLM disabled, use pt backend if enabling)")
                         await asyncio.sleep(2)
                     else:
                         print(f"[ACE {job_id[:8]}] ⚠️ Model init returned status {init_response.status_code}")
