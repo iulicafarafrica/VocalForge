@@ -2690,14 +2690,16 @@ async def ace_generate(
             # Audio quality enhancement prompt (appended to all text2music generations)
             AUDIO_QUALITY_PROMPT = ", clean studio quality, noise-free"
             
-            # Negative prompt: lm_negative_prompt is for LLM only (disabled)
-            # DiT model doesn't support negative prompting (uses CFG instead)
-            neg = ""  # Not used - DiT has no negative prompt
+            # Negative prompt: USER-PROVIDED (for creative control)
+            # Note: ACE-Step DiT doesn't officially support negative prompting,
+            # but we pass it anyway in case the server implements it
+            neg = (negative_prompt or "").strip()
             
             # Enhance prompt with audio quality for text2music
             effective_prompt = prompt.strip() if prompt else ""
             if task_type == "text2music" and effective_prompt:
                 effective_prompt = effective_prompt + AUDIO_QUALITY_PROMPT
+                print(f"[ACE {job_id[:8]}] 🎵 Prompt enhanced: '{effective_prompt[:100]}...'")
 
             # ── Optimizări pentru audio cover ──────────────────────────────────
             effective_duration = duration  # folosim durata exactă setată de utilizator
@@ -2768,7 +2770,7 @@ async def ace_generate(
                 "lm_top_k": 0,
                 "lm_top_p": 0.9,
                 "lm_repetition_penalty": 1.0,
-                "lm_negative_prompt": "",  # Not used (LLM disabled)
+                "lm_negative_prompt": neg,  # User negative prompt (passed to LLM if enabled)
 
                 # Chain-of-Thought - ALL DISABLED
                 "constrained_decoding": False,
@@ -2779,8 +2781,8 @@ async def ace_generate(
                 "allow_lm_batch": False,
                 "thinking": False,
                 
-                # NOTE: DiT model doesn't support negative_prompt
-                # Only uses guidance_scale for CFG (positive prompt adherence)
+                # User negative prompt (passed even if DiT may ignore it)
+                "negative_prompt": neg,
                 
                 # Track metadata (optional)
                 "track_name": None,
