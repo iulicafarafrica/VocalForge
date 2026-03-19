@@ -2598,8 +2598,9 @@ async def ace_generate(
             # ACE-Step API: prompt = style/emotion/instruments ONLY
             # CRITICAL: For Text-to-Music, disable CoT to respect user BPM/key/prompt
             
-            # Negative prompt: use user-provided negative_prompt
-            neg = (negative_prompt or "").strip()
+            # Negative prompt: lm_negative_prompt is for LLM only (disabled)
+            # DiT model doesn't support negative prompting (uses CFG instead)
+            neg = ""  # Not used - DiT has no negative prompt
 
             # ── Optimizări pentru audio cover ──────────────────────────────────
             effective_duration = duration  # folosim durata exactă setată de utilizator
@@ -2681,8 +2682,8 @@ async def ace_generate(
                 "allow_lm_batch": False,
                 "thinking": False,
                 
-                # User negative prompt (STILL ACTIVE - not LLM related)
-                "negative_prompt": neg,
+                # NOTE: DiT model doesn't support negative_prompt
+                # Only uses guidance_scale for CFG (positive prompt adherence)
                 
                 # Track metadata (optional)
                 "track_name": None,
