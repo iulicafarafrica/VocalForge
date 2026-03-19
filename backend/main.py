@@ -1234,22 +1234,18 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
     """
     SunoDehiss-inspired audio dehissing for AI-generated music.
     
-    Uses a 3-stage pipeline:
-    1. Spectral noise reduction (noisereduce stationary mode)
-    2. High-shelf EQ (cut highs above 14kHz)
-    3. Low-pass filter (optional, based on strength)
+    Uses ONLY spectral noise reduction - NO EQ or filters that affect bass/volume.
     
     Strength presets:
-    - low: prop_decrease=0.4, no lowpass, highshelf -1.5dB
-    - medium: prop_decrease=0.6, lowpass 17.5kHz, highshelf -2.5dB
-    - high: prop_decrease=0.8, lowpass 16kHz, highshelf -4.0dB
+    - low: prop_decrease=0.35 (very conservative)
+    - medium: prop_decrease=0.50 (conservative)
+    - high: prop_decrease=0.65 (moderate)
     
     Reference: https://github.com/riskbreaker113/SunoDehiss
     """
     try:
         import soundfile as sf
         import numpy as np
-        from scipy.signal import butter, sosfilt
         
         # Try to import noisereduce
         try:
@@ -1257,16 +1253,16 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
             noisereduce_available = True
         except ImportError:
             print(f"[Audio Enhancement] ⚠️ Noisereduce not installed. Install with: pip install noisereduce")
-            noisereduce_available = False
+            return False
         
         if output_path is None:
             output_path = audio_path
         
-        # Strength presets (from SunoDehiss)
+        # Strength presets - CONSERVATIVE to preserve bass and volume
         PRESETS = {
-            "low": {"prop_decrease": 0.4, "lowpass_freq": None, "highshelf_db": -1.5},
-            "medium": {"prop_decrease": 0.6, "lowpass_freq": 17500, "highshelf_db": -2.5},
-            "high": {"prop_decrease": 0.8, "lowpass_freq": 16000, "highshelf_db": -4.0},
+            "low": {"prop_decrease": 0.35},    # Very light touch
+            "medium": {"prop_decrease": 0.50}, # Conservative
+            "high": {"prop_decrease": 0.65},   # Moderate (max recommended)
         }
         
         preset = PRESETS.get(strength, PRESETS["medium"])
@@ -1279,7 +1275,8 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
         if is_mono:
             audio = audio.reshape(-1, 1)
         
-        # ========== STAGE 1: SPECTRAL NOISE REDUCTION ==========
+        # ========== SPECTRAL NOISE REDUCTION ONLY ==========
+        # NO EQ, NO FILTERS - preserves bass and volume
         if noisereduce_available:
             print(f"[Audio Enhancement] Applying SunoDehiss ({strength})...")
             try:
@@ -1291,52 +1288,19 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
                         stationary=True,
                         prop_decrease=preset["prop_decrease"],
                         n_fft=2048,
-                        freq_mask_smooth_hz=500,
+                        freq_mask_smooth_hz=800,    # More smoothing = preserve music
+                        time_mask_smooth_ms=80,     # More smoothing = natural sound
+                        n_std_thresh_stationary=2.0, # Higher = only remove obvious noise
                     )
                     channels.append(ch_cleaned)
                 audio = np.column_stack(channels)
-                print(f"[Audio Enhancement] ✅ Stage 1: Noise reduction complete")
+                print(f"[Audio Enhancement] ✅ Noise reduction complete (prop_decrease={preset['prop_decrease']})")
             except Exception as e:
-                print(f"[Audio Enhancement] ⚠️ Stage 1 failed: {e}")
+                print(f"[Audio Enhancement] ⚠️ Failed: {e}")
+                return False
         else:
-            print(f"[Audio Enhancement] ⚠️ Noisereduce not available, skipping Stage 1")
-        
-        # ========== STAGE 2: HIGH-SHELF EQ (cut highs above 14kHz) ==========
-        shelf_freq = 14000
-        gain_db = preset["highshelf_db"]
-        
-        if gain_db < 0:
-            nyquist = sr / 2.0
-            if shelf_freq < nyquist:
-                normalized_freq = shelf_freq / nyquist
-                sos = butter(2, normalized_freq, btype='high', output='sos')
-                gain_linear = 10 ** (gain_db / 20.0)
-                scale = gain_linear - 1.0
-                
-                for ch in range(audio.shape[1]):
-                    highs = sosfilt(sos, audio[:, ch])
-                    audio[:, ch] = audio[:, ch] + scale * highs
-                
-                print(f"[Audio Enhancement] ✅ Stage 2: High-shelf EQ ({gain_db}dB @ {shelf_freq/1000}kHz)")
-        
-        # ========== STAGE 3: LOW-PASS FILTER ==========
-        lowpass_freq = preset["lowpass_freq"]
-        if lowpass_freq is not None:
-            nyquist = sr / 2.0
-            if lowpass_freq < nyquist:
-                normalized_cutoff = lowpass_freq / nyquist
-                sos = butter(5, normalized_cutoff, btype='low', output='sos')
-                
-                for ch in range(audio.shape[1]):
-                    audio[:, ch] = sosfilt(sos, audio[:, ch])
-                
-                print(f"[Audio Enhancement] ✅ Stage 3: Low-pass filter @ {lowpass_freq/1000}kHz")
-        
-        # ========== PREVENT CLIPPING ==========
-        peak = np.max(np.abs(audio))
-        if peak > 1.0:
-            audio = audio / peak * 0.99
-            print(f"[Audio Enhancement] ✅ Normalized (peak was {peak:.3f})")
+            print(f"[Audio Enhancement] ⚠️ Noisereduce not available")
+            return False
         
         # Save output (24-bit WAV for quality)
         if is_mono:
@@ -1344,7 +1308,7 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
         else:
             sf.write(output_path, audio, sr, subtype='PCM_24')
         
-        print(f"[Audio Enhancement] ✅ SunoDehiss complete")
+        print(f"[Audio Enhancement] ✅ SunoDehiss complete - bass & volume preserved")
         return True
         
     except Exception as e:
