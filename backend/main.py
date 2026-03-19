@@ -1227,138 +1227,6 @@ async def demucs_separate(
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Audio Post-Processing (Noise Reduction + Bass Boost)
-# ──────────────────────────────────────────────────────────────────────────────
-
-def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: str = "medium"):
-    """
-    Audio Optimizer - ffmpeg-based professional audio enhancement.
-    Based on: https://github.com/TonyBY/audio-optimizer
-    
-    Pipeline:
-    1. High-pass filter @ 80Hz (remove rumble)
-    2. Parametric EQ (vocal profile: tenor)
-    3. Loudness normalization (-14 LUFS for streaming)
-    4. Light reverb (optional)
-    
-    Strength presets:
-    - low: light EQ, -16 LUFS, no reverb
-    - medium: full EQ, -14 LUFS, light reverb
-    - high: aggressive EQ, -12 LUFS, medium reverb
-    """
-    try:
-        import subprocess
-        import os
-        
-        if output_path is None:
-            output_path = audio_path
-        
-        # Check if ffmpeg is available
-        try:
-            subprocess.run(['ffmpeg', '-version'], capture_output=True, check=True)
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            print(f"[Audio Enhancement] ⚠️ FFmpeg not found. Install ffmpeg first.")
-            return False
-        
-        # Strength presets - ffmpeg filter chains (NO REVERB)
-        PRESETS = {
-            "low": {
-                "highpass": "80",           # HPF @ 80Hz
-                "eq": "equalizer=f=250:t=q:w=1:g=-3,equalizer=f=3000:t=q:w=1:g=2",  # Light EQ
-                "loudnorm": "I=-16:TP=-1.5:LRA=11",  # -16 LUFS
-                "reverb": "",               # NO REVERB
-            },
-            "medium": {
-                "highpass": "80",
-                "eq": "equalizer=f=300:t=q:w=1:g=-2,equalizer=f=3500:t=q:w=1:g=2.5,equalizer=f=7000:t=q:w=1:g=-2,equalizer=f=11000:t=q:w=1:g=1.5",  # Tenor profile
-                "loudnorm": "I=-14:TP=-1.5:LRA=11",  # -14 LUFS (streaming standard)
-                "reverb": "",               # NO REVERB
-            },
-            "high": {
-                "highpass": "90",           # More aggressive HPF
-                "eq": "equalizer=f=350:t=q:w=1:g=-3,equalizer=f=4000:t=q:w=1:g=3,equalizer=f=8000:t=q:w=1:g=-3,equalizer=f=12000:t=q:w=1:g=2",  # Female profile
-                "loudnorm": "I=-12:TP=-1.5:LRA=11",  # -12 LUFS (louder)
-                "reverb": "",               # NO REVERB
-            },
-        }
-        
-        preset = PRESETS.get(strength, PRESETS["medium"])
-        
-        # Build ffmpeg filter chain
-        filters = []
-        
-        # Stage 1: High-pass filter
-        filters.append(f"highpass=f={preset['highpass']}")
-        
-        # Stage 2: Parametric EQ
-        if preset['eq']:
-            filters.append(preset['eq'])
-        
-        # Stage 3: Loudness normalization
-        filters.append(f"loudnorm={preset['loudnorm']}")
-        
-        # Stage 4: Reverb (if enabled)
-        if preset['reverb']:
-            filters.append(preset['reverb'])
-        
-        # Join filters
-        filter_chain = ','.join(filters)
-        
-        print(f"[Audio Enhancement] Applying audio-optimizer ({strength})...")
-        print(f"[Audio Enhancement] Filters: {filter_chain}")
-        print(f"[Audio Enhancement] Input: {audio_path}")
-        
-        # Create temp output path (can't read/write same file)
-        import tempfile
-        temp_output = tempfile.mktemp(suffix="_optimized.wav")
-        print(f"[Audio Enhancement] Temp output: {temp_output}")
-        
-        # Run ffmpeg
-        cmd = [
-            'ffmpeg', '-y',
-            '-i', audio_path,
-            '-af', filter_chain,
-            '-ar', '44100',  # 44.1kHz sample rate
-            '-acodec', 'pcm_s24le',  # 24-bit WAV
-            temp_output
-        ]
-        
-        print(f"[Audio Enhancement] Running: {' '.join(cmd)}")
-        
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        
-        # Log ffmpeg output
-        if result.returncode == 0:
-            # Replace original with optimized
-            import shutil
-            shutil.move(temp_output, output_path)
-            
-            # Parse ffmpeg output for audio info
-            for line in result.stderr.split('\n'):
-                if 'Stream #' in line and 'Audio:' in line:
-                    print(f"[Audio Enhancement] {line.strip()}")
-            print(f"[Audio Enhancement] ✅ Audio-optimizer complete")
-            print(f"[Audio Enhancement] Output: {output_path}")
-            return True
-        else:
-            print(f"[Audio Enhancement] ❌ FFmpeg failed (code {result.returncode})")
-            print(f"[Audio Enhancement] FFmpeg stderr: {result.stderr[:500]}")
-            # Clean up temp file if it exists
-            if os.path.exists(temp_output):
-                try:
-                    os.remove(temp_output)
-                except:
-                    pass
-            return False
-        
-    except Exception as e:
-        print(f"[Audio Enhancement] ❌ Failed: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
-
-
-# ──────────────────────────────────────────────────────────────────────────────
 # BPM & Key Detection
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -2600,7 +2468,6 @@ async def ace_generate(
     time_signature: str = Form(""),             # e.g. "4"
     # Generation options
     audio_format: str = Form("wav"),            # wav or mp3 or flac
-    ai_denoising_strength: str = Form("medium"), # SunoDehiss: low/medium/high/off
     infer_method: str = Form("ode"),            # ode or sde
     shift: float = Form(3.0),                   # timestep shift
     # LM parameters
@@ -3080,22 +2947,6 @@ async def ace_generate(
                     duration_sec = round(len(audio_data) / audio_sr, 2)
 
                     print(f"[ACE {job_id[:8]}] Done in {t_sec}s — {duration_sec}s audio ({out_size_mb}MB)")
-
-                    # ========== AUDIO ENHANCEMENT (audio-optimizer) ==========
-                    # Apply ffmpeg-based audio enhancement (WAV only)
-                    if audio_format == "wav" and ai_denoising_strength != "off":
-                        enhance_start = time.time()
-                        print(f"[ACE {job_id[:8]}] 🔧 Applying audio-optimizer ({ai_denoising_strength})...")
-                        enhance_success = apply_audio_enhancement(out_path, strength=ai_denoising_strength)
-                        enhance_time = round(time.time() - enhance_start, 1)
-                        if enhance_success:
-                            print(f"[ACE {job_id[:8]}] ✅ Audio-optimizer complete (+{enhance_time}s)")
-                            out_size_mb = round(os.path.getsize(out_path) / 1024 / 1024, 2)
-                        else:
-                            print(f"[ACE {job_id[:8]}] ⚠️ Audio-optimizer failed, using original")
-                    elif audio_format == "wav" and ai_denoising_strength == "off":
-                        print(f"[ACE {job_id[:8]}] ⚠️ Audio enhancement disabled by user")
-                    # =======================================================
 
                     # RAM Management: Force garbage collection to prevent memory leaks
                     # This fixes the issue where RAM usage grows from 2GB → 13GB → 21GB → 32GB+ freeze
