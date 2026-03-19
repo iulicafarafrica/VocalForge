@@ -2596,6 +2596,7 @@ async def ace_generate(
     time_signature: str = Form(""),             # e.g. "4"
     # Generation options
     audio_format: str = Form("wav"),            # wav or mp3 or flac
+    ai_denoising_strength: str = Form("medium"), # SunoDehiss: low/medium/high/off
     infer_method: str = Form("ode"),            # ode or sde
     shift: float = Form(3.0),                   # timestep shift
     # LM parameters
@@ -3078,16 +3079,18 @@ async def ace_generate(
 
                     # ========== AUDIO ENHANCEMENT (SunoDehiss) ==========
                     # Apply dehissing for AI-generated music (WAV only)
-                    if audio_format == "wav":
+                    if audio_format == "wav" and ai_denoising_strength != "off":
                         enhance_start = time.time()
-                        print(f"[ACE {job_id[:8]}] 🔧 Applying SunoDehiss (medium strength)...")
-                        enhance_success = apply_audio_enhancement(out_path, strength="medium")
+                        print(f"[ACE {job_id[:8]}] 🔧 Applying SunoDehiss ({ai_denoising_strength})...")
+                        enhance_success = apply_audio_enhancement(out_path, strength=ai_denoising_strength)
                         enhance_time = round(time.time() - enhance_start, 1)
                         if enhance_success:
                             print(f"[ACE {job_id[:8]}] ✅ SunoDehiss complete (+{enhance_time}s)")
                             out_size_mb = round(os.path.getsize(out_path) / 1024 / 1024, 2)
                         else:
                             print(f"[ACE {job_id[:8]}] ⚠️ SunoDehiss failed, using original")
+                    elif audio_format == "wav" and ai_denoising_strength == "off":
+                        print(f"[ACE {job_id[:8]}] ⚠️ AI Dehissing disabled by user")
                     # =======================================================
 
                     # RAM Management: Force garbage collection to prevent memory leaks

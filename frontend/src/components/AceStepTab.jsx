@@ -879,6 +879,7 @@ export default function AceStepTab({
   const [instrumental, setInstrumental] = useState(false);
   const [vocalLanguage, setVocalLanguage] = useState("en");  // Default: English
   const [audioFormat, setAudioFormat] = useState("wav");  // Default: WAV (uncompressed)
+  const [aiDenoisingStrength, setAiDenoisingStrength] = useState("medium");  // SunoDehiss: low/medium/high/off
   const [inferMethod, setInferMethod] = useState("ode");
   const [shift, setShift] = useState(3.0);
   const [useTiledDecode, setUseTiledDecode] = useState(true);
@@ -1757,6 +1758,9 @@ export default function AceStepTab({
 
     // Audio format
     fd.append("audio_format", audioFormat);
+    
+    // AI Dehissing strength (SunoDehiss)
+    fd.append("ai_denoising_strength", aiDenoisingStrength);
 
     // Tiled decode (always enabled by default for VRAM optimization)
     fd.append("use_tiled_decode", useTiledDecode);
@@ -3551,14 +3555,17 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: "flex", alignItems: "center", gap: 4, color: "#6666aa", fontSize: 11, cursor: "pointer" }}>
-                    <input
-                      type="checkbox"
-                      checked={useTiledDecode}
-                      onChange={e => setUseTiledDecode(e.target.checked)}
-                    />
-                    Tiled Decode
-                  </label>
+                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>🔊 AI Dehiss</label>
+                  <select
+                    value={aiDenoisingStrength}
+                    onChange={e => setAiDenoisingStrength(e.target.value)}
+                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
+                  >
+                    <option value="off">OFF (disabled)</option>
+                    <option value="low">Low (light touch)</option>
+                    <option value="medium">Medium (balanced)</option>
+                    <option value="high">High (aggressive)</option>
+                  </select>
                 </div>
               </div>
             </div>
