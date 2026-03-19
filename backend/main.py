@@ -219,6 +219,10 @@ app.add_middleware(
 from endpoints.audio_analysis import router as audio_analysis_router
 app.include_router(audio_analysis_router)
 
+# Include Audio Enhancer router (Noise removal, vocal separation)
+from endpoints.audio_enhancer import router as audio_enhancer_router
+app.include_router(audio_enhancer_router)
+
 # ── Security: File Upload Validation ──────────────────────────────────────────
 # Allowed file extensions
 ALLOWED_MODEL_EXTENSIONS = {".pth", ".pt", ".bin", ".safetensors"}

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { BookOpen, Sliders, Sparkles, Layers, FolderOpen, Monitor, FileText, Music2, Activity, Zap, Mic2 } from "lucide-react";
+import { BookOpen, Sliders, Sparkles, Layers, FolderOpen, Monitor, FileText, Music2, Activity, Zap, Mic2, Wand2 } from "lucide-react";
 import "./index.css";
 import ModelsTab from "./components/ModelsTab";
 import NotesTab from "./components/NotesTab";
@@ -9,6 +9,7 @@ import AceStepTab from "./components/AceStepTab";
 import RepaintLegoComplete from "./components/RepaintLegoComplete";
 import ReadmeTab from "./components/ReadmeTab";
 import AudioAnalysisTab from "./components/AudioAnalysisTab";
+import AudioEnhancerTab from "./components/AudioEnhancerTab";
 import PipelineTab from "./components/PipelineTab";
 import LyricsTab from "./components/LyricsTab";
 
@@ -21,6 +22,7 @@ const TABS = [
   { id: "Pipeline", Icon: Zap, label: "Vocal Pipeline", color: "#a855f7" },
   { id: "Lyrics", Icon: Mic2, label: "Lyrics Finder", color: "#ff6b9d" },
   { id: "ACEAdvanced", Icon: Layers, label: "Repaint", color: "#00b4d8" },
+  { id: "AudioEnhancer", Icon: Wand2, label: "Audio Enhancer", color: "#06d6a0" },
   { id: "AudioAnalysis", Icon: Activity, label: "Audio Analysis", color: "#f59e0b" },
   { id: "Tracks",  Icon: FolderOpen, label: "Tracks", color: "#ffd166" },
   { id: "Models",  Icon: Monitor,    label: "Models & GPU", color: "#e63946" },
@@ -288,6 +290,10 @@ export default function App() {
 
         <div style={{ display: tab === "AudioAnalysis" ? "block" : "none" }}>
           <AudioAnalysisTab addLog={addLog} />
+        </div>
+
+        <div style={{ display: tab === "AudioEnhancer" ? "block" : "none" }}>
+          <AudioEnhancerTab addLog={addLog} />
         </div>
 
         <div style={{ display: tab === "Tracks" ? "block" : "none" }}>
