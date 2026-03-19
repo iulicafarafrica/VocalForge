@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 
 const API = "http://localhost:8000";
 
@@ -9,6 +9,7 @@ export default function AudioEnhancerTab({ addLog }) {
   const [processing, setProcessing] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const fileInputRef = useRef(null);
 
   const handleFileChange = (e) => {
     const f = e.target.files[0];
@@ -17,6 +18,8 @@ export default function AudioEnhancerTab({ addLog }) {
       setResult(null);
       setError(null);
       addLog?.(`[Audio Enhancer] Selected: ${f.name}`);
+      // Reset input so same file can be selected again
+      e.target.value = '';
     }
   };
 
@@ -151,12 +154,14 @@ export default function AudioEnhancerTab({ addLog }) {
           <input
             type="file"
             accept="audio/*"
+            ref={fileInputRef}
             onChange={handleFileChange}
             style={{ display: "none" }}
             id="audio-upload"
           />
           <label
             htmlFor="audio-upload"
+            onClick={() => fileInputRef.current?.click()}
             style={{
               ...S.uploadBtn,
               background: file ? "linear-gradient(135deg, #00e5ff, #06d6a0)" : "linear-gradient(135deg, #06d6a0, #00e5ff)",
