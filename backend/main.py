@@ -2581,15 +2581,13 @@ async def ace_generate(
                 try:
                     init_response = await client.post(
                         f"{ACE_STEP_API}/v1/init",
-                        json={"model": dit_model, "init_llm": True},
-                        timeout=180.0  # Model loading can take 2-3 minutes
+                        json={"model": dit_model, "init_llm": False},  # LLM disabled
+                        timeout=180.0
                     )
                     if init_response.status_code == 200:
                         init_data = init_response.json()
                         loaded_model = init_data.get("data", {}).get("loaded_model", dit_model)
-                        print(f"[ACE {job_id[:8]}] ✅ Model loaded: {loaded_model}")
-
-                        # Wait a moment for model to fully initialize
+                        print(f"[ACE {job_id[:8]}] ✅ Model loaded: {loaded_model} (LLM disabled)")
                         await asyncio.sleep(2)
                     else:
                         print(f"[ACE {job_id[:8]}] ⚠️ Model init returned status {init_response.status_code}")
@@ -2664,23 +2662,24 @@ async def ace_generate(
                 "batch_size": batch_size,
                 "use_tiled_decode": use_tiled_decode,
                 
-                # LLM parameters
-                "lm_model_path": None,  # Auto-selected based on VRAM
-                "lm_backend": "pt",  # or "vllm"
-                "lm_temperature": lm_temperature,
-                "lm_cfg_scale": lm_cfg_scale,
-                "lm_top_k": lm_top_k if lm_top_k > 0 else None,
-                "lm_top_p": lm_top_p,
-                "lm_repetition_penalty": 1.0,  # ACE-Step default
-                "lm_negative_prompt": neg,
-                
-                # Chain-of-Thought (disabled for text2music to respect user input)
-                "constrained_decoding": True,  # ACE-Step default
+                # LLM parameters - ALL DISABLED
+                "lm_model_path": None,
+                "lm_backend": "pt",
+                "lm_temperature": 0.85,
+                "lm_cfg_scale": 2.5,
+                "lm_top_k": 0,
+                "lm_top_p": 0.9,
+                "lm_repetition_penalty": 1.0,
+                "lm_negative_prompt": "",
+
+                # Chain-of-Thought - ALL DISABLED
+                "constrained_decoding": False,
                 "constrained_decoding_debug": False,
-                "use_cot_caption": effective_use_cot_caption,
-                "use_cot_language": effective_use_cot_language,
+                "use_cot_caption": False,
+                "use_cot_language": False,
                 "is_format_caption": False,
-                "allow_lm_batch": allow_lm_batch,
+                "allow_lm_batch": False,
+                "thinking": False,
                 
                 # Track metadata (optional)
                 "track_name": None,
