@@ -1232,71 +1232,20 @@ async def demucs_separate(
 
 def apply_audio_enhancement(audio_path: str, output_path: str = None):
     """
-    Apply AI-powered noise reduction using noisereduce (spectral gating).
-    
-    Enhancement:
-    - Noisereduce AI Denoising: Removes background hiss while preserving audio quality
-    - Processing time: ~3-5 seconds for typical 3-minute track
-    
-    Noisereduce uses spectral gating - same technique as iZotope RX, Adobe Audition.
+    Placeholder for future audio enhancement.
+    Currently disabled - no processing applied.
     """
     try:
         import soundfile as sf
-        import numpy as np
-        
-        # Try to import noisereduce (optional dependency)
-        try:
-            import noisereduce as nr
-            noisereduce_available = True
-        except ImportError:
-            print(f"[Audio Enhancement] ⚠️ Noisereduce not installed. Install with: pip install noisereduce")
-            noisereduce_available = False
         
         if output_path is None:
             output_path = audio_path
         
-        # Load audio
+        # No processing - just save as-is
         y, sr = sf.read(audio_path, dtype='float32')
+        sf.write(output_path, y, sr)
         
-        # If stereo, process both channels
-        is_stereo = len(y.shape) > 1
-        if not is_stereo:
-            y = y.reshape(-1, 1)
-        
-        # ========== NOISEREDUCE AI DENOISING ==========
-        if noisereduce_available:
-            print(f"[Audio Enhancement] Applying Noisereduce AI denoising...")
-            try:
-                # Process each channel separately
-                for ch in range(y.shape[1]):
-                    # Apply spectral gating noise reduction
-                    # Official parameters from: https://github.com/timsainb/noisereduce
-                    y[:, ch] = nr.reduce_noise(
-                        y=y[:, ch],
-                        sr=sr,
-                        stationary=True,              # For constant hiss/floor noise
-                        prop_decrease=0.75,           # Reduce noise by 75%
-                        n_fft=2048,                   # Better for music (93ms @ 44.1kHz)
-                        n_std_thresh_stationary=1.5,  # Threshold between signal/noise
-                        freq_mask_smooth_hz=500,      # Frequency smoothing (Hz)
-                        time_mask_smooth_ms=50,       # Time smoothing (ms)
-                        n_jobs=1,                     # Single-threaded (stable)
-                    )
-                
-                print(f"[Audio Enhancement] ✅ Noisereduce complete")
-                
-            except Exception as e:
-                print(f"[Audio Enhancement] ⚠️ Noisereduce failed: {e}, using original audio")
-        else:
-            print(f"[Audio Enhancement] ⚠️ Noisereduce not available, skipping denoising")
-        
-        # Save enhanced audio
-        if is_stereo:
-            sf.write(output_path, y, sr)
-        else:
-            sf.write(output_path, y.flatten(), sr)
-        
-        print(f"[Audio Enhancement] ✅ Complete")
+        print(f"[Audio Enhancement] ⚠️ Disabled - no processing applied")
         return True
         
     except Exception as e:
@@ -3027,20 +2976,6 @@ async def ace_generate(
                     duration_sec = round(len(audio_data) / audio_sr, 2)
 
                     print(f"[ACE {job_id[:8]}] Done in {t_sec}s — {duration_sec}s audio ({out_size_mb}MB)")
-
-                    # ========== AUDIO ENHANCEMENT (RNNoise AI Denoising) ==========
-                    # Apply AI-powered noise reduction (WAV only)
-                    if audio_format == "wav":
-                        enhance_start = time.time()
-                        print(f"[ACE {job_id[:8]}] 🔧 Applying RNNoise AI denoising...")
-                        enhance_success = apply_audio_enhancement(out_path)
-                        enhance_time = round(time.time() - enhance_start, 1)
-                        if enhance_success:
-                            print(f"[ACE {job_id[:8]}] ✅ RNNoise complete (+{enhance_time}s)")
-                            out_size_mb = round(os.path.getsize(out_path) / 1024 / 1024, 2)
-                        else:
-                            print(f"[ACE {job_id[:8]}] ⚠️ RNNoise failed, using original")
-                    # =================================================================
 
                     # RAM Management: Force garbage collection to prevent memory leaks
                     # This fixes the issue where RAM usage grows from 2GB → 13GB → 21GB → 32GB+ freeze
