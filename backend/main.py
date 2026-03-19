@@ -1234,7 +1234,7 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
     """
     SunoDehiss-inspired audio dehissing for AI-generated music.
     
-    Uses ONLY spectral noise reduction - NO EQ or filters that affect bass/volume.
+    Uses spectral noise reduction with loudness matching to preserve original volume and bass.
     
     Strength presets:
     - low: prop_decrease=0.35 (very conservative)
@@ -1270,13 +1270,17 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
         # Load audio
         audio, sr = sf.read(audio_path, dtype='float64')
         
+        # Measure ORIGINAL loudness (RMS) before processing
+        original_rms = np.sqrt(np.mean(audio ** 2))
+        original_peak = np.max(np.abs(audio))
+        print(f"[Audio Enhancement] Original: RMS={original_rms:.4f}, Peak={original_peak:.4f}")
+        
         # If mono, convert to 2D for consistent processing
         is_mono = audio.ndim == 1
         if is_mono:
             audio = audio.reshape(-1, 1)
         
         # ========== SPECTRAL NOISE REDUCTION ONLY ==========
-        # NO EQ, NO FILTERS - preserves bass and volume
         if noisereduce_available:
             print(f"[Audio Enhancement] Applying SunoDehiss ({strength})...")
             try:
@@ -1294,7 +1298,7 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
                     )
                     channels.append(ch_cleaned)
                 audio = np.column_stack(channels)
-                print(f"[Audio Enhancement] ✅ Noise reduction complete (prop_decrease={preset['prop_decrease']})")
+                print(f"[Audio Enhancement] ✅ Noise reduction complete")
             except Exception as e:
                 print(f"[Audio Enhancement] ⚠️ Failed: {e}")
                 return False
@@ -1302,13 +1306,36 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None, strength: 
             print(f"[Audio Enhancement] ⚠️ Noisereduce not available")
             return False
         
+        # ========== MATCH ORIGINAL LOUDNESS ==========
+        # Measure processed loudness
+        processed_rms = np.sqrt(np.mean(audio ** 2))
+        processed_peak = np.max(np.abs(audio))
+        
+        # Calculate gain to match original loudness
+        if processed_rms > 0:
+            gain_factor = original_rms / processed_rms
+            audio = audio * gain_factor
+            
+            # Prevent clipping - limit to original peak or 0.99 (whichever is lower)
+            max_allowed = min(original_peak, 0.99)
+            current_peak = np.max(np.abs(audio))
+            if current_peak > max_allowed:
+                audio = audio * (max_allowed / current_peak)
+                print(f"[Audio Enhancement] ✅ Limited to prevent clipping")
+            
+            print(f"[Audio Enhancement] ✅ Loudness matched: gain={gain_factor:.4f}")
+        
         # Save output (24-bit WAV for quality)
         if is_mono:
             sf.write(output_path, audio.flatten(), sr, subtype='PCM_24')
         else:
             sf.write(output_path, audio, sr, subtype='PCM_24')
         
-        print(f"[Audio Enhancement] ✅ SunoDehiss complete - bass & volume preserved")
+        # Verify output
+        verify_audio, _ = sf.read(output_path, dtype='float64')
+        verify_rms = np.sqrt(np.mean(verify_audio ** 2))
+        print(f"[Audio Enhancement] ✅ Output: RMS={verify_rms:.4f} (original: {original_rms:.4f})")
+        print(f"[Audio Enhancement] ✅ SunoDehiss complete - volume & bass preserved")
         return True
         
     except Exception as e:
