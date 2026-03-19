@@ -290,6 +290,17 @@ LPT[0-9]
 {'
 
 # ======================
+# Local Custom Files (DO NOT PUSH)
+# ======================
+- Copy.env
+CLEAN_CONDA.bat
+START_ALL - Copy.bat
+]
+preview.png
+project v2.png
+Claude Setup.exe
+
+# ======================
 # KEEP THESE (Essential Project Files)
 # ======================
 !START_ALL.bat
