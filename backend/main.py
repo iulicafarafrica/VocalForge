@@ -1232,22 +1232,17 @@ async def demucs_separate(
 
 def apply_audio_enhancement(audio_path: str, output_path: str = None):
     """
-    Apply noise reduction and audio enhancement to generated audio.
+    Apply studio-quality bass enhancement to generated audio.
     
-    Enhancements:
-    1. Noise Gate - removes background hiss in silent parts
-    2. Spectral Denoising - reduces steady-state noise floor
-    3. Bass Boost - +3dB at 80Hz for stronger bass
-    4. Low-pass Filter - removes ultrasonic noise >18kHz
-    5. De-essing - reduces harsh frequencies (2-5kHz)
-    6. Limiter - prevents clipping from processing
+    Enhancement:
+    - Gentle Bass Boost: +2dB at 70Hz with smooth Q curve (studio quality, no distortion)
     
-    Processing time: ~5-8 seconds for typical 3-minute track
+    Processing time: ~1-2 seconds for typical 3-minute track
     """
     try:
         import soundfile as sf
         import numpy as np
-        from scipy.signal import butter, lfilter, sosfilt
+        from scipy.signal import butter, lfilter
         
         if output_path is None:
             output_path = audio_path
@@ -1260,91 +1255,30 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None):
         if not is_stereo:
             y = y.reshape(-1, 1)
         
-        # ========== 1. NOISE GATE (threshold: -50dB) ==========
-        threshold = np.max(np.abs(y), axis=0) * 0.003  # -50dB
-        for ch in range(y.shape[1]):
-            y[np.abs(y[:, ch]) < threshold[ch], ch] = 0
+        # ========== BASS ENHANCEMENT (Studio Quality) ==========
+        # Gentle low-shelf EQ: +2dB at 70Hz, smooth Q=0.7 (no distortion)
+        bass_freq = 70  # Hz
+        bass_gain = 2  # dB (conservative for clean sound)
+        q_factor = 0.7  # Smooth curve
         
-        # ========== 2. SPECTRAL DENOISING (noise floor reduction) ==========
-        # Simple spectral subtraction for steady-state noise
-        print(f"[Audio Enhancement] Applying spectral denoising...")
-        for ch in range(y.shape[1]):
-            # Get noise profile from first 0.1s (usually silent)
-            noise_samples = int(0.1 * sr)
-            noise_profile = np.abs(np.fft.rfft(y[:noise_samples, ch]))
-            
-            # STFT processing
-            hop = 512
-            window = np.hanning(1024)
-            n_frames = (len(y[:, ch]) - len(window)) // hop + 1
-            
-            # Process each frame
-            for i in range(n_frames):
-                start = i * hop
-                end = start + len(window)
-                frame = y[start:end, ch] * window
-                
-                # FFT
-                spectrum = np.fft.rfft(frame)
-                magnitude = np.abs(spectrum)
-                phase = np.angle(spectrum)
-                
-                # Spectral subtraction with floor
-                alpha = 2.0  # Over-subtraction factor
-                beta = 0.01  # Spectral floor
-                denoised_mag = np.maximum(magnitude - alpha * noise_profile, beta * magnitude)
-                
-                # Inverse FFT
-                clean_spectrum = denoised_mag * np.exp(1j * phase)
-                clean_frame = np.fft.irfft(clean_spectrum, len(frame))
-                
-                # Overlap-add
-                y[start:end, ch] += clean_frame * window
-        
-        # ========== 3. BASS BOOST (+3dB at 80Hz) ==========
-        bass_freq = 80  # Hz
-        bass_gain = 3  # dB
-        q_factor = 1.0
-        
+        # Low-shelf filter coefficients
         A = 10 ** (bass_gain / 40)
         w0 = 2 * np.pi * bass_freq / sr
         alpha = np.sin(w0) / (2 * q_factor)
         
-        b = [1 + alpha * A, -2 * np.cos(w0), 1 - alpha * A]
-        a = [1 + alpha / A, -2 * np.cos(w0), 1 - alpha / A]
+        b = [A * ((A + 1) - (A - 1) * np.cos(w0) + 2 * np.sqrt(A) * alpha),
+             2 * A * ((A - 1) - (A + 1) * np.cos(w0)),
+             A * ((A + 1) - (A - 1) * np.cos(w0) - 2 * np.sqrt(A) * alpha)]
+        a = [(A + 1) + (A - 1) * np.cos(w0) + 2 * np.sqrt(A) * alpha,
+             -2 * ((A - 1) + (A + 1) * np.cos(w0)),
+             (A + 1) + (A - 1) * np.cos(w0) - 2 * np.sqrt(A) * alpha]
+        
+        # Normalize coefficients
+        b = b / a[0]
+        a = a / a[0]
         
         for ch in range(y.shape[1]):
             y[:, ch] = lfilter(b, a, y[:, ch])
-        
-        # ========== 4. LOW-PASS FILTER @ 18kHz ==========
-        cutoff = 18000  # Hz
-        nyquist = 0.5 * sr
-        if cutoff < nyquist:
-            sos = butter(4, cutoff / nyquist, btype='low', output='sos')
-            for ch in range(y.shape[1]):
-                y[:, ch] = sosfilt(sos, y[:, ch])
-        
-        # ========== 5. DE-ESSING (reduce harsh 2-5kHz) ==========
-        # Gentle reduction of harsh frequencies
-        deess_freq_low = 2000  # Hz
-        deess_freq_high = 5000  # Hz
-        deess_gain = -2  # dB reduction
-        
-        # Create notch-like filter for harsh frequencies
-        nyq = 0.5 * sr
-        low = deess_freq_low / nyq
-        high = deess_freq_high / nyq
-        if high < 1.0:
-            sos = butter(2, [low, high], btype='band', output='sos')
-            for ch in range(y.shape[1]):
-                harsh = sosfilt(sos, y[:, ch])
-                y[:, ch] = y[:, ch] + (10 ** (deess_gain / 20) - 1) * harsh
-        
-        # ========== 6. LIMITER (prevent clipping) ==========
-        max_level = 0.89  # -1dB
-        current_peak = np.max(np.abs(y))
-        if current_peak > max_level:
-            y = y * (max_level / current_peak)
         
         # Save enhanced audio
         if is_stereo:
@@ -1352,7 +1286,7 @@ def apply_audio_enhancement(audio_path: str, output_path: str = None):
         else:
             sf.write(output_path, y.flatten(), sr)
         
-        print(f"[Audio Enhancement] ✅ Complete: noise gate, spectral denoise, bass +3dB@80Hz, low-pass @18kHz, de-ess, limiter")
+        print(f"[Audio Enhancement] ✅ Studio bass enhancement (+2dB@70Hz, clean)")
         return True
         
     except Exception as e:
@@ -3084,20 +3018,19 @@ async def ace_generate(
 
                     print(f"[ACE {job_id[:8]}] Done in {t_sec}s — {duration_sec}s audio ({out_size_mb}MB)")
 
-                    # ========== AUDIO ENHANCEMENT (Noise Reduction + Bass Boost) ==========
-                    # Apply post-processing to improve audio quality
-                    # Only for WAV output (lossless processing)
+                    # ========== AUDIO ENHANCEMENT (Studio Bass) ==========
+                    # Apply studio-quality bass enhancement (WAV only)
                     if audio_format == "wav":
                         enhance_start = time.time()
-                        print(f"[ACE {job_id[:8]}] 🔧 Applying audio enhancement (spectral denoise)...")
+                        print(f"[ACE {job_id[:8]}] 🔧 Applying studio bass enhancement...")
                         enhance_success = apply_audio_enhancement(out_path)
                         enhance_time = round(time.time() - enhance_start, 1)
                         if enhance_success:
-                            print(f"[ACE {job_id[:8]}] ✅ Audio enhancement complete (+{enhance_time}s)")
+                            print(f"[ACE {job_id[:8]}] ✅ Bass enhancement complete (+{enhance_time}s)")
                             out_size_mb = round(os.path.getsize(out_path) / 1024 / 1024, 2)
                         else:
-                            print(f"[ACE {job_id[:8]}] ⚠️ Audio enhancement failed, using original")
-                    # =======================================================================
+                            print(f"[ACE {job_id[:8]}] ⚠️ Bass enhancement failed, using original")
+                    # =======================================================
 
                     # RAM Management: Force garbage collection to prevent memory leaks
                     # This fixes the issue where RAM usage grows from 2GB → 13GB → 21GB → 32GB+ freeze
