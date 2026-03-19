@@ -739,6 +739,13 @@ async def process_cover(
     finally:
         try:
             shutil.rmtree(job_dir, ignore_errors=True)
+            # Free GPU memory after processing
+            import gc
+            import torch
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+                torch.cuda.synchronize()
+            gc.collect()
         except Exception:
             pass
 
@@ -826,7 +833,17 @@ async def preview_cover(
             "traceback": traceback.format_exc(),
         })
     finally:
-        shutil.rmtree(job_dir, ignore_errors=True)
+        try:
+            shutil.rmtree(job_dir, ignore_errors=True)
+            # Free GPU memory after processing
+            import gc
+            import torch
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+                torch.cuda.synchronize()
+            gc.collect()
+        except Exception:
+            pass
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -2476,7 +2493,7 @@ async def ace_generate(
                 try:
                     init_response = await client.post(
                         f"{ACE_STEP_API}/v1/init",
-                        json={"model": dit_model, "init_llm": False},
+                        json={"model": dit_model, "init_llm": True},
                         timeout=180.0  # Model loading can take 2-3 minutes
                     )
                     if init_response.status_code == 200:
