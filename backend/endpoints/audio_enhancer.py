@@ -335,7 +335,7 @@ def enhance_audio_file(file_path: str, strength: str = "light") -> str:
     # Presets (same as above)
     PRESETS = {
         "light": {"highpass": "20", "afftdn": "nr=15"},       # Gentle hiss reduction
-        "medium": {"highpass": "20", "afftdn": "nr=20", "eq": "equalizer=f=5000:t=q:w=1:g=-3,equalizer=f=8000:t=q:w=1:g=-4,equalizer=f=12000:t=q:w=1:g=-5"},  # Target hiss frequencies (5kHz+)
+        "medium": {"highpass": "20", "afftdn": "nr=20", "eq": "equalizer=f=6000:t=q:w=1:g=-2,equalizer=f=9000:t=q:w=1:g=-2.5,equalizer=f=13000:t=q:w=1:g=-3"},  # Subtle hiss reduction (6kHz+)
         "aggressive": {"highpass": "20", "afftdn": "nr=25"},  # Strong hiss reduction
     }
     
