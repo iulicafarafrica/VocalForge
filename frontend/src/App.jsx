@@ -19,7 +19,7 @@ const TABS = [
   { id: "Readme",  Icon: BookOpen,   label: "ReadMe", color: "#00e5ff" },
   { id: "Demucs",  Icon: Sliders,    label: "Stem Separation", color: "#00e5ff" },
   { id: "ACEStep", Icon: Music2,     label: "ACE-Step", color: "#ff6b9d" },
-  { id: "Pipeline", Icon: Zap, label: "Vocal Pipeline", color: "#a855f7" },
+  // { id: "Pipeline", Icon: Zap, label: "Vocal Pipeline", color: "#a855f7" }, // DISABLED until fixed
   { id: "Lyrics", Icon: Mic2, label: "Lyrics Finder", color: "#ff6b9d" },
   { id: "ACEAdvanced", Icon: Layers, label: "Repaint", color: "#00b4d8" },
   { id: "AudioEnhancer", Icon: Wand2, label: "Audio Enhancer", color: "#06d6a0" },
