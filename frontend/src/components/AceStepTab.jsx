@@ -3699,6 +3699,14 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                         mids: { freq: 900, gain: 4, q: 2.2 },        // +4dB @ 900Hz - presence, cut through guitars
                         highs: { freq: 2500, gain: 3, q: 2.8 }       // +3dB @ 2.5kHz - pick attack, string brightness
                       });
+                    } else if (preset === "phonk") {
+                      setEqBands({
+                        subBass: { freq: 35, gain: 8, q: 0.9 },      // +8dB @ 35Hz - BRUTAL 808 💀
+                        bass: { freq: 75, gain: 6, q: 1.2 },         // +6dB @ 75Hz - PUNCH & IMPACT
+                        lowMids: { freq: 300, gain: -6, q: 1.8 },    // -6dB @ 300Hz - clean, tight, distorted
+                        mids: { freq: 1000, gain: 5, q: 2.5 },       // +5dB @ 1kHz - GROWL, gritty 808
+                        highs: { freq: 3000, gain: 4, q: 3.0 }       // +4dB @ 3kHz - presence, heard on any system
+                      });
                     }
                   }}
                   style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
@@ -3709,6 +3717,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   <option value="oriental_traditional">🌙 Oriental Tradițional</option>
                   <option value="reggae">🇯🇲 Reggae</option>
                   <option value="rock_metal">🎸 Rock / Metal</option>
+                  <option value="phonk">💀 Phonk</option>
                 </select>
               </div>
 
