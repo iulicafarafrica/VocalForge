@@ -3707,6 +3707,14 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                         mids: { freq: 1000, gain: 5, q: 2.5 },       // +5dB @ 1kHz - GROWL, gritty 808
                         highs: { freq: 3000, gain: 4, q: 3.0 }       // +4dB @ 3kHz - presence, heard on any system
                       });
+                    } else if (preset === "drum_and_bass") {
+                      setEqBands({
+                        subBass: { freq: 45, gain: 6, q: 1.0 },      // +6dB @ 45Hz - powerful foundation (174 BPM)
+                        bass: { freq: 80, gain: 4.5, q: 1.2 },       // +4.5dB @ 80Hz - body & warmth
+                        lowMids: { freq: 200, gain: -3, q: 1.5 },    // -3dB @ 200Hz - separate sub from mid bass
+                        mids: { freq: 600, gain: 5, q: 2.0 },        // +5dB @ 600Hz - reese growl, heart of DnB 🔥
+                        highs: { freq: 2000, gain: 4, q: 2.5 }       // +4dB @ 2kHz - clarity at 174 BPM
+                      });
                     }
                   }}
                   style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
@@ -3718,6 +3726,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   <option value="reggae">🇯🇲 Reggae</option>
                   <option value="rock_metal">🎸 Rock / Metal</option>
                   <option value="phonk">💀 Phonk</option>
+                  <option value="drum_and_bass">🥁 Drum and Bass</option>
                 </select>
               </div>
 
