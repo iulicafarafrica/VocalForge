@@ -1,6 +1,137 @@
 
 ---
 
+## [v3.1.0] - 2026-03-21
+
+### 🎚️ Custom EQ + Stem Separation Updates
+
+**Genre-specific EQ presets + improved stem separation!**
+
+---
+
+### 🎯 **HEADLINE FEATURES**
+
+#### **🎚️ Custom EQ (ACE-Step Integration)**
+- **13 Genre-Specific EQ Presets:**
+  - ⭐ **Afro House** — Warm, groovy bass (40Hz/90Hz boost)
+  - 🎤 **Trap/Hip-Hop** — SUB-BASS = REGE 👑 (35Hz +6dB, 808 massive)
+  - 🌙 **Oriental Tradițional** — Warmth organic (90Hz +4dB, 700Hz +3dB)
+  - 🇯🇲 **Reggae** — WARMTH & FULLNESS 🔑 (45Hz +5dB, 90Hz +6dB)
+  - 🎸 **Rock/Metal** — Claritate & Cut (275Hz -4dB, 900Hz +4dB)
+  - 💀 **Phonk** — BRUTAL 808 🔥 (35Hz +8dB, 75Hz +6dB)
+  - 🥁 **Drum and Bass** — Reese growl @ 174 BPM (45Hz +6dB, 600Hz +5dB)
+  - 💙 **Deep House** — Warm & Groovy (48Hz +5dB, 90Hz +6dB)
+  - 🌑 **Dark Afro House** — Mysterious Tribal @ 124 BPM (42Hz +7dB)
+  - 🌙 **Dark Oriental House** — Arabic Fusion @ 124 BPM (45Hz +7dB, 650Hz +4dB)
+  - 🎤 **Vocal Natural** — Natural Organic Voice ✨ (HPF @ 90Hz, 2.5kHz +3.5dB)
+  - 🔇 **Hiss & Crackle Removal** — Noise Reduction ⚠️ (8kHz -4dB, 14kHz -6dB)
+  - 🤖 **AI Artifacts Hiding** — Humanize AI Voice 🤖→🎤 (1kHz -2.5dB, 6kHz -4dB)
+
+- **UI:** Dropdown selector + 5-band EQ sliders (Sub-bass, Bass, Low-Mids, Mids, Highs)
+- **Processing:** +2-3 seconds after generation
+- **Loudnorm:** Integrated (-14 LUFS, -1 dBTP, LRA 7)
+
+#### **🔇 Custom EQ + Noise Hiss Remover Integration**
+- **Both can now run simultaneously!**
+- Processing order: Custom EQ FIRST → Noise Hiss SECOND
+- Single loudnorm at end (no pumping artifacts)
+- Custom EQ loudnorm conditional:
+  - If Noise Hiss ON: loudnorm SKIPPED (applied by Noise Hiss)
+  - If Noise Hiss OFF: loudnorm APPLIED
+
+---
+
+### 🐛 **Bug Fixes**
+
+1. **Custom EQ loudnorm conflict** — Conditional loudnorm prevents double processing
+2. **ACE-Step JSON parse error** — Added regex fallback for file path extraction
+3. **Audio Enhancer preset error** — Fixed 'preset is not defined' in _process_noise_removal
+4. **enhance_enabled scope** — Defined before Custom EQ section
+
+---
+
+### 🎚️ **Stem Separation Updates**
+
+#### **Removed Demucs Models:**
+- ❌ Removed `htdemucs_ft` (was causing 500 errors)
+- ❌ Removed `htdemucs` (FAST)
+- ❌ Removed `htdemucs_6s` (memory issues)
+
+#### **Remaining Models (UVR only):**
+- ✅ **BS-RoFormer 🏆 SDR 12.97** — Best quality
+- ✅ **Mel-Band RoFormer SDR 12.6** — Excellent
+
+#### **Improved Error Handling:**
+- Better error messages for Demucs API calls
+- Check res.ok before parsing JSON
+- Display actual backend error messages
+
+---
+
+### 🎤 **Vocal Pipeline**
+
+- **Temporarily disabled** until fixed (tab commented out in UI)
+
+---
+
+### 🔧 **Technical Changes**
+
+#### **Frontend (`frontend/src/components/AceStepTab.jsx`)**
+- New state: `customEqEnabled`, `eqPreset`, `eqBands`
+- Custom EQ UI section with dropdown + 5 sliders
+- Toggle ON/OFF for "Apply after generation"
+- FormData: `custom_eq_enabled`, `eq_bands` (JSON string)
+
+#### **Backend (`backend/main.py`)**
+- New parameters: `custom_eq_enabled`, `eq_bands`
+- Custom EQ processing in `ace_generate` endpoint
+- FFmpeg EQ chain: 5 bands + loudnorm (conditional)
+- Processing order: Custom EQ → Noise Hiss → loudnorm
+
+#### **Backend (`backend/endpoints/audio_enhancer.py`)**
+- Fixed missing `preset` variable in `_process_noise_removal`
+
+#### **Frontend (`frontend/src/App.jsx`)**
+- Vocal Pipeline tab commented out (disabled until fixed)
+
+#### **Backend (`backend/main.py`)**
+- Added debug logging for Demucs stem separation
+- Added segment size option for htdemucs_6s (10s chunks)
+- ACE-Step result parsing with regex fallback
+
+---
+
+### 📊 **Performance**
+
+| Operation | Time |
+|-----------|------|
+| Custom EQ (5 bands) | ~2-3s |
+| Custom EQ + Noise Hiss | ~8-10s |
+| Noise Hiss only | ~6-8s |
+| ACE-Step + Both | +10-12s |
+
+---
+
+### 🎵 **EQ Preset Details**
+
+| Preset | Sub-bass | Bass | Low-Mids | Mids | Highs | Character |
+|--------|----------|------|----------|------|-------|-----------|
+| **Afro House** | +4@40Hz | +3@90Hz | -3@300Hz | +2@1kHz | -1@4kHz | Warm, groovy |
+| **Trap/Hip-Hop** | +6@35Hz | +4@75Hz | -5@275Hz | +2.5@1.5kHz | +1.5@4.5kHz | 808 massive |
+| **Oriental** | +2@48Hz | +4@90Hz | +1.5@220Hz | +3@700Hz | +0.75@5.5kHz | Warmth organic |
+| **Reggae** | +5@45Hz | +6@90Hz | +1.5@220Hz | +2.5@700Hz | +3@1.8kHz | Warmth & fullness |
+| **Rock/Metal** | 0@45Hz | +3.5@90Hz | -4@275Hz | +4@900Hz | +3@2.5kHz | Clarity & cut |
+| **Phonk** | +8@35Hz | +6@75Hz | -6@300Hz | +5@1kHz | +4@3kHz | BRUTAL 808 |
+| **Drum & Bass** | +6@45Hz | +4.5@80Hz | -3@200Hz | +5@600Hz | +4@2kHz | Reese growl |
+| **Deep House** | +5@48Hz | +6@90Hz | +2.5@160Hz | +2.5@900Hz | +1.5@2.2kHz | Warm & groovy |
+| **Dark Afro** | +7@42Hz | +5@85Hz | -4@260Hz | +1.5@750Hz | +1@1.8kHz | Mysterious tribal |
+| **Dark Oriental** | +7@45Hz | +4.5@85Hz | +1.5@200Hz | +4@650Hz | -0.5@5kHz | Arabic fusion |
+| **Vocal Natural** | HPF@90Hz | +1@150Hz | -3@300Hz | +3.5@2.5kHz | +2@11kHz | Natural organic |
+| **Hiss Removal** | HPF@30Hz | 0@150Hz | 0@300Hz | -4@8kHz | -6@14kHz | Noise reduction |
+| **AI Artifacts** | HPF@95Hz | +2@140Hz | -3@320Hz | -2.5@1kHz | -4@6kHz | Humanize AI |
+
+---
+
 ## [v3.0.0] - 2026-03-20
 
 ### 🔇 Audio Enhancer Release + Loudness Normalization Fix
