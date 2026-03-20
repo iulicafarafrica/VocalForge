@@ -1092,8 +1092,20 @@ def separate_stems_demucs(audio_path: str, out_dir: str, model: str = "htdemucs_
     
     print(f"[Demucs] Starting separation: model={model}, input={audio_path}, out_dir={out_dir}")
     
+    # Use smaller segment size for lower memory usage
+    # htdemucs_6s needs more memory, so use 10s segments
+    segment_size = "10" if "6s" in model else "default"
+    
+    cmd = [sys.executable, "-m", "demucs", "-n", model, "-o", out_dir, audio_path]
+    
+    # Add segment size for memory-constrained systems
+    if segment_size != "default":
+        cmd.extend(["--segment", segment_size])
+    
+    print(f"[Demucs] Command: {' '.join(cmd)}")
+    
     result = subprocess.run(
-        [sys.executable, "-m", "demucs", "-n", model, "-o", out_dir, audio_path],
+        cmd,
         capture_output=True, text=True, timeout=600,
     )
     
