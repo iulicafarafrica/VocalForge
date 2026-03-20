@@ -3715,6 +3715,14 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                         mids: { freq: 600, gain: 5, q: 2.0 },        // +5dB @ 600Hz - reese growl, heart of DnB 🔥
                         highs: { freq: 2000, gain: 4, q: 2.5 }       // +4dB @ 2kHz - clarity at 174 BPM
                       });
+                    } else if (preset === "deep_house") {
+                      setEqBands({
+                        subBass: { freq: 48, gain: 5, q: 1.0 },      // +5dB @ 48Hz - warm, smooth foundation
+                        bass: { freq: 90, gain: 6, q: 1.2 },         // +6dB @ 90Hz - INIMA deep house 💙
+                        lowMids: { freq: 160, gain: 2.5, q: 1.8 },   // +2.5dB @ 160Hz - warmth, organic, wooden
+                        mids: { freq: 900, gain: 2.5, q: 2.2 },      // +2.5dB @ 900Hz - groove, musicality
+                        highs: { freq: 2200, gain: 1.5, q: 2.5 }     // +1.5dB @ 2.2kHz - subtle note definition
+                      });
                     }
                   }}
                   style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
@@ -3727,6 +3735,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   <option value="rock_metal">🎸 Rock / Metal</option>
                   <option value="phonk">💀 Phonk</option>
                   <option value="drum_and_bass">🥁 Drum and Bass</option>
+                  <option value="deep_house">💙 Deep House</option>
                 </select>
               </div>
 
