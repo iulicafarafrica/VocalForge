@@ -28,6 +28,7 @@ import os
 import sys
 import uuid
 import json
+import json as _json  # alias to avoid httpx kwarg shadowing
 import random
 import shutil
 import asyncio
@@ -2883,7 +2884,7 @@ async def ace_generate(
                     # Failed — parse error from result JSON
                     result_str = item.get("result", "[]")
                     try:
-                        result_arr = json.loads(result_str) if isinstance(result_str, str) else result_str
+                        result_arr = _json.loads(result_str) if isinstance(result_str, str) else result_str
                         err = (result_arr[0].get("error") if result_arr else None) or "Unknown error"
                     except Exception:
                         err = result_str[:200]
@@ -2900,7 +2901,7 @@ async def ace_generate(
                     result_arr = []
                     if isinstance(result_str, str):
                         try:
-                            result_arr = json.loads(result_str)
+                            result_arr = _json.loads(result_str)
                         except Exception as parse_err:
                             print(f"[ACE {job_id[:8]}] JSON parse error: {parse_err}")
                             # Fallback: try to extract file path from string directly
@@ -3017,8 +3018,63 @@ async def ace_generate(
 
                     print(f"[ACE {job_id[:8]}] Done in {t_sec}s — {duration_sec}s audio ({out_size_mb}MB)")
 
+                    # ========== CUSTOM EQ (Post-processing) ==========
+                    # Apply genre-specific EQ FIRST (before Noise Hiss)
+                    eq_enabled = custom_eq_enabled.lower() == "true"
+
+                    if eq_enabled:
+                        try:
+                            eq_data = json.loads(eq_bands)
+                            print(f"[ACE {job_id[:8]}] 🎚️ Applying Custom EQ...")
+                            eq_start = time.time()
+
+                            # Build FFmpeg EQ filter chain
+                            eq_filters = []
+                            for band_key, band in eq_data.items():
+                                eq_filters.append(f"equalizer=f={band['freq']}:t=q:w={band['q']}:g={band['gain']}")
+
+                            # Add loudnorm ONLY if Noise Hiss Remover is OFF
+                            # (Noise Hiss will apply loudnorm at the end)
+                            if enhance_enabled:
+                                print(f"[ACE {job_id[:8]}] 📊 Custom EQ: loudnorm SKIPPED (Noise Hiss will apply)")
+                            else:
+                                eq_filters.append("loudnorm=I=-14:TP=-1:LRA=7")
+                                print(f"[ACE {job_id[:8]}] 📊 Custom EQ: loudnorm APPLIED")
+
+                            eq_chain = ",".join(eq_filters)
+                            print(f"[ACE {job_id[:8]}] EQ chain: {eq_chain}")
+                            
+                            # Create temp file for output
+                            import tempfile
+                            temp_eq_path = tempfile.mktemp(suffix="_eq.wav")
+
+                            # Run FFmpeg
+                            cmd = [
+                                "ffmpeg", "-y",
+                                "-i", out_path,
+                                "-af", eq_chain,
+                                "-ar", "44100",
+                                "-acodec", "pcm_s24le",
+                                temp_eq_path
+                            ]
+
+                            result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+
+                            if result.returncode == 0 and os.path.exists(temp_eq_path):
+                                # Replace original with EQ'd version
+                                shutil.move(temp_eq_path, out_path)
+                                eq_time = round(time.time() - eq_start, 1)
+                                print(f"[ACE {job_id[:8]}] ✅ Custom EQ complete (+{eq_time}s)")
+                            else:
+                                print(f"[ACE {job_id[:8]}] ⚠️ EQ failed: {result.stderr[:300]}")
+                                if os.path.exists(temp_eq_path):
+                                    os.remove(temp_eq_path)
+                        except Exception as eq_err:
+                            print(f"[ACE {job_id[:8]}] ⚠️ Custom EQ failed: {eq_err}")
+                    # ===========================================================
+
                     # ========== AUDIO ENHANCEMENT (Post-processing) ==========
-                    # Apply hiss removal + loudness normalization if enabled
+                    # Apply hiss removal + loudness normalization SECOND (after Custom EQ)
                     # Convert string to bool: "true" -> True, "false" -> False
                     enhance_enabled = audio_enhance.lower() == "true"
 
@@ -3032,59 +3088,6 @@ async def ace_generate(
                             print(f"[ACE {job_id[:8]}] ✅ Enhancement complete (+{enhance_time}s)")
                         except Exception as enhance_err:
                             print(f"[ACE {job_id[:8]}] ⚠️ Enhancement failed: {enhance_err}")
-                    # ===========================================================
-
-                    # ========== CUSTOM EQ (Post-processing) ==========
-                    # Apply genre-specific EQ if enabled
-                    eq_enabled = custom_eq_enabled.lower() == "true"
-
-                    if eq_enabled:
-                        try:
-                            import json
-                            import subprocess
-                            
-                            eq_data = json.loads(eq_bands)
-                            print(f"[ACE {job_id[:8]}] 🎚️ Applying Custom EQ...")
-                            eq_start = time.time()
-                            
-                            # Build FFmpeg EQ filter chain
-                            eq_filters = []
-                            for band_key, band in eq_data.items():
-                                eq_filters.append(f"equalizer=f={band['freq']}:t=q:w={band['q']}:g={band['gain']}")
-                            
-                            # Add loudnorm at the end
-                            eq_filters.append("loudnorm=I=-14:TP=-1:LRA=7")
-                            
-                            eq_chain = ",".join(eq_filters)
-                            print(f"[ACE {job_id[:8]}] EQ chain: {eq_chain}")
-                            
-                            # Create temp file for output
-                            import tempfile
-                            temp_eq_path = tempfile.mktemp(suffix="_eq.wav")
-                            
-                            # Run FFmpeg
-                            cmd = [
-                                "ffmpeg", "-y",
-                                "-i", out_path,
-                                "-af", eq_chain,
-                                "-ar", "44100",
-                                "-acodec", "pcm_s24le",
-                                temp_eq_path
-                            ]
-                            
-                            result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-                            
-                            if result.returncode == 0 and os.path.exists(temp_eq_path):
-                                # Replace original with EQ'd version
-                                shutil.move(temp_eq_path, out_path)
-                                eq_time = round(time.time() - eq_start, 1)
-                                print(f"[ACE {job_id[:8]}] ✅ Custom EQ complete (+{eq_time}s)")
-                            else:
-                                print(f"[ACE {job_id[:8]}] ⚠️ EQ failed: {result.stderr[:300]}")
-                                if os.path.exists(temp_eq_path):
-                                    os.remove(temp_eq_path)
-                        except Exception as eq_err:
-                            print(f"[ACE {job_id[:8]}] ⚠️ Custom EQ failed: {eq_err}")
                     # ===========================================================
 
                     # RAM Management: Force garbage collection to prevent memory leaks
