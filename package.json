@@ -1,7 +1,7 @@
 {
   "name": "vocalforge",
-  "version": "1.0.0",
-  "description": "---",
+  "version": "3.0.0",
+  "description": "AI-powered vocal and music generation tool with ACE-Step integration",
   "main": "index.js",
   "directories": {
     "test": "tests"

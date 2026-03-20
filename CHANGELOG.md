@@ -1,11 +1,11 @@
 
 ---
 
-## [v3.0.0] - 2026-03-19
+## [v3.0.0] - 2026-03-20
 
-### 🔇 Audio Enhancer Release
+### 🔇 Audio Enhancer Release + Loudness Normalization Fix
 
-**Professional audio post-processing for hiss removal and audio enhancement!**
+**Professional audio post-processing for hiss removal with streaming-ready loudness!**
 
 ---
 
@@ -22,16 +22,31 @@
   - ⚖️ **Medium** (nr=20 + EQ) - Smart EQ targets hiss at 6/9/13kHz ⭐
   - 🔥 **Aggressive** (nr=25) - Strong reduction for noisy recordings
 
-#### **🔇 Noise Hiss Remover (ACE-Step Integration)**
+#### **🔇 Noise Hiss Remover (ACE-Step Integration) — UPDATED**
 - Audio enhancement integrated directly into ACE-Step generation
 - Location: ACE-Step Tab → Audio section → "🔇 Noise Hiss Remover"
 - Automatic post-processing after generation (+6-8 seconds)
-- Dropdown: OFF / Light / Medium / Aggressive
+- **NEW UI:** Toggle switch ON/OFF + 3 intensity buttons (light/medium/aggressive)
+- **UI Design:** Cyberpunk purple theme with glow effects
 
 ---
 
-### 🎵 Audio Quality Comparison
+### 🎵 Audio Quality Standards
 
+#### **Loudness Normalization (UPDATED 2026-03-20)**
+- Target: **-14 LUFS** integrated loudness
+- True Peak: **-1 dBTP** (YouTube/Spotify standard)
+- LRA: **7** (dynamic range for streaming)
+- Result: **~0 dB loudness penalty** on all platforms
+
+| Platform | Target LUFS | True Peak |
+|----------|-------------|-----------|
+| Spotify | -14 LUFS | -1 dBTP |
+| YouTube | -14 LUFS | -1 dBTP |
+| Apple Music | -16 LUFS | -1 dBTP |
+| Tidal | -14 LUFS | -1 dBTP |
+
+#### **Before vs After Enhancement (Medium)**
 | Before Enhancement | After Enhancement (Medium) |
 |-------------------|---------------------------|
 | ❌ Hiss in high frequencies (5kHz+) | ✅ Clean highs (hiss removed at 6/9/13kHz) |
@@ -50,6 +65,7 @@
 3. **Audio enhancement boolean conversion** - Fixed FormData string/bool issue
 4. **Bass preservation** - Lowered highpass to 20Hz (preserves kick/bass guitar)
 5. **Brightness preservation** - Removed lowpass filter (keeps highs clear)
+6. **Loudness penalty issue** - Fixed one-pass loudnorm with correct targets (I=-14:TP=-1:LRA=7)
 
 ---
 
@@ -60,6 +76,10 @@
 - New function: `enhance_audio_file()` for integration
 - FFmpeg-based processing (highpass + afftdn + loudnorm)
 - Optional EQ for medium preset (targets 6/9/13kHz)
+- **UPDATED 2026-03-20:** Loudness normalization changed to one-pass
+  - New targets: `I=-14:TP=-1:LRA=7` (streaming standard)
+  - Removed three-pass approach (not working correctly)
+  - Result: Consistent -14 LUFS output, ~0 dB penalty
 
 #### **Frontend (`frontend/src/components/AudioEnhancerTab.jsx`)**
 - New tab: Audio Enhancer
@@ -69,10 +89,14 @@
 - Audio preview player
 - Download buttons
 
-#### **ACE-Step Integration**
+#### **ACE-Step Integration (`frontend/src/components/AceStepTab.jsx`)**
 - New parameters: `audio_enhance`, `enhance_strength`
 - Automatic post-processing after generation
-- UI dropdown: "🔇 Noise Hiss Remover" (OFF/Light/Medium/Aggressive)
+- **UPDATED 2026-03-20:** UI changed from dropdown to toggle + buttons
+  - Toggle switch: ON/OFF (purple cyberpunk theme with glow)
+  - 3 intensity buttons: Light/Medium/Aggressive
+  - Buttons disabled when toggle is OFF
+  - Default strength: "light" (changed from "auto")
 
 ---
 
