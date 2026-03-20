@@ -90,6 +90,12 @@ export default function DemucsTab({ addLog, tracks, setTracks }) {
 
     try {
       const res = await fetch(`${API}/demucs_separate`, { method: "POST", body: fd });
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.detail || errorData.error || `HTTP ${res.status}`);
+      }
+      
       timers.forEach(clearTimeout);
       const data = await res.json();
       if (data.error) throw new Error(data.error);
