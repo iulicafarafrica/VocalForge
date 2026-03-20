@@ -2508,7 +2508,7 @@ async def ace_generate(
     use_tiled_decode: bool = Form(True),      # VAE decode optimization
     # Audio Enhancement (post-processing)
     audio_enhance: str = Form("true"),        # "true" or "false"
-    enhance_strength: str = Form("auto"),     # auto/light/medium/aggressive
+    enhance_strength: str = Form("light"),    # light/medium/aggressive
     # Custom mode extra fields (ignored by backend, accepted to avoid 422)
     mode: str = Form(""),
     ref_audio_strength: float = Form(0.5),

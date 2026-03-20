@@ -3559,24 +3559,63 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                 </div>
                 <div>
                   <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>🔇 Noise Hiss Remover</label>
-                  <select
-                    value={audioEnhance ? enhanceStrength : "off"}
-                    onChange={e => {
-                      const val = e.target.value;
-                      if (val === "off") {
-                        setAudioEnhance(false);
-                      } else {
-                        setAudioEnhance(true);
-                        setEnhanceStrength(val);
-                      }
-                    }}
-                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
-                  >
-                    <option value="off">OFF</option>
-                    <option value="light">Light</option>
-                    <option value="medium">Medium</option>
-                    <option value="aggressive">Aggressive</option>
-                  </select>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div
+                      onClick={() => setAudioEnhance(!audioEnhance)}
+                      style={{
+                        width: 52,
+                        height: 26,
+                        borderRadius: 13,
+                        background: audioEnhance ? "#9b2de0" : "#2a2a4a",
+                        cursor: "pointer",
+                        position: "relative",
+                        transition: "background 0.2s",
+                        boxShadow: audioEnhance ? "0 0 10px #9b2de066" : "none"
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: 3,
+                          left: audioEnhance ? 29 : 3,
+                          width: 20,
+                          height: 20,
+                          borderRadius: "50%",
+                          background: "#ffffff",
+                          transition: "left 0.2s",
+                          boxShadow: "0 2px 4px rgba(0,0,0,0.3)"
+                        }}
+                      />
+                    </div>
+                    <div style={{ display: "flex", gap: 4, flex: 1 }}>
+                      {["light", "medium", "aggressive"].map(mode => (
+                        <button
+                          key={mode}
+                          onClick={() => setEnhanceStrength(mode)}
+                          disabled={!audioEnhance}
+                          style={{
+                            flex: 1,
+                            padding: "4px 6px",
+                            borderRadius: 4,
+                            border: "1px solid " + (enhanceStrength === mode && audioEnhance ? "#9b2de0" : "#2a2a4a"),
+                            background: enhanceStrength === mode && audioEnhance 
+                              ? "linear-gradient(135deg, #9b2de044, #9b2de022)" 
+                              : "#080812",
+                            color: enhanceStrength === mode && audioEnhance 
+                              ? "#9b2de0" 
+                              : "#444466",
+                            fontSize: 10,
+                            fontWeight: 600,
+                            cursor: audioEnhance ? "pointer" : "not-allowed",
+                            opacity: audioEnhance ? 1 : 0.5,
+                            textTransform: "uppercase"
+                          }}
+                        >
+                          {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <label style={{ display: "flex", alignItems: "center", gap: 4, color: "#6666aa", fontSize: 11, cursor: "pointer" }}>

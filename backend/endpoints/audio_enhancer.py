@@ -26,15 +26,21 @@ os.makedirs(TEMP_DIR, exist_ok=True)
 async def enhance_audio(
     file: UploadFile = File(...),
     mode: str = Form("noise_removal"),  # noise_removal, vocal_separation, source_separation
-    strength: str = Form("medium"),     # light, medium, aggressive
+    strength: str = Form("medium"),     # light, medium, aggressive, auto
 ):
     """
     Enhance audio using ffmpeg-based processing.
-    
+
     Modes:
     - noise_removal: Remove hiss, hum, static
     - vocal_separation: Extract vocals from instrumental
     - source_separation: Separate into drums, bass, other, vocals
+
+    Strength (pentru noise_removal):
+    - light: Gentle noise reduction (preserve brightness)
+    - medium: Moderate noise reduction + subtle hiss EQ
+    - aggressive: Strong noise reduction + aggressive hiss EQ
+    - auto: Auto-detect noise floor și alege preset optim
     """
     import time
     start_time = time.time()
@@ -89,14 +95,57 @@ async def enhance_audio(
                 pass
 
 
+def _detect_noise_floor(file_path: str) -> tuple[float, bool]:
+    """
+    Detectează automat noise floor-ul și dacă există segment de liniște.
+
+    Returns:
+        (noise_floor_db, has_silence_segment)
+        - noise_floor_db: Nivelul de zgomot în dBFS (ex: -35.2)
+        - has_silence_segment: True dacă s-a găsit un segment de liniște >= 0.3s
+    """
+    import re
+
+    cmd = [
+        'ffmpeg', '-i', file_path,
+        '-af', 'silencedetect=noise=-40dB:duration=0.3',
+        '-f', 'null', '-',
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+    output = result.stderr
+
+    starts = [float(m) for m in re.findall(r'silence_start:\s*([\d.]+)', output)]
+    ends   = [float(m) for m in re.findall(r'silence_end:\s*([\d.]+)', output)]
+
+    if not starts or not ends:
+        return (-30.0, False)
+
+    for s, e in zip(starts, ends):
+        if (e - s) >= 0.3:
+            # Măsoară RMS în acel segment
+            cmd2 = [
+                'ffmpeg', '-y', '-ss', str(s), '-t', str(min(e - s, 2.0)),
+                '-i', file_path,
+                '-af', 'astats=metadata=1:reset=1,ametadata=print:key=lavfi.astats.Overall.RMS_level',
+                '-f', 'null', '-',
+            ]
+            r2 = subprocess.run(cmd2, capture_output=True, text=True, timeout=15)
+            match = re.search(r'RMS_level=(-[\d.]+)', r2.stderr)
+            if match:
+                return (float(match.group(1)), True)
+
+    return (-30.0, False)
+
+
 async def _process_noise_removal(input_path: str, job_id: str, strength: str):
     """
     Remove noise (hiss, hum, static) using ffmpeg filters.
-    
+
     Strength presets:
-    - light: Gentle noise reduction
-    - medium: Moderate noise reduction
-    - aggressive: Strong noise reduction
+    - light: Gentle noise reduction (preserve brightness)
+    - medium: Moderate noise reduction + subtle hiss EQ
+    - aggressive: Strong noise reduction + aggressive hiss EQ
+    - auto: Auto-detect noise floor and choose preset
     """
     # Save to output directory (so /tracks/ can serve it)
     from pathlib import Path
@@ -106,54 +155,76 @@ async def _process_noise_removal(input_path: str, job_id: str, strength: str):
     output_filename = f"cleaned_{job_id}.wav"
     output_path = os.path.join(output_dir, output_filename)
     
+    # Auto mode → detectează noise floor și alege preset
+    if strength == "auto":
+        noise_floor, has_silence = _detect_noise_floor(input_path)
+        if has_silence:
+            print(f"[Audio Enhancer] AUTO: noise_floor={noise_floor:.1f} dBFS")
+            if noise_floor > -20:
+                strength = "aggressive"
+                print(f"[Audio Enhancer] AUTO → preset: aggressive (zgomot ridicat)")
+            elif noise_floor > -30:
+                strength = "medium"
+                print(f"[Audio Enhancer] AUTO → preset: medium (zgomot moderat)")
+            else:
+                strength = "light"
+                print(f"[Audio Enhancer] AUTO → preset: light (zgomot ușor)")
+        else:
+            strength = "light"
+            print(f"[Audio Enhancer] AUTO → preset: light (fallback, nu s-a găsit liniște)")
+
     # Strength presets - ffmpeg filter chains
-    # Simplified to single 'light' preset for clean hiss removal
-    # Filter order: adeclick → anlmdn → afftdn → highpass → eq → loudnorm
+    # NOTE: No lowpass to preserve brightness/highs
+    # Highpass set to 20Hz to only remove infrasound (keep all musical bass)
     PRESETS = {
         "light": {
-            "highpass": "20",       # Remove infrasound (< 20Hz) - preserves all bass
-            "adeclick": None,       # No click removal needed
-            "anlmdn": "s=7:p=0.002:r=0.002:m=15",  # Gentle NL-means
-            "afftdn": "nr=10:nf=-25",  # Light noise reduction (nf = noise floor dBFS)
-            "eq": None,             # No EQ
+            "highpass": "20",       # Only remove infrasound (< 20Hz)
+            "lowpass": "",          # NO lowpass - preserve brightness
+            "afftdn": "nr=15",      # Gentle noise reduction
+            "eq": "",               # No EQ - preserve brightness
+        },
+        "medium": {
+            "highpass": "20",       # Same - preserve all bass
+            "lowpass": "",          # NO lowpass
+            "afftdn": "nr=20",      # Moderate noise reduction
+            "eq": "equalizer=f=8000:t=q:w=2:g=-1.5,equalizer=f=12000:t=q:w=2:g=-2",  # Subtle hiss
+        },
+        "aggressive": {
+            "highpass": "20",       # Same - preserve all bass
+            "lowpass": "",          # NO lowpass
+            "afftdn": "nr=25",      # Strong noise reduction
+            "eq": "equalizer=f=6000:t=q:w=1.5:g=-2,equalizer=f=9000:t=q:w=1.5:g=-3,equalizer=f=13000:t=q:w=1.5:g=-4",  # Aggressive hiss
         },
     }
-    
-    preset = PRESETS.get(strength, PRESETS["light"])  # Fallback to light
 
-    # Build filter chain in correct order:
-    # adeclick → anlmdn → afftdn → highpass → eq → loudnorm
+    # Build filter chain with loudnorm (one-pass)
     filters = []
 
-    # 1. Adeclick — remove clicks/pops before anything else
-    if preset.get('adeclick'):
-        filters.append(f"adeclick={preset['adeclick']}")
-
-    # 2. anlmdn — Non-Local Means denoising (complementary to afftdn)
-    if preset.get('anlmdn'):
-        filters.append(f"anlmdn={preset['anlmdn']}")
-
-    # 3. afftdn — Adaptive Frequency Filtering (core noise reduction)
-    if preset.get('afftdn'):
-        filters.append(f"afftdn={preset['afftdn']}")
-
-    # 4. High-pass filter — remove rumble below X Hz
-    if preset.get('highpass'):
+    # Add highpass only if specified (preserve bass)
+    if preset['highpass']:
         filters.append(f"highpass=f={preset['highpass']}")
 
-    # 5. EQ — target remaining hiss frequencies
-    if preset.get('eq'):
+    # Add lowpass only if specified (preserve brightness)
+    if preset.get('lowpass', ''):
+        filters.append(f"lowpass=f={preset['lowpass']}")
+
+    # Add noise reduction if specified
+    if preset.get('afftdn', ''):
+        filters.append(f"afftdn={preset['afftdn']}")
+
+    # Add EQ if specified (for targeting specific frequencies)
+    if preset.get('eq', ''):
         filters.append(preset['eq'])
 
-    # 6. Loudnorm — streaming standard normalization (always last)
-    filters.append("loudnorm=I=-14:TP=-1.5:LRA=11")
+    # Add loudness normalization (one-pass, auto-calculated)
+    # Target: -14 LUFS integrated, -1 dBTP true peak, LRA 7 for streaming
+    filters.append("loudnorm=I=-14:TP=-1:LRA=7")
 
     filter_chain = ','.join(filters)
-    
+
     print(f"[Audio Enhancer] Noise removal ({strength}): {filter_chain}")
-    print(f"[Audio Enhancer] Filter order: adeclick → anlmdn → afftdn → highpass → eq → loudnorm")
-    
-    # Run ffmpeg
+
+    # Run ffmpeg (one-pass)
     cmd = [
         'ffmpeg', '-y',
         '-i', input_path,
@@ -162,14 +233,14 @@ async def _process_noise_removal(input_path: str, job_id: str, strength: str):
         '-acodec', 'pcm_s24le',
         output_path
     ]
-    
+
     result = subprocess.run(cmd, capture_output=True, text=True)
-    
+
     if result.returncode != 0:
         raise Exception(f"FFmpeg failed: {result.stderr[:500]}")
-    
+
     print(f"[Audio Enhancer] ✅ Noise removal complete")
-    
+
     return [{
         "filename": output_filename,
         "path": output_path,
@@ -311,131 +382,52 @@ async def _process_source_separation(input_path: str, job_id: str):
 
 
 # =============================================================================
-# Standalone enhancement function v2.0 (for integration with ACE-Step)
-# Auto noise profile detection + multi-stage pipeline
+# Standalone enhancement function (for integration with ACE-Step)
 # =============================================================================
-
-def _detect_noise_floor(file_path: str) -> tuple:
-    """
-    Detectează automat noise floor-ul și un segment de liniște.
-    Returnează (noise_floor_db, has_silence_segment).
-    """
-    import re
-    cmd = [
-        'ffmpeg', '-i', file_path,
-        '-af', 'silencedetect=noise=-40dB:duration=0.3',
-        '-f', 'null', '-',
-    ]
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-    output = result.stderr
-
-    starts = [float(m) for m in re.findall(r'silence_start:\s*([\d.]+)', output)]
-    ends   = [float(m) for m in re.findall(r'silence_end:\s*([\d.]+)', output)]
-
-    if not starts or not ends:
-        return (-30.0, False)
-
-    # Găsește primul segment util (>= 0.3s)
-    for s, e in zip(starts, ends):
-        if (e - s) >= 0.3:
-            # Măsoară RMS în acel segment
-            cmd2 = [
-                'ffmpeg', '-y',
-                '-ss', str(s), '-t', str(min(e - s, 2.0)),
-                '-i', file_path,
-                '-af', 'astats=metadata=1:reset=1,ametadata=print:key=lavfi.astats.Overall.RMS_level',
-                '-f', 'null', '-',
-            ]
-            r2 = subprocess.run(cmd2, capture_output=True, text=True, timeout=15)
-            match = re.search(r'RMS_level=(-[\d.]+)', r2.stderr)
-            if match:
-                return (float(match.group(1)), True)
-
-    return (-30.0, False)
-
-
-def _build_enhance_chain(strength: str, noise_floor: float = -30.0) -> str:
-    """
-    Construiește filter chain optimizat bazat pe strength și noise floor măsurat.
-    Ordine corectă: adeclick → anlmdn → afftdn → HPF → EQ → loudnorm
-    """
-    # Use single 'light' preset for all modes
-    PRESETS = {
-        "light": {
-            "highpass": "20",
-            "adeclick": None,
-            "anlmdn": "s=7:p=0.002:r=0.002:m=15",
-            "afftdn": "nr=10:nf=-25",
-            "eq": None,
-        },
-    }
-    
-    preset = PRESETS["light"]  # Always use light preset
-    
-    # Build filter chain in correct order
-    filters = []
-    
-    # 1. Adeclick
-    if preset.get('adeclick'):
-        filters.append(f"adeclick={preset['adeclick']}")
-    
-    # 2. anlmdn
-    if preset.get('anlmdn'):
-        filters.append(f"anlmdn={preset['anlmdn']}")
-    
-    # 3. afftdn
-    if preset.get('afftdn'):
-        filters.append(preset['afftdn'])
-    
-    # 4. High-pass
-    if preset.get('highpass'):
-        filters.append(f"highpass=f={preset['highpass']}")
-    
-    # 5. EQ (not used in light preset)
-    if preset.get('eq'):
-        filters.append(preset['eq'])
-    
-    # 6. Loudnorm (always last)
-    filters.append("loudnorm=I=-14:TP=-1.5:LRA=11")
-    
-    return ','.join(filters)
-
 
 def enhance_audio_file(file_path: str, strength: str = "light") -> str:
     """
-    Apply audio enhancement to a file (in-place) with light preset.
-
+    Apply audio enhancement to a file (in-place).
+    
     Args:
         file_path: Path to audio file
-        strength:  "light" (only preset available)
-
+        strength: "light", "medium", or "aggressive"
+    
     Returns:
         Same file_path (file is modified in-place)
     """
     import tempfile
-
-    # Auto mode → detectează noise floor real
-    if strength == "auto":
-        noise_floor, has_silence = _detect_noise_floor(file_path)
-        if has_silence:
-            print(f"[Audio Enhancer] AUTO: noise floor={noise_floor:.1f} dBFS")
-            if noise_floor > -20:
-                strength = "aggressive"
-            elif noise_floor > -30:
-                strength = "medium"
-            else:
-                strength = "light"
-        else:
-            strength = "light"  # Fallback conservator dacă nu e liniște detectabilă
-        print(f"[Audio Enhancer] AUTO → using preset: {strength}")
-    else:
-        noise_floor = -30.0  # Default conservator pentru preset fix
-
-    filter_chain = _build_enhance_chain(strength, noise_floor)
-    print(f"[Audio Enhancer] Chain ({strength}): {filter_chain}")
-
+    
+    # Create temp file for output
     temp_output = tempfile.mktemp(suffix="_enhanced.wav")
+    
+    # Presets (same as above)
+    PRESETS = {
+        "light": {"highpass": "20", "afftdn": "nr=15"},       # Gentle hiss reduction
+        "medium": {"highpass": "20", "afftdn": "nr=20", "eq": "equalizer=f=6000:t=q:w=1:g=-2,equalizer=f=9000:t=q:w=1:g=-2.5,equalizer=f=13000:t=q:w=1:g=-3"},  # Subtle hiss reduction (6kHz+)
+        "aggressive": {"highpass": "20", "afftdn": "nr=25"},  # Strong hiss reduction
+    }
+    
+    preset = PRESETS.get(strength, PRESETS["light"])
 
+    # Build filter chain
+    filters = [
+        f"highpass=f={preset['highpass']}",
+        f"afftdn={preset['afftdn']}",
+    ]
+    
+    # Add EQ if specified (for medium preset)
+    if preset.get('eq', ''):
+        filters.append(preset['eq'])
+        print(f"[Audio Enhancer] 🎚️ EQ applied: {preset['eq']}")
+    
+    filters.append("loudnorm=I=-14:TP=-1.5:LRA=11")
+
+    filter_chain = ','.join(filters)
+    
+    print(f"[Audio Enhancer] Filters: {filter_chain}")
+    
+    # Run ffmpeg
     cmd = [
         'ffmpeg', '-y',
         '-i', file_path,
@@ -444,14 +436,16 @@ def enhance_audio_file(file_path: str, strength: str = "light") -> str:
         '-acodec', 'pcm_s24le',
         temp_output
     ]
-
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-
+    
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    
     if result.returncode != 0:
-        print(f"[Audio Enhancer] ⚠️ Enhancement failed: {result.stderr[:300]}")
-        return file_path  # Return original dacă eșuează
-
+        print(f"[Audio Enhancer] ⚠️ Enhancement failed: {result.stderr[:500]}")
+        return file_path  # Return original if failed
+    
+    # Replace original with enhanced
     import shutil
     shutil.move(temp_output, file_path)
+    
     print(f"[Audio Enhancer] ✅ Enhanced ({strength}): {file_path}")
     return file_path
