@@ -119,7 +119,7 @@ async def _process_noise_removal(input_path: str, job_id: str, strength: str):
         },
     }
     
-    preset = PRESETS.get(strength, PRESETS["medium"])
+    preset = PRESETS.get(strength, PRESETS["light"])  # Fallback to light
 
     # Build filter chain in correct order:
     # adeclick → anlmdn → afftdn → highpass → eq → loudnorm
@@ -403,11 +403,11 @@ def _build_enhance_chain(strength: str, noise_floor: float = -30.0) -> str:
 
 def enhance_audio_file(file_path: str, strength: str = "light") -> str:
     """
-    Apply audio enhancement to a file (in-place) cu auto noise profile detection.
+    Apply audio enhancement to a file (in-place) with light preset.
 
     Args:
         file_path: Path to audio file
-        strength:  "light" | "medium" | "aggressive" | "auto"
+        strength:  "light" (only preset available)
 
     Returns:
         Same file_path (file is modified in-place)
