@@ -3691,6 +3691,14 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                         mids: { freq: 700, gain: 2.5, q: 2.2 },      // +2.5dB @ 700Hz - growl, character
                         highs: { freq: 1800, gain: 3, q: 2.8 }       // +3dB @ 1.8kHz - finger attack, note definition
                       });
+                    } else if (preset === "rock_metal") {
+                      setEqBands({
+                        subBass: { freq: 45, gain: 0, q: 1.0 },      // 0dB @ 45Hz - flat, no boom needed
+                        bass: { freq: 90, gain: 3.5, q: 1.3 },       // +3.5dB @ 90Hz - body, warm but controlled
+                        lowMids: { freq: 275, gain: -4, q: 1.8 },    // -4dB @ 275Hz - cut mud, make room for guitars
+                        mids: { freq: 900, gain: 4, q: 2.2 },        // +4dB @ 900Hz - presence, cut through guitars
+                        highs: { freq: 2500, gain: 3, q: 2.8 }       // +3dB @ 2.5kHz - pick attack, string brightness
+                      });
                     }
                   }}
                   style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
@@ -3700,6 +3708,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   <option value="trap_hiphop">🎤 Trap / Hip-Hop</option>
                   <option value="oriental_traditional">🌙 Oriental Tradițional</option>
                   <option value="reggae">🇯🇲 Reggae</option>
+                  <option value="rock_metal">🎸 Rock / Metal</option>
                 </select>
               </div>
 
