@@ -197,6 +197,9 @@ async def _process_noise_removal(input_path: str, job_id: str, strength: str):
         },
     }
 
+    # Get preset based on strength
+    preset = PRESETS.get(strength, PRESETS["medium"])
+
     # Build filter chain with loudnorm (one-pass)
     filters = []
 
