@@ -3755,6 +3755,14 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                         mids: { freq: 8000, gain: -4, q: 0.7 },      // -4dB @ 8kHz - HISS reduction 🔇
                         highs: { freq: 14000, gain: -6, q: 0.5 }     // -6dB @ 14kHz + LPF - HISS cleanup + air loss ⚠️
                       });
+                    } else if (preset === "ai_artifacts_hiding") {
+                      setEqBands({
+                        subBass: { freq: 95, gain: 0, q: 0.7 },      // HPF @ 95Hz - AI has nothing real below 80Hz
+                        bass: { freq: 140, gain: 2, q: 1.2 },        // +2dB @ 140Hz - add "body" organic warmth
+                        lowMids: { freq: 320, gain: -3, q: 2.2 },    // -3dB @ 320Hz - muddy cleanup, AI resonances
+                        mids: { freq: 1000, gain: -2.5, q: 3.0 },    // -2.5dB @ 1kHz - CRITICAL: artificial formant 🤖
+                        highs: { freq: 6000, gain: -4, q: 3.0 }      // -4dB @ 6kHz - AGGRESSIVE sibilance reduction ⚠️
+                      });
                     }
                   }}
                   style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
@@ -3772,6 +3780,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   <option value="dark_oriental_house">🌙 Dark Oriental House</option>
                   <option value="vocal_natural">🎤 Vocal Natural</option>
                   <option value="hiss_crackle_removal">🔇 Hiss & Crackle Removal</option>
+                  <option value="ai_artifacts_hiding">🤖 AI Artifacts Hiding</option>
                 </select>
               </div>
 
