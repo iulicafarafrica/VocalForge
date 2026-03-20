@@ -3731,6 +3731,14 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                         mids: { freq: 750, gain: 1.5, q: 2.2 },      // +1.5dB @ 750Hz - minimal presence, rhythmic only
                         highs: { freq: 1800, gain: 1, q: 2.5 }       // +1dB @ 1.8kHz - subtle definition, no brightness
                       });
+                    } else if (preset === "dark_oriental_house") {
+                      setEqBands({
+                        subBass: { freq: 45, gain: 7, q: 0.9 },      // +7dB @ 45Hz - MASSIVE warehouse sub 🌙
+                        bass: { freq: 85, gain: 4.5, q: 1.2 },       // +4.5dB @ 85Hz - moderate warmth, tight
+                        lowMids: { freq: 200, gain: 1.5, q: 1.8 },   // +1.5dB @ 200Hz - COMPROMISE: retain oud warmth
+                        mids: { freq: 650, gain: 4, q: 2.2 },        // +4dB @ 650Hz - ARABIC IDENTITY: oud/qanun voice 🎵
+                        highs: { freq: 5000, gain: -0.5, q: 2.0 }    // -0.5dB @ 5kHz - make space for zills/finger cymbals
+                      });
                     }
                   }}
                   style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
@@ -3745,6 +3753,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   <option value="drum_and_bass">🥁 Drum and Bass</option>
                   <option value="deep_house">💙 Deep House</option>
                   <option value="dark_afro_house">🌑 Dark Afro House</option>
+                  <option value="dark_oriental_house">🌙 Dark Oriental House</option>
                 </select>
               </div>
 
