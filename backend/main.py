@@ -2894,21 +2894,29 @@ async def ace_generate(
                     # Succeeded — get audio file path
                     result_str = item.get("result", "[]")
                     print(f"[ACE {job_id[:8]}] Raw result: {str(result_str)[:500]}")
+                    print(f"[ACE {job_id[:8]}] result_str type: {type(result_str)}")
                     try:
                         result_arr = json.loads(result_str) if isinstance(result_str, str) else result_str
-                    except Exception:
+                        print(f"[ACE {job_id[:8]}] Parsed result_arr type: {type(result_arr)}, len: {len(result_arr) if isinstance(result_arr, (list, dict)) else 'N/A'}")
+                    except Exception as parse_err:
+                        print(f"[ACE {job_id[:8]}] JSON parse error: {parse_err}")
                         result_arr = []
 
                     # ACE-Step returnează lista de fișiere în result_arr
                     # Fiecare element are "file" = URL /v1/audio?path=... sau cale disk
                     audio_file_path = None
                     if result_arr and isinstance(result_arr, list):
+                        print(f"[ACE {job_id[:8]}] result_arr is a list with {len(result_arr)} items")
                         # Caută primul element cu "file" non-gol
-                        for item_r in result_arr:
+                        for idx, item_r in enumerate(result_arr):
+                            print(f"[ACE {job_id[:8]}] Item {idx} keys: {item_r.keys() if isinstance(item_r, dict) else type(item_r)}")
                             f = item_r.get("file", "")
                             if f:
                                 audio_file_path = f
+                                print(f"[ACE {job_id[:8]}] Found file at index {idx}: {f[:100]}...")
                                 break
+                    else:
+                        print(f"[ACE {job_id[:8]}] result_arr is NOT a list or is empty: {type(result_arr)}")
 
                     print(f"[ACE {job_id[:8]}] audio_file_path: {audio_file_path}")
 
