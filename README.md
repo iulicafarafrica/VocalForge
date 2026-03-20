@@ -73,7 +73,7 @@
 
 | Module | Description | Key Feature |
 |--------|-------------|-------------|
-| **Stem Separation** | BS-RoFormer, Demucs, 4–6 stems | SDR 12.97 SOTA |
+| **Stem Separation** | BS-RoFormer SDR 12.97, Mel-Band SDR 12.6 | SOTA Quality |
 | **ACE-Step v1.5** | Text→Music, Audio Cover, Repaint | 164 genre presets |
 | **Vocal Pipeline** | Auto Pipeline + Applio Features | Full cover in ~80s |
 | **Prompt Generator** | 164 subgenres, 5 vocal presets | 30 Romanian subgenres |
@@ -328,7 +328,7 @@ Full interactive docs at **[localhost:8000/docs](http://localhost:8000/docs)**
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/demucs_separate` | Stem separation (vocals, drums, bass, other) |
+| `POST` | `/demucs_separate` | Stem separation (BS-RoFormer, Mel-Band RoFormer) |
 | `POST` | `/rvc/convert` | RVC voice conversion |
 | `POST` | `/rvc/auto_pipeline` | Full auto pipeline (separate → RVC → post-process) |
 | `POST` | `/pipeline/run` | Complete 4-stage Pipeline v2.3 |
@@ -380,6 +380,7 @@ Full interactive docs at **[localhost:8000/docs](http://localhost:8000/docs)**
 | Task | Quality Score | Time | VRAM Peak |
 |------|:---:|------|------|
 | BS-RoFormer Separation | SDR 12.97 | ~30s | 4–5GB |
+| Mel-Band RoFormer | SDR 12.6 | ~35s | 4–5GB |
 | RVC + Rescue | 8/10 | ~20s | 4–6GB |
 | Full Pipeline v2.3 | 9/10 | ~80s | 6–8GB |
 | ACE-Step Turbo (30s song) | 8/10 | ~60s | 6–7GB |
