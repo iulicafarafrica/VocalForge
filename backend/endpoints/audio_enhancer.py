@@ -107,7 +107,7 @@ async def _process_noise_removal(input_path: str, job_id: str, strength: str):
     output_path = os.path.join(output_dir, output_filename)
     
     # Strength presets - ffmpeg filter chains
-    # Based on Claude AI recommendations + VocalForge requirements
+    # Simplified to single 'light' preset for clean hiss removal
     # Filter order: adeclick → anlmdn → afftdn → highpass → eq → loudnorm
     PRESETS = {
         "light": {
@@ -116,20 +116,6 @@ async def _process_noise_removal(input_path: str, job_id: str, strength: str):
             "anlmdn": "s=7:p=0.002:r=0.002:m=15",  # Gentle NL-means
             "afftdn": "nr=10:nf=-25",  # Light noise reduction (nf = noise floor dBFS)
             "eq": None,             # No EQ
-        },
-        "medium": {
-            "highpass": "20",       # Remove infrasound - preserves all bass
-            "adeclick": None,       # No click removal
-            "anlmdn": "s=7:p=0.005:r=0.005:m=15",  # Moderate NL-means
-            "afftdn": "nr=20:nf=-20",  # Moderate noise reduction
-            "eq": "equalizer=f=8000:t=q:w=2:g=-1.5,equalizer=f=12000:t=q:w=2:g=-2",  # Target hiss
-        },
-        "aggressive": {
-            "highpass": "20",       # Remove infrasound - preserves all bass
-            "adeclick": "w=55:o=25:a=2",  # Remove clicks/pops
-            "anlmdn": "s=7:p=0.008:r=0.008:m=15",  # Strong NL-means
-            "afftdn": "nr=30:nf=-15",  # Aggressive noise reduction
-            "eq": "equalizer=f=6000:t=q:w=1.5:g=-2,equalizer=f=9000:t=q:w=1.5:g=-3,equalizer=f=13000:t=q:w=1.5:g=-4",  # Aggressive hiss
         },
     }
     
@@ -373,32 +359,18 @@ def _build_enhance_chain(strength: str, noise_floor: float = -30.0) -> str:
     Construiește filter chain optimizat bazat pe strength și noise floor măsurat.
     Ordine corectă: adeclick → anlmdn → afftdn → HPF → EQ → loudnorm
     """
-    # Use the same PRESETS as _process_noise_removal for consistency
+    # Use single 'light' preset for all modes
     PRESETS = {
         "light": {
-            "highpass": "40",
+            "highpass": "20",
             "adeclick": None,
             "anlmdn": "s=7:p=0.002:r=0.002:m=15",
             "afftdn": "nr=10:nf=-25",
             "eq": None,
         },
-        "medium": {
-            "highpass": "40",
-            "adeclick": None,
-            "anlmdn": "s=7:p=0.005:r=0.005:m=15",
-            "afftdn": "nr=20:nf=-20",
-            "eq": "equalizer=f=8000:t=q:w=2:g=-1.5,equalizer=f=12000:t=q:w=2:g=-2",
-        },
-        "aggressive": {
-            "highpass": "50",
-            "adeclick": "w=55:o=25:a=2",
-            "anlmdn": "s=7:p=0.008:r=0.008:m=15",
-            "afftdn": "nr=30:nf=-15",
-            "eq": "equalizer=f=6000:t=q:w=1.5:g=-2,equalizer=f=9000:t=q:w=1.5:g=-3,equalizer=f=13000:t=q:w=1.5:g=-4",
-        },
     }
     
-    preset = PRESETS.get(strength, PRESETS["medium"])
+    preset = PRESETS["light"]  # Always use light preset
     
     # Build filter chain in correct order
     filters = []
@@ -411,26 +383,21 @@ def _build_enhance_chain(strength: str, noise_floor: float = -30.0) -> str:
     if preset.get('anlmdn'):
         filters.append(f"anlmdn={preset['anlmdn']}")
     
-    # 3. afftdn (adjust nf based on measured noise floor if available)
+    # 3. afftdn
     if preset.get('afftdn'):
-        afftdn_str = preset['afftdn']
-        # If noise floor was measured, use it to adjust nf value
-        if noise_floor > -50 and 'nf=' in afftdn_str:
-            # Keep the preset's nf value (already optimized)
-            pass
-        filters.append(afftdn_str)
+        filters.append(preset['afftdn'])
     
     # 4. High-pass
     if preset.get('highpass'):
         filters.append(f"highpass=f={preset['highpass']}")
     
-    # 5. EQ
+    # 5. EQ (not used in light preset)
     if preset.get('eq'):
         filters.append(preset['eq'])
     
     # 6. Loudnorm (always last)
     filters.append("loudnorm=I=-14:TP=-1.5:LRA=11")
-
+    
     return ','.join(filters)
 
 
