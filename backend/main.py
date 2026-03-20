@@ -1089,21 +1089,40 @@ def separate_stems_demucs(audio_path: str, out_dir: str, model: str = "htdemucs_
     Returns dict: {stem_name: absolute_path}
     """
     import subprocess
+    
+    print(f"[Demucs] Starting separation: model={model}, input={audio_path}, out_dir={out_dir}")
+    
     result = subprocess.run(
         [sys.executable, "-m", "demucs", "-n", model, "-o", out_dir, audio_path],
-        capture_output=True, text=True,
+        capture_output=True, text=True, timeout=600,
     )
+    
+    print(f"[Demucs] Return code: {result.returncode}")
+    if result.stdout:
+        print(f"[Demucs] STDOUT: {result.stdout[:500]}")
+    if result.stderr:
+        print(f"[Demucs] STDERR: {result.stderr[:500]}")
+    
     if result.returncode != 0:
         raise RuntimeError(f"Demucs failed:\n{result.stderr[-2000:]}")
 
     base_name = os.path.splitext(os.path.basename(audio_path))[0]
     model_out_dir = os.path.join(out_dir, model, base_name)
+    
+    print(f"[Demucs] Looking for stems in: {model_out_dir}")
 
     stems = {}
     for stem in DEMUCS_STEM_MAP.get(model, ["vocals", "drums", "bass", "other"]):
         p = os.path.join(model_out_dir, f"{stem}.wav")
         if os.path.exists(p):
             stems[stem] = p
+            print(f"[Demucs] Found stem: {stem}")
+        else:
+            print(f"[Demucs] Missing stem: {stem}")
+    
+    if not stems:
+        raise RuntimeError(f"Demucs produced no output files. Check: {model_out_dir}")
+        
     return stems
 
 
