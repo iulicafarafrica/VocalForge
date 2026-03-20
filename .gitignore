@@ -333,3 +333,4 @@ Claude Setup.exe
 !eslint.config.js
 .aider*
 "llama-*.zip"  
+START_ALL - Copy - Copy.bat
