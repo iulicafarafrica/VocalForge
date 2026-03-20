@@ -2895,12 +2895,29 @@ async def ace_generate(
                     result_str = item.get("result", "[]")
                     print(f"[ACE {job_id[:8]}] Raw result: {str(result_str)[:500]}")
                     print(f"[ACE {job_id[:8]}] result_str type: {type(result_str)}")
-                    try:
-                        result_arr = json.loads(result_str) if isinstance(result_str, str) else result_str
-                        print(f"[ACE {job_id[:8]}] Parsed result_arr type: {type(result_arr)}, len: {len(result_arr) if isinstance(result_arr, (list, dict)) else 'N/A'}")
-                    except Exception as parse_err:
-                        print(f"[ACE {job_id[:8]}] JSON parse error: {parse_err}")
-                        result_arr = []
+                    
+                    # Parse result - handle both string and already-parsed cases
+                    result_arr = []
+                    if isinstance(result_str, str):
+                        try:
+                            result_arr = json.loads(result_str)
+                        except Exception as parse_err:
+                            print(f"[ACE {job_id[:8]}] JSON parse error: {parse_err}")
+                            # Fallback: try to extract file path from string directly
+                            import re
+                            file_match = re.search(r'"file":\s*"([^"]+)"', result_str)
+                            if file_match:
+                                audio_file_path = file_match.group(1)
+                                print(f"[ACE {job_id[:8]}] Extracted file from string regex: {audio_file_path[:100]}...")
+                    elif isinstance(result_str, list):
+                        result_arr = result_str
+                    else:
+                        print(f"[ACE {job_id[:8]}] Unexpected result_str type: {type(result_str)}")
+                    
+                    if isinstance(result_arr, list):
+                        print(f"[ACE {job_id[:8]}] Parsed result_arr type: list, len: {len(result_arr)}")
+                    else:
+                        print(f"[ACE {job_id[:8]}] Parsed result_arr type: {type(result_arr)}")
 
                     # ACE-Step returnează lista de fișiere în result_arr
                     # Fiecare element are "file" = URL /v1/audio?path=... sau cale disk
