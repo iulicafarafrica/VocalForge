@@ -3675,6 +3675,14 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                         mids: { freq: 1500, gain: 2.5, q: 3.0 },     // +2.5dB @ 1.5kHz - phone playback
                         highs: { freq: 4500, gain: 1.5, q: 1.5 }     // +1.5dB @ 4.5kHz - 808 saturation
                       });
+                    } else if (preset === "oriental_traditional") {
+                      setEqBands({
+                        subBass: { freq: 48, gain: 2, q: 1.2 },      // +2dB @ 48Hz - subtle, organic
+                        bass: { freq: 90, gain: 4, q: 1.5 },         // +4dB @ 90Hz - warm, round heart
+                        lowMids: { freq: 220, gain: 1.5, q: 1.8 },   // +1.5dB @ 220Hz - warmth, body
+                        mids: { freq: 700, gain: 3, q: 2.5 },        // +3dB @ 700Hz - vocal character
+                        highs: { freq: 5500, gain: 0.75, q: 1.5 }    // +0.75dB @ 5.5kHz - subtle shimmer
+                      });
                     }
                   }}
                   style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
@@ -3682,6 +3690,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   <option value="none">None</option>
                   <option value="afro_house">⭐ Afro House</option>
                   <option value="trap_hiphop">🎤 Trap / Hip-Hop</option>
+                  <option value="oriental_traditional">🌙 Oriental Tradițional</option>
                 </select>
               </div>
 
