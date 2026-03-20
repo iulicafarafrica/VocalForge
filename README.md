@@ -68,66 +68,6 @@
 </tr>
 </table>
 
----
-
-## Pipeline v2.3 — Complete Flow
-
-> **4-stage production pipeline.** BS-RoFormer separation → RVC conversion → Post-processing → Final Mix. Total time: ~80s on RTX 3070.
-
-```
-INPUT AUDIO (full song)
-        │
-        ▼
-┌───────────────────────────────────────────────────────┐
-│  STAGE 1 — BS-ROFORMER SEPARATION          ~30s       │
-│  ─────────────────────────────────────────────────    │
-│  Model: bs_roformer_1297 (SDR 12.97 — SOTA)           │
-│  Output: vocals.wav + instrumental.wav                │
-│  Post: Normalize to -1dB peak, -16 LUFS               │
-│  VRAM: 4–5GB                                          │
-└───────────────────────┬───────────────────────────────┘
-                        │
-                        ▼
-┌───────────────────────────────────────────────────────┐
-│  STAGE 2 — RVC VOICE CONVERSION            ~15s       │
-│  ─────────────────────────────────────────────────    │
-│  Model: user-selected (.pth file)                     │
-│  Params: harvest / index 0.40 / protect 0.55          │
-│  Applio: autotune + HPF 48Hz + volume envelope        │
-│  VRAM: 4–6GB (auto-unloaded after conversion)         │
-└───────────────────────┬───────────────────────────────┘
-                        │
-                        ▼
-┌───────────────────────────────────────────────────────┐
-│  STAGE 3 — RVC RESCUE POST-PROCESSING      ~5s        │
-│  ─────────────────────────────────────────────────    │
-│  EQ       → Cut 2.5kHz (-6dB), boost 150Hz (+3dB)    │
-│  Compressor → 3:1 ratio, smooth dynamics              │
-│  Reverb   → Early 50ms + tail 120ms                  │
-│  Limiter  → -1dB ceiling                             │
-│  Loudnorm → -14 LUFS (Spotify/YouTube standard)       │
-│  Quality: 5/10 raw RVC → 8/10 with Rescue            │
-└───────────────────────┬───────────────────────────────┘
-                        │
-                        ▼
-┌───────────────────────────────────────────────────────┐
-│  STAGE 4 — FINAL MIX                       ~5s        │
-│  ─────────────────────────────────────────────────    │
-│  Vocals: 1.2× (+1.6dB) — more present in mix         │
-│  Instrumental: 1.0× (0dB) — original volume           │
-│  Output: final_mix.wav — commercial loudness          │
-└───────────────────────┬───────────────────────────────┘
-                        │
-                        ▼
-OUTPUT: 5 downloadable files
-  ├── vocals_separated.wav
-  ├── instrumental.wav
-  ├── converted_vocals_raw.wav
-  ├── converted_vocals_rescued.wav
-  └── final_mix.wav  ← ready to publish
-```
-
----
 
 ## 11 Modules
 
