@@ -1148,8 +1148,11 @@ async def demucs_separate(
     mode=vocals_only: returns only vocals
     mode=instrumental_only: returns no_vocals mix (drums+bass+other)
     """
+    print(f"[DEMUCS] Received request: filename={file.filename}, model={model}, mode={mode}")
+    
     # Validate uploaded audio file
     validate_upload(file, ALLOWED_AUDIO_EXTENSIONS, MAX_AUDIO_SIZE)
+    print(f"[DEMUCS] Validation passed")
     
     job_id = uuid.uuid4().hex
     job_dir = os.path.join(TEMP_DIR, job_id)
