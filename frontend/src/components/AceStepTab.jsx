@@ -3683,6 +3683,14 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                         mids: { freq: 700, gain: 3, q: 2.5 },        // +3dB @ 700Hz - vocal character
                         highs: { freq: 5500, gain: 0.75, q: 1.5 }    // +0.75dB @ 5.5kHz - subtle shimmer
                       });
+                    } else if (preset === "reggae") {
+                      setEqBands({
+                        subBass: { freq: 45, gain: 5, q: 1.0 },      // +5dB @ 45Hz - massive, dubby foundation
+                        bass: { freq: 90, gain: 6, q: 1.2 },         // +6dB @ 90Hz - HEART of reggae 🎵
+                        lowMids: { freq: 220, gain: 1.5, q: 1.5 },   // +1.5dB @ 220Hz - wooden-ness, warmth
+                        mids: { freq: 700, gain: 2.5, q: 2.2 },      // +2.5dB @ 700Hz - growl, character
+                        highs: { freq: 1800, gain: 3, q: 2.8 }       // +3dB @ 1.8kHz - finger attack, note definition
+                      });
                     }
                   }}
                   style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
@@ -3691,6 +3699,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   <option value="afro_house">⭐ Afro House</option>
                   <option value="trap_hiphop">🎤 Trap / Hip-Hop</option>
                   <option value="oriental_traditional">🌙 Oriental Tradițional</option>
+                  <option value="reggae">🇯🇲 Reggae</option>
                 </select>
               </div>
 
