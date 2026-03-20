@@ -26,26 +26,6 @@ const SEPARATION_MODELS = [
     requiresPackage: "audio-separator",
   },
   {
-    id: "htdemucs_ft",
-    name: "htdemucs_ft ✅ Recommended",
-    desc: "Demucs fine-tuned — SDR 10.8 vocals, 4 stems. Fast, no extra dependencies.",
-    stems: ["vocals", "drums", "bass", "other"],
-    color: "#00e5ff",
-    glow: "#00e5ff",
-    badge: "",
-    engine: "demucs",
-  },
-  {
-    id: "htdemucs",
-    name: "htdemucs",
-    desc: "Demucs v4 standard — fast and accurate, 4 stems. SDR 10.0 vocals.",
-    stems: ["vocals", "drums", "bass", "other"],
-    color: "#6666aa",
-    glow: "#6666aa",
-    badge: "FAST",
-    engine: "demucs",
-  },
-  {
     id: "htdemucs_6s",
     name: "htdemucs_6s",
     desc: "Demucs 6-stem — also separates guitar & piano. SDR 10.0.",
@@ -70,7 +50,7 @@ const STEM_COLORS = {
 
 export default function DemucsTab({ addLog, tracks, setTracks }) {
   const [uploadedFile, setUploadedFile] = useState(null);
-  const [selectedModel, setSelectedModel] = useState("htdemucs_ft");
+  const [selectedModel, setSelectedModel] = useState("htdemucs_6s");
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [progressLabel, setProgressLabel] = useState("");
