@@ -3723,6 +3723,14 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                         mids: { freq: 900, gain: 2.5, q: 2.2 },      // +2.5dB @ 900Hz - groove, musicality
                         highs: { freq: 2200, gain: 1.5, q: 2.5 }     // +1.5dB @ 2.2kHz - subtle note definition
                       });
+                    } else if (preset === "dark_afro_house") {
+                      setEqBands({
+                        subBass: { freq: 42, gain: 7, q: 0.9 },      // +7dB @ 42Hz - MASSIVE deep sub (warehouse)
+                        bass: { freq: 85, gain: 5, q: 1.2 },         // +5dB @ 85Hz - solid warmth, tight
+                        lowMids: { freq: 260, gain: -4, q: 1.8 },    // -4dB @ 260Hz - clean, mysterious, room for tribal
+                        mids: { freq: 750, gain: 1.5, q: 2.2 },      // +1.5dB @ 750Hz - minimal presence, rhythmic only
+                        highs: { freq: 1800, gain: 1, q: 2.5 }       // +1dB @ 1.8kHz - subtle definition, no brightness
+                      });
                     }
                   }}
                   style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
@@ -3736,6 +3744,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   <option value="phonk">💀 Phonk</option>
                   <option value="drum_and_bass">🥁 Drum and Bass</option>
                   <option value="deep_house">💙 Deep House</option>
+                  <option value="dark_afro_house">🌑 Dark Afro House</option>
                 </select>
               </div>
 
