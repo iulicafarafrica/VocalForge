@@ -3747,6 +3747,14 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                         mids: { freq: 2500, gain: 3.5, q: 2.5 },     // +3.5dB @ 2.5kHz - CLARITY & VOICE presence 🎤
                         highs: { freq: 11000, gain: 2, q: 1.2 }      // +2dB @ 11kHz - AIR, breath, intimacy ✨
                       });
+                    } else if (preset === "hiss_crackle_removal") {
+                      setEqBands({
+                        subBass: { freq: 30, gain: 0, q: 0.7 },      // HPF @ 30Hz - cleanup extreme sub
+                        bass: { freq: 150, gain: 0, q: 1.0 },        // 0dB @ 150Hz - flat, preserve warmth
+                        lowMids: { freq: 300, gain: 0, q: 1.0 },     // 0dB @ 300Hz - flat
+                        mids: { freq: 8000, gain: -4, q: 0.7 },      // -4dB @ 8kHz - HISS reduction 🔇
+                        highs: { freq: 14000, gain: -6, q: 0.5 }     // -6dB @ 14kHz + LPF - HISS cleanup + air loss ⚠️
+                      });
                     }
                   }}
                   style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
@@ -3763,6 +3771,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   <option value="dark_afro_house">🌑 Dark Afro House</option>
                   <option value="dark_oriental_house">🌙 Dark Oriental House</option>
                   <option value="vocal_natural">🎤 Vocal Natural</option>
+                  <option value="hiss_crackle_removal">🔇 Hiss & Crackle Removal</option>
                 </select>
               </div>
 
