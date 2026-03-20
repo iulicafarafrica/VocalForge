@@ -883,13 +883,13 @@ export default function AceStepTab({
   const [enhanceStrength, setEnhanceStrength] = useState("light");  // light/medium/aggressive
   // Custom EQ
   const [customEqEnabled, setCustomEqEnabled] = useState(false);
-  const [eqPreset, setEqPreset] = useState("afro_house");
+  const [eqPreset, setEqPreset] = useState("trap_hiphop");
   const [eqBands, setEqBands] = useState({
-    subBass:   { freq: 40, gain: 4, q: 1.0 },
-    bass:      { freq: 90, gain: 3, q: 1.2 },
-    lowMids:   { freq: 300, gain: -3, q: 1.8 },
-    mids:      { freq: 1000, gain: 2, q: 2.8 },
-    highs:     { freq: 4000, gain: -1, q: 1.5 }
+    subBass:   { freq: 35, gain: 6, q: 0.9 },    // Trap 808 sub-bass
+    bass:      { freq: 75, gain: 4, q: 1.2 },    // Punch
+    lowMids:   { freq: 275, gain: -5, q: 1.8 },  // Cut mud
+    mids:      { freq: 1500, gain: 2.5, q: 3.0 },// Phone playback
+    highs:     { freq: 4500, gain: 1.5, q: 1.5 } // 808 saturation
   });
   const [inferMethod, setInferMethod] = useState("ode");
   const [shift, setShift] = useState(3.0);
@@ -3667,12 +3667,21 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                         mids: { freq: 1000, gain: 2, q: 2.8 },
                         highs: { freq: 4000, gain: -1, q: 1.5 }
                       });
+                    } else if (preset === "trap_hiphop") {
+                      setEqBands({
+                        subBass: { freq: 35, gain: 6, q: 0.9 },      // +6dB @ 35Hz - 808 sub-bass
+                        bass: { freq: 75, gain: 4, q: 1.2 },         // +4dB @ 75Hz - punch
+                        lowMids: { freq: 275, gain: -5, q: 1.8 },    // -5dB @ 275Hz - cut mud
+                        mids: { freq: 1500, gain: 2.5, q: 3.0 },     // +2.5dB @ 1.5kHz - phone playback
+                        highs: { freq: 4500, gain: 1.5, q: 1.5 }     // +1.5dB @ 4.5kHz - 808 saturation
+                      });
                     }
                   }}
                   style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
                 >
                   <option value="none">None</option>
                   <option value="afro_house">⭐ Afro House</option>
+                  <option value="trap_hiphop">🎤 Trap / Hip-Hop</option>
                 </select>
               </div>
 
