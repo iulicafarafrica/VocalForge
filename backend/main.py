@@ -3021,6 +3021,9 @@ async def ace_generate(
                     # ========== CUSTOM EQ (Post-processing) ==========
                     # Apply genre-specific EQ FIRST (before Noise Hiss)
                     eq_enabled = custom_eq_enabled.lower() == "true"
+                    
+                    # Define enhance_enabled early (needed for loudnorm conditional)
+                    enhance_enabled = audio_enhance.lower() == "true"
 
                     if eq_enabled:
                         try:
@@ -3075,8 +3078,7 @@ async def ace_generate(
 
                     # ========== AUDIO ENHANCEMENT (Post-processing) ==========
                     # Apply hiss removal + loudness normalization SECOND (after Custom EQ)
-                    # Convert string to bool: "true" -> True, "false" -> False
-                    enhance_enabled = audio_enhance.lower() == "true"
+                    # enhance_enabled already defined above for Custom EQ loudnorm conditional
 
                     if enhance_enabled:
                         try:
