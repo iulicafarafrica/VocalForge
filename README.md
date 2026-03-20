@@ -33,28 +33,6 @@
 
 </div>
 
----
-
-## Table of Contents
-
-- [Overview](#-overview)
-- [Interface Preview](#-interface-preview)  
-- [Pipeline v2.3](#-pipeline-v23--complete-flow)
-- [Modules](#-11-modules)
-- [Features Deep Dive](#-features-deep-dive)
-- [Quick Start](#-quick-start)
-- [Installation](#-installation)
-- [API Reference](#-api-reference)
-- [Performance](#-performance-benchmarks)
-- [Hardware Requirements](#-hardware-requirements)
-- [Known Issues](#-known-issues)
-- [Roadmap](#%EF%B8%8F-roadmap)
-- [Security](#-security)
-- [Changelog](#-changelog)
-- [Troubleshooting](#-troubleshooting)
-
----
-
 ## Overview
 
 <table>
