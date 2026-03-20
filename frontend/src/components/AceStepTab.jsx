@@ -881,6 +881,16 @@ export default function AceStepTab({
   const [audioFormat, setAudioFormat] = useState("wav");  // Default: WAV (uncompressed)
   const [audioEnhance, setAudioEnhance] = useState(true);  // Default: Enable enhancement
   const [enhanceStrength, setEnhanceStrength] = useState("light");  // light/medium/aggressive
+  // Custom EQ
+  const [customEqEnabled, setCustomEqEnabled] = useState(false);
+  const [eqPreset, setEqPreset] = useState("afro_house");
+  const [eqBands, setEqBands] = useState({
+    subBass:   { freq: 40, gain: 4, q: 1.0 },
+    bass:      { freq: 90, gain: 3, q: 1.2 },
+    lowMids:   { freq: 300, gain: -3, q: 1.8 },
+    mids:      { freq: 1000, gain: 2, q: 2.8 },
+    highs:     { freq: 4000, gain: -1, q: 1.5 }
+  });
   const [inferMethod, setInferMethod] = useState("ode");
   const [shift, setShift] = useState(3.0);
   const [useTiledDecode, setUseTiledDecode] = useState(true);
@@ -1764,6 +1774,10 @@ export default function AceStepTab({
     // Convert boolean to string for FormData
     fd.append("audio_enhance", audioEnhance ? "true" : "false");
     fd.append("enhance_strength", enhanceStrength);
+
+    // Custom EQ (post-processing)
+    fd.append("custom_eq_enabled", customEqEnabled ? "true" : "false");
+    fd.append("eq_bands", JSON.stringify(eqBands));
 
     // Tiled decode (always enabled by default for VRAM optimization)
     fd.append("use_tiled_decode", useTiledDecode);
@@ -3627,6 +3641,119 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                     Tiled Decode
                   </label>
                 </div>
+              </div>
+            </div>
+
+            {/* Custom EQ Section */}
+            <div style={{ marginBottom: 12, padding: "10px 12px", borderRadius: 8, background: "#0a0a1a", border: "1px solid #2a2a4a" }}>
+              <div style={{ fontSize: 11, color: "#9b2de0", fontWeight: 700, marginBottom: 10, letterSpacing: 1, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
+                🎚️ Custom EQ
+              </div>
+              
+              {/* Preset Dropdown */}
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>Genre Preset</label>
+                <select
+                  value={eqPreset}
+                  onChange={e => {
+                    const preset = e.target.value;
+                    setEqPreset(preset);
+                    // Apply preset values
+                    if (preset === "afro_house") {
+                      setEqBands({
+                        subBass: { freq: 40, gain: 4, q: 1.0 },
+                        bass: { freq: 90, gain: 3, q: 1.2 },
+                        lowMids: { freq: 300, gain: -3, q: 1.8 },
+                        mids: { freq: 1000, gain: 2, q: 2.8 },
+                        highs: { freq: 4000, gain: -1, q: 1.5 }
+                      });
+                    }
+                  }}
+                  style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
+                >
+                  <option value="none">None</option>
+                  <option value="afro_house">⭐ Afro House</option>
+                </select>
+              </div>
+
+              {/* EQ Bands Sliders */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {[
+                  { key: "subBass", label: "Sub-bass (40 Hz)", min: -12, max: 12 },
+                  { key: "bass", label: "Bass (90 Hz)", min: -12, max: 12 },
+                  { key: "lowMids", label: "Low-Mids (300 Hz)", min: -12, max: 12 },
+                  { key: "mids", label: "Mids (1 kHz)", min: -12, max: 12 },
+                  { key: "highs", label: "Highs (4 kHz)", min: -12, max: 12 },
+                ].map(({ key, label, min, max }) => {
+                  const band = eqBands[key];
+                  const gainPercent = ((band.gain - min) / (max - min)) * 100;
+                  const isPositive = band.gain >= 0;
+                  
+                  return (
+                    <div key={key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <label style={{ color: "#6666aa", fontSize: 9, width: 120, flexShrink: 0 }}>{label}</label>
+                      <div style={{ flex: 1, position: "relative", height: 20 }}>
+                        <input
+                          type="range"
+                          min={min}
+                          max={max}
+                          step={0.5}
+                          value={band.gain}
+                          onChange={e => {
+                            const newGain = parseFloat(e.target.value);
+                            setEqBands(prev => ({ ...prev, [key]: { ...prev[key], gain: newGain } }));
+                          }}
+                          disabled={!customEqEnabled}
+                          style={{
+                            width: "100%",
+                            opacity: customEqEnabled ? 1 : 0.5,
+                            cursor: customEqEnabled ? "pointer" : "not-allowed"
+                          }}
+                        />
+                      </div>
+                      <span style={{ 
+                        color: isPositive ? "#06d6a0" : "#e63946", 
+                        fontSize: 9, 
+                        fontWeight: 700,
+                        width: 32,
+                        textAlign: "right"
+                      }}>
+                        {band.gain > 0 ? "+" : ""}{band.gain.toFixed(1)}dB
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Enable Toggle */}
+              <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8, paddingTop: 10, borderTop: "1px solid #1a1a3a" }}>
+                <div
+                  onClick={() => setCustomEqEnabled(!customEqEnabled)}
+                  style={{
+                    width: 40,
+                    height: 20,
+                    borderRadius: 10,
+                    background: customEqEnabled ? "#06d6a0" : "#2a2a4a",
+                    cursor: "pointer",
+                    position: "relative",
+                    transition: "background 0.2s"
+                  }}
+                >
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 2,
+                      left: customEqEnabled ? 22 : 2,
+                      width: 16,
+                      height: 16,
+                      borderRadius: "50%",
+                      background: "#ffffff",
+                      transition: "left 0.2s",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.3)"
+                    }}
+                  />
+                </div>
+                <span style={{ color: "#6666aa", fontSize: 9 }}>Apply after generation</span>
               </div>
             </div>
 

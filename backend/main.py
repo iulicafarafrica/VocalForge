@@ -2543,6 +2543,9 @@ async def ace_generate(
     # Audio Enhancement (post-processing)
     audio_enhance: str = Form("true"),        # "true" or "false"
     enhance_strength: str = Form("light"),    # light/medium/aggressive
+    # Custom EQ (post-processing)
+    custom_eq_enabled: str = Form("false"),   # "true" or "false"
+    eq_bands: str = Form('{"subBass":{"freq":40,"gain":4,"q":1.0},"bass":{"freq":90,"gain":3,"q":1.2},"lowMids":{"freq":300,"gain":-3,"q":1.8},"mids":{"freq":1000,"gain":2,"q":2.8},"highs":{"freq":4000,"gain":-1,"q":1.5}}'),
     # Custom mode extra fields (ignored by backend, accepted to avoid 422)
     mode: str = Form(""),
     ref_audio_strength: float = Form(0.5),
@@ -2993,7 +2996,7 @@ async def ace_generate(
                     # Apply hiss removal + loudness normalization if enabled
                     # Convert string to bool: "true" -> True, "false" -> False
                     enhance_enabled = audio_enhance.lower() == "true"
-                    
+
                     if enhance_enabled:
                         try:
                             from endpoints.audio_enhancer import enhance_audio_file
@@ -3004,6 +3007,59 @@ async def ace_generate(
                             print(f"[ACE {job_id[:8]}] ✅ Enhancement complete (+{enhance_time}s)")
                         except Exception as enhance_err:
                             print(f"[ACE {job_id[:8]}] ⚠️ Enhancement failed: {enhance_err}")
+                    # ===========================================================
+
+                    # ========== CUSTOM EQ (Post-processing) ==========
+                    # Apply genre-specific EQ if enabled
+                    eq_enabled = custom_eq_enabled.lower() == "true"
+
+                    if eq_enabled:
+                        try:
+                            import json
+                            import subprocess
+                            
+                            eq_data = json.loads(eq_bands)
+                            print(f"[ACE {job_id[:8]}] 🎚️ Applying Custom EQ...")
+                            eq_start = time.time()
+                            
+                            # Build FFmpeg EQ filter chain
+                            eq_filters = []
+                            for band_key, band in eq_data.items():
+                                eq_filters.append(f"equalizer=f={band['freq']}:t=q:w={band['q']}:g={band['gain']}")
+                            
+                            # Add loudnorm at the end
+                            eq_filters.append("loudnorm=I=-14:TP=-1:LRA=7")
+                            
+                            eq_chain = ",".join(eq_filters)
+                            print(f"[ACE {job_id[:8]}] EQ chain: {eq_chain}")
+                            
+                            # Create temp file for output
+                            import tempfile
+                            temp_eq_path = tempfile.mktemp(suffix="_eq.wav")
+                            
+                            # Run FFmpeg
+                            cmd = [
+                                "ffmpeg", "-y",
+                                "-i", out_path,
+                                "-af", eq_chain,
+                                "-ar", "44100",
+                                "-acodec", "pcm_s24le",
+                                temp_eq_path
+                            ]
+                            
+                            result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+                            
+                            if result.returncode == 0 and os.path.exists(temp_eq_path):
+                                # Replace original with EQ'd version
+                                shutil.move(temp_eq_path, out_path)
+                                eq_time = round(time.time() - eq_start, 1)
+                                print(f"[ACE {job_id[:8]}] ✅ Custom EQ complete (+{eq_time}s)")
+                            else:
+                                print(f"[ACE {job_id[:8]}] ⚠️ EQ failed: {result.stderr[:300]}")
+                                if os.path.exists(temp_eq_path):
+                                    os.remove(temp_eq_path)
+                        except Exception as eq_err:
+                            print(f"[ACE {job_id[:8]}] ⚠️ Custom EQ failed: {eq_err}")
                     # ===========================================================
 
                     # RAM Management: Force garbage collection to prevent memory leaks
