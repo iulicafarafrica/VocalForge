@@ -3739,6 +3739,14 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                         mids: { freq: 650, gain: 4, q: 2.2 },        // +4dB @ 650Hz - ARABIC IDENTITY: oud/qanun voice 🎵
                         highs: { freq: 5000, gain: -0.5, q: 2.0 }    // -0.5dB @ 5kHz - make space for zills/finger cymbals
                       });
+                    } else if (preset === "vocal_natural") {
+                      setEqBands({
+                        subBass: { freq: 90, gain: 0, q: 0.7 },      // HPF @ 90Hz - NO rumble, voice starts at 80Hz+
+                        bass: { freq: 150, gain: 1, q: 1.2 },        // +1dB @ 150Hz - subtle warmth (men: +2-3dB)
+                        lowMids: { freq: 300, gain: -3, q: 2.0 },    // -3dB @ 300Hz - muddy cleanup, clarity
+                        mids: { freq: 2500, gain: 3.5, q: 2.5 },     // +3.5dB @ 2.5kHz - CLARITY & VOICE presence 🎤
+                        highs: { freq: 11000, gain: 2, q: 1.2 }      // +2dB @ 11kHz - AIR, breath, intimacy ✨
+                      });
                     }
                   }}
                   style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
@@ -3754,6 +3762,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   <option value="deep_house">💙 Deep House</option>
                   <option value="dark_afro_house">🌑 Dark Afro House</option>
                   <option value="dark_oriental_house">🌙 Dark Oriental House</option>
+                  <option value="vocal_natural">🎤 Vocal Natural</option>
                 </select>
               </div>
 
