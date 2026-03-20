@@ -1,6 +1,101 @@
 
 ---
 
+## [v3.0.0] - 2026-03-19
+
+### 🔇 Audio Enhancer Release
+
+**Professional audio post-processing for hiss removal and audio enhancement!**
+
+---
+
+### 🎯 **HEADLINE FEATURES**
+
+#### **🎧 Audio Enhancer (NEW TAB)**
+- 🔇 **Noise Removal** — Remove hiss, hum, and static from audio
+- 🎚️ **3-Stage Processing:**
+  - Highpass Filter @ 20Hz (removes infrasound, preserves bass)
+  - Spectral Denoise (afftdn) - removes hiss without affecting music
+  - Loudness Normalization (-14 LUFS for streaming standard)
+- 💪 **3 Strength Levels:**
+  - 🌱 **Light** (nr=15) - Gentle reduction, natural sound
+  - ⚖️ **Medium** (nr=20 + EQ) - Smart EQ targets hiss at 6/9/13kHz ⭐
+  - 🔥 **Aggressive** (nr=25) - Strong reduction for noisy recordings
+
+#### **🔇 Noise Hiss Remover (ACE-Step Integration)**
+- Audio enhancement integrated directly into ACE-Step generation
+- Location: ACE-Step Tab → Audio section → "🔇 Noise Hiss Remover"
+- Automatic post-processing after generation (+6-8 seconds)
+- Dropdown: OFF / Light / Medium / Aggressive
+
+---
+
+### 🎵 Audio Quality Comparison
+
+| Before Enhancement | After Enhancement (Medium) |
+|-------------------|---------------------------|
+| ❌ Hiss in high frequencies (5kHz+) | ✅ Clean highs (hiss removed at 6/9/13kHz) |
+| ❌ Inconsistent loudness | ✅ Consistent loudness (-14 LUFS) |
+| ❌ Possible infrasound rumble | ✅ Full bass intact (20Hz highpass only) |
+| ❌ Natural, unprocessed sound | ✅ Natural, professional sound |
+
+> **"Audio quality is now 10/10 — crystal clear clarity from ACE-Step"**
+
+---
+
+### 🐛 **Bug Fixes**
+
+1. **Audio Enhancer file upload** - Fixed file input not triggering
+2. **Audio Enhancer 404 errors** - Fixed output files not being served
+3. **Audio enhancement boolean conversion** - Fixed FormData string/bool issue
+4. **Bass preservation** - Lowered highpass to 20Hz (preserves kick/bass guitar)
+5. **Brightness preservation** - Removed lowpass filter (keeps highs clear)
+
+---
+
+### 🔧 **Technical Changes**
+
+#### **Backend (`backend/endpoints/audio_enhancer.py`)**
+- New endpoint: `POST /audio/enhance`
+- New function: `enhance_audio_file()` for integration
+- FFmpeg-based processing (highpass + afftdn + loudnorm)
+- Optional EQ for medium preset (targets 6/9/13kHz)
+
+#### **Frontend (`frontend/src/components/AudioEnhancerTab.jsx`)**
+- New tab: Audio Enhancer
+- File upload with drag & drop
+- Mode selection (Noise Removal only)
+- Strength selector (light/medium/aggressive)
+- Audio preview player
+- Download buttons
+
+#### **ACE-Step Integration**
+- New parameters: `audio_enhance`, `enhance_strength`
+- Automatic post-processing after generation
+- UI dropdown: "🔇 Noise Hiss Remover" (OFF/Light/Medium/Aggressive)
+
+---
+
+### 📊 **Performance**
+
+| Operation | Time |
+|-----------|------|
+| Noise Removal (light) | ~6-7s |
+| Noise Removal (medium) | ~7-8s |
+| Noise Removal (aggressive) | ~8-9s |
+| ACE-Step + Enhancement | +6-8s |
+
+---
+
+### 🗑️ **Removed Features**
+
+#### **Suno AI Integration (REMOVED)**
+- Suno API integration removed
+- Suno tab removed from UI
+- Focus on ACE-Step v1.5 for music generation
+
+---
+
 ## [v2.2.1] - 2026-03-16
 
 ### 🔧 Models & GPU Tab Cleanup + Lyrics Fix

@@ -10,7 +10,7 @@
 
 *⚡ Powered by ACE-Step v1.5*
 
-[![Version](https://img.shields.io/badge/Version-2.2.1-blue?style=for-the-badge)]()
+[![Version](https://img.shields.io/badge/Version-3.0.0-blue?style=for-the-badge)]()
 [![Python](https://img.shields.io/badge/Python-3.10+-green?style=for-the-badge&logo=python)]()
 [![GPU](https://img.shields.io/badge/GPU-NVIDIA%20CUDA-orange?style=for-the-badge&logo=nvidia)]()
 [![License](https://img.shields.io/badge/License-MIT-red?style=for-the-badge)]()
@@ -40,6 +40,7 @@
 - 🔄 **Pipeline v2.3** — End-to-end: separate → convert → mix → master
 - 🎼 **164 Genre Presets** — Including 30 Romanian subgenres
 - 🎤 **Lyrics Finder & Manager** — Search Genius.com, save library, genres, favorites, import/export
+- 🔇 **Audio Enhancer** — Professional hiss removal and audio enhancement (NEW v3.0.0)
 - 💻 **GPU Optimized** — RTX 3070 8GB (runs on 6GB+)
 
 ### 🎯 11 Main Modules
@@ -53,7 +54,7 @@
 | 🖌️ | **Repaint** | Regenerate sections (30-60s) |
 | 📊 | **Audio Analysis** | BPM, Key, Time Signature detection |
 | 🎤 | **Lyrics Finder** | Search Genius.com, clean lyrics, save to library |
-| 🌞 | **Suno AI** | Generate music with Suno (local cookie) |
+| 🔇 | **Audio Enhancer** | Remove hiss, hum, static (NEW v3.0.0) |
 | 📁 | **Tracks Manager** | View, play, download tracks |
 | 💻 | **Models Manager** | Upload, list RVC models |
 | 📝 | **Notes** | Personal notes with auto-save |
@@ -210,17 +211,6 @@ START_ALL.bat    # Launch all services
 | `INIT_LLM=false` | ~4GB ✅ | Identical ✅ |
 
 Audio quality is **identical** — LLM only expands prompts automatically.
-
-### Suno AI Integration (v2.0.0)
-
-**Local suno-api · cookie auth**
-
-- Local suno-api integration (port 8080)
-- Cookie-based authentication
-- `/suno/health` endpoint for connection status
-- Automatic retry logic (3 attempts)
-- One-click "Send to Suno" from Prompt Generator
-- Full genre/style/BPM support from ACE-Step
 
 ### 🎤 Lyrics Finder & Manager (v2.2.0)
 
