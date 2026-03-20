@@ -25,16 +25,6 @@ const SEPARATION_MODELS = [
     engine: "uvr",
     requiresPackage: "audio-separator",
   },
-  {
-    id: "htdemucs_6s",
-    name: "htdemucs_6s",
-    desc: "Demucs 6-stem — also separates guitar & piano. SDR 10.0.",
-    stems: ["vocals", "drums", "bass", "other", "guitar", "piano"],
-    color: "#06d6a0",
-    glow: "#06d6a0",
-    badge: "6 STEMS",
-    engine: "demucs",
-  },
 ];
 
 const STEM_ICONS = {
@@ -50,7 +40,7 @@ const STEM_COLORS = {
 
 export default function DemucsTab({ addLog, tracks, setTracks }) {
   const [uploadedFile, setUploadedFile] = useState(null);
-  const [selectedModel, setSelectedModel] = useState("htdemucs_6s");
+  const [selectedModel, setSelectedModel] = useState("bs_roformer_1297");
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [progressLabel, setProgressLabel] = useState("");
