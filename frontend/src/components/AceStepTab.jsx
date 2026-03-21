@@ -3550,15 +3550,6 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                     style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 13 }}
                   />
                 </div>
-              </div>
-            </div>
-
-            {/* Audio & VRAM */}
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ color: "#c77dff", fontSize: 13, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
-                ◉ Audio
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
                 <div>
                   <label style={{ color: "#6666aa", fontSize: 13, display: "block", marginBottom: 4 }}>Format</label>
                   <select
@@ -3571,6 +3562,15 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                     <option value="flac">FLAC</option>
                   </select>
                 </div>
+              </div>
+            </div>
+
+            {/* Audio & VRAM */}
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ color: "#c77dff", fontSize: 13, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+                ◉ Audio
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                 <div>
                   <label style={{ color: "#6666aa", fontSize: 13, display: "block", marginBottom: 4 }}>🔇 Noise Hiss Remover</label>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
