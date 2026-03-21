@@ -78,6 +78,7 @@
 | **Audio Analysis** | BPM, Key, Time Signature detection | madmom + essentia |
 | **Lyrics Finder** | Genius.com API + local library | 24 genre tags |
 | **Audio Enhancer** | Remove hiss, hum, static | NEW in v3.1.0 |
+| **Custom EQ** | 13 genre-specific EQ presets | Afro House, Trap, Reggae, Phonk |
 | **Tracks Manager** | View, play, download all tracks | File management |
 | **Models & GPU** | VRAM monitor, model management | GPU memory API |
 | **Notes** | Personal notes with auto-save | Session persistent |
@@ -138,6 +139,35 @@ Temp 0.85  ·  CFG 2.5  ·  Top-K 0  ·  Top-P 0.90
 | `Arena` | Heavy reverb | Concert, Live feel |
 | `Radio` | Maximum compression | Commercial broadcast |
 | `Balanced` | All-round | General purpose |
+
+---
+
+### Custom EQ — Genre-Specific Presets
+
+**13 EQ presets · 5-band parametric · +2-3s processing**
+
+| Preset | Key Adjustments | Best For |
+|--------|----------------|----------|
+| **Afro House** | 40Hz +4dB, 90Hz +3dB, 300Hz -3dB | Deep groovy bass |
+| **Trap/Hip-Hop** | 35Hz +6dB, 75Hz +4dB, 275Hz -5dB | Massive 808s |
+| **Oriental Tradițional** | 90Hz +4dB, 700Hz +3dB | Warm organic tone |
+| **Reggae** | 45Hz +5dB, 90Hz +6dB | Warmth & fullness |
+| **Rock/Metal** | 275Hz -4dB, 900Hz +4dB | Clarity & cut |
+| **Phonk** | 35Hz +8dB, 75Hz +6dB | Brutal 808 |
+| **Drum and Bass** | 45Hz +6dB, 600Hz +5dB | Reese growl @ 174 BPM |
+| **Deep House** | 48Hz +5dB, 90Hz +6dB | Warm & groovy |
+| **Dark Afro House** | 42Hz +7dB, 260Hz -4dB | Mysterious tribal |
+| **Dark Oriental House** | 45Hz +7dB, 650Hz +4dB | Arabic fusion |
+| **Vocal Natural** | HPF @ 90Hz, 2.5kHz +3.5dB | Natural organic voice |
+| **Hiss & Crackle Removal** | 8kHz -4dB, 14kHz -6dB | Noise reduction |
+| **AI Artifacts Hiding** | 1kHz -2.5dB, 6kHz -4dB | Humanize AI voice |
+
+**Processing chain:**
+```
+Custom EQ (5-band) → Loudnorm (-14 LUFS) → Noise Hiss (optional)
+```
+
+> **Note:** Custom EQ loudnorm is skipped if Noise Hiss Remover is enabled (prevents double processing).
 
 ---
 
