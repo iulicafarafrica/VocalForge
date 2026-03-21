@@ -213,7 +213,7 @@ VRAM thresholds: 80% alert · 90% auto-cleanup
 git clone https://github.com/iulicafarafrica/VocalForge.git
 cd VocalForge
 
-# Install everything
+# Install everything (one-click)
 setup.bat
 
 # Launch all services
@@ -234,32 +234,77 @@ Access the studio at **[http://localhost:3000](http://localhost:3000)**
 | Node.js | 18+ | ✅ Yes | For frontend |
 | Git | Latest | ✅ Yes | |
 | Windows Terminal | Latest | ✅ Yes | |
+| FFmpeg | Latest | ✅ Yes | Audio encoding/decoding |
+| Git LFS | Latest | ⚠ Recommended | Large model files |
 | NVIDIA GPU | 4GB+ VRAM | ⚠ Optional | CUDA required for GPU |
-| CUDA | 11.8 / 12.1 | ⚠ Optional | CPU fallback available |
+| CUDA | 11.8 / 12.1 | ⚠ Optional | PyTorch includes bundled CUDA |
 
-### Step-by-Step
+### One-Click Install
+
+```bash
+# Run setup script (installs everything automatically)
+setup.bat
+```
+
+**What setup.bat does:**
+1. ✅ Checks Python, Node.js, FFmpeg, Git LFS
+2. ✅ Creates Python virtual environment
+3. ✅ Installs PyTorch with CUDA 12.1 (falls back to 11.8 or CPU)
+4. ✅ Installs core dependencies (FastAPI, librosa, soundfile)
+5. ✅ Installs stem separation tools (Demucs, audio-separator)
+6. ✅ Installs audio analysis tools (madmom, essentia-tensorflow)
+7. ✅ Installs frontend dependencies (npm)
+8. ✅ Verifies GPU and all installations
+
+### Manual Install (Step-by-Step)
 
 ```bash
 # 1. Clone
 git clone https://github.com/iulicafarafrica/VocalForge.git
 cd VocalForge
 
-# 2. Python environment
+# 2. Python environment + PyTorch (CUDA 12.1)
 python -m venv venv
 venv\Scripts\activate
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-pip install -r requirements.txt
-pip install yt-dlp  # For YouTube Cover feature
 
-# 3. Frontend
+# 3. Core dependencies
+pip install -r requirements.txt
+
+# 4. YouTube download support
+pip install yt-dlp
+
+# 5. Frontend
 cd frontend
 npm install
 cd ..
 
-# 4. ACE-Step (if using uv)
+# 6. ACE-Step (separate repository)
 cd ace-step
 uv sync
 cd ..
+```
+
+### Requirements Overview
+
+**Core packages:**
+- `fastapi`, `uvicorn`, `python-multipart` — Backend API
+- `librosa`, `soundfile`, `pydub`, `scipy` — Audio processing
+- `demucs`, `audio-separator` — Stem separation
+- `praat-parselmouth`, `pyworld`, `torchcrepe`, `faiss-cpu` — RVC (removed in v3.1.1)
+- `madmom`, `essentia-tensorflow` — Audio analysis (BPM, Key)
+- `pystoi`, `pesq` — Quality metrics
+
+**System dependencies:**
+```bash
+# FFmpeg (required)
+winget install ffmpeg
+
+# Git LFS (recommended for large models)
+winget install Git.Git.LFS
+
+# Visual C++ Redistributable
+winget install Microsoft.VCRedist.2015+.x64
 ```
 
 ### Configure API Token

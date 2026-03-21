@@ -1,10 +1,10 @@
 @echo off
-title VocalForge v2.0.0 - Setup
+title VocalForge v3.1.2 - Setup
 color 0B
 echo.
 echo  ============================================
-echo   VocalForge v2.0.0 - Complete Setup
-echo   Pipeline v2.3 + GPU Memory Management
+echo   VocalForge v3.1.2 - Complete Setup
+echo   LLM Enabled + CoT Logging + Custom EQ
 echo   RTX 3070 8GB VRAM + 32GB RAM Optimized
 echo  ============================================
 echo.
@@ -128,24 +128,17 @@ echo [6/8] Installing stem separation tools...
 pip install demucs audio-separator --quiet
 
 :: ============================================
-:: RVC DEPENDENCIES
-:: ============================================
-
-echo [7/8] Installing RVC dependencies...
-pip install praat-parselmouth pyworld faiss-cpu torchcrepe noisereduce --quiet
-
-:: ============================================
 :: AUDIO ANALYSIS
 :: ============================================
 
-echo [8/8] Installing audio analysis tools...
+echo [7/8] Installing audio analysis tools...
 pip install madmom essentia-tensorflow pystoi pesq --quiet
 
 :: ============================================
 :: FRONTEND
 :: ============================================
 
-echo [9/9] Installing frontend dependencies...
+echo [8/8] Installing frontend dependencies...
 if exist "frontend\package.json" (
     cd frontend
     call npm install --silent
@@ -158,7 +151,7 @@ if exist "frontend\package.json" (
 :: ACE-STEP CHECK
 :: ============================================
 
-echo [10/10] Checking ACE-Step configuration...
+echo [9/9] Checking ACE-Step configuration...
 if exist "ace-step\.env" (
     echo [OK] ACE-Step configuration found
 ) else (
@@ -205,16 +198,21 @@ echo  OR start individually:
 echo    - start_frontend.bat   (Port 3000 - React/Vite)
 echo    - start_backend.bat    (Port 8000 - FastAPI Main)
 echo    - start_acestep.bat    (Port 8001 - ACE-Step API)
-echo    - start_rvc.bat        (Port 8002 - RVC Voice)
 echo.
 echo  Then open: http://localhost:3000
 echo.
-echo  Active Features:
-echo    ✓ Pipeline v2.3 (4 stages)
-echo    ✓ GPU Memory Management
-echo    ✓ RVC Rescue Post-Processing
-echo    ✓ Applio Features (Autotune, Clean Audio)
+echo  Active Features (v3.1.2):
+echo    ✓ LLM Enabled (acestep-5Hz-lm-0.6B)
+echo    ✓ CoT Logging (Caption/Language/Thinking)
+echo    ✓ Custom EQ (13 genre presets)
+echo    ✓ Audio Enhancer (Noise Hiss removal)
 echo    ✓ ACE-Step Music Generation
-echo    
+echo    ✓ Stem Separation (BS-RoFormer SDR 12.97)
+echo    ✓ GPU Memory Management
+echo.
+echo  Removed (v3.1.1):
+echo    ✗ RVC Voice Conversion (stability issues)
+echo    ✗ Vocal Pipeline (disabled until refactored)
+echo.
 echo  ============================================
 pause

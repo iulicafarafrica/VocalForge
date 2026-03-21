@@ -1,10 +1,11 @@
 # =============================================================================
-# VocalForge v2.0.0 - Complete Python Requirements
+# VocalForge v3.1.2 - Complete Python Requirements
 # =============================================================================
 # AI Music Production Application with:
-# - Pipeline v2.3 (4 stages: Separation → RVC → Clarify → Mix)
-# - ACE-Step Music Generation
-# - RVC Voice Conversion with Applio Features
+# - ACE-Step Music Generation (LLM enabled)
+# - CoT Logging (Chain-of-Thought metadata)
+# - Custom EQ (13 genre presets)
+# - Audio Enhancer (Noise Hiss removal)
 # - Stem Separation (BS-RoFormer, Demucs)
 # - Audio Processing & Analysis
 # - GPU Memory Management
@@ -58,20 +59,6 @@ audio-separator>=0.10.0
 # YOUTUBE DOWNLOAD
 # =============================================================================
 yt-dlp>=2023.0.0
-
-# =============================================================================
-# RVC VOICE CONVERSION
-# =============================================================================
-# Pitch Detection & F0 Extraction
-praat-parselmouth>=0.4.3
-pyworld>=0.3.3
-torchcrepe>=0.0.20
-
-# FAISS Index for RVC retrieval
-faiss-cpu>=1.7.4
-
-# Applio Features (Autotune, Clean Audio, Volume Envelope, HPF)
-noisereduce>=3.0.0
 
 # =============================================================================
 # AUDIO ANALYSIS (BPM, Key, Chords)
@@ -144,11 +131,6 @@ colorama>=0.4.6
 # Test Stem Separation
 # python -c "import demucs; print('Demucs: OK')"
 # python -c "import audio_separator; print('Audio-Separator: OK')"
-
-# Test RVC Dependencies
-# python -c "import praat_parselmouth; print('Parselmouth: OK')"
-# python -c "import pyworld; print('PyWorld: OK')"
-# python -c "import faiss; print('FAISS: OK')"
 
 # Test Audio Analysis
 # python -c "import madmom; print('Madmom: OK')"
