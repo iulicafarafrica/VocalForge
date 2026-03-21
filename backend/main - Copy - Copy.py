@@ -28,7 +28,6 @@ import os
 import sys
 import uuid
 import json
-import json as _json  # alias to avoid httpx kwarg shadowing
 import random
 import shutil
 import asyncio
@@ -338,7 +337,9 @@ async def serve_track(filename: str, request: Request):
 # Include ACE-Step Advanced router
 app.include_router(acestep_advanced_router)
 
-# RVC Voice Conversion removed
+# Include RVC Voice Conversion router
+from endpoints.rvc_conversion import router as rvc_conversion_router
+app.include_router(rvc_conversion_router)
 
 # Include GPU Memory Management router
 from endpoints.gpu_info import router as gpu_router
@@ -1088,52 +1089,21 @@ def separate_stems_demucs(audio_path: str, out_dir: str, model: str = "htdemucs_
     Returns dict: {stem_name: absolute_path}
     """
     import subprocess
-    
-    print(f"[Demucs] Starting separation: model={model}, input={audio_path}, out_dir={out_dir}")
-    
-    # Use smaller segment size for lower memory usage
-    # htdemucs_6s needs more memory, so use 10s segments
-    segment_size = "10" if "6s" in model else "default"
-    
-    cmd = [sys.executable, "-m", "demucs", "-n", model, "-o", out_dir, audio_path]
-    
-    # Add segment size for memory-constrained systems
-    if segment_size != "default":
-        cmd.extend(["--segment", segment_size])
-    
-    print(f"[Demucs] Command: {' '.join(cmd)}")
-    
     result = subprocess.run(
-        cmd,
-        capture_output=True, text=True, timeout=600,
+        [sys.executable, "-m", "demucs", "-n", model, "-o", out_dir, audio_path],
+        capture_output=True, text=True,
     )
-    
-    print(f"[Demucs] Return code: {result.returncode}")
-    if result.stdout:
-        print(f"[Demucs] STDOUT: {result.stdout[:500]}")
-    if result.stderr:
-        print(f"[Demucs] STDERR: {result.stderr[:500]}")
-    
     if result.returncode != 0:
         raise RuntimeError(f"Demucs failed:\n{result.stderr[-2000:]}")
 
     base_name = os.path.splitext(os.path.basename(audio_path))[0]
     model_out_dir = os.path.join(out_dir, model, base_name)
-    
-    print(f"[Demucs] Looking for stems in: {model_out_dir}")
 
     stems = {}
     for stem in DEMUCS_STEM_MAP.get(model, ["vocals", "drums", "bass", "other"]):
         p = os.path.join(model_out_dir, f"{stem}.wav")
         if os.path.exists(p):
             stems[stem] = p
-            print(f"[Demucs] Found stem: {stem}")
-        else:
-            print(f"[Demucs] Missing stem: {stem}")
-    
-    if not stems:
-        raise RuntimeError(f"Demucs produced no output files. Check: {model_out_dir}")
-        
     return stems
 
 
@@ -1159,11 +1129,8 @@ async def demucs_separate(
     mode=vocals_only: returns only vocals
     mode=instrumental_only: returns no_vocals mix (drums+bass+other)
     """
-    print(f"[DEMUCS] Received request: filename={file.filename}, model={model}, mode={mode}")
-    
     # Validate uploaded audio file
     validate_upload(file, ALLOWED_AUDIO_EXTENSIONS, MAX_AUDIO_SIZE)
-    print(f"[DEMUCS] Validation passed")
     
     job_id = uuid.uuid4().hex
     job_dir = os.path.join(TEMP_DIR, job_id)
@@ -2526,7 +2493,7 @@ async def ace_generate(
     use_adg: bool = Form(False),
     cfg_interval_start: float = Form(0.0),
     cfg_interval_end: float = Form(1.0),
-    use_cot_metas: bool = Form(False),   # User controlled via frontend
+    use_cot_metas: bool = Form(False),   # False = respect user BPM/key/prompt
     use_cot_caption: bool = Form(False),  # False = don't overwrite style prompt
     use_cot_language: bool = Form(False), # False = use vocal_language param directly
     allow_lm_batch: bool = Form(True),
@@ -2542,9 +2509,6 @@ async def ace_generate(
     # Audio Enhancement (post-processing)
     audio_enhance: str = Form("true"),        # "true" or "false"
     enhance_strength: str = Form("light"),    # light/medium/aggressive
-    # Custom EQ (post-processing)
-    custom_eq_enabled: str = Form("false"),   # "true" or "false"
-    eq_bands: str = Form('{"subBass":{"freq":40,"gain":4,"q":1.0},"bass":{"freq":90,"gain":3,"q":1.2},"lowMids":{"freq":300,"gain":-3,"q":1.8},"mids":{"freq":1000,"gain":2,"q":2.8},"highs":{"freq":4000,"gain":-1,"q":1.5}}'),
     # Custom mode extra fields (ignored by backend, accepted to avoid 422)
     mode: str = Form(""),
     ref_audio_strength: float = Form(0.5),
@@ -2629,7 +2593,7 @@ async def ace_generate(
                         f"{ACE_STEP_API}/v1/init",
                         json={
                             "model": dit_model,
-                            "init_llm": True,  # LLM ENABLED for better prompt understanding
+                            "init_llm": False,  # Keep LLM disabled by default (user can enable manually)
                             "lm_backend": "pt",  # PyTorch backend (more stable than vllm on Windows)
                             "enforce_eager": True,  # Disable CUDA graphs (fixes captures_underway.empty())
                             "gpu_memory_utilization": 0.3,  # Conservative for 8GB VRAM
@@ -2639,7 +2603,7 @@ async def ace_generate(
                     if init_response.status_code == 200:
                         init_data = init_response.json()
                         loaded_model = init_data.get("data", {}).get("loaded_model", dit_model)
-                        print(f"[ACE {job_id[:8]}] ✅ Model loaded: {loaded_model} (LLM ENABLED for better prompt understanding)")
+                        print(f"[ACE {job_id[:8]}] ✅ Model loaded: {loaded_model} (LLM disabled, use pt backend if enabling)")
                         await asyncio.sleep(2)
                     else:
                         print(f"[ACE {job_id[:8]}] ⚠️ Model init returned status {init_response.status_code}")
@@ -2676,9 +2640,9 @@ async def ace_generate(
             # https://github.com/ace-step/ACE-Step-1.5
             # GenerateMusicRequest model from acestep/api/http/release_task_models.py
             
-            # CoT: respect user choice from frontend
-            effective_use_cot_caption = use_cot_caption
-            effective_use_cot_language = use_cot_language
+            # For Text-to-Music: disable CoT to respect user BPM/key/prompt
+            effective_use_cot_caption = False if task_type == "text2music" else use_cot_caption
+            effective_use_cot_language = False if task_type == "text2music" else use_cot_language
             
             task_payload = {
                 # Core parameters (ACE-Step official - GenerateMusicRequest)
@@ -2735,14 +2699,14 @@ async def ace_generate(
                 "lm_repetition_penalty": 1.0,
                 "lm_negative_prompt": neg,  # User negative prompt (passed to LLM if enabled)
 
-                # Chain-of-Thought — controlled by user via frontend
+                # Chain-of-Thought - ALL DISABLED
                 "constrained_decoding": False,
                 "constrained_decoding_debug": False,
-                "use_cot_caption": effective_use_cot_caption,
-                "use_cot_language": effective_use_cot_language,
+                "use_cot_caption": False,
+                "use_cot_language": False,
                 "is_format_caption": False,
-                "allow_lm_batch": use_cot_caption,  # enable batch when CoT active
-                "thinking": thinking,
+                "allow_lm_batch": False,
+                "thinking": False,
                 
                 # User negative prompt (passed even if DiT may ignore it)
                 "negative_prompt": neg,
@@ -2882,7 +2846,7 @@ async def ace_generate(
                     # Failed — parse error from result JSON
                     result_str = item.get("result", "[]")
                     try:
-                        result_arr = _json.loads(result_str) if isinstance(result_str, str) else result_str
+                        result_arr = json.loads(result_str) if isinstance(result_str, str) else result_str
                         err = (result_arr[0].get("error") if result_arr else None) or "Unknown error"
                     except Exception:
                         err = result_str[:200]
@@ -2893,46 +2857,21 @@ async def ace_generate(
                     # Succeeded — get audio file path
                     result_str = item.get("result", "[]")
                     print(f"[ACE {job_id[:8]}] Raw result: {str(result_str)[:500]}")
-                    print(f"[ACE {job_id[:8]}] result_str type: {type(result_str)}")
-                    
-                    # Parse result - handle both string and already-parsed cases
-                    result_arr = []
-                    if isinstance(result_str, str):
-                        try:
-                            result_arr = _json.loads(result_str)
-                        except Exception as parse_err:
-                            print(f"[ACE {job_id[:8]}] JSON parse error: {parse_err}")
-                            # Fallback: try to extract file path from string directly
-                            import re
-                            file_match = re.search(r'"file":\s*"([^"]+)"', result_str)
-                            if file_match:
-                                audio_file_path = file_match.group(1)
-                                print(f"[ACE {job_id[:8]}] Extracted file from string regex: {audio_file_path[:100]}...")
-                    elif isinstance(result_str, list):
-                        result_arr = result_str
-                    else:
-                        print(f"[ACE {job_id[:8]}] Unexpected result_str type: {type(result_str)}")
-                    
-                    if isinstance(result_arr, list):
-                        print(f"[ACE {job_id[:8]}] Parsed result_arr type: list, len: {len(result_arr)}")
-                    else:
-                        print(f"[ACE {job_id[:8]}] Parsed result_arr type: {type(result_arr)}")
+                    try:
+                        result_arr = json.loads(result_str) if isinstance(result_str, str) else result_str
+                    except Exception:
+                        result_arr = []
 
                     # ACE-Step returnează lista de fișiere în result_arr
                     # Fiecare element are "file" = URL /v1/audio?path=... sau cale disk
                     audio_file_path = None
                     if result_arr and isinstance(result_arr, list):
-                        print(f"[ACE {job_id[:8]}] result_arr is a list with {len(result_arr)} items")
                         # Caută primul element cu "file" non-gol
-                        for idx, item_r in enumerate(result_arr):
-                            print(f"[ACE {job_id[:8]}] Item {idx} keys: {item_r.keys() if isinstance(item_r, dict) else type(item_r)}")
+                        for item_r in result_arr:
                             f = item_r.get("file", "")
                             if f:
                                 audio_file_path = f
-                                print(f"[ACE {job_id[:8]}] Found file at index {idx}: {f[:100]}...")
                                 break
-                    else:
-                        print(f"[ACE {job_id[:8]}] result_arr is NOT a list or is empty: {type(result_arr)}")
 
                     print(f"[ACE {job_id[:8]}] audio_file_path: {audio_file_path}")
 
@@ -3016,68 +2955,11 @@ async def ace_generate(
 
                     print(f"[ACE {job_id[:8]}] Done in {t_sec}s — {duration_sec}s audio ({out_size_mb}MB)")
 
-                    # ========== CUSTOM EQ (Post-processing) ==========
-                    # Apply genre-specific EQ FIRST (before Noise Hiss)
-                    eq_enabled = custom_eq_enabled.lower() == "true"
-                    
-                    # Define enhance_enabled early (needed for loudnorm conditional)
-                    enhance_enabled = audio_enhance.lower() == "true"
-
-                    if eq_enabled:
-                        try:
-                            eq_data = _json.loads(eq_bands)
-                            print(f"[ACE {job_id[:8]}] 🎚️ Applying Custom EQ...")
-                            eq_start = time.time()
-
-                            # Build FFmpeg EQ filter chain
-                            eq_filters = []
-                            for band_key, band in eq_data.items():
-                                eq_filters.append(f"equalizer=f={band['freq']}:t=q:w={band['q']}:g={band['gain']}")
-
-                            # Add loudnorm ONLY if Noise Hiss Remover is OFF
-                            # (Noise Hiss will apply loudnorm at the end)
-                            if enhance_enabled:
-                                print(f"[ACE {job_id[:8]}] 📊 Custom EQ: loudnorm SKIPPED (Noise Hiss will apply)")
-                            else:
-                                eq_filters.append("loudnorm=I=-14:TP=-1:LRA=7")
-                                print(f"[ACE {job_id[:8]}] 📊 Custom EQ: loudnorm APPLIED")
-
-                            eq_chain = ",".join(eq_filters)
-                            print(f"[ACE {job_id[:8]}] EQ chain: {eq_chain}")
-                            
-                            # Create temp file for output
-                            import tempfile
-                            temp_eq_path = tempfile.mktemp(suffix="_eq.wav")
-
-                            # Run FFmpeg
-                            cmd = [
-                                "ffmpeg", "-y",
-                                "-i", out_path,
-                                "-af", eq_chain,
-                                "-ar", "44100",
-                                "-acodec", "pcm_s24le",
-                                temp_eq_path
-                            ]
-
-                            result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-
-                            if result.returncode == 0 and os.path.exists(temp_eq_path):
-                                # Replace original with EQ'd version
-                                shutil.move(temp_eq_path, out_path)
-                                eq_time = round(time.time() - eq_start, 1)
-                                print(f"[ACE {job_id[:8]}] ✅ Custom EQ complete (+{eq_time}s)")
-                            else:
-                                print(f"[ACE {job_id[:8]}] ⚠️ EQ failed: {result.stderr[:300]}")
-                                if os.path.exists(temp_eq_path):
-                                    os.remove(temp_eq_path)
-                        except Exception as eq_err:
-                            print(f"[ACE {job_id[:8]}] ⚠️ Custom EQ failed: {eq_err}")
-                    # ===========================================================
-
                     # ========== AUDIO ENHANCEMENT (Post-processing) ==========
-                    # Apply hiss removal + loudness normalization SECOND (after Custom EQ)
-                    # enhance_enabled already defined above for Custom EQ loudnorm conditional
-
+                    # Apply hiss removal + loudness normalization if enabled
+                    # Convert string to bool: "true" -> True, "false" -> False
+                    enhance_enabled = audio_enhance.lower() == "true"
+                    
                     if enhance_enabled:
                         try:
                             from endpoints.audio_enhancer import enhance_audio_file

@@ -879,7 +879,7 @@ export default function AceStepTab({
   const [instrumental, setInstrumental] = useState(false);
   const [vocalLanguage, setVocalLanguage] = useState("en");  // Default: English
   const [audioFormat, setAudioFormat] = useState("wav");  // Default: WAV (uncompressed)
-  const [audioEnhance, setAudioEnhance] = useState(true);  // Default: Enable enhancement
+  const [audioEnhance, setAudioEnhance] = useState(false);  // Default: OFF
   const [enhanceStrength, setEnhanceStrength] = useState("light");  // light/medium/aggressive
   // Custom EQ
   const [customEqEnabled, setCustomEqEnabled] = useState(false);
@@ -895,10 +895,10 @@ export default function AceStepTab({
   const [shift, setShift] = useState(3.0);
   const [useTiledDecode, setUseTiledDecode] = useState(true);
   const [batchSize, setBatchSize] = useState(1);
-  const [thinking, setThinking] = useState(false);
-  const [useCotMetas, setUseCotMetas] = useState(false);     // OFF = respect user BPM/Key
-  const [useCotCaption, setUseCotCaption] = useState(false);  // OFF = use exact user prompt
-  const [useCotLanguage, setUseCotLanguage] = useState(false); // OFF = use vocal_language param
+  const [thinking, setThinking] = useState(false);  // Default: OFF
+  const [useCotMetas, setUseCotMetas] = useState(true);     // ON = AI detects BPM, Key, Time Signature
+  const [useCotCaption, setUseCotCaption] = useState(true);  // ON = AI rewrites style prompt
+  const [useCotLanguage, setUseCotLanguage] = useState(true); // ON = AI detects language from lyrics
   // Advanced settings are always visible in the 3rd column
 
   // ── Clean Temp Files ──────────────────────────────────────────────────────
@@ -3383,12 +3383,12 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
             borderRadius: 10,
             padding: 10,
           }}>
-            <div style={{ color: "#8888aa", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ color: "#8888aa", fontSize: 13, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
               <span>◇</span> Advanced Settings
             </div>
             {/* Model Selection */}
             <div style={{ marginBottom: 12 }}>
-              <div style={{ color: "#ffd166", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+              <div style={{ color: "#ffd166", fontSize: 13, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
                 🦁 ACE-Step Model
               </div>
               <select
@@ -3401,7 +3401,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   color: "#e0e0ff",
                   borderRadius: 6,
                   padding: "8px 10px",
-                  fontSize: 10,
+                  fontSize: 13,
                   cursor: "pointer",
                 }}
               >
@@ -3425,24 +3425,24 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   gap: 6,
                 }}>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ color: modelInfo.color, fontSize: 12, fontWeight: 900 }}>{modelInfo.steps}</div>
-                    <div style={{ color: "#6666aa", fontSize: 8 }}>Steps</div>
+                    <div style={{ color: modelInfo.color, fontSize: 14, fontWeight: 900 }}>{modelInfo.steps}</div>
+                    <div style={{ color: "#6666aa", fontSize: 13 }}>Steps</div>
                   </div>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ color: modelInfo.cfg ? modelInfo.color : "#6666aa", fontSize: 12, fontWeight: 900 }}>
+                    <div style={{ color: modelInfo.cfg ? modelInfo.color : "#6666aa", fontSize: 14, fontWeight: 900 }}>
                       {modelInfo.cfg ? '✓' : '✗'}
                     </div>
-                    <div style={{ color: "#6666aa", fontSize: 8 }}>
+                    <div style={{ color: "#6666aa", fontSize: 13 }}>
                       {modelInfo.cfg ? 'CFG' : 'No CFG'}
                     </div>
                   </div>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ color: modelInfo.color, fontSize: 12, fontWeight: 900 }}>{modelInfo.vram}</div>
-                    <div style={{ color: "#6666aa", fontSize: 8 }}>VRAM</div>
+                    <div style={{ color: modelInfo.color, fontSize: 14, fontWeight: 900 }}>{modelInfo.vram}</div>
+                    <div style={{ color: "#6666aa", fontSize: 13 }}>VRAM</div>
                   </div>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ color: modelInfo.color, fontSize: 12, fontWeight: 900 }}>{modelInfo.quality}</div>
-                    <div style={{ color: "#6666aa", fontSize: 8 }}>Quality</div>
+                    <div style={{ color: modelInfo.color, fontSize: 14, fontWeight: 900 }}>{modelInfo.quality}</div>
+                    <div style={{ color: "#6666aa", fontSize: 13 }}>Quality</div>
                   </div>
                 </div>
               )}
@@ -3455,7 +3455,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
               background: "#080812",
               border: "1px solid #2a2a4a",
               borderRadius: 6,
-              fontSize: 11,
+              fontSize: 13,
               fontFamily: "monospace",
               color: "#444466",
             }}>
@@ -3471,12 +3471,12 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
 
             {/* LM Parameters */}
             <div style={{ marginBottom: 12 }}>
-              <div style={{ color: "#00e5ff", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+              <div style={{ color: "#00e5ff", fontSize: 13, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
                 🤖 LM Parameters
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>Temp: {lmTemperature.toFixed(2)}</label>
+                  <label style={{ color: "#6666aa", fontSize: 13, display: "block", marginBottom: 4 }}>Temp: {lmTemperature.toFixed(2)}</label>
                   <input
                     type="range" min="0.5" max="2.0" step="0.01"
                     value={lmTemperature}
@@ -3485,7 +3485,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   />
                 </div>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>CFG: {lmCfgScale.toFixed(1)}</label>
+                  <label style={{ color: "#6666aa", fontSize: 13, display: "block", marginBottom: 4 }}>CFG: {lmCfgScale.toFixed(1)}</label>
                   <input
                     type="range" min="1.0" max="5.0" step="0.1"
                     value={lmCfgScale}
@@ -3494,16 +3494,16 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   />
                 </div>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>Top-K: {lmTopK}</label>
+                  <label style={{ color: "#6666aa", fontSize: 13, display: "block", marginBottom: 4 }}>Top-K: {lmTopK}</label>
                   <input
                     type="number" min="0" max="100"
                     value={lmTopK}
                     onChange={e => setLmTopK(parseInt(e.target.value) || 0)}
-                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
+                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 13 }}
                   />
                 </div>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>Top-P: {lmTopP.toFixed(2)}</label>
+                  <label style={{ color: "#6666aa", fontSize: 13, display: "block", marginBottom: 4 }}>Top-P: {lmTopP.toFixed(2)}</label>
                   <input
                     type="range" min="0.8" max="1.0" step="0.01"
                     value={lmTopP}
@@ -3516,23 +3516,23 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
 
             {/* Generation Control */}
             <div style={{ marginBottom: 12 }}>
-              <div style={{ color: "#06d6a0", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+              <div style={{ color: "#06d6a0", fontSize: 13, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
                 ◇ Generation
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>Method</label>
+                  <label style={{ color: "#6666aa", fontSize: 13, display: "block", marginBottom: 4 }}>Method</label>
                   <select
                     value={inferMethod}
                     onChange={e => setInferMethod(e.target.value)}
-                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
+                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 13 }}
                   >
                     <option value="ode">ODE</option>
                     <option value="sde">SDE</option>
                   </select>
                 </div>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>Shift: {shift.toFixed(1)}</label>
+                  <label style={{ color: "#6666aa", fontSize: 13, display: "block", marginBottom: 4 }}>Shift: {shift.toFixed(1)}</label>
                   <input
                     type="range" min="1.0" max="5.0" step="0.1"
                     value={shift}
@@ -3542,12 +3542,12 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   />
                 </div>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>Batch: {batchSize}</label>
+                  <label style={{ color: "#6666aa", fontSize: 13, display: "block", marginBottom: 4 }}>Batch: {batchSize}</label>
                   <input
                     type="number" min="1" max="8"
                     value={batchSize}
                     onChange={e => setBatchSize(parseInt(e.target.value) || 1)}
-                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
+                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 13 }}
                   />
                 </div>
               </div>
@@ -3555,16 +3555,16 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
 
             {/* Audio & VRAM */}
             <div style={{ marginBottom: 12 }}>
-              <div style={{ color: "#c77dff", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+              <div style={{ color: "#c77dff", fontSize: 13, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
                 ◉ Audio
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>Format</label>
+                  <label style={{ color: "#6666aa", fontSize: 13, display: "block", marginBottom: 4 }}>Format</label>
                   <select
                     value={audioFormat}
                     onChange={e => setAudioFormat(e.target.value)}
-                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
+                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 13 }}
                   >
                     <option value="wav">WAV</option>
                     <option value="mp3">MP3</option>
@@ -3572,7 +3572,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   </select>
                 </div>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>🔇 Noise Hiss Remover</label>
+                  <label style={{ color: "#6666aa", fontSize: 13, display: "block", marginBottom: 4 }}>🔇 Noise Hiss Remover</label>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <div
                       onClick={() => setAudioEnhance(!audioEnhance)}
@@ -3618,7 +3618,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                             color: enhanceStrength === mode && audioEnhance 
                               ? "#9b2de0" 
                               : "#444466",
-                            fontSize: 10,
+                            fontSize: 13,
                             fontWeight: 600,
                             cursor: audioEnhance ? "pointer" : "not-allowed",
                             opacity: audioEnhance ? 1 : 0.5,
@@ -3632,7 +3632,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   </div>
                 </div>
                 <div>
-                  <label style={{ display: "flex", alignItems: "center", gap: 4, color: "#6666aa", fontSize: 11, cursor: "pointer" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: 4, color: "#6666aa", fontSize: 13, cursor: "pointer" }}>
                     <input
                       type="checkbox"
                       checked={useTiledDecode}
@@ -3646,13 +3646,13 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
 
             {/* Custom EQ Section */}
             <div style={{ marginBottom: 12, padding: "10px 12px", borderRadius: 8, background: "#0a0a1a", border: "1px solid #2a2a4a" }}>
-              <div style={{ fontSize: 11, color: "#9b2de0", fontWeight: 700, marginBottom: 10, letterSpacing: 1, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ fontSize: 13, color: "#9b2de0", fontWeight: 700, marginBottom: 10, letterSpacing: 1, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
                 🎚️ Custom EQ
               </div>
               
               {/* Preset Dropdown */}
               <div style={{ marginBottom: 12 }}>
-                <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>Genre Preset</label>
+                <label style={{ color: "#6666aa", fontSize: 13, display: "block", marginBottom: 4 }}>Genre Preset</label>
                 <select
                   value={eqPreset}
                   onChange={e => {
@@ -3765,7 +3765,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                       });
                     }
                   }}
-                  style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
+                  style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 13 }}
                 >
                   <option value="none">None</option>
                   <option value="afro_house">⭐ Afro House</option>
@@ -3799,7 +3799,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   
                   return (
                     <div key={key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <label style={{ color: "#6666aa", fontSize: 9, width: 120, flexShrink: 0 }}>{label}</label>
+                      <label style={{ color: "#6666aa", fontSize: 14, width: 120, flexShrink: 0 }}>{label}</label>
                       <div style={{ flex: 1, position: "relative", height: 20 }}>
                         <input
                           type="range"
@@ -3821,7 +3821,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                       </div>
                       <span style={{ 
                         color: isPositive ? "#06d6a0" : "#e63946", 
-                        fontSize: 9, 
+                        fontSize: 14, 
                         fontWeight: 700,
                         width: 32,
                         textAlign: "right"
@@ -3861,14 +3861,14 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                     }}
                   />
                 </div>
-                <span style={{ color: "#6666aa", fontSize: 9 }}>Apply after generation</span>
+                <span style={{ color: "#6666aa", fontSize: 14 }}>Apply after generation</span>
               </div>
             </div>
 
             {/* CoT Controls */}
             {taskType !== "custom" && (
               <div style={{ marginBottom: 12, padding: "8px 10px", borderRadius: 6, background: "#07071a", border: "1px solid #1a1a3a" }}>
-                <div style={{ fontSize: 11, color: "#444466", fontWeight: 700, marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" }}>
+                <div style={{ fontSize: 13, color: "#444466", fontWeight: 700, marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" }}>
                   🤖 AI Chain-of-Thought
                 </div>
                 {[
@@ -3882,11 +3882,11 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2 }}>
-                        <span style={{ fontSize: 11 }}>{icon}</span>
-                        <span style={{ fontSize: 10, fontWeight: 700, color: state ? "#c77dff" : "#444466" }}>{label}</span>
-                        <span style={{ fontSize: 8, padding: "1px 4px", borderRadius: 999, fontWeight: 700, background: state ? "#9b2de022" : "#12122a", color: state ? "#c77dff" : "#333355", border: `1px solid ${state ? "#9b2de044" : "#1a1a3a"}` }}>{state ? "ON" : "OFF"}</span>
+                        <span style={{ fontSize: 13 }}>{icon}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: state ? "#c77dff" : "#444466" }}>{label}</span>
+                        <span style={{ fontSize: 13, padding: "1px 4px", borderRadius: 999, fontWeight: 700, background: state ? "#9b2de022" : "#12122a", color: state ? "#c77dff" : "#333355", border: `1px solid ${state ? "#9b2de044" : "#1a1a3a"}` }}>{state ? "ON" : "OFF"}</span>
                       </div>
-                      <div style={{ fontSize: 8, color: "#333355", lineHeight: 1.3 }}>{desc}</div>
+                      <div style={{ fontSize: 13, color: "#333355", lineHeight: 1.3 }}>{desc}</div>
                     </div>
                   </div>
                 ))}
@@ -3895,7 +3895,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
 
             {/* Thinking Mode */}
             <div>
-              <label style={{ display: "flex", alignItems: "center", gap: 8, color: "#ffd166", fontSize: 11, cursor: "pointer" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, color: "#ffd166", fontSize: 13, cursor: "pointer" }}>
                 <input
                   type="checkbox"
                   checked={thinking}
@@ -3907,7 +3907,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
 
             {/* Clean Temp Files */}
             <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #2a2a4a" }}>
-              <div style={{ color: "#e63946", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+              <div style={{ color: "#e63946", fontSize: 13, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
                 🗂️ Cleanup
               </div>
               <button
@@ -3924,7 +3924,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   color: cleaningTemp ? "#666688" : "#e63946",
                   borderRadius: 6,
                   padding: "8px 12px",
-                  fontSize: 10,
+                  fontSize: 13,
                   fontWeight: 700,
                   cursor: cleaningTemp ? "not-allowed" : "pointer",
                   opacity: cleaningTemp ? 0.6 : 1,
@@ -3939,7 +3939,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   background: cleanResult.status === "ok" ? "#06d6a011" : "#e6394611",
                   border: `1px solid ${cleanResult.status === "ok" ? "#06d6a044" : "#e6394644"}`,
                   borderRadius: 6,
-                  fontSize: 11,
+                  fontSize: 13,
                   color: cleanResult.status === "ok" ? "#06d6a0" : "#e63946",
                 }}>
                   {cleanResult.message}
@@ -3990,7 +3990,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
             
             {/* Prompt */}
             <div style={{ marginBottom: 12 }}>
-              <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>✎ Prompt</label>
+              <label style={{ color: "#6666aa", fontSize: 13, display: "block", marginBottom: 4 }}>✎ Prompt</label>
               <textarea
                 value={editForm.prompt}
                 onChange={(e) => setEditForm({...editForm, prompt: e.target.value})}
@@ -4002,7 +4002,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   color: "#e0e0ff",
                   borderRadius: 6,
                   padding: 8,
-                  fontSize: 11,
+                  fontSize: 13,
                   fontFamily: "monospace",
                   resize: "vertical",
                   boxSizing: "border-box",
@@ -4013,7 +4013,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
             {/* BPM + Key */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
               <div>
-                <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>♩ BPM</label>
+                <label style={{ color: "#6666aa", fontSize: 13, display: "block", marginBottom: 4 }}>♩ BPM</label>
                 <input
                   type="number"
                   value={editForm.bpm}
@@ -4025,12 +4025,12 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                     color: "#e0e0ff",
                     borderRadius: 6,
                     padding: "6px 8px",
-                    fontSize: 11,
+                    fontSize: 13,
                   }}
                 />
               </div>
               <div>
-                <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>♫ Key</label>
+                <label style={{ color: "#6666aa", fontSize: 13, display: "block", marginBottom: 4 }}>♫ Key</label>
                 <input
                   type="text"
                   value={editForm.key_scale}
@@ -4043,7 +4043,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                     color: "#e0e0ff",
                     borderRadius: 6,
                     padding: "6px 8px",
-                    fontSize: 11,
+                    fontSize: 13,
                   }}
                 />
               </div>
@@ -4052,7 +4052,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
             {/* CFG + Steps */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
               <div>
-                <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>◉ CFG Scale</label>
+                <label style={{ color: "#6666aa", fontSize: 13, display: "block", marginBottom: 4 }}>◉ CFG Scale</label>
                 <input
                   type="number"
                   step="0.5"
@@ -4065,12 +4065,12 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                     color: "#e0e0ff",
                     borderRadius: 6,
                     padding: "6px 8px",
-                    fontSize: 11,
+                    fontSize: 13,
                   }}
                 />
               </div>
               <div>
-                <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>🔢 Steps</label>
+                <label style={{ color: "#6666aa", fontSize: 13, display: "block", marginBottom: 4 }}>🔢 Steps</label>
                 <input
                   type="number"
                   value={editForm.inferSteps}
@@ -4082,7 +4082,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                     color: "#e0e0ff",
                     borderRadius: 6,
                     padding: "6px 8px",
-                    fontSize: 11,
+                    fontSize: 13,
                   }}
                 />
               </div>
@@ -4090,7 +4090,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
 
             {/* Duration */}
             <div style={{ marginBottom: 12 }}>
-              <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>⏱️ Duration (seconds)</label>
+              <label style={{ color: "#6666aa", fontSize: 13, display: "block", marginBottom: 4 }}>⏱️ Duration (seconds)</label>
               <input
                 type="number"
                 value={editForm.duration}
@@ -4102,14 +4102,14 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   color: "#e0e0ff",
                   borderRadius: 6,
                   padding: "6px 8px",
-                  fontSize: 11,
+                  fontSize: 13,
                 }}
               />
             </div>
 
             {/* Negative Prompt */}
             <div style={{ marginBottom: 16 }}>
-              <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>⛔ Negative Prompt</label>
+              <label style={{ color: "#6666aa", fontSize: 13, display: "block", marginBottom: 4 }}>⛔ Negative Prompt</label>
               <textarea
                 value={editForm.negativePrompt}
                 onChange={(e) => setEditForm({...editForm, negativePrompt: e.target.value})}
@@ -4121,7 +4121,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   color: "#e0e0ff",
                   borderRadius: 6,
                   padding: 8,
-                  fontSize: 11,
+                  fontSize: 13,
                   fontFamily: "monospace",
                   resize: "vertical",
                   boxSizing: "border-box",
@@ -4140,7 +4140,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   border: "none",
                   borderRadius: 6,
                   padding: "10px",
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: 700,
                   cursor: "pointer",
                 }}
@@ -4161,7 +4161,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   border: "1px solid #e6394633",
                   borderRadius: 6,
                   padding: "10px 16px",
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: 700,
                   cursor: "pointer",
                 }}
@@ -4179,7 +4179,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   border: "none",
                   borderRadius: 6,
                   padding: "10px 16px",
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: 700,
                   cursor: "pointer",
                 }}
@@ -4216,7 +4216,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
               ✕ Delete Subgenre?
             </div>
             
-            <div style={{ color: "#8888aa", fontSize: 11, marginBottom: 16 }}>
+            <div style={{ color: "#8888aa", fontSize: 13, marginBottom: 16 }}>
               Are you sure you want to delete <strong style={{ color: "#ffd166" }}>"{deletingSubgenre.subName}"</strong> from <strong style={{ color: "#c77dff" }}>{deletingSubgenre.category}</strong>?
               <br/><br/>
               <span style={{ color: "#e63946" }}>This cannot be undone.</span>
@@ -4233,7 +4233,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   border: "none",
                   borderRadius: 6,
                   padding: "10px",
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: 700,
                   cursor: "pointer",
                 }}
@@ -4251,7 +4251,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   border: "none",
                   borderRadius: 6,
                   padding: "10px 16px",
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: 700,
                   cursor: "pointer",
                 }}
@@ -4289,7 +4289,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
             </div>
             
             <div style={{ marginBottom: 16 }}>
-              <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>Genre Name</label>
+              <label style={{ color: "#6666aa", fontSize: 13, display: "block", marginBottom: 4 }}>Genre Name</label>
               <input
                 type="text"
                 value={newGenreName}
@@ -4303,7 +4303,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   color: "#e0e0ff",
                   borderRadius: 6,
                   padding: "10px 12px",
-                  fontSize: 12,
+                  fontSize: 14,
                   boxSizing: "border-box",
                 }}
                 onFocus={(e) => e.target.style.borderColor = "#06d6a0"}
@@ -4323,7 +4323,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   border: "none",
                   borderRadius: 6,
                   padding: "10px",
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: 700,
                   cursor: !newGenreName.trim() ? "not-allowed" : "pointer",
                 }}
@@ -4341,7 +4341,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   border: "none",
                   borderRadius: 6,
                   padding: "10px 16px",
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: 700,
                   cursor: "pointer",
                 }}

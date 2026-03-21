@@ -4,11 +4,11 @@ cd /d/VocalForge/ace-step
 # DEFAULT MODEL: acestep-v15-turbo (8 steps, fast)
 # =============================================================================
 # Optimized for RTX 3070 8GB VRAM
-# LLM DISABLED - saves RAM (no memory leak after generation)
+# LLM ENABLED - text-to-music generation active
 # =============================================================================
-export ACESTEP_NO_INIT=1
-# LLM DISABLED - reduce RAM from 85% to ~40%
-export ACESTEP_INIT_LLM=false
+export ACESTEP_NO_INIT=0
+# LLM ENABLED - loads at startup for text-to-music
+export ACESTEP_INIT_LLM=true
 export ACESTEP_LM_MODEL_PATH=acestep-5Hz-lm-0.6B
 # DEFAULT MODEL - Turbo (8 steps, fast)
 export ACESTEP_CONFIG_PATH=acestep-v15-turbo
@@ -31,18 +31,16 @@ export XFORMERS_FORCE_DISABLE_TRITON=1
 echo "==================================="
 echo "  ACE-Step v1.5 API Server"
 echo "  Port: 8001"
-echo "  Mode: LAZY LOADING (on-demand)"
-echo "  LLM: DISABLED (RAM optimization)"
+echo "  Mode: EAGER LOADING (startup)"
+echo "  LLM: ENABLED (text-to-music)"
 echo "  OFFLOAD_TO_CPU: $ACESTEP_OFFLOAD_TO_CPU"
 echo "  VAE_ON_CPU: $ACESTEP_VAE_ON_CPU"
 echo "==================================="
 echo ""
 echo "Default Model: acestep-v15-turbo (8 steps, fast)"
 echo ""
-echo "VRAM Usage: ~2-4 GB at startup"
-echo "              +4-6 GB when model loads"
+echo "VRAM Usage: ~6-8 GB at startup (with LLM)"
 echo ""
-echo "LLM disabled - RAM usage stays stable per generation"
-echo "Model loads automatically on first request via /v1/init"
+echo "LLM enabled - text-to-music generation active"
 echo ""
 python main.py

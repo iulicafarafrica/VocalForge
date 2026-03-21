@@ -879,14 +879,26 @@ export default function AceStepTab({
   const [instrumental, setInstrumental] = useState(false);
   const [vocalLanguage, setVocalLanguage] = useState("en");  // Default: English
   const [audioFormat, setAudioFormat] = useState("wav");  // Default: WAV (uncompressed)
+  const [audioEnhance, setAudioEnhance] = useState(true);  // Default: Enable enhancement
+  const [enhanceStrength, setEnhanceStrength] = useState("light");  // light/medium/aggressive
+  // Custom EQ
+  const [customEqEnabled, setCustomEqEnabled] = useState(false);
+  const [eqPreset, setEqPreset] = useState("trap_hiphop");
+  const [eqBands, setEqBands] = useState({
+    subBass:   { freq: 35, gain: 6, q: 0.9 },    // Trap 808 sub-bass
+    bass:      { freq: 75, gain: 4, q: 1.2 },    // Punch
+    lowMids:   { freq: 275, gain: -5, q: 1.8 },  // Cut mud
+    mids:      { freq: 1500, gain: 2.5, q: 3.0 },// Phone playback
+    highs:     { freq: 4500, gain: 1.5, q: 1.5 } // 808 saturation
+  });
   const [inferMethod, setInferMethod] = useState("ode");
   const [shift, setShift] = useState(3.0);
   const [useTiledDecode, setUseTiledDecode] = useState(true);
   const [batchSize, setBatchSize] = useState(1);
-  const [thinking, setThinking] = useState(false);
-  const [useCotMetas, setUseCotMetas] = useState(false);     // OFF = respect user BPM/Key
-  const [useCotCaption, setUseCotCaption] = useState(false);  // OFF = use exact user prompt
-  const [useCotLanguage, setUseCotLanguage] = useState(false); // OFF = use vocal_language param
+  const [thinking, setThinking] = useState(true);  // LLM ENABLED - better prompt understanding
+  const [useCotMetas, setUseCotMetas] = useState(true);     // ON = AI detects BPM, Key, Time Signature
+  const [useCotCaption, setUseCotCaption] = useState(true);  // ON = AI rewrites style prompt
+  const [useCotLanguage, setUseCotLanguage] = useState(true); // ON = AI detects language from lyrics
   // Advanced settings are always visible in the 3rd column
 
   // ── Clean Temp Files ──────────────────────────────────────────────────────
@@ -924,8 +936,8 @@ export default function AceStepTab({
       background: cyberpunk.gradients.card, 
       border: `1px solid ${cyberpunk.colors.neon.purple.primary}22`, 
       borderRadius: 16, 
-      padding: "16px 20px", 
-      marginBottom: 14,
+      padding: "24px 32px", 
+      marginBottom: 18,
       boxShadow: `0 0 20px ${cyberpunk.colors.neon.purple.glow}11`,
     },
     label: { 
@@ -1248,7 +1260,10 @@ export default function AceStepTab({
       }
     };
 
-    fetch(`${API}/acestep_genre_presets`, { signal: controller.signal })
+    fetch(`${API}/acestep_genre_presets`, { 
+      method: 'GET',
+      signal: controller.signal 
+    })
       .then((r) => r.json())
       .then(applyData)
       .catch(() => {
@@ -1754,6 +1769,15 @@ export default function AceStepTab({
 
     // Audio format
     fd.append("audio_format", audioFormat);
+    
+    // Audio enhancement (post-processing)
+    // Convert boolean to string for FormData
+    fd.append("audio_enhance", audioEnhance ? "true" : "false");
+    fd.append("enhance_strength", enhanceStrength);
+
+    // Custom EQ (post-processing)
+    fd.append("custom_eq_enabled", customEqEnabled ? "true" : "false");
+    fd.append("eq_bands", JSON.stringify(eqBands));
 
     // Tiled decode (always enabled by default for VRAM optimization)
     fd.append("use_tiled_decode", useTiledDecode);
@@ -1949,7 +1973,7 @@ export default function AceStepTab({
       <div style={{ 
         display: "grid", 
         gridTemplateColumns: "repeat(4, 1fr)", 
-        gap: 14,
+        gap: 8,
         position: "relative",
         zIndex: 1,
       }}>
@@ -2201,7 +2225,7 @@ export default function AceStepTab({
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
               {/* Identity row */}
               <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                <div style={{ color: "#8888aa", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>Identity</div>
+                <div style={{ color: "#8888aa", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>Identity</div>
                 <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
                   {PROMPT_INJECTS.filter(item => item.category === "Identity").map((item, idx) => (
                     <button
@@ -2210,7 +2234,7 @@ export default function AceStepTab({
                       title={item.desc}
                       style={{
                         background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 4,
-                        color: "#06d6a0", padding: "5px 9px", fontSize: 9, fontWeight: 600,
+                        color: "#06d6a0", padding: "5px 9px", fontSize: 11, fontWeight: 600,
                         cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap", textAlign: "left",
                       }}
                       onMouseEnter={e => { e.target.style.borderColor = "#06d6a0"; e.target.style.background = "#06d6a011"; }}
@@ -2224,7 +2248,7 @@ export default function AceStepTab({
 
               {/* Quality row */}
               <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                <div style={{ color: "#8888aa", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>Quality</div>
+                <div style={{ color: "#8888aa", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>Quality</div>
                 <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
                   {PROMPT_INJECTS.filter(item => item.category === "Quality").map((item, idx) => (
                     <button
@@ -2233,7 +2257,7 @@ export default function AceStepTab({
                       title={item.desc}
                       style={{
                         background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 4,
-                        color: "#06d6a0", padding: "5px 9px", fontSize: 9, fontWeight: 600,
+                        color: "#06d6a0", padding: "5px 9px", fontSize: 11, fontWeight: 600,
                         cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap", textAlign: "left",
                       }}
                       onMouseEnter={e => { e.target.style.borderColor = "#06d6a0"; e.target.style.background = "#06d6a011"; }}
@@ -2247,7 +2271,7 @@ export default function AceStepTab({
 
               {/* Performance row */}
               <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                <div style={{ color: "#8888aa", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>Performance</div>
+                <div style={{ color: "#8888aa", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>Performance</div>
                 <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
                   {PROMPT_INJECTS.filter(item => item.category === "Performance").map((item, idx) => (
                     <button
@@ -2256,7 +2280,7 @@ export default function AceStepTab({
                       title={item.desc}
                       style={{
                         background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 4,
-                        color: "#06d6a0", padding: "5px 9px", fontSize: 9, fontWeight: 600,
+                        color: "#06d6a0", padding: "5px 9px", fontSize: 11, fontWeight: 600,
                         cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap", textAlign: "left",
                       }}
                       onMouseEnter={e => { e.target.style.borderColor = "#06d6a0"; e.target.style.background = "#06d6a011"; }}
@@ -2272,7 +2296,7 @@ export default function AceStepTab({
             {/* Texture Dropdown */}
             <div style={{ marginBottom: 8 }}>
               <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                <div style={{ color: "#8888aa", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>Texture</div>
+                <div style={{ color: "#8888aa", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.3px", minWidth: 100, paddingTop: 4 }}>Texture</div>
                 <select
                   value={selectedTexture}
                   onChange={(e) => {
@@ -2284,7 +2308,7 @@ export default function AceStepTab({
                   }}
                   style={{
                     background: "#0a0a1a", border: "1px solid #2a2a4a", borderRadius: 4,
-                    color: "#e0e0ff", padding: "5px 9px", fontSize: 9, fontWeight: 600,
+                    color: "#e0e0ff", padding: "5px 9px", fontSize: 11, fontWeight: 600,
                     cursor: "pointer", outline: "none", maxWidth: 220,
                   }}
                 >
@@ -2773,7 +2797,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   type="range"
                   className="duration-slider"
                   min="30"
-                  max="240"
+                  max="300"
                   step="30"
                   value={duration}
                   onChange={(e) => setDuration(parseInt(e.target.value))}
@@ -2782,7 +2806,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                 <input
                   type="number"
                   min="30"
-                  max="240"
+                  max="300"
                   step="30"
                   value={duration}
                   onChange={(e) => setDuration(parseInt(e.target.value) || 60)}
@@ -2800,7 +2824,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                 />
               </div>
               <div style={{ display: "flex", gap: 5 }}>
-                {[30, 60, 90, 120, 150, 180, 210, 240].map(v => (
+                {[30, 60, 90, 120, 150, 180, 210, 240, 270, 300].map(v => (
                   <button key={v} onClick={() => setDuration(v)} style={{
                     flex: 1, padding: "7px 2px", borderRadius: 6, fontSize: 11, fontWeight: 700,
                     background: duration === v ? "#06d6a022" : "#0a0a1a",
@@ -3317,7 +3341,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
           )}
 
           {/* ♫ Generate Button */}
-          <div style={{ ...S.card, marginBottom: 14 }}>
+          <div style={{ ...S.card, marginBottom: 18 }}>
             <button
               onClick={handleGenerate}
               disabled={processing || !aceOnline || !prompt.trim()}
@@ -3364,7 +3388,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
             </div>
             {/* Model Selection */}
             <div style={{ marginBottom: 12 }}>
-              <div style={{ color: "#ffd166", fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+              <div style={{ color: "#ffd166", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
                 🦁 ACE-Step Model
               </div>
               <select
@@ -3431,7 +3455,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
               background: "#080812",
               border: "1px solid #2a2a4a",
               borderRadius: 6,
-              fontSize: 9,
+              fontSize: 11,
               fontFamily: "monospace",
               color: "#444466",
             }}>
@@ -3447,12 +3471,12 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
 
             {/* LM Parameters */}
             <div style={{ marginBottom: 12 }}>
-              <div style={{ color: "#00e5ff", fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+              <div style={{ color: "#00e5ff", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
                 🤖 LM Parameters
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>Temp: {lmTemperature.toFixed(2)}</label>
+                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>Temp: {lmTemperature.toFixed(2)}</label>
                   <input
                     type="range" min="0.5" max="2.0" step="0.01"
                     value={lmTemperature}
@@ -3461,7 +3485,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   />
                 </div>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>CFG: {lmCfgScale.toFixed(1)}</label>
+                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>CFG: {lmCfgScale.toFixed(1)}</label>
                   <input
                     type="range" min="1.0" max="5.0" step="0.1"
                     value={lmCfgScale}
@@ -3470,16 +3494,16 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   />
                 </div>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>Top-K: {lmTopK}</label>
+                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>Top-K: {lmTopK}</label>
                   <input
                     type="number" min="0" max="100"
                     value={lmTopK}
                     onChange={e => setLmTopK(parseInt(e.target.value) || 0)}
-                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 9 }}
+                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
                   />
                 </div>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>Top-P: {lmTopP.toFixed(2)}</label>
+                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>Top-P: {lmTopP.toFixed(2)}</label>
                   <input
                     type="range" min="0.8" max="1.0" step="0.01"
                     value={lmTopP}
@@ -3492,23 +3516,23 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
 
             {/* Generation Control */}
             <div style={{ marginBottom: 12 }}>
-              <div style={{ color: "#06d6a0", fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+              <div style={{ color: "#06d6a0", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
                 ◇ Generation
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>Method</label>
+                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>Method</label>
                   <select
                     value={inferMethod}
                     onChange={e => setInferMethod(e.target.value)}
-                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 9 }}
+                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
                   >
                     <option value="ode">ODE</option>
                     <option value="sde">SDE</option>
                   </select>
                 </div>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>Shift: {shift.toFixed(1)}</label>
+                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>Shift: {shift.toFixed(1)}</label>
                   <input
                     type="range" min="1.0" max="5.0" step="0.1"
                     value={shift}
@@ -3518,12 +3542,12 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   />
                 </div>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>Batch: {batchSize}</label>
+                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>Batch: {batchSize}</label>
                   <input
                     type="number" min="1" max="8"
                     value={batchSize}
                     onChange={e => setBatchSize(parseInt(e.target.value) || 1)}
-                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 9 }}
+                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
                   />
                 </div>
               </div>
@@ -3531,16 +3555,16 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
 
             {/* Audio & VRAM */}
             <div style={{ marginBottom: 12 }}>
-              <div style={{ color: "#c77dff", fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+              <div style={{ color: "#c77dff", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
                 ◉ Audio
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
                 <div>
-                  <label style={{ color: "#6666aa", fontSize: 9, display: "block", marginBottom: 4 }}>Format</label>
+                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>Format</label>
                   <select
                     value={audioFormat}
                     onChange={e => setAudioFormat(e.target.value)}
-                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 9 }}
+                    style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
                   >
                     <option value="wav">WAV</option>
                     <option value="mp3">MP3</option>
@@ -3548,7 +3572,67 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: "flex", alignItems: "center", gap: 4, color: "#6666aa", fontSize: 9, cursor: "pointer" }}>
+                  <label style={{ color: "#6666aa", fontSize: 11, display: "block", marginBottom: 4 }}>🔇 Noise Hiss Remover</label>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div
+                      onClick={() => setAudioEnhance(!audioEnhance)}
+                      style={{
+                        width: 52,
+                        height: 26,
+                        borderRadius: 13,
+                        background: audioEnhance ? "#9b2de0" : "#2a2a4a",
+                        cursor: "pointer",
+                        position: "relative",
+                        transition: "background 0.2s",
+                        boxShadow: audioEnhance ? "0 0 10px #9b2de066" : "none"
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: 3,
+                          left: audioEnhance ? 29 : 3,
+                          width: 20,
+                          height: 20,
+                          borderRadius: "50%",
+                          background: "#ffffff",
+                          transition: "left 0.2s",
+                          boxShadow: "0 2px 4px rgba(0,0,0,0.3)"
+                        }}
+                      />
+                    </div>
+                    <div style={{ display: "flex", gap: 4, flex: 1 }}>
+                      {["light", "medium", "aggressive"].map(mode => (
+                        <button
+                          key={mode}
+                          onClick={() => setEnhanceStrength(mode)}
+                          disabled={!audioEnhance}
+                          style={{
+                            flex: 1,
+                            padding: "4px 6px",
+                            borderRadius: 4,
+                            border: "1px solid " + (enhanceStrength === mode && audioEnhance ? "#9b2de0" : "#2a2a4a"),
+                            background: enhanceStrength === mode && audioEnhance 
+                              ? "linear-gradient(135deg, #9b2de044, #9b2de022)" 
+                              : "#080812",
+                            color: enhanceStrength === mode && audioEnhance 
+                              ? "#9b2de0" 
+                              : "#444466",
+                            fontSize: 10,
+                            fontWeight: 600,
+                            cursor: audioEnhance ? "pointer" : "not-allowed",
+                            opacity: audioEnhance ? 1 : 0.5,
+                            textTransform: "uppercase"
+                          }}
+                        >
+                          {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label style={{ display: "flex", alignItems: "center", gap: 4, color: "#6666aa", fontSize: 11, cursor: "pointer" }}>
                     <input
                       type="checkbox"
                       checked={useTiledDecode}
@@ -3560,10 +3644,231 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
               </div>
             </div>
 
+            {/* Custom EQ Section */}
+            <div style={{ marginBottom: 12, padding: "10px 12px", borderRadius: 8, background: "#0a0a1a", border: "1px solid #2a2a4a" }}>
+              <div style={{ fontSize: 11, color: "#9b2de0", fontWeight: 700, marginBottom: 10, letterSpacing: 1, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
+                🎚️ Custom EQ
+              </div>
+              
+              {/* Preset Dropdown */}
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ color: "#6666aa", fontSize: 10, display: "block", marginBottom: 4 }}>Genre Preset</label>
+                <select
+                  value={eqPreset}
+                  onChange={e => {
+                    const preset = e.target.value;
+                    setEqPreset(preset);
+                    // Apply preset values
+                    if (preset === "afro_house") {
+                      setEqBands({
+                        subBass: { freq: 40, gain: 4, q: 1.0 },
+                        bass: { freq: 90, gain: 3, q: 1.2 },
+                        lowMids: { freq: 300, gain: -3, q: 1.8 },
+                        mids: { freq: 1000, gain: 2, q: 2.8 },
+                        highs: { freq: 4000, gain: -1, q: 1.5 }
+                      });
+                    } else if (preset === "trap_hiphop") {
+                      setEqBands({
+                        subBass: { freq: 35, gain: 6, q: 0.9 },      // +6dB @ 35Hz - 808 sub-bass
+                        bass: { freq: 75, gain: 4, q: 1.2 },         // +4dB @ 75Hz - punch
+                        lowMids: { freq: 275, gain: -5, q: 1.8 },    // -5dB @ 275Hz - cut mud
+                        mids: { freq: 1500, gain: 2.5, q: 3.0 },     // +2.5dB @ 1.5kHz - phone playback
+                        highs: { freq: 4500, gain: 1.5, q: 1.5 }     // +1.5dB @ 4.5kHz - 808 saturation
+                      });
+                    } else if (preset === "oriental_traditional") {
+                      setEqBands({
+                        subBass: { freq: 48, gain: 2, q: 1.2 },      // +2dB @ 48Hz - subtle, organic
+                        bass: { freq: 90, gain: 4, q: 1.5 },         // +4dB @ 90Hz - warm, round heart
+                        lowMids: { freq: 220, gain: 1.5, q: 1.8 },   // +1.5dB @ 220Hz - warmth, body
+                        mids: { freq: 700, gain: 3, q: 2.5 },        // +3dB @ 700Hz - vocal character
+                        highs: { freq: 5500, gain: 0.75, q: 1.5 }    // +0.75dB @ 5.5kHz - subtle shimmer
+                      });
+                    } else if (preset === "reggae") {
+                      setEqBands({
+                        subBass: { freq: 45, gain: 5, q: 1.0 },      // +5dB @ 45Hz - massive, dubby foundation
+                        bass: { freq: 90, gain: 6, q: 1.2 },         // +6dB @ 90Hz - HEART of reggae 🎵
+                        lowMids: { freq: 220, gain: 1.5, q: 1.5 },   // +1.5dB @ 220Hz - wooden-ness, warmth
+                        mids: { freq: 700, gain: 2.5, q: 2.2 },      // +2.5dB @ 700Hz - growl, character
+                        highs: { freq: 1800, gain: 3, q: 2.8 }       // +3dB @ 1.8kHz - finger attack, note definition
+                      });
+                    } else if (preset === "rock_metal") {
+                      setEqBands({
+                        subBass: { freq: 45, gain: 0, q: 1.0 },      // 0dB @ 45Hz - flat, no boom needed
+                        bass: { freq: 90, gain: 3.5, q: 1.3 },       // +3.5dB @ 90Hz - body, warm but controlled
+                        lowMids: { freq: 275, gain: -4, q: 1.8 },    // -4dB @ 275Hz - cut mud, make room for guitars
+                        mids: { freq: 900, gain: 4, q: 2.2 },        // +4dB @ 900Hz - presence, cut through guitars
+                        highs: { freq: 2500, gain: 3, q: 2.8 }       // +3dB @ 2.5kHz - pick attack, string brightness
+                      });
+                    } else if (preset === "phonk") {
+                      setEqBands({
+                        subBass: { freq: 35, gain: 8, q: 0.9 },      // +8dB @ 35Hz - BRUTAL 808 💀
+                        bass: { freq: 75, gain: 6, q: 1.2 },         // +6dB @ 75Hz - PUNCH & IMPACT
+                        lowMids: { freq: 300, gain: -6, q: 1.8 },    // -6dB @ 300Hz - clean, tight, distorted
+                        mids: { freq: 1000, gain: 5, q: 2.5 },       // +5dB @ 1kHz - GROWL, gritty 808
+                        highs: { freq: 3000, gain: 4, q: 3.0 }       // +4dB @ 3kHz - presence, heard on any system
+                      });
+                    } else if (preset === "drum_and_bass") {
+                      setEqBands({
+                        subBass: { freq: 45, gain: 6, q: 1.0 },      // +6dB @ 45Hz - powerful foundation (174 BPM)
+                        bass: { freq: 80, gain: 4.5, q: 1.2 },       // +4.5dB @ 80Hz - body & warmth
+                        lowMids: { freq: 200, gain: -3, q: 1.5 },    // -3dB @ 200Hz - separate sub from mid bass
+                        mids: { freq: 600, gain: 5, q: 2.0 },        // +5dB @ 600Hz - reese growl, heart of DnB 🔥
+                        highs: { freq: 2000, gain: 4, q: 2.5 }       // +4dB @ 2kHz - clarity at 174 BPM
+                      });
+                    } else if (preset === "deep_house") {
+                      setEqBands({
+                        subBass: { freq: 48, gain: 5, q: 1.0 },      // +5dB @ 48Hz - warm, smooth foundation
+                        bass: { freq: 90, gain: 6, q: 1.2 },         // +6dB @ 90Hz - INIMA deep house 💙
+                        lowMids: { freq: 160, gain: 2.5, q: 1.8 },   // +2.5dB @ 160Hz - warmth, organic, wooden
+                        mids: { freq: 900, gain: 2.5, q: 2.2 },      // +2.5dB @ 900Hz - groove, musicality
+                        highs: { freq: 2200, gain: 1.5, q: 2.5 }     // +1.5dB @ 2.2kHz - subtle note definition
+                      });
+                    } else if (preset === "dark_afro_house") {
+                      setEqBands({
+                        subBass: { freq: 42, gain: 7, q: 0.9 },      // +7dB @ 42Hz - MASSIVE deep sub (warehouse)
+                        bass: { freq: 85, gain: 5, q: 1.2 },         // +5dB @ 85Hz - solid warmth, tight
+                        lowMids: { freq: 260, gain: -4, q: 1.8 },    // -4dB @ 260Hz - clean, mysterious, room for tribal
+                        mids: { freq: 750, gain: 1.5, q: 2.2 },      // +1.5dB @ 750Hz - minimal presence, rhythmic only
+                        highs: { freq: 1800, gain: 1, q: 2.5 }       // +1dB @ 1.8kHz - subtle definition, no brightness
+                      });
+                    } else if (preset === "dark_oriental_house") {
+                      setEqBands({
+                        subBass: { freq: 45, gain: 7, q: 0.9 },      // +7dB @ 45Hz - MASSIVE warehouse sub 🌙
+                        bass: { freq: 85, gain: 4.5, q: 1.2 },       // +4.5dB @ 85Hz - moderate warmth, tight
+                        lowMids: { freq: 200, gain: 1.5, q: 1.8 },   // +1.5dB @ 200Hz - COMPROMISE: retain oud warmth
+                        mids: { freq: 650, gain: 4, q: 2.2 },        // +4dB @ 650Hz - ARABIC IDENTITY: oud/qanun voice 🎵
+                        highs: { freq: 5000, gain: -0.5, q: 2.0 }    // -0.5dB @ 5kHz - make space for zills/finger cymbals
+                      });
+                    } else if (preset === "vocal_natural") {
+                      setEqBands({
+                        subBass: { freq: 90, gain: 0, q: 0.7 },      // HPF @ 90Hz - NO rumble, voice starts at 80Hz+
+                        bass: { freq: 150, gain: 1, q: 1.2 },        // +1dB @ 150Hz - subtle warmth (men: +2-3dB)
+                        lowMids: { freq: 300, gain: -3, q: 2.0 },    // -3dB @ 300Hz - muddy cleanup, clarity
+                        mids: { freq: 2500, gain: 3.5, q: 2.5 },     // +3.5dB @ 2.5kHz - CLARITY & VOICE presence 🎤
+                        highs: { freq: 11000, gain: 2, q: 1.2 }      // +2dB @ 11kHz - AIR, breath, intimacy ✨
+                      });
+                    } else if (preset === "hiss_crackle_removal") {
+                      setEqBands({
+                        subBass: { freq: 30, gain: 0, q: 0.7 },      // HPF @ 30Hz - cleanup extreme sub
+                        bass: { freq: 150, gain: 0, q: 1.0 },        // 0dB @ 150Hz - flat, preserve warmth
+                        lowMids: { freq: 300, gain: 0, q: 1.0 },     // 0dB @ 300Hz - flat
+                        mids: { freq: 8000, gain: -4, q: 0.7 },      // -4dB @ 8kHz - HISS reduction 🔇
+                        highs: { freq: 14000, gain: -6, q: 0.5 }     // -6dB @ 14kHz + LPF - HISS cleanup + air loss ⚠️
+                      });
+                    } else if (preset === "ai_artifacts_hiding") {
+                      setEqBands({
+                        subBass: { freq: 95, gain: 0, q: 0.7 },      // HPF @ 95Hz - AI has nothing real below 80Hz
+                        bass: { freq: 140, gain: 2, q: 1.2 },        // +2dB @ 140Hz - add "body" organic warmth
+                        lowMids: { freq: 320, gain: -3, q: 2.2 },    // -3dB @ 320Hz - muddy cleanup, AI resonances
+                        mids: { freq: 1000, gain: -2.5, q: 3.0 },    // -2.5dB @ 1kHz - CRITICAL: artificial formant 🤖
+                        highs: { freq: 6000, gain: -4, q: 3.0 }      // -4dB @ 6kHz - AGGRESSIVE sibilance reduction ⚠️
+                      });
+                    }
+                  }}
+                  style={{ width: "100%", background: "#080812", border: "1px solid #2a2a4a", color: "#e0e0ff", borderRadius: 4, padding: "4px 6px", fontSize: 11 }}
+                >
+                  <option value="none">None</option>
+                  <option value="afro_house">⭐ Afro House</option>
+                  <option value="trap_hiphop">🎤 Trap / Hip-Hop</option>
+                  <option value="oriental_traditional">🌙 Oriental Tradițional</option>
+                  <option value="reggae">🇯🇲 Reggae</option>
+                  <option value="rock_metal">🎸 Rock / Metal</option>
+                  <option value="phonk">💀 Phonk</option>
+                  <option value="drum_and_bass">🥁 Drum and Bass</option>
+                  <option value="deep_house">💙 Deep House</option>
+                  <option value="dark_afro_house">🌑 Dark Afro House</option>
+                  <option value="dark_oriental_house">🌙 Dark Oriental House</option>
+                  <option value="vocal_natural">🎤 Vocal Natural</option>
+                  <option value="hiss_crackle_removal">🔇 Hiss & Crackle Removal</option>
+                  <option value="ai_artifacts_hiding">🤖 AI Artifacts Hiding</option>
+                </select>
+              </div>
+
+              {/* EQ Bands Sliders */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {[
+                  { key: "subBass", label: "Sub-bass (40 Hz)", min: -12, max: 12 },
+                  { key: "bass", label: "Bass (90 Hz)", min: -12, max: 12 },
+                  { key: "lowMids", label: "Low-Mids (300 Hz)", min: -12, max: 12 },
+                  { key: "mids", label: "Mids (1 kHz)", min: -12, max: 12 },
+                  { key: "highs", label: "Highs (4 kHz)", min: -12, max: 12 },
+                ].map(({ key, label, min, max }) => {
+                  const band = eqBands[key];
+                  const gainPercent = ((band.gain - min) / (max - min)) * 100;
+                  const isPositive = band.gain >= 0;
+                  
+                  return (
+                    <div key={key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <label style={{ color: "#6666aa", fontSize: 9, width: 120, flexShrink: 0 }}>{label}</label>
+                      <div style={{ flex: 1, position: "relative", height: 20 }}>
+                        <input
+                          type="range"
+                          min={min}
+                          max={max}
+                          step={0.5}
+                          value={band.gain}
+                          onChange={e => {
+                            const newGain = parseFloat(e.target.value);
+                            setEqBands(prev => ({ ...prev, [key]: { ...prev[key], gain: newGain } }));
+                          }}
+                          disabled={!customEqEnabled}
+                          style={{
+                            width: "100%",
+                            opacity: customEqEnabled ? 1 : 0.5,
+                            cursor: customEqEnabled ? "pointer" : "not-allowed"
+                          }}
+                        />
+                      </div>
+                      <span style={{ 
+                        color: isPositive ? "#06d6a0" : "#e63946", 
+                        fontSize: 9, 
+                        fontWeight: 700,
+                        width: 32,
+                        textAlign: "right"
+                      }}>
+                        {band.gain > 0 ? "+" : ""}{band.gain.toFixed(1)}dB
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Enable Toggle */}
+              <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8, paddingTop: 10, borderTop: "1px solid #1a1a3a" }}>
+                <div
+                  onClick={() => setCustomEqEnabled(!customEqEnabled)}
+                  style={{
+                    width: 40,
+                    height: 20,
+                    borderRadius: 10,
+                    background: customEqEnabled ? "#06d6a0" : "#2a2a4a",
+                    cursor: "pointer",
+                    position: "relative",
+                    transition: "background 0.2s"
+                  }}
+                >
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 2,
+                      left: customEqEnabled ? 22 : 2,
+                      width: 16,
+                      height: 16,
+                      borderRadius: "50%",
+                      background: "#ffffff",
+                      transition: "left 0.2s",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.3)"
+                    }}
+                  />
+                </div>
+                <span style={{ color: "#6666aa", fontSize: 9 }}>Apply after generation</span>
+              </div>
+            </div>
+
             {/* CoT Controls */}
             {taskType !== "custom" && (
               <div style={{ marginBottom: 12, padding: "8px 10px", borderRadius: 6, background: "#07071a", border: "1px solid #1a1a3a" }}>
-                <div style={{ fontSize: 9, color: "#444466", fontWeight: 700, marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" }}>
+                <div style={{ fontSize: 11, color: "#444466", fontWeight: 700, marginBottom: 8, letterSpacing: 1, textTransform: "uppercase" }}>
                   🤖 AI Chain-of-Thought
                 </div>
                 {[
@@ -3590,7 +3895,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
 
             {/* Thinking Mode */}
             <div>
-              <label style={{ display: "flex", alignItems: "center", gap: 8, color: "#ffd166", fontSize: 9, cursor: "pointer" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, color: "#ffd166", fontSize: 11, cursor: "pointer" }}>
                 <input
                   type="checkbox"
                   checked={thinking}
@@ -3602,7 +3907,7 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
 
             {/* Clean Temp Files */}
             <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #2a2a4a" }}>
-              <div style={{ color: "#e63946", fontSize: 9, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+              <div style={{ color: "#e63946", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
                 🗂️ Cleanup
               </div>
               <button

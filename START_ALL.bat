@@ -1,8 +1,8 @@
 @echo off
-title VocalForge v2.0.0 Launcher
+title VocalForge v3.0.0 Launcher
 echo.
 echo ============================================
-echo   VocalForge v2.0.0 - AI Music Studio
+echo   VocalForge v3.0.0 - AI Music Studio
 echo ============================================
 echo.
 echo Starting services...
@@ -17,11 +17,10 @@ echo Services:
 echo   - Frontend (React/Vite) : http://localhost:3000
 echo   - Backend API (FastAPI) : http://localhost:8000
 echo   - ACE-Step API          : http://localhost:8001
-echo   - RVC Voice Conversion  : http://localhost:8002
 echo.
 echo RAM Management:
-echo   - LLM disabled by default (ACESTEP_INIT_LLM=false)
-echo   - Expected RAM: ~2-4GB per generation
+echo   - LLM enabled for text-to-music generation
+echo   - Expected RAM: ~6-8GB at startup
 echo   - To free RAM: Run RESTART_ACESTEP.bat
 echo.
 echo Cleanup Scripts:

@@ -109,7 +109,7 @@ Generate complete songs from text prompts with lyrics, structure tags, and genre
 Temp 0.85  ·  CFG 2.5  ·  Top-K 0  ·  Top-P 0.90
 ```
 
-> **Note:** `ACESTEP_INIT_LLM=false` saves ~12GB RAM with **identical** audio quality — LLM only expands prompts automatically.
+> **Note:** `ACESTEP_INIT_LLM=true` enables text-to-music generation with LLM prompt expansion — requires ~6-8GB VRAM at startup.
 
 ---
 
@@ -666,9 +666,9 @@ ffmpeg -version          # Verify FFmpeg is installed
 
 ```bash
 # In backend/.env:
-ACESTEP_INIT_LLM=false   # Saves ~12GB RAM, identical audio quality
+ACESTEP_INIT_LLM=true    # Enable LLM for text-to-music generation
 # Then:
-RESTART_ACESTEP.bat       # Free RAM
+RESTART_ACESTEP.bat       # Apply changes
 ```
 
 </details>

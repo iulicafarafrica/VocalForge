@@ -10,7 +10,6 @@ import RepaintLegoComplete from "./components/RepaintLegoComplete";
 import ReadmeTab from "./components/ReadmeTab";
 import AudioAnalysisTab from "./components/AudioAnalysisTab";
 import AudioEnhancerTab from "./components/AudioEnhancerTab";
-import PipelineTab from "./components/PipelineTab";
 import LyricsTab from "./components/LyricsTab";
 
 const API = "http://localhost:8000";
@@ -31,7 +30,7 @@ const TABS = [
 
 export default function App() {
   const [tab, setTab] = useState("Demucs");
-  const [logs, setLogs] = useState([`[OK] VocalForge v2.2.0 loaded — ${new Date().toLocaleTimeString()}`]);
+  const [logs, setLogs] = useState([`[OK] VocalForge v3.0.0 loaded — ${new Date().toLocaleTimeString()}`]);
   const [showLogs, setShowLogs] = useState(false);
   const [tracks, setTracks] = useState([]);
   const [models, setModels] = useState([]);
@@ -276,9 +275,6 @@ export default function App() {
           />
         </div>
 
-        <div style={{ display: tab === "Pipeline" ? "block" : "none" }}>
-          <PipelineTab addLog={addLog} />
-        </div>
 
         <div style={{ display: tab === "ACEAdvanced" ? "block" : "none" }}>
           <RepaintLegoComplete />
@@ -343,7 +339,7 @@ export default function App() {
         position: "sticky", bottom: 0, background: "#080812", zIndex: 99,
       }}>
         <div style={{ color: "#333355", fontSize: 11, fontFamily: "monospace" }}>
-          VocalForge v2.2.0 · Lyrics Manager Complete
+          VocalForge v3.0.0 · Lyrics Manager Complete
         </div>
         <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
           <span style={{

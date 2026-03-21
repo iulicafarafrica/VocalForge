@@ -1,6 +1,65 @@
 
 ---
 
+## [v3.1.1] - 2026-03-21
+
+### 🔧 LLM Activation & RVC Removal
+
+**ACE-Step LLM enabled + RVC integration removed**
+
+---
+
+### 🎯 **HEADLINE CHANGES**
+
+#### **🤖 ACE-Step LLM Enabled**
+- **LLM initialization:** `ACESTEP_INIT_LLM=true` (was `false`)
+- **LM Model:** `acestep-5Hz-lm-0.6B` loads at startup
+- **Text-to-Music:** Full prompt expansion now active
+- **VRAM Usage:** ~6-8GB at startup (vs ~2-4GB before)
+- **Files modified:**
+  - `launch_services.ps1` — LLM enabled, `NO_INIT=0`
+  - `start_acestep.bat` — LLM enabled
+  - `start_acestep_env.bat` — LLM enabled  
+  - `start_acestep_env.sh` — LLM enabled
+  - `ace-step/.env` — `ACESTEP_CONFIG_PATH` commented (prevents override)
+  - `README.md` — Updated documentation
+  - `START_ALL.bat` — Updated RAM messaging
+  - `acestep/api/startup_model_init.py` — Added `.strip()` to config path
+  - `acestep/api/server_cli.py` — Added `.strip()` to LM model path
+
+#### **🐛 Bug Fixes**
+1. **ACE-Step path whitespace** — Added `.strip()` to `ACESTEP_CONFIG_PATH` and `LM_MODEL_PATH`
+2. **Model loading error** — Fixed `FileNotFoundError` for `acestep-v15-turbo`
+
+---
+
+### 🗑️ **Removed Features**
+
+#### **RVC Voice Conversion — REMOVED**
+- **Reason:** Continuous integration issues, instability
+- **Files affected:**
+  - `backend/app.py` — RVC endpoint removed
+  - `frontend/src/App.jsx` — RVC tab removed
+  - `launch_services.ps1` — RVC service removed
+- **Port 8002:** No longer in use
+
+#### **Vocal Pipeline — DISABLED**
+- **Status:** Commented out in `App.jsx` (until fixed)
+- **Reason:** Requires refactoring after RVC removal
+
+---
+
+### 📊 **Version Changes**
+
+| Component | Before | After |
+|-----------|--------|-------|
+| Version | v2.2.0 | v3.0.0 |
+| LLM Init | `false` | `true` |
+| RVC | ✅ Enabled | ❌ Removed |
+| Pipeline | ✅ Enabled | ⚠️ Disabled |
+
+---
+
 ## [v3.1.0] - 2026-03-21
 
 ### 🎚️ Custom EQ + Stem Separation Updates

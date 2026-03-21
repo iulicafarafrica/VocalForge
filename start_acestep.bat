@@ -17,11 +17,11 @@ for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8001 " ^| findstr "LISTENIN
     taskkill /PID %%a /F >nul 2>&1
 )
 
-:: Enable Lazy Loading - models load on-demand (saves VRAM!)
-set ACESTEP_NO_INIT=1
+:: Disable Lazy Loading - models load at startup
+set ACESTEP_NO_INIT=0
 
-:: Disable LLM to save RAM (recommended for 8GB VRAM)
-set ACESTEP_INIT_LLM=false
+:: Enable LLM for text-to-music generation
+set ACESTEP_INIT_LLM=true
 
 :: Set default model
 set ACESTEP_CONFIG_PATH=acestep-v15-turbo
