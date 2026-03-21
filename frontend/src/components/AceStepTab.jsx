@@ -895,10 +895,10 @@ export default function AceStepTab({
   const [shift, setShift] = useState(3.0);
   const [useTiledDecode, setUseTiledDecode] = useState(true);
   const [batchSize, setBatchSize] = useState(1);
-  const [thinking, setThinking] = useState(false);  // Default: OFF
-  const [useCotMetas, setUseCotMetas] = useState(false);     // OFF = respect user BPM/Key/TimeSig
-  const [useCotCaption, setUseCotCaption] = useState(false);  // OFF = use exact user prompt
-  const [useCotLanguage, setUseCotLanguage] = useState(false); // OFF = use vocal_language param
+  const [thinking, setThinking] = useState(true);  // Default: ON (5Hz LM for CoT)
+  const [useCotMetas, setUseCotMetas] = useState(true);      // ON = AI detects BPM/Key/TimeSig (ACE-Step default)
+  const [useCotCaption, setUseCotCaption] = useState(true);   // ON = AI rewrites style prompt (ACE-Step default)
+  const [useCotLanguage, setUseCotLanguage] = useState(true); // ON = AI detects language (ACE-Step default)
   // Advanced settings are always visible in the 3rd column
 
   // ── Clean Temp Files ──────────────────────────────────────────────────────
