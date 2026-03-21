@@ -25,7 +25,7 @@
 [![GPU](https://img.shields.io/badge/CUDA-12.1-76ea3c?style=for-the-badge&labelColor=0d0d14&logo=nvidia&logoColor=76ea3c)](https://developer.nvidia.com/cuda-downloads)
 [![Security](https://img.shields.io/badge/Security-9%2F10-22c55e?style=for-the-badge&labelColor=0d0d14)](SECURITY_AUDIT.md)
 [![License](https://img.shields.io/badge/License-MIT-f43f5e?style=for-the-badge&labelColor=0d0d14)](LICENSE)
-[![ACE-Step](https://img.shields.io/badge/ACE--Step-v1.5-a855f7?style=for-the-badge&labelColor=0d0d14)](https://github.com/ace-step/ACE-Step)
+[![ACE-Step](https://img.shields.io/badge/ACE--Step-v1.5-a855f7?style=for-the-badge&labelColor=0d0d14)](https://github.com/ace-step/ACE-Step-1.5)
 
 <br/>
 
@@ -72,13 +72,13 @@
 | Module | Description | Key Feature |
 |--------|-------------|-------------|
 | **Stem Separation** | BS-RoFormer SDR 12.97, Mel-Band SDR 12.6 | SOTA Quality |
-| **ACE-Step v1.5** | Text→Music, Audio Cover, Repaint | 164 genre presets |
-| **Prompt Generator** | 164 subgenres, 5 vocal presets | 30 Romanian subgenres |
+| **ACE-Step v1.5** | Text→Music, Audio Cover, Repaint | 164 genres, 30 Romanian |
+| **Prompt Generator** | 164 subgenres, 5 vocal presets | Romanian subgenres included |
 | **Repaint** | Regenerate any section (30–60s) | Non-destructive editing |
 | **Audio Analysis** | BPM, Key, Time Signature detection | madmom + essentia |
 | **Lyrics Finder** | Genius.com API + local library | 24 genre tags |
 | **Audio Enhancer** | Remove hiss, hum, static | NEW in v3.1.0 |
-| **Custom EQ** | 13 genre-specific EQ presets | Afro House, Trap, Reggae, Phonk |
+| **Custom EQ** | 13 genre-specific EQ presets | Afro House, Trap, Reggae |
 | **Tracks Manager** | View, play, download all tracks | File management |
 | **Models & GPU** | VRAM monitor, model management | GPU memory API |
 | **Notes** | Personal notes with auto-save | Session persistent |
@@ -670,7 +670,7 @@ git push origin feature/your-feature
 
 | Project | Role |
 |---------|------|
-| [ACE-Step](https://github.com/ace-step/ACE-Step) | Music generation engine |
+| [ACE-Step](https://github.com/ace-step/ACE-Step-1.5) | Music generation engine |
 | [audio-separator](https://github.com/Anjok07/ultimatevocalremovergui) | BS-RoFormer separation |
 | [yt-dlp](https://github.com/yt-dlp/yt-dlp) | YouTube audio download |
 | [FastAPI](https://fastapi.tiangolo.com) | Backend framework |
