@@ -20,7 +20,7 @@
 
 <br/>
 
-[![Version](https://img.shields.io/badge/Version-3.1.1-6366f1?style=for-the-badge&labelColor=0d0d14)](https://github.com/iulicafarafrica/VocalForge)
+[![Version](https://img.shields.io/badge/Version-3.1.2-6366f1?style=for-the-badge&labelColor=0d0d14)](https://github.com/iulicafarafrica/VocalForge)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-22c55e?style=for-the-badge&labelColor=0d0d14&logo=python&logoColor=22c55e)](https://python.org)
 [![GPU](https://img.shields.io/badge/CUDA-12.1-76ea3c?style=for-the-badge&labelColor=0d0d14&logo=nvidia&logoColor=76ea3c)](https://developer.nvidia.com/cuda-downloads)
 [![Security](https://img.shields.io/badge/Security-9%2F10-22c55e?style=for-the-badge&labelColor=0d0d14)](SECURITY_AUDIT.md)

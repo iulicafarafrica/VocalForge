@@ -1,6 +1,59 @@
 
 ---
 
+## [v3.1.2] - 2026-03-21
+
+### 🧠 CoT Logging + UI Improvements
+
+**Chain-of-Thought status logging + UI refinements**
+
+---
+
+### 🎯 **HEADLINE CHANGES**
+
+#### **🧠 CoT Status Logging**
+- **New CMD log:** Shows CoT Caption/Language/Thinking ON/OFF status
+- **Format:** `[ACE xxxxxxxx] 🧠 CoT Caption: ON | CoT Language: ON | Thinking: ON`
+- **Helps debug:** Quickly verify if CoT features are active during generation
+
+#### **🎨 UI Improvements**
+- **Audio Format moved** — Now next to Batch in Expert Settings (saves vertical space)
+- **Compact layout:** Audio section reduced from 3 columns to 2 columns
+- **Better workflow:** Format and Batch are side-by-side for quick access
+
+#### **⚙️ CoT Defaults Aligned with ACE-Step Official**
+- **CoT Metas:** `true` (matches ACE-Step Gradio UI default)
+- **CoT Caption:** `true` (matches ACE-Step Gradio UI default)
+- **CoT Language:** `true` (matches ACE-Step Gradio UI default)
+- **Thinking:** `true` (enables 5Hz LM for CoT generation)
+- **User control preserved:** Toggle ON/OFF works correctly
+
+---
+
+### 📋 **Files Modified**
+
+| File | Change |
+|------|--------|
+| `backend/main.py` | Added CoT status logging |
+| `frontend/src/components/AceStepTab.jsx` | CoT defaults + Format moved |
+| `README.md` | Version bumped to v3.1.1, RVC/Applio removed |
+
+---
+
+### 🧪 **Test Results**
+
+```
+✅ LLM Load: 0.57s (CUDA)
+✅ Model Load: ~27s (CUDA)
+✅ DiT Diffusion: ~30s
+✅ Tiled Decode: ~6s (chunk_size=256)
+✅ Custom EQ: +1.2s (5-band EQ)
+✅ Noise Hiss: +6.2s (light mode)
+✅ Total: 75.4s for 180s audio (65.92MB WAV)
+```
+
+---
+
 ## [v3.1.1] - 2026-03-21
 
 ### 🔧 LLM Activation & RVC Removal
