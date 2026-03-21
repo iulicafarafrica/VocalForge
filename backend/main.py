@@ -2664,6 +2664,9 @@ async def ace_generate(
                 effective_prompt = effective_prompt + AUDIO_QUALITY_PROMPT
                 print(f"[ACE {job_id[:8]}] 🎵 Prompt enhanced: '{effective_prompt[:100]}...'")
 
+            # CoT status logging
+            print(f"[ACE {job_id[:8]}] 🧠 CoT Caption: {'ON' if use_cot_caption else 'OFF'} | CoT Language: {'ON' if use_cot_language else 'OFF'} | Thinking: {'ON' if thinking else 'OFF'}")
+
             # ── Optimizări pentru audio cover ──────────────────────────────────
             effective_duration = duration  # folosim durata exactă setată de utilizator
             # Asigură-te că durata este pozitivă, altfel -1 pentru auto
