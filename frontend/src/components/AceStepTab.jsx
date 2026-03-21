@@ -896,9 +896,9 @@ export default function AceStepTab({
   const [useTiledDecode, setUseTiledDecode] = useState(true);
   const [batchSize, setBatchSize] = useState(1);
   const [thinking, setThinking] = useState(false);  // Default: OFF
-  const [useCotMetas, setUseCotMetas] = useState(true);     // ON = AI detects BPM, Key, Time Signature
-  const [useCotCaption, setUseCotCaption] = useState(true);  // ON = AI rewrites style prompt
-  const [useCotLanguage, setUseCotLanguage] = useState(true); // ON = AI detects language from lyrics
+  const [useCotMetas, setUseCotMetas] = useState(false);     // OFF = respect user BPM/Key/TimeSig
+  const [useCotCaption, setUseCotCaption] = useState(false);  // OFF = use exact user prompt
+  const [useCotLanguage, setUseCotLanguage] = useState(false); // OFF = use vocal_language param
   // Advanced settings are always visible in the 3rd column
 
   // ── Clean Temp Files ──────────────────────────────────────────────────────
@@ -1653,10 +1653,10 @@ export default function AceStepTab({
     const isText2Music = taskType === "text2music";
     const effectiveThinking = isCustom ? false : thinking;
     const isAudio2Audio = taskType === "audio2audio";
-    const effectiveUseCotMetas = isCustom ? false : useCotMetas;
-    // CRITICAL: Disable CoT caption for text2music to respect user BPM/prompt
-    const effectiveUseCotCaption = (isCustom || isText2Music) ? false : useCotCaption;
-    const effectiveUseCotLanguage = isCustom ? false : useCotLanguage;
+    // CoT settings: respect user toggle (no automatic override)
+    const effectiveUseCotMetas = useCotMetas;
+    const effectiveUseCotCaption = useCotCaption;
+    const effectiveUseCotLanguage = useCotLanguage;
 
     // Custom mode: limit duration to 60s max (avoid timeout)
     const effectiveDuration = isCustom ? Math.min(duration, 60) : duration;
