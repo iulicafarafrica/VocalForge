@@ -8,19 +8,19 @@
 ```
 ██╗   ██╗ ██████╗  ██████╗ █████╗ ██╗     ███████╗ ██████╗ ██████╗  ██████╗ ███████╗
 ██║   ██║██╔═══██╗██╔════╝██╔══██╗██║     ██╔════╝██╔═══██╗██╔══██╗██╔════╝ ██╔════╝
-██║   ██║██║   ██║██║     ███████║██║     █████╗  ██║   ██║██████╔╝██║  ███╗█████╗  
-╚██╗ ██╔╝██║   ██║██║     ██╔══██║██║     ██╔══╝  ██║   ██║██╔══██╗██║   ██║██╔══╝  
+██║   ██║██║   ██║██║     ███████║██║     █████╗  ██║   ██║██████╔╝██║  ███╗█████╗
+╚██╗ ██╔╝██║   ██║██║     ██╔══██║██║     ██╔══╝  ██║   ██║██╔══██╗██║   ██║██╔══╝
  ╚████╔╝ ╚██████╔╝╚██████╗██║  ██║███████╗██║     ╚██████╔╝██║  ██║╚██████╔╝███████╗
   ╚═══╝   ╚═════╝  ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
 ```
 
 ### `AI-Powered Music Production Studio`
 
-*Transform your voice · Generate complete songs · Create professional AI covers*
+*Generate complete songs · Separate stems · Professional audio tools*
 
 <br/>
 
-[![Version](https://img.shields.io/badge/Version-3.0.0-6366f1?style=for-the-badge&labelColor=0d0d14)](https://github.com/iulicafarafrica/VocalForge)
+[![Version](https://img.shields.io/badge/Version-3.1.1-6366f1?style=for-the-badge&labelColor=0d0d14)](https://github.com/iulicafarafrica/VocalForge)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-22c55e?style=for-the-badge&labelColor=0d0d14&logo=python&logoColor=22c55e)](https://python.org)
 [![GPU](https://img.shields.io/badge/CUDA-12.1-76ea3c?style=for-the-badge&labelColor=0d0d14&logo=nvidia&logoColor=76ea3c)](https://developer.nvidia.com/cuda-downloads)
 [![Security](https://img.shields.io/badge/Security-9%2F10-22c55e?style=for-the-badge&labelColor=0d0d14)](SECURITY_AUDIT.md)
@@ -42,11 +42,10 @@
 **VocalForge** is a local, GPU-accelerated music production studio powered by state-of-the-art AI models. Built for musicians, producers, and audio engineers who want full control over the pipeline without cloud dependencies.
 
 **Key capabilities:**
-- Transform any voice with RVC v1/v2 models
 - Generate complete songs from text prompts via ACE-Step v1.5
 - Separate vocals from any song with BS-RoFormer (SDR 12.97)
-- Run a full AI cover pipeline in ~80 seconds
 - 164 genre presets including 30 Romanian subgenres
+- Professional audio enhancement tools
 
 </td>
 <td width="50%">
@@ -58,7 +57,6 @@
 │  Frontend    →  localhost:3000  │
 │  Backend     →  localhost:8000  │
 │  ACE-Step    →  localhost:8001  │
-│  RVC API     →  localhost:8002  │
 │  API Docs    →  localhost:8000  │
 │              →  /docs           │
 └─────────────────────────────────┘
@@ -69,20 +67,19 @@
 </table>
 
 
-## 11 Modules
+## 9 Modules
 
 | Module | Description | Key Feature |
 |--------|-------------|-------------|
 | **Stem Separation** | BS-RoFormer SDR 12.97, Mel-Band SDR 12.6 | SOTA Quality |
 | **ACE-Step v1.5** | Text→Music, Audio Cover, Repaint | 164 genre presets |
-| **Vocal Pipeline** | Auto Pipeline + Applio Features | Full cover in ~80s |
 | **Prompt Generator** | 164 subgenres, 5 vocal presets | 30 Romanian subgenres |
 | **Repaint** | Regenerate any section (30–60s) | Non-destructive editing |
 | **Audio Analysis** | BPM, Key, Time Signature detection | madmom + essentia |
 | **Lyrics Finder** | Genius.com API + local library | 24 genre tags |
-| **Audio Enhancer** | Remove hiss, hum, static | NEW in v3.0.0 |
+| **Audio Enhancer** | Remove hiss, hum, static | NEW in v3.1.0 |
 | **Tracks Manager** | View, play, download all tracks | File management |
-| **Models & GPU** | Upload RVC models, VRAM monitor | GPU memory API |
+| **Models & GPU** | VRAM monitor, model management | GPU memory API |
 | **Notes** | Personal notes with auto-save | Session persistent |
 
 ---
@@ -110,62 +107,6 @@ Temp 0.85  ·  CFG 2.5  ·  Top-K 0  ·  Top-P 0.90
 ```
 
 > **Note:** `ACESTEP_INIT_LLM=true` enables text-to-music generation with LLM prompt expansion — requires ~6-8GB VRAM at startup.
-
----
-
-### Applio Features Integration
-
-Based on **Applio v3.6.2** — complete integration of professional audio processing features.
-
-| Feature | Purpose | Range | Recommended |
-|---------|---------|-------|-------------|
-| **Autotune** | Snap F0 to musical notes | 0.0–1.0 | 0.3–0.5 for singing |
-| **Clean Audio** | Spectral noise reduction | 0.0–1.0 | 0.4–0.6 for speech only |
-| **Volume Envelope** | RMS matching, preserve dynamics | 0.0–1.0 | 1.0 (always) |
-| **High-Pass Filter** | Remove sub-48Hz rumble (Butterworth order 5) | ON/OFF | Always ON |
-
-**Singing preset:**
-```python
-autotune_strength = 0.4    # Soft pitch correction
-clean_audio      = False   # Keep singing artifacts
-volume_envelope  = 1.0     # Full dynamic matching
-apply_highpass   = True    # Remove rumble
-```
-
-**Speech preset:**
-```python
-autotune_strength = 0.0    # No pitch correction
-clean_audio      = True    # Remove background noise
-clean_strength   = 0.5     # Moderate cleaning
-volume_envelope  = 1.0     # Full dynamic matching
-apply_highpass   = True    # Remove rumble
-```
-
----
-
-### RVC Rescue Post-Processing
-
-> **Why RVC destroys singing:** RVC models are trained on speech audio, not singing. Without post-processing, converted vocals sound like robotic poetry reading — no vibrato, no dynamics, no musicality.
-
-```
-Before Rescue:  ████░░░░░░  5/10  — Robotic, harsh, no harmony
-After Rescue:   ████████░░  8/10  — Natural, smooth, musical
-```
-
-| Characteristic | Before RVC | After RVC | After Rescue |
-|---------------|-----------|-----------|--------------|
-| Note Sustain | ✅ Natural | ❌ Cut short | ✅ Restored |
-| Vibrato | ✅ Present | ❌ Destroyed | ⚠ Partial |
-| Dynamics | ✅ Expressive | ❌ Monotone | ✅ Smoothed |
-| Reverb Space | ✅ Room sound | ❌ Dry | ✅ Recreated |
-| Loudness | Variable | Variable | ✅ −14 LUFS |
-
-**Optimized RVC parameters for singing:**
-```python
-f0_method  = "harvest"  # Smoother than rmvpe for singing
-index_rate = 0.40       # Preserves original singing style
-protect    = 0.55       # Better consonant protection
-```
 
 ---
 
@@ -229,7 +170,6 @@ VRAM thresholds: 80% alert · 90% auto-cleanup
 | Task | Time | VRAM |
 |------|------|------|
 | BS-RoFormer Separation | ~30s | 4–5GB |
-| RVC Conversion | ~15s | 4–6GB |
 | Full Pipeline (4 stages) | ~80s | 6–8GB peak |
 | ACE-Step Turbo (30s) | ~60s | 6–7GB |
 | ACE-Step Base (3 min) | ~180s | 7–8GB |
@@ -292,19 +232,6 @@ uv sync
 cd ..
 ```
 
-### RVC Models
-
-Place `.pth` model files in:
-```
-D:\VocalForge\RVCWebUI\assets\weights\
-```
-
-Download from:
-- [weights.gg/models](https://weights.gg/models)
-- [Hugging Face — IAHispano/Applio](https://huggingface.co/IAHispano/Applio)
-
-Pre-loaded models include: FlorinSalam, JustinBieber, BadBunny, KanyeWest, and 16+ more.
-
 ### Configure API Token
 
 ```bash
@@ -329,8 +256,6 @@ Full interactive docs at **[localhost:8000/docs](http://localhost:8000/docs)**
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `POST` | `/demucs_separate` | Stem separation (BS-RoFormer, Mel-Band RoFormer) |
-| `POST` | `/rvc/convert` | RVC voice conversion |
-| `POST` | `/rvc/auto_pipeline` | Full auto pipeline (separate → RVC → post-process) |
 | `POST` | `/pipeline/run` | Complete 4-stage Pipeline v2.3 |
 | `GET` | `/pipeline/status/{job_id}` | Poll async job status |
 | `GET` | `/pipeline/download/{job_id}/{file}` | Download output file |
@@ -356,17 +281,14 @@ Full interactive docs at **[localhost:8000/docs](http://localhost:8000/docs)**
   "files": {
     "vocals_separated": "/tracks/pipeline_xxx_vocals.wav",
     "instrumental": "/tracks/pipeline_xxx_instrumental.mp3",
-    "rvc_raw": "/tracks/pipeline_xxx_rvc_raw.wav",
-    "rvc_rescued": "/tracks/pipeline_xxx_rvc_rescued.wav",
     "final_mix": "/tracks/pipeline_xxx_final_mix.wav"
   },
   "steps": {
     "separation_sec": 28.4,
-    "rvc_conversion_sec": 14.2,
     "post_processing_sec": 4.8,
     "final_mix_sec": 2.1
   },
-  "total_sec": 49.5,
+  "total_sec": 35.3,
   "post_processing_applied": true
 }
 ```
@@ -381,7 +303,6 @@ Full interactive docs at **[localhost:8000/docs](http://localhost:8000/docs)**
 |------|:---:|------|------|
 | BS-RoFormer Separation | SDR 12.97 | ~30s | 4–5GB |
 | Mel-Band RoFormer | SDR 12.6 | ~35s | 4–5GB |
-| RVC + Rescue | 8/10 | ~20s | 4–6GB |
 | Full Pipeline v2.3 | 9/10 | ~80s | 6–8GB |
 | ACE-Step Turbo (30s song) | 8/10 | ~60s | 6–7GB |
 | ACE-Step SFT (3 min song) | 9/10 | ~180s | 7–8GB |
@@ -391,7 +312,6 @@ Full interactive docs at **[localhost:8000/docs](http://localhost:8000/docs)**
 | Metric | Target | Achieved | Status |
 |--------|--------|----------|--------|
 | Separation SDR | > 12dB | 12.97dB | ✅ |
-| Voice UTMOS | > 4.0 | 4.2 | ✅ |
 | Loudness LUFS | −14 ±1 | −14.0 | ✅ |
 | True Peak | < −1 dBTP | −1.1 dBTP | ✅ |
 
@@ -446,7 +366,6 @@ Full interactive docs at **[localhost:8000/docs](http://localhost:8000/docs)**
 
 | Severity | Issue | Status |
 |----------|-------|--------|
-| ⚠ Design | RVC trained on speech, not singing — best case 8/10 with Rescue | Known limitation |
 | 🔴 High | No test coverage — codebase needs pytest + Jest | Backlog |
 | 🟠 Medium | Hardcoded Windows paths in multiple files | Backlog |
 | 🟠 Medium | Large files >2000 lines need refactor | Backlog |
@@ -467,7 +386,6 @@ Full interactive docs at **[localhost:8000/docs](http://localhost:8000/docs)**
 
 ### Phase 2 — Quality (Q3 2026) `0% complete`
 
-- ⚪ Real-Time RVC Preview
 - ⚪ Batch Processing — multiple files simultaneously
 - ⚪ AI Mastering — auto loudness, EQ, compression
 - ⚪ Cloud Sync — presets and tracks across devices
@@ -518,12 +436,34 @@ Vulnerabilities Fixed: 8 total
 ## Changelog
 
 <details open>
+<summary><strong>v3.1.1 — 2026-03-21 — LLM Enabled, RVC Removed</strong></summary>
+
+- ✅ **ACE-Step LLM activated** — `acestep-5Hz-lm-0.6B` loads at startup
+- ✅ **Text-to-music** — Full prompt expansion now active
+- ✅ **RVC integration removed** — Stability improvements
+- ✅ **Vocal pipeline disabled** — Until refactored
+- ✅ **Path whitespace fix** — Added `.strip()` to config paths
+- ✅ **Version bumped** — UI shows v3.0.0
+
+</details>
+
+<details>
+<summary><strong>v3.1.0 — 2026-03-21 — Custom EQ + Stem Separation</strong></summary>
+
+- ✅ **13 Genre-specific EQ presets** — Afro House, Trap, Reggae, Phonk, etc.
+- ✅ **Custom EQ + Noise Hiss integration** — Both can run simultaneously
+- ✅ **Stem separation updated** — BS-RoFormer only (htdemucs removed)
+- ✅ **Bug fixes** — Loudnorm conflict, JSON parse error, preset errors
+
+</details>
+
+<details>
 <summary><strong>v3.0.0 — 2026-03-20 — Audio Enhancer + Major Cleanup</strong></summary>
 
 - ✅ **Audio Enhancer** — Professional hiss, hum, and static removal
 - ✅ **Security Score 9/10** — Complete security audit, 8 vulnerabilities fixed
 - ✅ **Pipeline v2.3** — Stabilized 4-stage flow, 98% success rate
-- ✅ Full README rewrite with cyberpunk design
+- ✅ **Full README rewrite** — Cyberpunk design
 
 </details>
 
@@ -570,48 +510,14 @@ Vulnerabilities Fixed: 8 total
 </details>
 
 <details>
-<summary><strong>v1.9.0 — 2026-03-06 — Applio Features</strong></summary>
-
-- ✅ Autotune, Clean Audio, Volume Envelope, High-Pass Filter
-- ✅ Quality: singing 8/10 → 9/10, speech clarity 7/10 → 9/10
-
-</details>
-
-<details>
-<summary><strong>v1.8.4 — 2026-03-06 — RVC Rescue Post-Processing</strong></summary>
-
-- ✅ EQ → Compressor → Reverb → Limiter → Loudnorm chain
-- ✅ Quality: 5/10 → 8/10
-- ✅ RVC defaults optimized for singing
-
-</details>
-
-<details>
-<summary><strong>v1.8.3 — 2026-03-06 — Final Mix Integration</strong></summary>
-
-- ✅ Auto Pipeline saves both vocals + instrumental
-- ✅ "Go to Final Mix" button auto-appears
-- ✅ 320kbps MP3 instrumental export
-
-</details>
-
-<details>
-<summary><strong>v1.8.2 — 2026-03-06 — YouTube Cover + RVC v2</strong></summary>
-
-- ✅ YouTube Cover Generator — full pipeline in one click
-- ✅ RVC v2 support — 768-dim, 48kHz, RMVPE++
-- ✅ Auto-detect RVC v1 vs v2
-
-</details>
-
-<details>
-<summary><strong>Earlier versions (v1.6.0 → v1.8.1)</strong></summary>
+<summary><strong>Earlier versions (v1.6.0 → v1.9.0)</strong></summary>
 
 | Version | Release | Key Feature |
 |---------|---------|-------------|
-| v1.8.1 | 2026-03-06 | Hotfix — BS-RoFormer endpoint |
-| v1.8.0 | 2026-03-05 | Separate / Mix / Presets tabs |
-| v1.7.0 | 2026-03-01 | RVC Voice Conversion |
+| v1.9.0 | 2026-03-06 | Applio Features (removed in v3.1.1) |
+| v1.8.4 | 2026-03-06 | RVC Rescue Post-Processing (removed in v3.1.1) |
+| v1.8.2 | 2026-03-06 | YouTube Cover + RVC v2 (removed in v3.1.1) |
+| v1.7.0 | 2026-03-01 | RVC Voice Conversion (removed in v3.1.1) |
 | v1.6.0 | 2026-02-15 | ACE-Step Integration |
 
 </details>
@@ -628,15 +534,6 @@ netstat -ano | findstr :8000   # Check port in use
 taskkill /PID <PID> /F         # Kill process
 start_backend.bat              # Restart
 ```
-
-</details>
-
-<details>
-<summary><strong>RVC models not showing</strong></summary>
-
-1. Check folder: `D:\VocalForge\RVCWebUI\assets\weights\`
-2. Ensure `.pth` files are present
-3. Restart backend after adding models
 
 </details>
 
@@ -699,19 +596,17 @@ VocalForge/
 │   ├── modules/
 │   │   └── gpu_memory.py            VRAM tracking & management
 │   └── endpoints/
-│       ├── rvc_conversion.py        RVC + Pipeline API
+│       ├── audio_enhancer.py        Audio enhancement API
 │       └── youtube_cover.py         YouTube Cover API
 │
 ├── core/
 │   └── modules/
-│       ├── audio_processing.py      Applio audio utilities
-│       └── rvc_model.py             RVC model loading
+│       └── audio_processing.py      Audio utilities
 │
 ├── frontend/
 │   └── src/components/
 │       ├── AceStepTab.jsx           ACE-Step UI (cyberpunk)
 │       ├── LyricsTab.jsx            Lyrics Finder & Library
-│       ├── RVCConversion.jsx        Vocal Pipeline UI
 │       ├── StemSeparationTab.jsx    BS-RoFormer UI
 │       ├── PromptGeneratorTab.jsx   164 genre presets
 │       ├── AudioAnalysisTab.jsx     BPM/Key detection
@@ -719,9 +614,8 @@ VocalForge/
 │       ├── ModelsTab.jsx            GPU & Models manager
 │       └── NotesTab.jsx             Personal notes
 │
-├── RVCWebUI/
-│   ├── assets/weights/              RVC v1 models (.pth)
-│   └── models/v2/                   RVC v2 models
+├── ace-step/
+│   └── checkpoints/                 ACE-Step models
 │
 ├── START_ALL.bat                    Launch all services
 ├── setup.bat                        One-click install
@@ -747,8 +641,6 @@ git push origin feature/your-feature
 | Project | Role |
 |---------|------|
 | [ACE-Step](https://github.com/ace-step/ACE-Step) | Music generation engine |
-| [RVC-Project](https://github.com/RVC-Project/Retrieval-based-Voice-Conversion-WebUI) | Voice conversion core |
-| [Applio](https://github.com/IAHispano/Applio) | Audio processing features |
 | [audio-separator](https://github.com/Anjok07/ultimatevocalremovergui) | BS-RoFormer separation |
 | [yt-dlp](https://github.com/yt-dlp/yt-dlp) | YouTube audio download |
 | [FastAPI](https://fastapi.tiangolo.com) | Backend framework |
@@ -758,7 +650,7 @@ git push origin feature/your-feature
 
 <div align="center">
 
-**VocalForge v3.0.0**
+**VocalForge v3.1.1**
 
 Made with precision by [iulicafarafrica](https://github.com/iulicafarafrica)
 
