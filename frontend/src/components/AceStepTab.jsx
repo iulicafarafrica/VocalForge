@@ -896,7 +896,7 @@ export default function AceStepTab({
   const [useTiledDecode, setUseTiledDecode] = useState(true);
   const [batchSize, setBatchSize] = useState(1);
   const [thinking, setThinking] = useState(true);  // Default: ON (5Hz LM for CoT)
-  const [useExternalLLM, setUseExternalLLM] = useState(false); // External LLM for prompt expansion (Gemma 3 4B)
+  const [useExternalLLM, setUseExternalLLM] = useState(true); // External LLM for prompt expansion (Gemma 3 4B) - AUTO-ENABLED
   const [generateLyrics, setGenerateLyrics] = useState(false); // AI-generated lyrics if none provided
   const [externalLLMLanguage, setExternalLLMLanguage] = useState("auto"); // "auto", "ro", "en", "es"
   const [analyzeReferenceAudio, setAnalyzeReferenceAudio] = useState(false); // Analyze uploaded audio

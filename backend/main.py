@@ -2531,8 +2531,8 @@ async def ace_generate(
     use_cot_language: bool = Form(False), # False = use vocal_language param directly
     allow_lm_batch: bool = Form(True),
     get_lrc: bool = Form(False),
-    # External LLM (Gemma 3 4B for prompt expansion)
-    use_external_llm: bool = Form(False),
+    # External LLM (Gemma 3 4B for prompt expansion) - AUTO-ENABLED by default
+    use_external_llm: bool = Form(True),
     # Generate Lyrics (AI-generated lyrics if no lyrics provided)
     generate_lyrics: bool = Form(False),
     # Multi-language support for External LLM prompts
@@ -2697,10 +2697,14 @@ async def ace_generate(
             effective_use_cot_language = use_cot_language and not use_external_llm
             
             if use_external_llm:
-                print(f"[ACE {job_id[:8]}] 🧠 External LLM ON → Auto-disabling CoT (Gemma 3 handles everything)")
+                print(f"[ACE {job_id[:8]}] 🌟 External LLM ON (AUTO-ENABLED) → Auto-disabling CoT (Gemma 3 handles everything)")
                 print(f"[ACE {job_id[:8]}]   - CoT Metas: {use_cot_metas} → {effective_use_cot_metas}")
                 print(f"[ACE {job_id[:8]}]   - CoT Caption: {use_cot_caption} → {effective_use_cot_caption}")
                 print(f"[ACE {job_id[:8]}]   - CoT Language: {use_cot_language} → {effective_use_cot_language}")
+                print(f"[ACE {job_id[:8]}]   - Language: {external_llm_language}")
+                print(f"[ACE {job_id[:8]}]   - Generate Lyrics: {generate_lyrics}")
+                print(f"[ACE {job_id[:8]}]   - Quality Scoring: {enable_quality_scoring}")
+                print(f"[ACE {job_id[:8]}]   - Preset Suggestions: {enable_preset_suggestions}")
             else:
                 print(f"[ACE {job_id[:8]}] 🧠 External LLM OFF → Using CoT (internal LM)")
                 print(f"[ACE {job_id[:8]}]   - CoT Metas: {effective_use_cot_metas}")
