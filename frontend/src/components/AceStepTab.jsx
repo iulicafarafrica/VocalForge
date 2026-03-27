@@ -918,9 +918,9 @@ export default function AceStepTab({
     }
   }, [useExternalLLM]);
   
-  const [useCotMetas, setUseCotMetas] = useState(true);      // ON = AI detects BPM/Key/TimeSig (ACE-Step default)
-  const [useCotCaption, setUseCotCaption] = useState(true);   // ON = AI rewrites style prompt (ACE-Step default)
-  const [useCotLanguage, setUseCotLanguage] = useState(true); // ON = AI detects language (ACE-Step default)
+  const [useCotMetas, setUseCotMetas] = useState(false);      // OFF = User provides BPM/Key (consistent with backend default)
+  const [useCotCaption, setUseCotCaption] = useState(false);   // OFF = User provides prompt (consistent with backend default)
+  const [useCotLanguage, setUseCotLanguage] = useState(false); // OFF = User provides language (consistent with backend default)
   // Advanced settings are always visible in the 3rd column
 
   // ── Clean Temp Files ──────────────────────────────────────────────────────
