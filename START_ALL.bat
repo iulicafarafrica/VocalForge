@@ -23,9 +23,5 @@ echo   - LLM enabled for text-to-music generation
 echo   - Expected RAM: ~6-8GB at startup
 echo   - To free RAM: Run RESTART_ACESTEP.bat
 echo.
-echo Cleanup Scripts:
-echo   - CLEAN_CONDA.bat      - Clean conda cache
-echo   - RESTART_ACESTEP.bat  - Restart ACE-Step API
-echo.
 echo Press any key to exit...
 pause >nul
