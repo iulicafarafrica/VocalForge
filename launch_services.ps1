@@ -22,36 +22,22 @@ Write-Host ""
 # ============================================================================
 
 # ============================================================
-# ORDINEA DE START: Ollama primul, apoi ACE-Step (LLM are nevoie
+# ORDINEA DE START: ACE-Step primul (LLM are nevoie
 # de VRAM liber inainte ca backend sa se incarce)
 # ============================================================
 
-# 1. Verificare și pornire Ollama (port 11434)
-Write-Host "[1/4] Checking Ollama status..." -ForegroundColor Cyan
-
-# Verifică dacă portul 11434 este deja în uz
+# 1. Verificare Ollama (ar trebui să fie deja pornit din START_ALL.bat)
+Write-Host "[2/4] Checking Ollama status..." -ForegroundColor Cyan
 $ollamaPort = netstat -ano | findstr ":11434" | findstr "LISTENING"
 if ($ollamaPort) {
     Write-Host "    ✓ Ollama already running on port 11434" -ForegroundColor Green
 } else {
-    Write-Host "    ⚠ Ollama not running, starting..." -ForegroundColor Yellow
-    Start-Process "ollama" -ArgumentList "serve" -WindowStyle Normal -NoNewWindow
-    Write-Host "    Waiting 3s for Ollama to start..." -ForegroundColor Gray
-    Start-Sleep -Seconds 3
-
-    # Verifică din nou dacă a pornit
-    $ollamaPort2 = netstat -ano | findstr ":11434" | findstr "LISTENING"
-    if ($ollamaPort2) {
-        Write-Host "    ✓ Ollama started successfully" -ForegroundColor Green
-    } else {
-        Write-Host "    ⚠ Warning: Ollama may not have started correctly" -ForegroundColor Yellow
-    }
+    Write-Host "    ⚠ Warning: Ollama not running! Please run: ollama serve" -ForegroundColor Yellow
 }
-
 Write-Host ""
 
 # 2. Pornire ACE-Step API (:8001)
-Write-Host "[2/4] Starting ACE-Step API (port 8001)..." -ForegroundColor Cyan
+Write-Host "[3/4] Starting ACE-Step API (port 8001)..." -ForegroundColor Cyan
 Write-Host "    LM=0.6B, BACKEND=pt (PyTorch, stable on Windows), OFFLOAD=true" -ForegroundColor Gray
 $aceStepArgs = "/k cd /d D:\VocalForge\ace-step && title VocalForge ACE-Step API && call .venv\Scripts\activate.bat && set CUDA_VISIBLE_DEVICES=0 && set ACESTEP_LM_MODEL_PATH=acestep-5Hz-lm-0.6B && set ACESTEP_LM_BACKEND=pt && set ACESTEP_DEVICE=cuda && set ACESTEP_INIT_LLM=true && set ACESTEP_NO_INIT=0 && set ACESTEP_FP16=true && set ACESTEP_USE_TILED_DECODE=true && set ACESTEP_BATCH_SIZE=1 && set ACESTEP_OFFLOAD_TO_CPU=true && set ACESTEP_OFFLOAD_DIT_TO_CPU=true && set ACESTEP_VAE_ON_CPU=0 && set ACESTEP_VAE_DECODE_CHUNK_SIZE=256 && set ACESTEP_AUTH_DISABLED=1 && set XFORMERS_FORCE_DISABLE_TRITON=1 && set EXTERNAL_LM_PROVIDER=ollama && set EXTERNAL_LM_MODEL=gemma3:4b && set EXTERNAL_LM_ENDPOINT=http://localhost:11434 && python acestep/api_server.py --host 0.0.0.0 --port 8001"
 Start-Process "cmd.exe" -ArgumentList $aceStepArgs
@@ -61,7 +47,7 @@ Write-Host "    Waiting 50s for ACE-Step + LLM to load (RTX 3070)..." -Foregroun
 Start-Sleep -Seconds 50
 
 # 3. Pornire Backend (FastAPI :8000)
-Write-Host "[3/4] Starting Backend API (port 8000)..." -ForegroundColor Cyan
+Write-Host "[2/4] Starting Backend API (port 8000)..." -ForegroundColor Cyan
 Start-Process "cmd.exe" -ArgumentList "/k cd /d D:\VocalForge && title VocalForge Backend && call venv\Scripts\activate.bat && python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000"
 
 # Mica pauza intre servicii

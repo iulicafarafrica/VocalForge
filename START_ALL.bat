@@ -1,12 +1,21 @@
 @echo off
-title VocalForge v3.0.0 Launcher
+title VocalForge v3.1.0 Launcher
 echo.
 echo ============================================
-echo   VocalForge v3.0.0 - AI Music Studio
+echo   VocalForge v3.1.0 - AI Music Studio
 echo ============================================
 echo.
 echo Starting services...
 echo.
+
+:: Start Ollama first (External LLM for prompt expansion)
+echo [1/4] Starting Ollama (External LLM)...
+start "" ollama serve
+timeout /t 3 /nobreak >nul
+echo     ✓ Ollama started on port 11434
+echo.
+
+:: Launch PowerShell script for remaining services
 powershell -ExecutionPolicy Bypass -File "%~dp0launch_services.ps1"
 echo.
 echo ============================================
