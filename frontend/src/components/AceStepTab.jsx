@@ -3250,6 +3250,11 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                       🌱 {result.seed === -1 ? "Random" : `#${result.seed}`}
                     </span>
                   )}
+                  {result.metadata?.quality_score && (
+                    <span style={{ background: "#ffd16622", color: "#ffd166", border: "1px solid #ffd16644", borderRadius: 6, padding: "3px 10px", fontSize: 12, fontFamily: "monospace" }}>
+                      ⭐ {result.metadata.quality_score}/10
+                    </span>
+                  )}
                 </div>
               )}
               {!resultBpm && result && (
@@ -3987,21 +3992,13 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                 </div>
               )}
 
-              {/* Quality Scoring & Preset Suggestions */}
+              {/* Quality Scoring */}
               {useExternalLLM && (
-                <div style={{ display: "flex", gap: 16, paddingLeft: 36 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div onClick={() => setEnableQualityScoring(v => !v)} style={{ width: 24, height: 14, borderRadius: 999, flexShrink: 0, background: enableQualityScoring ? "#ffd166" : "#1a1a3a", position: "relative", cursor: "pointer" }}>
-                      <div style={{ position: "absolute", top: 2, left: enableQualityScoring ? 10 : 2, width: 10, height: 10, borderRadius: "50%", background: enableQualityScoring ? "#fff" : "#444", transition: "left 0.2s" }} />
-                    </div>
-                    <span style={{ fontSize: 12, color: enableQualityScoring ? "#ffd166" : "#8888aa" }}>⭐ Quality Score</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, paddingLeft: 36 }}>
+                  <div onClick={() => setEnableQualityScoring(v => !v)} style={{ width: 24, height: 14, borderRadius: 999, flexShrink: 0, background: enableQualityScoring ? "#ffd166" : "#1a1a3a", position: "relative", cursor: "pointer" }}>
+                    <div style={{ position: "absolute", top: 2, left: enableQualityScoring ? 10 : 2, width: 10, height: 10, borderRadius: "50%", background: enableQualityScoring ? "#fff" : "#444", transition: "left 0.2s" }} />
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div onClick={() => setEnablePresetSuggestions(v => !v)} style={{ width: 24, height: 14, borderRadius: 999, flexShrink: 0, background: enablePresetSuggestions ? "#00e5ff" : "#1a1a3a", position: "relative", cursor: "pointer" }}>
-                      <div style={{ position: "absolute", top: 2, left: enablePresetSuggestions ? 10 : 2, width: 10, height: 10, borderRadius: "50%", background: enablePresetSuggestions ? "#fff" : "#444", transition: "left 0.2s" }} />
-                    </div>
-                    <span style={{ fontSize: 12, color: enablePresetSuggestions ? "#00e5ff" : "#8888aa" }}>💡 Presets</span>
-                  </div>
+                  <span style={{ fontSize: 12, color: enableQualityScoring ? "#ffd166" : "#8888aa" }}>⭐ Quality Score</span>
                 </div>
               )}
             </div>
