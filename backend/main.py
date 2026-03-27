@@ -2535,6 +2535,14 @@ async def ace_generate(
     use_external_llm: bool = Form(False),
     # Generate Lyrics (AI-generated lyrics if no lyrics provided)
     generate_lyrics: bool = Form(False),
+    # Multi-language support for External LLM prompts
+    external_llm_language: str = Form("auto"),  # "auto", "ro", "en", "es", etc.
+    # Reference Audio Analysis (analyze uploaded audio for style transfer)
+    analyze_reference_audio: bool = Form(False),
+    # Quality Scoring (get AI quality rating for generated music)
+    enable_quality_scoring: bool = Form(False),
+    # Preset Suggestions (auto-suggest genre presets based on prompt)
+    enable_preset_suggestions: bool = Form(False),
     # Vocal options
     vocal_language: str = Form("en"),
     instrumental: bool = Form(False),
