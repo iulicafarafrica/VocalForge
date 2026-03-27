@@ -897,6 +897,7 @@ export default function AceStepTab({
   const [batchSize, setBatchSize] = useState(1);
   const [thinking, setThinking] = useState(true);  // Default: ON (5Hz LM for CoT)
   const [useExternalLLM, setUseExternalLLM] = useState(false); // External LLM for prompt expansion (Gemma 3 4B)
+  const [generateLyrics, setGenerateLyrics] = useState(false); // AI-generated lyrics if none provided
   const [useCotMetas, setUseCotMetas] = useState(true);      // ON = AI detects BPM/Key/TimeSig (ACE-Step default)
   const [useCotCaption, setUseCotCaption] = useState(true);   // ON = AI rewrites style prompt (ACE-Step default)
   const [useCotLanguage, setUseCotLanguage] = useState(true); // ON = AI detects language (ACE-Step default)
@@ -1791,6 +1792,7 @@ export default function AceStepTab({
     fd.append("use_cot_caption", effectiveUseCotCaption);  // Disable for custom/text2music
     fd.append("use_cot_language", effectiveUseCotLanguage);  // Disable for custom/text2music
     fd.append("use_external_llm", useExternalLLM);  // External LLM for prompt expansion (Gemma 3 4B)
+    fd.append("generate_lyrics", generateLyrics);  // AI-generated lyrics if none provided
     fd.append("constrained_decoding", true);  // ACE-Step default
     fd.append("allow_lm_batch", true);
     fd.append("get_lrc", false);
@@ -3899,23 +3901,42 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
             {/* External LLM (Gemma 3 4B) */}
             <div style={{ marginBottom: 12, padding: "8px 10px", borderRadius: 6, background: "#07071a", border: "1px solid #06d6a022" }}>
               <div style={{ fontSize: 13, color: "#06d6a0", fontWeight: 700, marginBottom: 6, letterSpacing: 1, textTransform: "uppercase" }}>
-                🌟 External LLM (Creative Enhancement)
+                🌟 External LLM (Gemma 3 4B)
               </div>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 8 }}>
                 <div onClick={() => setUseExternalLLM(v => !v)} style={{ width: 28, height: 16, borderRadius: 999, flexShrink: 0, marginTop: 2, background: useExternalLLM ? "#06d6a0" : "#1a1a3a", position: "relative", cursor: "pointer", transition: "background 0.2s" }}>
                   <div style={{ position: "absolute", top: 2, left: useExternalLLM ? 14 : 2, width: 12, height: 12, borderRadius: "50%", background: useExternalLLM ? "#fff" : "#444466", transition: "left 0.2s" }} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2 }}>
                     <span style={{ fontSize: 13 }}>🧠</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: useExternalLLM ? "#06d6a0" : "#444466" }}>Use Gemma 3 4B for Prompt Expansion</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: useExternalLLM ? "#06d6a0" : "#444466" }}>Extract Music Parameters (BPM, Key, Style)</span>
                     <span style={{ fontSize: 13, padding: "1px 4px", borderRadius: 999, fontWeight: 700, background: useExternalLLM ? "#06d6a022" : "#12122a", color: useExternalLLM ? "#06d6a0" : "#333355", border: `1px solid ${useExternalLLM ? "#06d6a044" : "#1a1a3a"}` }}>{useExternalLLM ? "ON" : "OFF"}</span>
                   </div>
                   <div style={{ fontSize: 13, color: "#333355", lineHeight: 1.3 }}>
-                    Expands simple prompts into detailed descriptions (e.g., "party song" → "upbeat dance pop, 128 BPM, D major...")
+                    Auto-detects BPM, Key, instruments, and style from your prompt
                   </div>
                 </div>
               </div>
+              
+              {/* Generate Lyrics Toggle (only visible when External LLM is ON and no user lyrics) */}
+              {useExternalLLM && (
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 8, paddingLeft: 36 }}>
+                  <div onClick={() => setGenerateLyrics(v => !v)} style={{ width: 28, height: 16, borderRadius: 999, flexShrink: 0, marginTop: 2, background: generateLyrics ? "#9b2de0" : "#1a1a3a", position: "relative", cursor: "pointer", transition: "background 0.2s" }}>
+                    <div style={{ position: "absolute", top: 2, left: generateLyrics ? 14 : 2, width: 12, height: 12, borderRadius: "50%", background: generateLyrics ? "#fff" : "#444466", transition: "left 0.2s" }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2 }}>
+                      <span style={{ fontSize: 13 }}>📝</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: generateLyrics ? "#9b2de0" : "#444466" }}>Generate Lyrics with AI</span>
+                      <span style={{ fontSize: 13, padding: "1px 4px", borderRadius: 999, fontWeight: 700, background: generateLyrics ? "#9b2de022" : "#12122a", color: generateLyrics ? "#9b2de0" : "#333355", border: `1px solid ${generateLyrics ? "#9b2de044" : "#1a1a3a"}` }}>{generateLyrics ? "ON" : "OFF"}</span>
+                    </div>
+                    <div style={{ fontSize: 13, color: "#333355", lineHeight: 1.3 }}>
+                      AI will generate original lyrics based on the music style (only if no lyrics provided)
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Thinking Mode */}

@@ -2533,6 +2533,8 @@ async def ace_generate(
     get_lrc: bool = Form(False),
     # External LLM (Gemma 3 4B for prompt expansion)
     use_external_llm: bool = Form(False),
+    # Generate Lyrics (AI-generated lyrics if no lyrics provided)
+    generate_lyrics: bool = Form(False),
     # Vocal options
     vocal_language: str = Form("en"),
     instrumental: bool = Form(False),
