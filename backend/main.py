@@ -2829,12 +2829,114 @@ async def ace_generate(
                     task_payload["src_audio_path"] = src_path
                     print(f"[ACE {job_id[:8]}] Audio2audio: source={source_audio.filename}")
 
-            # External LLM (Gemma 3 4B for prompt expansion)
+            # External LLM (Gemma 3 4B for intelligent music parameter extraction)
             if use_external_llm:
-                print(f"[ACE {job_id[:8]}] 🌟 External LLM enabled: gemma3:4b at http://localhost:11434")
-                task_payload["use_external_llm"] = True
-                task_payload["external_llm_model"] = "gemma3:4b"
-                task_payload["external_llm_endpoint"] = "http://localhost:11434"
+                print(f"[ACE {job_id[:8]}] 🌟 External LLM enabled: gemma3:4b for music parameter extraction")
+                
+                # Build intelligent prompt for music parameter extraction
+                llm_prompt = f"""Ești un asistent muzical expert cu cunoștințe despre toate genurile muzicale (pop, trap, manele, afro house, techno, rock, jazz, hip-hop, dembow, reggaeton, etc.).
+
+Extrage parametrii muzicali din descrierea utilizatorului: "{prompt}"
+
+Cunoștințele tale includ:
+- BPM tipic pentru fiecare gen (ex: trap=140, manele=110, afro house=122, techno=135, pop=100-120)
+- Tonalități comune (ex: C major, D minor, A minor, etc.)
+- Instrumente caracteristice fiecărui gen
+- Structuri muzicale și time signatures
+
+Returnează DOAR JSON valid (fără text suplimentar):
+{{
+  "bpm": <număr întreg între 60-200>,
+  "key": "<tonalitate, ex: C major, D minor, A# major>",
+  "style": "<gen muzical specific>",
+  "instruments": ["lista de 3-5 instrumente caracteristice"],
+  "mood": "<stare muzicală: energetic, romantic, sad, party, etc.>",
+  "time_signature": "<ex: 4/4, 3/4, 2/4>"
+}}
+
+Exemplu pentru "manele de petrecere":
+{{"bpm": 110, "key": "A minor", "style": "manele", "instruments": ["accordion", "synth", "drums", "bass"], "mood": "party", "time_signature": "4/4"}}
+
+Exemplu pentru "trap american":
+{{"bpm": 140, "key": "C minor", "style": "trap", "instruments": ["808 bass", "hi-hats", "synth", "snare"], "mood": "dark", "time_signature": "4/4"}}
+
+Acum extrage parametrii pentru: "{prompt}"
+"""
+                
+                try:
+                    import httpx
+                    async with httpx.AsyncClient(timeout=30.0) as ollama_client:
+                        print(f"[ACE {job_id[:8]}] 📤 Sending prompt to Gemma 3...")
+                        ollama_response = await ollama_client.post(
+                            "http://localhost:11434/api/generate",
+                            json={
+                                "model": "gemma3:4b",
+                                "prompt": llm_prompt,
+                                "stream": False,
+                                "format": "json"
+                            }
+                        )
+                        
+                        if ollama_response.status_code == 200:
+                            response_data = ollama_response.json()
+                            response_text = response_data.get("response", "")
+                            print(f"[ACE {job_id[:8]}] 📥 Gemma 3 response received ({len(response_text)} chars)")
+                            
+                            # Parse JSON response
+                            import json
+                            import re
+                            
+                            # Extract JSON from response (handle potential markdown code blocks)
+                            json_match = re.search(r'\{[^{}]*\}', response_text, re.DOTALL)
+                            if json_match:
+                                json_str = json_match.group(0)
+                                try:
+                                    music_params = json.loads(json_str)
+                                    print(f"[ACE {job_id[:8]}] ✅ JSON parsed successfully")
+                                    
+                                    # Apply extracted parameters to task_payload
+                                    if music_params.get("bpm"):
+                                        task_payload["bpm"] = int(music_params["bpm"])
+                                        print(f"[ACE {job_id[:8]}] 🎵 BPM: {music_params['bpm']}")
+                                    
+                                    if music_params.get("key"):
+                                        task_payload["key_scale"] = str(music_params["key"])
+                                        print(f"[ACE {job_id[:8]}] 🎼 Key: {music_params['key']}")
+                                    
+                                    if music_params.get("time_signature"):
+                                        task_payload["time_signature"] = str(music_params["time_signature"])
+                                        print(f"[ACE {job_id[:8]}] 🎶 Time Signature: {music_params['time_signature']}")
+                                    
+                                    # Enhance prompt with extracted style and instruments
+                                    enhanced_prompt = prompt
+                                    if music_params.get("style"):
+                                        enhanced_prompt = f"{music_params['style']}, {prompt}"
+                                        print(f"[ACE {job_id[:8]}] 🎭 Style: {music_params['style']}")
+                                    
+                                    if music_params.get("instruments"):
+                                        instruments_str = ", ".join(music_params["instruments"])
+                                        enhanced_prompt = f"{enhanced_prompt}, {instruments_str}"
+                                        print(f"[ACE {job_id[:8]}] 🎸 Instruments: {instruments_str}")
+                                    
+                                    if music_params.get("mood"):
+                                        enhanced_prompt = f"{enhanced_prompt}, {music_params['mood']}"
+                                        print(f"[ACE {job_id[:8]}] 😊 Mood: {music_params['mood']}")
+                                    
+                                    task_payload["prompt"] = enhanced_prompt
+                                    print(f"[ACE {job_id[:8]}] ✨ Enhanced prompt: {enhanced_prompt[:100]}...")
+                                    
+                                except json.JSONDecodeError as json_err:
+                                    print(f"[ACE {job_id[:8]}] ⚠️ JSON parse error: {json_err}")
+                                    print(f"[ACE {job_id[:8]}] Raw response: {response_text[:200]}...")
+                            else:
+                                print(f"[ACE {job_id[:8]}] ⚠️ No JSON found in response")
+                        else:
+                            print(f"[ACE {job_id[:8]}] ❌ Ollama HTTP error: {ollama_response.status_code}")
+                            
+                except Exception as ext_llm_err:
+                    print(f"[ACE {job_id[:8]}] ❌ External LLM error: {ext_llm_err}")
+                    import traceback
+                    traceback.print_exc()
             else:
                 task_payload["use_external_llm"] = False
 
