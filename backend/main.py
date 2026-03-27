@@ -2531,6 +2531,8 @@ async def ace_generate(
     use_cot_language: bool = Form(False), # False = use vocal_language param directly
     allow_lm_batch: bool = Form(True),
     get_lrc: bool = Form(False),
+    # External LLM (Gemma 3 4B for prompt expansion)
+    use_external_llm: bool = Form(False),
     # Vocal options
     vocal_language: str = Form("en"),
     instrumental: bool = Form(False),
@@ -2826,6 +2828,15 @@ async def ace_generate(
                 else:
                     task_payload["src_audio_path"] = src_path
                     print(f"[ACE {job_id[:8]}] Audio2audio: source={source_audio.filename}")
+
+            # External LLM (Gemma 3 4B for prompt expansion)
+            if use_external_llm:
+                print(f"[ACE {job_id[:8]}] 🌟 External LLM enabled: gemma3:4b at http://localhost:11434")
+                task_payload["use_external_llm"] = True
+                task_payload["external_llm_model"] = "gemma3:4b"
+                task_payload["external_llm_endpoint"] = "http://localhost:11434"
+            else:
+                task_payload["use_external_llm"] = False
 
             print(f"[ACE {job_id[:8]}] Submitting task to /release_task...")
             r = await client.post(f"{ACE_STEP_API}/release_task", json=task_payload)
