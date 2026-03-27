@@ -42,7 +42,7 @@ Write-Host ""
 # 2. Pornire ACE-Step API (:8001)
 Write-Host "[2/4] Starting ACE-Step API (port 8001)..." -ForegroundColor Cyan
 Write-Host "    LM=0.6B, BACKEND=pt (PyTorch, stable on Windows), OFFLOAD=true" -ForegroundColor Gray
-$aceStepArgs = "/k cd /d D:\VocalForge\ace-step && title VocalForge ACE-Step API && call .venv\Scripts\activate.bat && set CUDA_VISIBLE_DEVICES=0 && set ACESTEP_LM_MODEL_PATH=acestep-5Hz-lm-0.6B && set ACESTEP_LM_BACKEND=pt && set ACESTEP_DEVICE=cuda && set ACESTEP_INIT_LLM=true && set ACESTEP_NO_INIT=0 && set ACESTEP_FP16=true && set ACESTEP_USE_TILED_DECODE=true && set ACESTEP_BATCH_SIZE=1 && set ACESTEP_OFFLOAD_TO_CPU=true && set ACESTEP_OFFLOAD_DIT_TO_CPU=true && set ACESTEP_VAE_ON_CPU=0 && set ACESTEP_VAE_DECODE_CHUNK_SIZE=256 && set ACESTEP_AUTH_DISABLED=1 && set XFORMERS_FORCE_DISABLE_TRITON=1 && set EXTERNAL_LM_PROVIDER=ollama && set EXTERNAL_LM_MODEL=llama3.2:1b && set EXTERNAL_LM_ENDPOINT=http://localhost:11434 && python acestep/api_server.py --host 0.0.0.0 --port 8001"
+$aceStepArgs = "/k cd /d D:\VocalForge\ace-step && title VocalForge ACE-Step API && call .venv\Scripts\activate.bat && set CUDA_VISIBLE_DEVICES=0 && set ACESTEP_LM_MODEL_PATH=acestep-5Hz-lm-0.6B && set ACESTEP_LM_BACKEND=pt && set ACESTEP_DEVICE=cuda && set ACESTEP_INIT_LLM=true && set ACESTEP_NO_INIT=0 && set ACESTEP_FP16=true && set ACESTEP_USE_TILED_DECODE=true && set ACESTEP_BATCH_SIZE=1 && set ACESTEP_OFFLOAD_TO_CPU=true && set ACESTEP_OFFLOAD_DIT_TO_CPU=true && set ACESTEP_VAE_ON_CPU=0 && set ACESTEP_VAE_DECODE_CHUNK_SIZE=256 && set ACESTEP_AUTH_DISABLED=1 && set XFORMERS_FORCE_DISABLE_TRITON=1 && set EXTERNAL_LM_PROVIDER=ollama && set EXTERNAL_LM_MODEL=gemma3:4b && set EXTERNAL_LM_ENDPOINT=http://localhost:11434 && python acestep/api_server.py --host 0.0.0.0 --port 8001"
 Start-Process "cmd.exe" -ArgumentList $aceStepArgs
 
 # Asteapta ACE-Step + LLM sa se incarce complet inainte de restul
@@ -74,7 +74,7 @@ Write-Host ""
 Write-Host "VRAM Optimization (RTX 3070 8GB):" -ForegroundColor White
 Write-Host "  - DiT Model  : acestep-v15-turbo (8 steps, ~3GB)" -ForegroundColor Gray
 Write-Host "  - LM Model   : acestep-5Hz-lm-0.6B (recomandat oficial pentru 8GB)" -ForegroundColor Gray
-Write-Host "  - External LLM: Ollama llama3.2:1b (rulează pe CPU, nu consumă VRAM)" -ForegroundColor Gray
+Write-Host "  - External LLM: Ollama Gemma 3 4B (Google model, best for creative writing)" -ForegroundColor Gray
 Write-Host "  - Offload    : ENABLED (oficial recomandat pentru 8GB VRAM)" -ForegroundColor Gray
 Write-Host "  - FP16       : Enabled" -ForegroundColor Gray
 Write-Host "  - Tiled Decode: Enabled" -ForegroundColor Gray
