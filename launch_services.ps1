@@ -30,7 +30,7 @@ Write-Host ""
 Write-Host "[1/4] Checking Ollama status..." -ForegroundColor Cyan
 $ollamaProcess = Get-Process -Name "ollama" -ErrorAction SilentlyContinue
 if ($ollamaProcess) {
-    Write-Host "    ✓ Ollama already running (PID: $($ollamaProcess.Id))" -ForegroundColor Green
+    Write-Host "    ✓ Ollama already running" -ForegroundColor Green
 } else {
     Write-Host "    ⚠ Ollama not running, starting..." -ForegroundColor Yellow
     Start-Process "ollama" -ArgumentList "serve" -WindowStyle Hidden
