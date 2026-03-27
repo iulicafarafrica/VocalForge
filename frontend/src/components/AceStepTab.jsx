@@ -970,13 +970,16 @@ export default function AceStepTab({
     },
   };
 
+  // ACE-Step v0.1.5 Valid DiT Models
+  // Official supported models: acestep-v15-turbo (default), acestep-v15-sft, acestep-v15-base
+  // Submodels: acestep-v15-turbo-shift3, acestep-v15-turbo-shift1, acestep-v15-turbo-continuous
   const TENSOR_MODELS = [
-    { 
-      id: "acestep-v15-turbo", 
-      name: "◈ Turbo", 
-      desc: "8 steps │ ~1 min │ Fast", 
-      color: "#06d6a0", 
-      steps: 8, 
+    {
+      id: "acestep-v15-turbo",
+      name: "◈ Turbo",
+      desc: "8 steps │ ~1 min │ Fast",
+      color: "#06d6a0",
+      steps: 8,
       cfg: false,  // ✗ No CFG support
       features: "Text2Music, Cover, Repaint",
       vram: "~4-5GB",
@@ -986,27 +989,12 @@ export default function AceStepTab({
       hasLego: false,
       hasComplete: false
     },
-    { 
-      id: "acestep-v15-sft-turbo_0.5", 
-      name: "◈ SFT-Turbo 0.5", 
-      desc: "Hybrid │ ~2 min │ Balanced", 
-      color: "#ffd166", 
-      steps: 32,  // Hybrid steps (between turbo 8 and sft 50)
-      cfg: true,  // ✓ CFG support
-      features: "Text2Music, Cover, Repaint",
-      vram: "~5-6GB",
-      quality: "High",
-      diversity: "Medium",
-      hasExtract: false,
-      hasLego: false,
-      hasComplete: false
-    },
-    { 
-      id: "acestep-v15-sft", 
-      name: "♫ SFT", 
-      desc: "50 steps │ ~3 min │ Quality", 
-      color: "#c77dff", 
-      steps: 50, 
+    {
+      id: "acestep-v15-sft",
+      name: "♫ SFT",
+      desc: "50 steps │ ~3 min │ Quality",
+      color: "#c77dff",
+      steps: 50,
       cfg: true,  // ✓ CFG support
       features: "Text2Music, Cover, Repaint",
       vram: "~6-7GB",
@@ -1016,27 +1004,12 @@ export default function AceStepTab({
       hasLego: false,
       hasComplete: false
     },
-    { 
-      id: "acestep-v15-base-sft", 
-      name: "◉ Base-SFT", 
-      desc: "50 steps │ ~3 min │ Enhanced", 
-      color: "#00e5ff", 
-      steps: 50,  // Same as base
-      cfg: true,  // ✓ CFG support
-      features: "Text2Music, Cover, Repaint",
-      vram: "~7-8GB",
-      quality: "High",
-      diversity: "Medium",
-      hasExtract: false,
-      hasLego: false,
-      hasComplete: false
-    },
-    { 
-      id: "acestep-v15-base", 
-      name: "◉ Base", 
-      desc: "50 steps │ ~4 min │ All Features", 
-      color: "#118ab2", 
-      steps: 50, 
+    {
+      id: "acestep-v15-base",
+      name: "◉ Base",
+      desc: "50 steps │ ~4 min │ All Features",
+      color: "#118ab2",
+      steps: 50,
       cfg: true,  // ✓ CFG support
       features: "All Features + Extract/Lego/Complete",
       vram: "~7-8GB",
