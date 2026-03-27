@@ -1,11 +1,11 @@
 @echo off
-title ACE-Step v1.5 API Server (Lazy Loading)
+title ACE-Step v1.5 API Server
 color 0A
 echo.
 echo  ============================================
 echo   ACE-Step v1.5 - Music Generation API
 echo   Port: 8001
-echo   Default Model: acestep-v15-turbo (8 steps)
+echo   Default Model: acestep-v15-sft (50 steps)
 echo  ============================================
 echo.
 
@@ -23,17 +23,12 @@ set ACESTEP_NO_INIT=0
 :: Enable LLM for text-to-music generation
 set ACESTEP_INIT_LLM=true
 
-:: Set default model
-set ACESTEP_CONFIG_PATH=acestep-v15-turbo
+:: Set default model (v0.1.5 compatible)
+set ACESTEP_CONFIG_PATH=acestep-v15-sft
 
-echo  Starting ACE-Step API server with LAZY LOADING...
+echo  Starting ACE-Step API server...
 echo.
-echo  Default Model: acestep-v15-turbo (8 steps, fast)
-echo.
-echo  Benefits:
-echo    - Lower VRAM usage at startup
-echo    - Model loads on first request via /v1/init
-echo    - Switch models dynamically via API
+echo  Default Model: acestep-v15-sft (50 steps, high quality)
 echo.
 echo  API: http://localhost:8001
 echo  Docs: http://localhost:8001/docs
