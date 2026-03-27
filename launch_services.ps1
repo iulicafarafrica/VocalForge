@@ -28,14 +28,24 @@ Write-Host ""
 
 # 1. Verificare și pornire Ollama (port 11434)
 Write-Host "[1/4] Checking Ollama status..." -ForegroundColor Cyan
-$ollamaProcess = Get-Process -Name "ollama" -ErrorAction SilentlyContinue
-if ($ollamaProcess) {
-    Write-Host "    ✓ Ollama already running" -ForegroundColor Green
+
+# Verifică dacă portul 11434 este deja în uz
+$ollamaPort = netstat -ano | findstr ":11434" | findstr "LISTENING"
+if ($ollamaPort) {
+    Write-Host "    ✓ Ollama already running on port 11434" -ForegroundColor Green
 } else {
     Write-Host "    ⚠ Ollama not running, starting..." -ForegroundColor Yellow
-    Start-Process "ollama" -ArgumentList "serve" -WindowStyle Hidden
+    Start-Process "ollama" -ArgumentList "serve" -WindowStyle Normal -NoNewWindow
+    Write-Host "    Waiting 3s for Ollama to start..." -ForegroundColor Gray
     Start-Sleep -Seconds 3
-    Write-Host "    ✓ Ollama started on port 11434" -ForegroundColor Green
+    
+    # Verifică din nou dacă a pornit
+    $ollamaPort2 = netstat -ano | findstr ":11434" | findstr "LISTENING"
+    if ($ollamaPort2) {
+        Write-Host "    ✓ Ollama started successfully" -ForegroundColor Green
+    } else {
+        Write-Host "    ⚠ Warning: Ollama may not have started correctly" -ForegroundColor Yellow
+    }
 }
 Write-Host ""
 
