@@ -902,6 +902,22 @@ export default function AceStepTab({
   const [analyzeReferenceAudio, setAnalyzeReferenceAudio] = useState(false); // Analyze uploaded audio
   const [enableQualityScoring, setEnableQualityScoring] = useState(false); // Get AI quality rating
   const [enablePresetSuggestions, setEnablePresetSuggestions] = useState(false); // Auto-suggest presets
+  
+  // Auto-disable CoT when External LLM is enabled (they do the same thing)
+  useEffect(() => {
+    if (useExternalLLM) {
+      // External LLM ON → Auto-disable CoT (Gemma 3 does everything better)
+      setUseCotMetas(false);
+      setUseCotCaption(false);
+      setUseCotLanguage(false);
+    } else {
+      // External LLM OFF → Auto-enable CoT (use internal LM)
+      setUseCotMetas(true);
+      setUseCotCaption(true);
+      setUseCotLanguage(true);
+    }
+  }, [useExternalLLM]);
+  
   const [useCotMetas, setUseCotMetas] = useState(true);      // ON = AI detects BPM/Key/TimeSig (ACE-Step default)
   const [useCotCaption, setUseCotCaption] = useState(true);   // ON = AI rewrites style prompt (ACE-Step default)
   const [useCotLanguage, setUseCotLanguage] = useState(true); // ON = AI detects language (ACE-Step default)

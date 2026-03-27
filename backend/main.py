@@ -2690,11 +2690,23 @@ async def ace_generate(
             # Based on ACE-Step v1.5 official API documentation
             # https://github.com/ace-step/ACE-Step-1.5
             # GenerateMusicRequest model from acestep/api/http/release_task_models.py
+
+            # Auto-disable CoT when External LLM is enabled (Gemma 3 does everything)
+            effective_use_cot_metas = use_cot_metas and not use_external_llm
+            effective_use_cot_caption = use_cot_caption and not use_external_llm
+            effective_use_cot_language = use_cot_language and not use_external_llm
             
-            # CoT: respect user choice from frontend
-            effective_use_cot_caption = use_cot_caption
-            effective_use_cot_language = use_cot_language
-            
+            if use_external_llm:
+                print(f"[ACE {job_id[:8]}] 🧠 External LLM ON → Auto-disabling CoT (Gemma 3 handles everything)")
+                print(f"[ACE {job_id[:8]}]   - CoT Metas: {use_cot_metas} → {effective_use_cot_metas}")
+                print(f"[ACE {job_id[:8]}]   - CoT Caption: {use_cot_caption} → {effective_use_cot_caption}")
+                print(f"[ACE {job_id[:8]}]   - CoT Language: {use_cot_language} → {effective_use_cot_language}")
+            else:
+                print(f"[ACE {job_id[:8]}] 🧠 External LLM OFF → Using CoT (internal LM)")
+                print(f"[ACE {job_id[:8]}]   - CoT Metas: {effective_use_cot_metas}")
+                print(f"[ACE {job_id[:8]}]   - CoT Caption: {effective_use_cot_caption}")
+                print(f"[ACE {job_id[:8]}]   - CoT Language: {effective_use_cot_language}")
+
             task_payload = {
                 # Core parameters (ACE-Step official - GenerateMusicRequest)
                 "prompt": effective_prompt,  # Enhanced with audio quality for text2music
@@ -2751,13 +2763,14 @@ async def ace_generate(
                 "lm_repetition_penalty": 1.0,
                 "lm_negative_prompt": lm_negative_prompt,
 
-                # Chain-of-Thought — controlled by user via frontend
+                # Chain-of-Thought — controlled by user via frontend (auto-disabled when External LLM is ON)
                 "constrained_decoding": False,
                 "constrained_decoding_debug": False,
-                "use_cot_caption": effective_use_cot_caption,
-                "use_cot_language": effective_use_cot_language,
+                "use_cot_metas": effective_use_cot_metas,  # Auto-disabled when External LLM ON
+                "use_cot_caption": effective_use_cot_caption,  # Auto-disabled when External LLM ON
+                "use_cot_language": effective_use_cot_language,  # Auto-disabled when External LLM ON
                 "is_format_caption": False,
-                "allow_lm_batch": use_cot_caption,  # enable batch when CoT active
+                "allow_lm_batch": effective_use_cot_caption,  # enable batch when CoT active
                 "thinking": thinking,
                 
                 # User negative prompt (passed even if DiT may ignore it)
