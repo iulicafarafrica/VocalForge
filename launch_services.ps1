@@ -38,7 +38,7 @@ if ($ollamaPort) {
     Start-Process "ollama" -ArgumentList "serve" -WindowStyle Normal -NoNewWindow
     Write-Host "    Waiting 3s for Ollama to start..." -ForegroundColor Gray
     Start-Sleep -Seconds 3
-    
+
     # Verifică din nou dacă a pornit
     $ollamaPort2 = netstat -ano | findstr ":11434" | findstr "LISTENING"
     if ($ollamaPort2) {
@@ -47,6 +47,7 @@ if ($ollamaPort) {
         Write-Host "    ⚠ Warning: Ollama may not have started correctly" -ForegroundColor Yellow
     }
 }
+
 Write-Host ""
 
 # 2. Pornire ACE-Step API (:8001)
