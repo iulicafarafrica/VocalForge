@@ -898,6 +898,10 @@ export default function AceStepTab({
   const [thinking, setThinking] = useState(true);  // Default: ON (5Hz LM for CoT)
   const [useExternalLLM, setUseExternalLLM] = useState(false); // External LLM for prompt expansion (Gemma 3 4B)
   const [generateLyrics, setGenerateLyrics] = useState(false); // AI-generated lyrics if none provided
+  const [externalLLMLanguage, setExternalLLMLanguage] = useState("auto"); // "auto", "ro", "en", "es"
+  const [analyzeReferenceAudio, setAnalyzeReferenceAudio] = useState(false); // Analyze uploaded audio
+  const [enableQualityScoring, setEnableQualityScoring] = useState(false); // Get AI quality rating
+  const [enablePresetSuggestions, setEnablePresetSuggestions] = useState(false); // Auto-suggest presets
   const [useCotMetas, setUseCotMetas] = useState(true);      // ON = AI detects BPM/Key/TimeSig (ACE-Step default)
   const [useCotCaption, setUseCotCaption] = useState(true);   // ON = AI rewrites style prompt (ACE-Step default)
   const [useCotLanguage, setUseCotLanguage] = useState(true); // ON = AI detects language (ACE-Step default)
@@ -1793,6 +1797,10 @@ export default function AceStepTab({
     fd.append("use_cot_language", effectiveUseCotLanguage);  // Disable for custom/text2music
     fd.append("use_external_llm", useExternalLLM);  // External LLM for prompt expansion (Gemma 3 4B)
     fd.append("generate_lyrics", generateLyrics);  // AI-generated lyrics if none provided
+    fd.append("external_llm_language", externalLLMLanguage);  // "auto", "ro", "en", "es"
+    fd.append("analyze_reference_audio", analyzeReferenceAudio);  // Analyze uploaded audio for style
+    fd.append("enable_quality_scoring", enableQualityScoring);  // Get AI quality rating
+    fd.append("enable_preset_suggestions", enablePresetSuggestions);  // Auto-suggest genre presets
     fd.append("constrained_decoding", true);  // ACE-Step default
     fd.append("allow_lm_batch", true);
     fd.append("get_lrc", false);
@@ -3919,9 +3927,9 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                 </div>
               </div>
               
-              {/* Generate Lyrics Toggle (only visible when External LLM is ON and no user lyrics) */}
+              {/* Generate Lyrics Toggle */}
               {useExternalLLM && (
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 8, paddingLeft: 36 }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 8, paddingLeft: 36, marginBottom: 8 }}>
                   <div onClick={() => setGenerateLyrics(v => !v)} style={{ width: 28, height: 16, borderRadius: 999, flexShrink: 0, marginTop: 2, background: generateLyrics ? "#9b2de0" : "#1a1a3a", position: "relative", cursor: "pointer", transition: "background 0.2s" }}>
                     <div style={{ position: "absolute", top: 2, left: generateLyrics ? 14 : 2, width: 12, height: 12, borderRadius: "50%", background: generateLyrics ? "#fff" : "#444466", transition: "left 0.2s" }} />
                   </div>
@@ -3934,6 +3942,49 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                     <div style={{ fontSize: 13, color: "#333355", lineHeight: 1.3 }}>
                       AI will generate original lyrics based on the music style (only if no lyrics provided)
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Language Selector */}
+              {useExternalLLM && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, paddingLeft: 36, marginBottom: 8 }}>
+                  <span style={{ fontSize: 13, color: "#8888aa", minWidth: 80 }}>Language:</span>
+                  <select
+                    value={externalLLMLanguage}
+                    onChange={(e) => setExternalLLMLanguage(e.target.value)}
+                    style={{
+                      background: "#1a1a3a",
+                      border: "1px solid #2a2a4a",
+                      color: "#e0e0ff",
+                      borderRadius: 6,
+                      padding: "4px 8px",
+                      fontSize: 13,
+                      cursor: "pointer"
+                    }}
+                  >
+                    <option value="auto">🌐 Auto-detect</option>
+                    <option value="ro">🇷🇴 Romanian</option>
+                    <option value="en">🇬🇧 English</option>
+                    <option value="es">🇪🇸 Spanish</option>
+                  </select>
+                </div>
+              )}
+
+              {/* Quality Scoring & Preset Suggestions */}
+              {useExternalLLM && (
+                <div style={{ display: "flex", gap: 16, paddingLeft: 36 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div onClick={() => setEnableQualityScoring(v => !v)} style={{ width: 24, height: 14, borderRadius: 999, flexShrink: 0, background: enableQualityScoring ? "#ffd166" : "#1a1a3a", position: "relative", cursor: "pointer" }}>
+                      <div style={{ position: "absolute", top: 2, left: enableQualityScoring ? 10 : 2, width: 10, height: 10, borderRadius: "50%", background: enableQualityScoring ? "#fff" : "#444", transition: "left 0.2s" }} />
+                    </div>
+                    <span style={{ fontSize: 12, color: enableQualityScoring ? "#ffd166" : "#8888aa" }}>⭐ Quality Score</span>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div onClick={() => setEnablePresetSuggestions(v => !v)} style={{ width: 24, height: 14, borderRadius: 999, flexShrink: 0, background: enablePresetSuggestions ? "#00e5ff" : "#1a1a3a", position: "relative", cursor: "pointer" }}>
+                      <div style={{ position: "absolute", top: 2, left: enablePresetSuggestions ? 10 : 2, width: 10, height: 10, borderRadius: "50%", background: enablePresetSuggestions ? "#fff" : "#444", transition: "left 0.2s" }} />
+                    </div>
+                    <span style={{ fontSize: 12, color: enablePresetSuggestions ? "#00e5ff" : "#8888aa" }}>💡 Presets</span>
                   </div>
                 </div>
               )}
