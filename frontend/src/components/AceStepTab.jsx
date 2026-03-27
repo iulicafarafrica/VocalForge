@@ -896,6 +896,7 @@ export default function AceStepTab({
   const [useTiledDecode, setUseTiledDecode] = useState(true);
   const [batchSize, setBatchSize] = useState(1);
   const [thinking, setThinking] = useState(true);  // Default: ON (5Hz LM for CoT)
+  const [useExternalLLM, setUseExternalLLM] = useState(false); // External LLM for prompt expansion (Gemma 3 4B)
   const [useCotMetas, setUseCotMetas] = useState(true);      // ON = AI detects BPM/Key/TimeSig (ACE-Step default)
   const [useCotCaption, setUseCotCaption] = useState(true);   // ON = AI rewrites style prompt (ACE-Step default)
   const [useCotLanguage, setUseCotLanguage] = useState(true); // ON = AI detects language (ACE-Step default)
@@ -1789,6 +1790,7 @@ export default function AceStepTab({
     fd.append("cfg_interval_end", 1.0);
     fd.append("use_cot_caption", effectiveUseCotCaption);  // Disable for custom/text2music
     fd.append("use_cot_language", effectiveUseCotLanguage);  // Disable for custom/text2music
+    fd.append("use_external_llm", useExternalLLM);  // External LLM for prompt expansion (Gemma 3 4B)
     fd.append("constrained_decoding", true);  // ACE-Step default
     fd.append("allow_lm_batch", true);
     fd.append("get_lrc", false);
@@ -3893,6 +3895,28 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                 ))}
               </div>
             )}
+
+            {/* External LLM (Gemma 3 4B) */}
+            <div style={{ marginBottom: 12, padding: "8px 10px", borderRadius: 6, background: "#07071a", border: "1px solid #06d6a022" }}>
+              <div style={{ fontSize: 13, color: "#06d6a0", fontWeight: 700, marginBottom: 6, letterSpacing: 1, textTransform: "uppercase" }}>
+                🌟 External LLM (Creative Enhancement)
+              </div>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                <div onClick={() => setUseExternalLLM(v => !v)} style={{ width: 28, height: 16, borderRadius: 999, flexShrink: 0, marginTop: 2, background: useExternalLLM ? "#06d6a0" : "#1a1a3a", position: "relative", cursor: "pointer", transition: "background 0.2s" }}>
+                  <div style={{ position: "absolute", top: 2, left: useExternalLLM ? 14 : 2, width: 12, height: 12, borderRadius: "50%", background: useExternalLLM ? "#fff" : "#444466", transition: "left 0.2s" }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2 }}>
+                    <span style={{ fontSize: 13 }}>🧠</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: useExternalLLM ? "#06d6a0" : "#444466" }}>Use Gemma 3 4B for Prompt Expansion</span>
+                    <span style={{ fontSize: 13, padding: "1px 4px", borderRadius: 999, fontWeight: 700, background: useExternalLLM ? "#06d6a022" : "#12122a", color: useExternalLLM ? "#06d6a0" : "#333355", border: `1px solid ${useExternalLLM ? "#06d6a044" : "#1a1a3a"}` }}>{useExternalLLM ? "ON" : "OFF"}</span>
+                  </div>
+                  <div style={{ fontSize: 13, color: "#333355", lineHeight: 1.3 }}>
+                    Expands simple prompts into detailed descriptions (e.g., "party song" → "upbeat dance pop, 128 BPM, D major...")
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* Thinking Mode */}
             <div>
