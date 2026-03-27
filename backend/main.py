@@ -2856,116 +2856,292 @@ async def ace_generate(
                     task_payload["src_audio_path"] = src_path
                     print(f"[ACE {job_id[:8]}] Audio2audio: source={source_audio.filename}")
 
-            # External LLM (Gemma 3 4B for intelligent music parameter extraction)
+            # ── Key validator ─────────────────────────────────────────────────
+            VALID_KEYS = {
+                "C major", "C minor", "C# major", "C# minor", "Db major", "Db minor",
+                "D major", "D minor", "D# major", "D# minor", "Eb major", "Eb minor",
+                "E major", "E minor", "F major", "F minor",
+                "F# major", "F# minor", "Gb major", "Gb minor",
+                "G major", "G minor", "G# major", "G# minor", "Ab major", "Ab minor",
+                "A major", "A minor", "A# major", "A# minor", "Bb major", "Bb minor",
+                "B major", "B minor",
+            }
+            KEY_NORMALIZE = {
+                "Am": "A minor", "Cm": "C minor", "Dm": "D minor", "Em": "E minor",
+                "Fm": "F minor", "Gm": "G minor", "Bm": "B minor",
+                "C#m": "C# minor", "D#m": "D# minor", "F#m": "F# minor", "G#m": "G# minor", "A#m": "A# minor",
+                "Dbm": "Db minor", "Ebm": "Eb minor", "Gbm": "Gb minor", "Abm": "Ab minor", "Bbm": "Bb minor",
+            }
+            def validate_key(raw_key: str) -> str:
+                if not raw_key:
+                    return ""
+                k = raw_key.strip()
+                # Normalize shorthand (Am → A minor)
+                if k in KEY_NORMALIZE:
+                    return KEY_NORMALIZE[k]
+                # Handle "4/4" time signature accidentally in key field
+                if "/" in k:
+                    return "C minor"
+                # Single letter → major
+                if len(k) == 1:
+                    return f"{k.upper()} major"
+                if k in VALID_KEYS:
+                    return k
+                # Try case-insensitive match
+                for valid in VALID_KEYS:
+                    if valid.lower() == k.lower():
+                        return valid
+                print(f"[KEY] Invalid key '{k}' → defaulting to C minor")
+                return "C minor"
+
+            def parse_bpm(raw_bpm) -> int:
+                """Handle bpm ranges like '140-160' → 150, floats, strings."""
+                if raw_bpm is None:
+                    return 0
+                s = str(raw_bpm).strip()
+                if "-" in s:
+                    parts = s.split("-")
+                    try:
+                        return int((float(parts[0]) + float(parts[1])) / 2)
+                    except Exception:
+                        pass
+                try:
+                    return int(float(s))
+                except Exception:
+                    return 0
+
+            def build_ace_tags(style: str, mood: str, subgenre: str, instruments: list, original_prompt: str) -> str:
+                """Build ACE-Step tags in optimal order: genre → mood → instruments → original."""
+                parts = []
+                if style:
+                    parts.append(style.strip())
+                if mood:
+                    parts.append(mood.strip())
+                if subgenre:
+                    parts.append(subgenre.strip())
+                if instruments:
+                    parts.extend([i.strip() for i in instruments[:4]])  # max 4 instruments
+                if original_prompt:
+                    parts.append(original_prompt.strip())
+                return ", ".join(filter(None, parts))
+
+            def format_lyrics_for_acestep(raw_lyrics: str) -> str:
+                """Convert 'verse-chorus-verse' format or plain text to ACE-Step [verse]/[chorus] format."""
+                if not raw_lyrics:
+                    return ""
+                # Already has [verse] or [chorus] tags
+                if "[verse]" in raw_lyrics.lower() or "[chorus]" in raw_lyrics.lower():
+                    return raw_lyrics
+                # Has structure keywords separated by newlines
+                lines = raw_lyrics.strip().split("\n")
+                result = []
+                current_section = None
+                for line in lines:
+                    line_lower = line.lower().strip()
+                    if line_lower in ("verse", "[verse]", "verse:", "verse 1", "verse 2"):
+                        current_section = "[verse]"
+                        result.append(current_section)
+                    elif line_lower in ("chorus", "[chorus]", "chorus:", "refren", "refren:"):
+                        current_section = "[chorus]"
+                        result.append(current_section)
+                    elif line_lower in ("bridge", "[bridge]", "bridge:"):
+                        current_section = "[bridge]"
+                        result.append(current_section)
+                    elif line.strip():
+                        if current_section is None:
+                            result.append("[verse]")
+                            current_section = "[verse]"
+                        result.append(line)
+                return "\n".join(result)
+
+            # External LLM (Gemma 3 4B) — SINGLE CALL pentru tot
             if use_external_llm:
-                print(f"[ACE {job_id[:8]}] 🌟 External LLM enabled: gemma3:4b for music parameter extraction")
-                
-                # Build intelligent prompt for music parameter extraction
-                llm_prompt = f"""Ești un asistent muzical expert cu cunoștințe despre toate genurile muzicale (pop, trap, manele, afro house, techno, rock, jazz, hip-hop, dembow, reggaeton, etc.).
+                print(f"[ACE {job_id[:8]}] 🌟 External LLM enabled: gemma3:4b (single call)")
 
-Extrage parametrii muzicali din descrierea utilizatorului: "{prompt}"
+                # Build single unified prompt
+                lyrics_instruction = ""
+                if generate_lyrics and not (lyrics and lyrics.strip()):
+                    lyrics_instruction = f"""
+  "lyrics": "<versuri complete in format ACE-Step: [verse]\\ntext\\n[chorus]\\ntext\\n[verse]\\ntext\\n[chorus]\\ntext>",
+  "instrumental": false,"""
+                else:
+                    lyrics_instruction = """
+  "lyrics": null,"""
 
-Cunoștințele tale includ:
-- BPM tipic pentru fiecare gen (ex: trap=140, manele=110, afro house=122, techno=135, pop=100-120)
-- Tonalități comune (ex: C major, D minor, A minor, etc.)
-- Instrumente caracteristice fiecărui gen
-- Structuri muzicale și time signatures
+                llm_prompt = f"""You are an expert music AI assistant. Extract ALL music parameters from this description in ONE response.
 
-Returnează DOAR JSON valid (fără text suplimentar):
+User description: "{prompt}"
+Language requested: {external_llm_language}
+
+Return ONLY valid JSON (no extra text, no markdown):
 {{
-  "bpm": <număr întreg între 60-200>,
-  "key": "<tonalitate, ex: C major, D minor, A# major>",
-  "style": "<gen muzical specific>",
-  "instruments": ["lista de 3-5 instrumente caracteristice"],
-  "mood": "<stare muzicală: energetic, romantic, sad, party, etc.>",
-  "time_signature": "<ex: 4/4, 3/4, 2/4>"
+  "bpm": <integer 60-200>,
+  "key": "<e.g. C major, D minor, A# major, G minor>",
+  "style": "<main genre>",
+  "subgenre": "<subgenre if applicable, else empty string>",
+  "instruments": ["3-5 characteristic instruments"],
+  "mood": "<energetic|dark|romantic|sad|party|chill|aggressive|uplifting>",
+  "time_signature": "<4/4|3/4|6/8>",{lyrics_instruction}
+  "quality_score": <1-10 based on prompt clarity>,
+  "quality_notes": "<brief note on prompt quality>"
 }}
 
-Exemplu pentru "manele de petrecere":
-{{"bpm": 110, "key": "A minor", "style": "manele", "instruments": ["accordion", "synth", "drums", "bass"], "mood": "party", "time_signature": "4/4"}}
+Examples:
+- "manele de petrecere" → {{"bpm": 110, "key": "A minor", "style": "manele", "subgenre": "manele moderne", "instruments": ["accordion", "oriental synth", "drums", "bass"], "mood": "party", "time_signature": "4/4", "lyrics": null, "quality_score": 7, "quality_notes": "clear genre, add tempo/mood for better results"}}
+- "trap american dark" → {{"bpm": 140, "key": "C minor", "style": "trap", "subgenre": "dark trap", "instruments": ["808 bass", "hi-hats", "synth pads", "snare"], "mood": "dark", "time_signature": "4/4", "lyrics": null, "quality_score": 8, "quality_notes": "good clarity"}}
+- "afro house sunset vibes" → {{"bpm": 122, "key": "G minor", "style": "afro house", "subgenre": "organic afro house", "instruments": ["log drums", "djembe", "bass", "pads"], "mood": "uplifting", "time_signature": "4/4", "lyrics": null, "quality_score": 9, "quality_notes": "excellent descriptor"}}
 
-Exemplu pentru "trap american":
-{{"bpm": 140, "key": "C minor", "style": "trap", "instruments": ["808 bass", "hi-hats", "synth", "snare"], "mood": "dark", "time_signature": "4/4"}}
-
-Acum extrage parametrii pentru: "{prompt}"
+Now extract for: "{prompt}"
 """
-                
+
                 try:
-                    import httpx
-                    async with httpx.AsyncClient(timeout=30.0) as ollama_client:
-                        print(f"[ACE {job_id[:8]}] 📤 Sending prompt to Gemma 3...")
+                    async with httpx.AsyncClient(timeout=40.0) as ollama_client:
+                        print(f"[ACE {job_id[:8]}] 📤 Sending unified prompt to Gemma 3...")
                         ollama_response = await ollama_client.post(
                             "http://localhost:11434/api/generate",
                             json={
                                 "model": "gemma3:4b",
                                 "prompt": llm_prompt,
                                 "stream": False,
-                                "format": "json"
+                                "format": "json",
+                                "options": {"temperature": 0.3}  # Low temp for structured output
                             }
                         )
-                        
+
                         if ollama_response.status_code == 200:
                             response_data = ollama_response.json()
                             response_text = response_data.get("response", "")
-                            print(f"[ACE {job_id[:8]}] 📥 Gemma 3 response received ({len(response_text)} chars)")
-                            
-                            # Parse JSON response
-                            import json
-                            import re
-                            
-                            # Extract JSON from response (handle potential markdown code blocks)
-                            json_match = re.search(r'\{[^{}]*\}', response_text, re.DOTALL)
-                            if json_match:
-                                json_str = json_match.group(0)
-                                try:
-                                    music_params = json.loads(json_str)
-                                    print(f"[ACE {job_id[:8]}] ✅ JSON parsed successfully")
-                                    
-                                    # Apply extracted parameters to task_payload
-                                    if music_params.get("bpm"):
-                                        task_payload["bpm"] = int(music_params["bpm"])
-                                        print(f"[ACE {job_id[:8]}] 🎵 BPM: {music_params['bpm']}")
-                                    
-                                    if music_params.get("key"):
-                                        task_payload["key_scale"] = str(music_params["key"])
-                                        print(f"[ACE {job_id[:8]}] 🎼 Key: {music_params['key']}")
-                                    
-                                    if music_params.get("time_signature"):
-                                        task_payload["time_signature"] = str(music_params["time_signature"])
-                                        print(f"[ACE {job_id[:8]}] 🎶 Time Signature: {music_params['time_signature']}")
-                                    
-                                    # Enhance prompt with extracted style and instruments
-                                    enhanced_prompt = prompt
-                                    if music_params.get("style"):
-                                        enhanced_prompt = f"{music_params['style']}, {prompt}"
-                                        print(f"[ACE {job_id[:8]}] 🎭 Style: {music_params['style']}")
-                                    
-                                    if music_params.get("instruments"):
-                                        instruments_str = ", ".join(music_params["instruments"])
-                                        enhanced_prompt = f"{enhanced_prompt}, {instruments_str}"
-                                        print(f"[ACE {job_id[:8]}] 🎸 Instruments: {instruments_str}")
-                                    
-                                    if music_params.get("mood"):
-                                        enhanced_prompt = f"{enhanced_prompt}, {music_params['mood']}"
-                                        print(f"[ACE {job_id[:8]}] 😊 Mood: {music_params['mood']}")
-                                    
-                                    task_payload["prompt"] = enhanced_prompt
-                                    print(f"[ACE {job_id[:8]}] ✨ Enhanced prompt: {enhanced_prompt[:100]}...")
-                                    
-                                except json.JSONDecodeError as json_err:
-                                    print(f"[ACE {job_id[:8]}] ⚠️ JSON parse error: {json_err}")
-                                    print(f"[ACE {job_id[:8]}] Raw response: {response_text[:200]}...")
-                            else:
-                                print(f"[ACE {job_id[:8]}] ⚠️ No JSON found in response")
+                            print(f"[ACE {job_id[:8]}] 📥 Gemma 3 response ({len(response_text)} chars)")
+
+                            # Parse JSON — try direct first, then regex fallback
+                            music_params = None
+                            try:
+                                music_params = json.loads(response_text)
+                                print(f"[ACE {job_id[:8]}] ✅ JSON parsed (direct)")
+                            except Exception:
+                                json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
+                                if json_match:
+                                    try:
+                                        music_params = json.loads(json_match.group(0))
+                                        print(f"[ACE {job_id[:8]}] ✅ JSON parsed (regex fallback)")
+                                    except Exception as je:
+                                        print(f"[ACE {job_id[:8]}] ⚠️ JSON parse failed: {je}")
+
+                            if music_params:
+                                # BPM — handle ranges
+                                raw_bpm = music_params.get("bpm")
+                                if raw_bpm:
+                                    parsed_bpm = parse_bpm(raw_bpm)
+                                    if 60 <= parsed_bpm <= 220:
+                                        task_payload["bpm"] = parsed_bpm
+                                        print(f"[ACE {job_id[:8]}] 🎵 BPM: {raw_bpm} → {parsed_bpm}")
+
+                                # Key — validated
+                                raw_key = music_params.get("key", "")
+                                if raw_key:
+                                    validated_key = validate_key(raw_key)
+                                    task_payload["key_scale"] = validated_key
+                                    print(f"[ACE {job_id[:8]}] 🎼 Key: {raw_key} → {validated_key}")
+
+                                # Time signature
+                                raw_ts = music_params.get("time_signature", "")
+                                if raw_ts:
+                                    # Clean: "4/4" → "4", keep as-is if already clean
+                                    ts_clean = raw_ts.split("/")[0].strip() if "/" in raw_ts else raw_ts.strip()
+                                    task_payload["time_signature"] = ts_clean
+                                    print(f"[ACE {job_id[:8]}] 🎶 Time Sig: {raw_ts} → {ts_clean}")
+
+                                # Build enhanced prompt in correct ACE-Step order:
+                                # genre → mood → instruments → original_prompt
+                                style = music_params.get("style", "")
+                                mood = music_params.get("mood", "")
+                                subgenre = music_params.get("subgenre", "")
+                                instruments = music_params.get("instruments", [])
+                                enhanced_prompt = build_ace_tags(style, mood, subgenre, instruments, prompt)
+                                task_payload["prompt"] = enhanced_prompt + ", clean studio quality, noise-free"
+                                print(f"[ACE {job_id[:8]}] 🎭 Style: {style} | Mood: {mood}")
+                                print(f"[ACE {job_id[:8]}] 🎸 Instruments: {', '.join(instruments)}")
+                                print(f"[ACE {job_id[:8]}] ✨ Enhanced prompt: {task_payload['prompt'][:120]}...")
+
+                                # Quality scoring (from LLM, not audio analysis)
+                                if enable_quality_scoring:
+                                    q_score = music_params.get("quality_score", 0)
+                                    q_notes = music_params.get("quality_notes", "")
+                                    print(f"[ACE {job_id[:8]}] ⭐ Prompt quality: {q_score}/10 — {q_notes}")
+
+                                # Lyrics — only if generate_lyrics is ON and no lyrics provided
+                                if generate_lyrics and not (lyrics and lyrics.strip()):
+                                    raw_lyrics = music_params.get("lyrics", "")
+                                    if raw_lyrics:
+                                        formatted_lyrics = format_lyrics_for_acestep(raw_lyrics)
+                                        task_payload["lyrics"] = formatted_lyrics
+                                        print(f"[ACE {job_id[:8]}] 📝 Lyrics generated ({len(formatted_lyrics)} chars)")
                         else:
                             print(f"[ACE {job_id[:8]}] ❌ Ollama HTTP error: {ollama_response.status_code}")
-                            
+
+                    # VRAM safety: unload Ollama BEFORE ACE-Step generation
+                    print(f"[ACE {job_id[:8]}] 🧹 Unloading Ollama from VRAM (keep_alive=0)...")
+                    try:
+                        async with httpx.AsyncClient(timeout=10.0) as unload_client:
+                            await unload_client.post(
+                                "http://localhost:11434/api/generate",
+                                json={"model": "gemma3:4b", "keep_alive": 0}
+                            )
+                        await asyncio.sleep(1)  # Wait for unload
+                        print(f"[ACE {job_id[:8]}] ✅ Ollama unloaded — VRAM free for ACE-Step")
+                    except Exception as unload_err:
+                        print(f"[ACE {job_id[:8]}] ⚠️ Ollama unload failed (non-critical): {unload_err}")
+
                 except Exception as ext_llm_err:
                     print(f"[ACE {job_id[:8]}] ❌ External LLM error: {ext_llm_err}")
                     import traceback
                     traceback.print_exc()
             else:
                 task_payload["use_external_llm"] = False
+
+            # ── Preset Suggestions (genre-based optimization) ─────────────────────
+            PRESET_SUGGESTIONS = {
+                "trap": {"infer_steps": 12, "guidance_scale": 4.0, "bpm_range": [135, 155], "keys": ["C minor", "D minor", "F minor"]},
+                "manele": {"infer_steps": 12, "guidance_scale": 4.5, "bpm_range": [105, 125], "keys": ["A minor", "D minor", "G minor"]},
+                "pop": {"infer_steps": 40, "guidance_scale": 7.0, "bpm_range": [100, 130], "keys": ["C major", "G major", "A minor"]},
+                "afro house": {"infer_steps": 15, "guidance_scale": 5.0, "bpm_range": [118, 128], "keys": ["D minor", "F minor", "A minor"]},
+                "rock": {"infer_steps": 35, "guidance_scale": 7.5, "bpm_range": [110, 140], "keys": ["E minor", "A minor", "D major"]},
+                "hip hop": {"infer_steps": 15, "guidance_scale": 4.5, "bpm_range": [85, 105], "keys": ["C minor", "F minor", "G minor"]},
+                "dembow": {"infer_steps": 12, "guidance_scale": 4.0, "bpm_range": [110, 120], "keys": ["A minor", "C minor", "E minor"]},
+                "reggaeton": {"infer_steps": 15, "guidance_scale": 5.0, "bpm_range": [90, 100], "keys": ["A minor", "B minor", "C# minor"]},
+            }
+            
+            # Detect genre from prompt/style and apply preset
+            style_lower = (task_payload.get("prompt") or "").lower()
+            for genre_name, preset in PRESET_SUGGESTIONS.items():
+                if genre_name in style_lower:
+                    print(f"[ACE {job_id[:8]}] 💡 Preset detected: {genre_name}")
+                    
+                    # Apply infer_steps if not already set by user
+                    if infer_steps == 50:  # Default value
+                        task_payload["inference_steps"] = preset["infer_steps"]
+                        print(f"[ACE {job_id[:8]}]   → infer_steps: {infer_steps} → {preset['infer_steps']}")
+                    
+                    # Apply guidance_scale if turbo model (default 7.0 too high for turbo)
+                    if "turbo" in dit_model.lower() and guidance_scale >= 7.0:
+                        task_payload["guidance_scale"] = preset["guidance_scale"]
+                        print(f"[ACE {job_id[:8]}]   → guidance_scale: {guidance_scale} → {preset['guidance_scale']} (turbo optimized)")
+                    
+                    # Suggest BPM if not set
+                    if not task_payload.get("bpm"):
+                        import random
+                        suggested_bpm = random.randint(*preset["bpm_range"])
+                        task_payload["bpm"] = suggested_bpm
+                        print(f"[ACE {job_id[:8]}]   → BPM: None → {suggested_bpm} ({genre_name} typical range)")
+                    
+                    # Suggest key if not set
+                    if not task_payload.get("key_scale"):
+                        import random
+                        suggested_key = random.choice(preset["keys"])
+                        task_payload["key_scale"] = suggested_key
+                        print(f"[ACE {job_id[:8]}]   → Key: None → {suggested_key} ({genre_name} common key)")
+                    
+                    break  # Only apply first matching preset
 
             print(f"[ACE {job_id[:8]}] Submitting task to /release_task...")
             r = await client.post(f"{ACE_STEP_API}/release_task", json=task_payload)
