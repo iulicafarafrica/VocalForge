@@ -2727,16 +2727,17 @@ async def ace_generate(
                 # VRAM & performance
                 "batch_size": batch_size,
                 "use_tiled_decode": use_tiled_decode,
-                
-                # LLM parameters - ALL DISABLED (no LM loading)
-                "lm_model_path": None,
-                "lm_backend": "pt",
-                "lm_temperature": 0.85,
-                "lm_cfg_scale": 2.5,
-                "lm_top_k": 0,
-                "lm_top_p": 0.9,
+
+                # LLM parameters - enable when thinking mode is ON or duration > 15s
+                # For 8GB VRAM: use acestep-5Hz-lm-0.6B (recommended)
+                "lm_model_path": lm_model if (thinking or duration > 15) else None,
+                "lm_backend": lm_backend,
+                "lm_temperature": lm_temperature,
+                "lm_cfg_scale": lm_cfg_scale,
+                "lm_top_k": lm_top_k,
+                "lm_top_p": lm_top_p,
                 "lm_repetition_penalty": 1.0,
-                "lm_negative_prompt": neg,  # User negative prompt (passed to LLM if enabled)
+                "lm_negative_prompt": lm_negative_prompt,
 
                 # Chain-of-Thought — controlled by user via frontend
                 "constrained_decoding": False,
