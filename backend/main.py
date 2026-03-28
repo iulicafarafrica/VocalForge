@@ -2550,9 +2550,12 @@ async def ace_generate(
     lm_top_p: float = Form(0.9),                # 0.9 default (official ACE-Step)
     lm_negative_prompt: str = Form(""),
     # Task type + audio2audio
-    task_type: str = Form("text2music"),        # text2music, audio2audio, cover, repaint
-    source_audio: UploadFile = File(None),      # source audio for audio2audio/cover
+    task_type: str = Form("text2music"),        # text2music, audio2audio, cover, repaint, lego, complete
+    source_audio: UploadFile = File(None),      # source audio for audio2audio/cover/repaint
     source_audio_strength: float = Form(0.5),   # 0=ignore source, 1=copy source
+    # Repaint parameters (ACE-Step official)
+    repainting_start: float = Form(0.0),        # Repaint start time in seconds
+    repainting_end: float = Form(-1.0),         # Repaint end time (-1 = end of track)
     negative_prompt: str = Form(""),            # alias for lm_negative_prompt
     # DiT model selection
     dit_model: str = Form("acestep-v15-sft"), # acestep-v15-sft (high quality) or acestep-v15-turbo (fast)
@@ -2859,12 +2862,12 @@ async def ace_generate(
                 # Reference audio (for cover/repaint)
                 "reference_audio_path": None,
                 "src_audio_path": None,
-                "audio_cover_strength": 0.7,
+                "audio_cover_strength": source_audio_strength,
                 "cover_noise_strength": 0.0,  # For cover/repaint tasks
-                
+
                 # Repainting (for repaint task type)
-                "repainting_start": 0.0,
-                "repainting_end": None,
+                "repainting_start": repainting_start if repainting_start > 0 else 0.0,
+                "repainting_end": repainting_end if repainting_end > 0 else None,
                 
                 # Audio codes (for code-control generation)
                 "audio_code_string": "",
@@ -2882,8 +2885,8 @@ async def ace_generate(
             
             print(f"[ACE {job_id[:8]}] Payload: bpm={task_payload['bpm']}, key={task_payload['key_scale']}, use_cot_caption={task_payload['use_cot_caption']}")
             
-            # Audio2audio/cover: save source audio in system temp
-            if task_type in ("audio2audio", "cover") and source_audio and source_audio.filename:
+            # Audio2audio/cover/repaint: save source audio in system temp
+            if task_type in ("audio2audio", "cover", "repaint") and source_audio and source_audio.filename:
                 src_bytes = await source_audio.read()
                 import tempfile as _tmpmod
                 suffix = ".wav"
@@ -2915,12 +2918,15 @@ async def ace_generate(
                 task_payload["audio_duration"] = effective_duration
 
                 # Audio cover: use reference_audio_path to preserve vocal
-                # Audio2audio: use src_audio_path for style transfer
+                # Audio2audio/Repaint: use src_audio_path for style transfer/repainting
                 if task_type == "cover":
                     task_payload["reference_audio_path"] = src_path  # Preserve vocal
                     print(f"[ACE {job_id[:8]}] Audio cover: reference={source_audio.filename}")
-                    
-                    
+                elif task_type == "repaint":
+                    task_payload["src_audio_path"] = src_path
+                    task_payload["repainting_start"] = repainting_start
+                    task_payload["repainting_end"] = repainting_end if repainting_end > 0 else None
+                    print(f"[ACE {job_id[:8]}] Repaint: {source_audio.filename} | {repainting_start}s - {repainting_end if repainting_end > 0 else 'end'}s")
                 else:
                     task_payload["src_audio_path"] = src_path
                     print(f"[ACE {job_id[:8]}] Audio2audio: source={source_audio.filename}")

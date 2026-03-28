@@ -150,28 +150,41 @@ export default function RepaintLegoComplete() {
     setProgress('Uploading file...');
 
     const formData = new FormData();
-    formData.append('file', file);
+    // Core parameters
     formData.append('prompt', prompt || '');
+    formData.append('lyrics', lyrics || '');
+    formData.append('duration', (endTime - startTime).toString());
     formData.append('guidance_scale', guidanceScale.toString());
     formData.append('seed', seed.toString());
     formData.append('infer_steps', inferSteps.toString());
-    formData.append('key_scale', keyScale || '');
-    formData.append('audio_format', audioFormat);
     formData.append('dit_model', ditModel);
-    formData.append('start_time', startTime.toString());
-    formData.append('end_time', endTime.toString());
-    formData.append('lyrics', lyrics || '');
-    formData.append('audio_cover_strength', audioCoverStrength.toString());
+    formData.append('audio_format', audioFormat);
     formData.append('bpm', bpm.toString());
+    formData.append('key_scale', keyScale || '');
     formData.append('time_signature', timeSignature || '');
     formData.append('vocal_language', vocalLanguage);
+    formData.append('instrumental', 'false');
     formData.append('thinking', 'true');
+    // Repaint-specific parameters
+    formData.append('task_type', 'repaint');
+    formData.append('source_audio', file);
+    formData.append('source_audio_strength', audioCoverStrength.toString());
+    formData.append('repainting_start', startTime.toString());
+    formData.append('repainting_end', endTime.toString());
+    // External LLM disabled for repaint (faster)
+    formData.append('use_external_llm', 'false');
+    formData.append('enable_quality_scoring', 'false');
+    formData.append('audio_enhance', 'true');
+    formData.append('enhance_strength', 'light');
 
     try {
-      const endpoint = '/acestep/repaint';
+      const endpoint = '/ace_generate';
       setProgress(`Processing repaint...`);
 
-      const response = await fetch(`${API_BASE}${endpoint}`, { method: 'POST', body: formData });
+      const response = await fetch(`${API_BASE}${endpoint}`, { 
+        method: 'POST', 
+        body: formData 
+      });
       let data = {};
       try { data = await response.json(); } catch (_) {}
 
@@ -179,6 +192,9 @@ export default function RepaintLegoComplete() {
         const errMsg = typeof data.error === 'string' ? data.error : typeof data.detail === 'string' ? data.detail : typeof data.detail === 'object' ? JSON.stringify(data.detail) : JSON.stringify(data) || `HTTP ${response.status}`;
         throw new Error(errMsg);
       }
+      
+      // Backend returns: { status: "ok", job_id, filename, url, duration_sec, processing_time_sec, metadata }
+      console.log('[Repaint] Result:', data);
       setResult(data);
       setProgress('Done!');
     } catch (err) {
