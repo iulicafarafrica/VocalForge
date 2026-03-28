@@ -24,12 +24,48 @@
 
 ---
 
+### ✨ **NEW FEATURES**
+
+#### **External LLM — AI-Powered Music Parameter Extraction**
+
+Just finished integrating **External LLM (Ollama + Gemma 3 4B)** into my VocalForge setup for intelligent prompt analysis before ACE-Step generation.
+
+**Features:**
+- **🎼 Music Parameter Auto-detection:** Extracts BPM, Key, instruments, style, and mood from natural language prompts
+- **🎤 Genre-aware Artist References:** Suggests relevant artists per culture (Romanian trap → Ian/Deliric, UK drill → Central Cee/Digga D, etc.)
+- **🎛️ Production Chain Suggestions:** EQ, compression, vocal chain, and LUFS targets per genre
+- **🎸 Music Theory:** Chord progressions, scale recommendations, and theory notes
+- **📊 Quality Scoring:** AI rates prompt clarity (1-10)
+
+**Implementation:**
+- **Local Ollama API:** Powered by `gemma3:4b`
+- **JSON-structured Output:** No markdown, strict schema
+- **Performance:** ~30-40s inference overhead, but worth it for quality
+- **Data Flow:** Caption goes directly to ACE-Step, metadata goes to frontend UI
+
+**Example Workflow:**
+```
+Before:
+  User types: "trap romanesc dark"
+  ACE-Step gets: "trap romanesc dark"
+
+After:
+  User types: "trap romanesc dark"
+  Gemma extracts → ACE-Step gets: "trap, romanian trap, dark, 808 bass, Ian style, Deliric style..."
+```
+
+**Result:** Significantly better generations with culturally-aware artist references and production-ready captions.
+
+---
+
 ### 📋 **Files Modified**
 
 | File | Changes |
 |------|---------|
-| `backend/main.py` | Fixed thinking mode toggle, disabled LLM for Audio Cover |
+| `backend/main.py` | Fixed thinking mode toggle, disabled LLM for Audio Cover, added Gemma prompt integration |
+| `frontend/src/components/AceStepTab.jsx` | Updated UI for External LLM, Quality Score always ON |
 | `README.md` | Added Ollama + Gemma 3 installation instructions |
+| `CHANGELOG.md` | Updated with External LLM features |
 
 ---
 
@@ -39,6 +75,7 @@
 |------|--------|-------|-------------|
 | Audio Cover (strength ≤ 0.45) | ~6s + LLM | ~6s | **~6s faster** |
 | Thinking Mode (when OFF) | Forced ON | Respects toggle | **User control restored** |
+| Text-to-Music | Basic prompt | AI-enhanced caption | **Better generations** |
 
 ---
 
@@ -48,6 +85,21 @@
 - Text-to-Music generation (Music Theory, Mixing Guide, Genre Fusion)
 - Users who want AI-powered prompt quality scoring
 - Users who want music theory insights (chords, scales)
+- Culturally-aware artist references (Romanian trap → Ian/Deliric, NOT Metro Boomin)
+
+**Setup:**
+```bash
+# 1. Install Ollama
+winget install Ollama.Ollama
+
+# 2. Pull Gemma 3 4B
+ollama pull gemma3:4b
+
+# 3. Start Ollama server
+ollama serve
+```
+
+---
 
 **External LLM is NOT needed for:**
 - Audio Cover (disabled to reduce latency)

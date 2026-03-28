@@ -114,41 +114,56 @@ Temp 0.85  ·  CFG 2.5  ·  Top-K 0  ·  Top-P 0.90
 
 ### 🌟 External LLM Integration (NEW in v3.2.0)
 
-**Powered by Gemma 3 4B via Ollama** — Advanced music theory and mixing intelligence
+**VocalForge Update — AI-Powered Music Parameter Extraction**
 
-| Feature | Description | Status |
-|---------|-------------|--------|
-| **🎼 Music Theory** | Chord progressions, scales, theory notes | ✅ Auto-enabled |
-| **🎚️ Mixing Guide** | Target LUFS, low-end advice, vocal chain, master tip | ✅ Auto-enabled |
-| **🎪 Genre Fusion** | Fusion elements detection for hybrid genres | ✅ Auto-enabled |
-| **📊 Quality Scoring** | AI-powered prompt quality assessment (1-10) | ✅ Auto-enabled |
-| **💡 Preset Suggestions** | Auto-adjust guidance_scale & shift for turbo models | ✅ Auto-enabled |
+Just finished integrating **External LLM (Ollama + Gemma 3 4B)** into my VocalForge setup for intelligent prompt analysis before ACE-Step generation.
 
-**Example Output:**
+---
+
+#### **Features**
+
+| Feature | Description |
+|---------|-------------|
+| **🎼 Music Parameter Auto-detection** | Extracts **BPM, Key, instruments, style, and mood** from natural language prompts |
+| **🎤 Genre-aware Artist References** | Suggests relevant artists per culture (Romanian trap → Ian/Deliric, UK drill → Central Cee/Digga D, etc.) |
+| **🎛️ Production Chain Suggestions** | EQ, compression, vocal chain, and LUFS targets per genre |
+| **🎸 Music Theory** | Chord progressions, scale recommendations, and theory notes |
+| **📊 Quality Scoring** | AI rates prompt clarity (1-10) |
+
+---
+
+#### **Implementation**
+
+| Aspect | Details |
+|--------|---------|
+| **Local Ollama API** | Powered by `gemma3:4b` |
+| **JSON-structured Output** | No markdown, strict schema |
+| **Performance** | ~30-40s inference overhead, but worth it for quality |
+| **Data Flow** | Caption goes directly to ACE-Step, metadata goes to frontend UI |
+
+---
+
+#### **Example Workflow**
+
+**Before:**
 ```
-🎼 Music Theory
-Chords: i-VI-III-VII
-Scale: F natural minor
-The F minor scale and dominant 7th chords create the characteristic dark atmosphere of UK Drill.
-
-🎚️ Mixing Guide
-Target LUFS: -8 LUFS (trap standard)
-Low End: 808 sub-bass at 50-60Hz, sidechain kick
-Vocals: HPF 100Hz, comp 4:1, de-esser 8kHz
-💡 Aggressive compression on drums to maintain punch
-
-🎪 Genre Fusion
-Trap + UK Drill
-Compatible: 808 + drill snare, dark synth + sampled vocal chop
-💡 Use trap drums with UK drill swing pattern
+User types: "trap romanesc dark"
+ACE-Step gets: "trap romanesc dark"
 ```
 
-**Workflow:**
-1. **Gemma 3** extracts metadata + music theory + mixing guide
-2. **Backend** sends theory/mix to ACE-Step Internal LM for enhanced generation
-3. **Frontend** displays theory/mix/fusion cards in result card
+**After:**
+```
+User types: "trap romanesc dark"
+Gemma extracts → ACE-Step gets: "trap, romanian trap, dark, aggressive, 808 bass, 
+rapid hi-hats, atmospheric synth, crisp snare, Ian style, Deliric style, high quality production"
+```
 
-**Requirements:**
+**Result:** Significantly better generations with culturally-aware artist references and production-ready captions.
+
+---
+
+#### **Requirements**
+
 - Ollama installed ([Download](https://ollama.com) or `winget install Ollama.Ollama`)
 - Gemma 3 4B model (`ollama pull gemma3:4b`)
 - Ollama server running (`ollama serve`)
