@@ -1,5 +1,61 @@
 ---
 
+## [v3.2.1] - 2026-03-28
+
+### 🔧 Thinking Mode Fix + Audio Cover Performance
+
+**Critical bug fixes for External LLM integration**
+
+---
+
+### 🐛 **BUG FIXES**
+
+#### **1. Thinking Mode Toggle Ignored (CRITICAL)**
+- **Problem:** Thinking Mode was forced ON when External LLM was enabled, ignoring user toggle
+- **Root cause:** `effective_thinking = True` hardcoded in backend (line 2749)
+- **Fix:** Changed to `effective_thinking = thinking` — respects UI toggle
+- **Impact:** Users can now disable Thinking Mode even with External LLM enabled
+
+#### **2. Audio Cover Latency (~6s overhead)**
+- **Problem:** External LLM was auto-enabled for Audio Cover when strength ≤ 0.45
+- **Impact:** Added ~6s latency to Audio Cover generation
+- **Fix:** Disabled External LLM for Audio Cover (remains active for Text-to-Music only)
+- **Result:** Audio Cover is now ~6s faster
+
+---
+
+### 📋 **Files Modified**
+
+| File | Changes |
+|------|---------|
+| `backend/main.py` | Fixed thinking mode toggle, disabled LLM for Audio Cover |
+| `README.md` | Added Ollama + Gemma 3 installation instructions |
+
+---
+
+### 📊 **Performance Impact**
+
+| Task | Before | After | Improvement |
+|------|--------|-------|-------------|
+| Audio Cover (strength ≤ 0.45) | ~6s + LLM | ~6s | **~6s faster** |
+| Thinking Mode (when OFF) | Forced ON | Respects toggle | **User control restored** |
+
+---
+
+### 🎯 **RECOMMENDATION**
+
+**External LLM (Gemma 3 4B) is recommended for:**
+- Text-to-Music generation (Music Theory, Mixing Guide, Genre Fusion)
+- Users who want AI-powered prompt quality scoring
+- Users who want music theory insights (chords, scales)
+
+**External LLM is NOT needed for:**
+- Audio Cover (disabled to reduce latency)
+- Fast generation without metadata insights
+- Users with limited RAM (<8GB system RAM)
+
+---
+
 ## [v3.2.0] - 2026-03-28
 
 ### 🌟 External LLM Integration — Gemma 3 4B
