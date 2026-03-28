@@ -2986,12 +2986,12 @@ async def ace_generate(
                 lyrics_instruction = """
   "lyrics": null,"""
 
-                llm_prompt = f"""You are a JSON-only music API. Return ONLY valid JSON. NO text before or after JSON. NO markdown. NO explanations. NO production notes. NO song titles. NO offers to help.
+                llm_prompt = f"""You are an expert music AI assistant. Extract ALL music parameters from this description in ONE response.
 
 User description: "{prompt}"
 Language requested: {external_llm_language}
 
-Return ONLY this JSON structure:
+Return ONLY valid JSON (no extra text, no markdown):
 {{
   "bpm": <integer 60-200>,
   "key": "<e.g. C major, D minor, Am, Cm>",
@@ -3005,20 +3005,12 @@ Return ONLY this JSON structure:
   "quality_notes": "<brief note>"
 }}
 
-RULES:
-1. Return ONLY JSON - NO text before or after
-2. NO markdown (no ```json ... ```)
-3. NO song titles
-4. NO production notes
-5. NO "Here's your song" or "Would you like..."
-6. lyrics is ALWAYS null (user provides lyrics manually in the Lyrics box)
-
 Examples:
 - "manele de petrecere" → {{"bpm": 110, "key": "A minor", "style": "manele", "subgenre": "manele moderne", "instruments": ["accordion", "oriental synth", "drums", "bass"], "mood": "party", "time_signature": "4/4", "lyrics": null, "quality_score": 7, "quality_notes": "clear genre"}}
 - "trap american dark" → {{"bpm": 140, "key": "C minor", "style": "trap", "subgenre": "dark trap", "instruments": ["808 bass", "hi-hats", "synth pads", "snare"], "mood": "dark", "time_signature": "4/4", "lyrics": null, "quality_score": 8, "quality_notes": "good clarity"}}
 - "jamaican trap" → {{"bpm": 130, "key": "D minor", "style": "trap", "subgenre": "jamaican trap", "instruments": ["808 bass", "dancehall drums", "synth lead", "piano"], "mood": "energetic, tropical", "time_signature": "4/4", "lyrics": null, "quality_score": 8, "quality_notes": "good fusion"}}
 
-Now return JSON for: "{prompt}"
+Now extract for: "{prompt}"
 """
 
                 try:
