@@ -3102,48 +3102,88 @@ Now extract for: "{prompt}"
             # ── Preset Suggestions (genre-based optimization) ─────────────────────
             # Only apply if enable_preset_suggestions is True (user enabled it)
             if enable_preset_suggestions:
-                PRESET_SUGGESTIONS = {
-                    "trap": {"infer_steps": 12, "guidance_scale": 4.0, "bpm_range": [135, 155], "keys": ["C minor", "D minor", "F minor"]},
-                    "manele": {"infer_steps": 12, "guidance_scale": 4.5, "bpm_range": [105, 125], "keys": ["A minor", "D minor", "G minor"]},
-                    "pop": {"infer_steps": 40, "guidance_scale": 7.0, "bpm_range": [100, 130], "keys": ["C major", "G major", "A minor"]},
-                    "afro house": {"infer_steps": 15, "guidance_scale": 5.0, "bpm_range": [118, 128], "keys": ["D minor", "F minor", "A minor"]},
-                    "rock": {"infer_steps": 35, "guidance_scale": 7.5, "bpm_range": [110, 140], "keys": ["E minor", "A minor", "D major"]},
-                    "hip hop": {"infer_steps": 15, "guidance_scale": 4.5, "bpm_range": [85, 105], "keys": ["C minor", "F minor", "G minor"]},
-                    "dembow": {"infer_steps": 12, "guidance_scale": 4.0, "bpm_range": [110, 120], "keys": ["A minor", "C minor", "E minor"]},
-                    "reggaeton": {"infer_steps": 15, "guidance_scale": 5.0, "bpm_range": [90, 100], "keys": ["A minor", "B minor", "C# minor"]},
+                # Default preset for ALL genres (fallback)
+                DEFAULT_PRESET = {
+                    "infer_steps": 8 if "turbo" in dit_model.lower() else 50,
+                    "guidance_scale": 1.0 if "turbo" in dit_model.lower() else 7.5,
+                    "shift": 3.0 if "turbo" in dit_model.lower() else 3.0,
                 }
                 
-                # Detect genre from prompt/style and apply preset
+                # Genre-specific presets (override defaults for known genres)
+                PRESET_SUGGESTIONS = {
+                    "trap": {"bpm_range": [135, 155], "keys": ["C minor", "D minor", "F minor"]},
+                    "manele": {"bpm_range": [105, 125], "keys": ["A minor", "D minor", "G minor"]},
+                    "pop": {"bpm_range": [100, 130], "keys": ["C major", "G major", "A minor"]},
+                    "afro house": {"bpm_range": [118, 128], "keys": ["D minor", "F minor", "A minor"]},
+                    "rock": {"bpm_range": [110, 140], "keys": ["E minor", "A minor", "D major"]},
+                    "hip hop": {"bpm_range": [85, 105], "keys": ["C minor", "F minor", "G minor"]},
+                    "dembow": {"bpm_range": [110, 120], "keys": ["A minor", "C minor", "E minor"]},
+                    "reggaeton": {"bpm_range": [90, 100], "keys": ["A minor", "B minor", "C# minor"]},
+                    "house": {"bpm_range": [120, 130], "keys": ["F major", "G major", "A minor"]},
+                    "techno": {"bpm_range": [125, 140], "keys": ["A minor", "F minor", "C minor"]},
+                    "jazz": {"bpm_range": [80, 120], "keys": ["C major", "F major", "Bb major"]},
+                    "classical": {"bpm_range": [60, 120], "keys": ["C major", "D major", "G major"]},
+                    "electronic": {"bpm_range": [120, 140], "keys": ["A minor", "C minor", "F minor"]},
+                    "r&b": {"bpm_range": [70, 100], "keys": ["C minor", "Eb major", "Ab major"]},
+                    "country": {"bpm_range": [90, 130], "keys": ["G major", "D major", "A major"]},
+                    "metal": {"bpm_range": [120, 180], "keys": ["E minor", "D minor", "A minor"]},
+                    "folk": {"bpm_range": [80, 120], "keys": ["G major", "D major", "Emajor"]},
+                    "soul": {"bpm_range": [70, 100], "keys": ["C major", "F major", "D minor"]},
+                    "funk": {"bpm_range": [90, 120], "keys": ["F major", "Bb major", "G minor"]},
+                    "disco": {"bpm_range": [110, 130], "keys": ["F major", "G major", "A minor"]},
+                }
+                
+                # Detect genre from prompt/style
                 style_lower = (task_payload.get("prompt") or "").lower()
+                detected_preset = None
+                detected_genre = None
+                
                 for genre_name, preset in PRESET_SUGGESTIONS.items():
                     if genre_name in style_lower:
-                        print(f"[ACE {job_id[:8]}] 💡 Preset detected: {genre_name} (user enabled)")
-                        
-                        # Apply infer_steps if not already set by user
-                        if infer_steps == 50:  # Default value
-                            task_payload["inference_steps"] = preset["infer_steps"]
-                            print(f"[ACE {job_id[:8]}]   → infer_steps: {infer_steps} → {preset['infer_steps']}")
-                        
-                        # Apply guidance_scale if turbo model (default 7.0 too high for turbo)
-                        if "turbo" in dit_model.lower() and guidance_scale >= 7.0:
-                            task_payload["guidance_scale"] = preset["guidance_scale"]
-                            print(f"[ACE {job_id[:8]}]   → guidance_scale: {guidance_scale} → {preset['guidance_scale']} (turbo optimized)")
-                        
-                        # Suggest BPM if not set
-                        if not task_payload.get("bpm"):
-                            import random
-                            suggested_bpm = random.randint(*preset["bpm_range"])
-                            task_payload["bpm"] = suggested_bpm
-                            print(f"[ACE {job_id[:8]}]   → BPM: None → {suggested_bpm} ({genre_name} typical range)")
-                        
-                        # Suggest key if not set
-                        if not task_payload.get("key_scale"):
-                            import random
-                            suggested_key = random.choice(preset["keys"])
-                            task_payload["key_scale"] = suggested_key
-                            print(f"[ACE {job_id[:8]}]   → Key: None → {suggested_key} ({genre_name} common key)")
-                        
-                        break  # Only apply first matching preset
+                        detected_preset = preset
+                        detected_genre = genre_name
+                        break
+                
+                # Apply DEFAULT preset + genre-specific BPM/Key (if detected)
+                final_preset = DEFAULT_PRESET.copy()
+                if detected_preset:
+                    final_preset.update(detected_preset)
+                
+                if detected_genre:
+                    print(f"[ACE {job_id[:8]}] 💡 Preset detected: {detected_genre} (user enabled)")
+                else:
+                    print(f"[ACE {job_id[:8]}] 💡 Preset: Using DEFAULT (no specific genre detected)")
+                    print(f"[ACE {job_id[:8]}]   → Model: {dit_model}")
+                    print(f"[ACE {job_id[:8]}]   → Steps: {final_preset['infer_steps']}, CFG: {final_preset['guidance_scale']}, Shift: {final_preset['shift']}")
+                
+                # Apply infer_steps if not already set by user
+                if infer_steps == 50 and DEFAULT_PRESET["infer_steps"] != 50:  # User didn't override
+                    task_payload["inference_steps"] = final_preset["infer_steps"]
+                    print(f"[ACE {job_id[:8]}]   → infer_steps: {infer_steps} → {final_preset['infer_steps']}")
+                
+                # Apply guidance_scale if turbo model (default 7.0 too high for turbo)
+                if "turbo" in dit_model.lower() and guidance_scale >= 7.0:
+                    task_payload["guidance_scale"] = final_preset["guidance_scale"]
+                    print(f"[ACE {job_id[:8]}]   → guidance_scale: {guidance_scale} → {final_preset['guidance_scale']} (turbo optimized)")
+                
+                # Apply shift for turbo models
+                if "turbo" in dit_model.lower():
+                    task_payload["shift"] = final_preset["shift"]
+                    print(f"[ACE {job_id[:8]}]   → shift: 1.0 → {final_preset['shift']} (turbo default)")
+                
+                # Suggest BPM if not set
+                if not task_payload.get("bpm") and "bpm_range" in final_preset:
+                    import random
+                    suggested_bpm = random.randint(*final_preset["bpm_range"])
+                    task_payload["bpm"] = suggested_bpm
+                    print(f"[ACE {job_id[:8]}]   → BPM: None → {suggested_bpm} ({detected_genre or 'default'} typical range)")
+                
+                # Suggest key if not set
+                if not task_payload.get("key_scale") and "keys" in final_preset:
+                    import random
+                    suggested_key = random.choice(final_preset["keys"])
+                    task_payload["key_scale"] = suggested_key
+                    print(f"[ACE {job_id[:8]}]   → Key: None → {suggested_key} ({detected_genre or 'default'} common key)")
             else:
                 print(f"[ACE {job_id[:8]}] 💡 Preset Suggestions: DISABLED by user")
 
