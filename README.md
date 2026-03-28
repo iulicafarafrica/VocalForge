@@ -658,6 +658,39 @@ Vulnerabilities Fixed: 8 total
 ## Changelog
 
 <details open>
+<summary><strong>v3.2.1 — 2026-03-28 — External LLM Integration (Gemma 3 4B)</strong></summary>
+
+### ✨ New Features
+- **🌟 External LLM Integration** — Ollama + Gemma 3 4B for AI-powered music parameter extraction
+- **🎼 Music Parameter Auto-detection** — Extracts BPM, Key, instruments, style, mood from prompts
+- **🎤 Genre-aware Artist References** — Culturally-aware suggestions for regional genres
+- **🎛️ Production Chain Suggestions** — EQ, compression, vocal chain, LUFS targets per genre
+- **🎸 Music Theory** — Chord progressions, scale recommendations, theory notes
+- **📊 Quality Scoring** — AI rates prompt clarity (1-10), always ON
+- **🧠 JSON-structured Output** — No markdown, strict schema for ACE-Step
+
+### 🐛 Bug Fixes
+- **Thinking Mode Toggle** — Now respects UI toggle (was forced ON)
+- **Audio Cover Latency** — Disabled LLM for Audio Cover (~6s faster)
+- **UI Cleanup** — Removed Preset Suggestions banner (redundant with Gemma)
+- **UI Cleanup** — Removed Generate Lyrics toggle (Gemma doesn't generate lyrics)
+- **Font Size** — Extract Music Parameters reduced to 11px
+
+### 📚 Documentation
+- **README Reorganization** — External LLM section moved to top of Features
+- **Troubleshooting** — Added External LLM and Gemma troubleshooting sections
+- **setup.bat** — Updated to v3.2.1 with Ollama setup instructions
+- **Acknowledgments** — Added Ollama and Gemma 3, removed yt-dlp
+
+**Requirements:**
+- Ollama installed (`winget install Ollama.Ollama`)
+- Gemma 3 4B model (`ollama pull gemma3:4b`)
+- Ollama server running (`ollama serve`)
+- ~3-4GB RAM for Gemma
+
+</details>
+
+<details>
 <summary><strong>v3.1.1 — 2026-03-21 — LLM Enabled, RVC Removed</strong></summary>
 
 - ✅ **ACE-Step LLM activated** — `acestep-5Hz-lm-0.6B` loads at startup
