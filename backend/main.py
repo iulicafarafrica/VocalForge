@@ -3659,7 +3659,7 @@ Now extract for: "{prompt}"
                             # Music Theory (#1)
                             "theory": _llm_theory if _llm_theory.get("chord_progression") else None,
                             # Mixing & Mastering Guide (#6)
-                            "mix_guide": _llm_mix if _llm_mix.get("target_lufs") else None,
+                            "mix_guide": _llm_mix if _llm_mix.get("master_tip") else None,  # Check master_tip instead of target_lufs
                             # Genre Fusion (#7)
                             "fusion": _llm_fusion,
                         }
