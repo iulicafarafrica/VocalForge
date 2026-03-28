@@ -2989,8 +2989,9 @@ async def ace_generate(
                 except Exception:
                     return 0
 
-            def build_ace_tags(style: str, mood: str, subgenre: str, instruments: list, original_prompt: str) -> str:
-                """Build ACE-Step tags in optimal order: genre → mood → instruments → original."""
+            def build_ace_tags(style: str, mood: str, subgenre: str, instruments: list, original_prompt: str,
+                               chord_progression: str = "", scale: str = "", mix_notes: str = "") -> str:
+                """Build ACE-Step tags in optimal order: genre → mood → instruments → theory → mix → original."""
                 parts = []
                 if style:
                     parts.append(style.strip().lower())
@@ -3003,6 +3004,19 @@ async def ace_generate(
                 if instruments:
                     # Max 5 instruments — enough context without overloading prompt
                     parts.extend([i.strip().lower() for i in instruments[:5]])
+                
+                # Add Music Theory info (chords, scale)
+                if chord_progression:
+                    parts.append(f"chords: {chord_progression.strip()}")
+                if scale:
+                    parts.append(f"scale: {scale.strip()}")
+                
+                # Add Mixing info (brief)
+                if mix_notes:
+                    # Truncate to 50 chars to avoid overloading prompt
+                    mix_short = mix_notes.strip()[:50]
+                    parts.append(f"mix: {mix_short}")
+                
                 if original_prompt:
                     parts.append(original_prompt.strip())
                 return ", ".join(filter(None, parts))
@@ -3167,11 +3181,27 @@ Now extract for: "{prompt}"
                                     subgenre = raw_subgenre
                                 
                                 instruments = music_params.get("instruments", [])
-                                enhanced_prompt = build_ace_tags(style, mood, subgenre, instruments, prompt)
+                                
+                                # Get Music Theory & Mixing info
+                                chord_prog = music_params.get("chord_progression", "")
+                                scale_info = music_params.get("scale", "")
+                                mix_info = music_params.get("mix_master_tip", "")
+                                
+                                # Build enhanced prompt with theory/mix info
+                                enhanced_prompt = build_ace_tags(style, mood, subgenre, instruments, prompt,
+                                                                 chord_progression=chord_prog,
+                                                                 scale=scale_info,
+                                                                 mix_notes=mix_info)
                                 task_payload["prompt"] = enhanced_prompt + ", clean studio quality, noise-free"
                                 print(f"[ACE {job_id[:8]}] 🎭 Style: {style} | Mood: {mood}")
                                 print(f"[ACE {job_id[:8]}] 🎸 Instruments: {', '.join(instruments)}")
-                                print(f"[ACE {job_id[:8]}] ✨ Enhanced prompt: {task_payload['prompt'][:120]}...")
+                                if chord_prog:
+                                    print(f"[ACE {job_id[:8]}] 🎼 Chords: {chord_prog} → SENT TO ACE-STEP")
+                                if scale_info:
+                                    print(f"[ACE {job_id[:8]}] 🎼 Scale: {scale_info} → SENT TO ACE-STEP")
+                                if mix_info:
+                                    print(f"[ACE {job_id[:8]}] 🎚️ Mix tip: {mix_info[:50]}... → SENT TO ACE-STEP")
+                                print(f"[ACE {job_id[:8]}] ✨ Enhanced prompt: {task_payload['prompt'][:140]}...")
 
                                 # Quality scoring (from LLM, not audio analysis)
                                 if enable_quality_scoring:
