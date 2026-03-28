@@ -760,14 +760,31 @@ start_backend.bat              # Restart
 </details>
 
 <details>
-<summary><strong>YouTube Cover fails</strong></summary>
+<summary><strong>External LLM not responding</strong></summary>
 
 ```bash
-venv\Scripts\activate
-pip install yt-dlp
-pip install -U yt-dlp   # Update if needed
-ffmpeg -version          # Verify FFmpeg is installed
+# 1. Check Ollama is running
+ollama serve
+
+# 2. Verify Gemma model is installed
+ollama pull gemma3:4b
+
+# 3. Test Gemma directly
+ollama run gemma3:4b "Hello"
+
+# 4. Check RAM usage (Gemma needs ~3-4GB)
+# Close other applications if low on memory
 ```
+
+</details>
+
+<details>
+<summary><strong>Gemma returns empty caption</strong></summary>
+
+- Ensure prompt is at least 3 words
+- Check Ollama logs: `ollama serve` output
+- Try restarting Ollama server
+- Verify `gemma3:4b` model is fully downloaded (2.5GB)
 
 </details>
 
@@ -864,15 +881,16 @@ git push origin feature/your-feature
 |---------|------|
 | [ACE-Step](https://github.com/ace-step/ACE-Step-1.5) | Music generation engine |
 | [audio-separator](https://github.com/Anjok07/ultimatevocalremovergui) | BS-RoFormer separation |
-| [yt-dlp](https://github.com/yt-dlp/yt-dlp) | YouTube audio download |
 | [FastAPI](https://fastapi.tiangolo.com) | Backend framework |
 | [React](https://react.dev) | Frontend framework |
+| [Ollama](https://ollama.com) | External LLM runtime |
+| [Gemma 3](https://ollama.com/library/gemma3) | AI music parameter extraction |
 
 ---
 
 <div align="center">
 
-**VocalForge v3.1.1**
+**VocalForge v3.2.1**
 
 Made with precision by [iulicafarafrica](https://github.com/iulicafarafrica)
 
