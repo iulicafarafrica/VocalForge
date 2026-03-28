@@ -47,6 +47,7 @@
 - Separate vocals from any song with BS-RoFormer (SDR 12.97)
 - 164 genre presets
 - Professional audio enhancement tools
+- AI-powered music parameter extraction (External LLM)
 
 </td>
 <td width="50%">
@@ -67,14 +68,16 @@
 </tr>
 </table>
 
+---
 
-## 9 Modules
+## 10 Modules
 
 | Module | Description | Key Feature |
 |--------|-------------|-------------|
 | **Stem Separation** | BS-RoFormer SDR 12.97, Mel-Band SDR 12.6 | SOTA Quality |
-| **ACE-Step v1.5** | Text→Music, Audio Cover, Repaint | 164 genres, 30 Romanian |
-| **Prompt Generator** | 164 subgenres, 5 vocal presets | Romanian subgenres included |
+| **ACE-Step v1.5** | Text→Music, Audio Cover, Repaint | 164 genres |
+| **External LLM** | Ollama + Gemma 3 4B | Music theory, mixing guide |
+| **Prompt Generator** | 164 subgenres, 5 vocal presets | Genre-aware |
 | **Repaint** | Regenerate any section (30–60s) | Non-destructive editing |
 | **Audio Analysis** | BPM, Key, Time Signature detection | madmom + essentia |
 | **Lyrics Finder** | Genius.com API + local library | 24 genre tags |
@@ -87,6 +90,77 @@
 ---
 
 ## Features Deep Dive
+
+### 🌟 External LLM Integration (NEW in v3.2.0)
+
+**VocalForge Update — AI-Powered Music Parameter Extraction**
+
+Just finished integrating **External LLM (Ollama + Gemma 3 4B)** into my VocalForge setup for intelligent prompt analysis before ACE-Step generation.
+
+---
+
+#### **Features**
+
+| Feature | Description |
+|---------|-------------|
+| **🎼 Music Parameter Auto-detection** | Extracts **BPM, Key, instruments, style, and mood** from natural language prompts |
+| **🎤 Genre-aware Artist References** | Suggests relevant artists per culture (Romanian trap → Ian/Deliric, UK drill → Central Cee/Digga D, etc.) |
+| **🎛️ Production Chain Suggestions** | EQ, compression, vocal chain, and LUFS targets per genre |
+| **🎸 Music Theory** | Chord progressions, scale recommendations, and theory notes |
+| **📊 Quality Scoring** | AI rates prompt clarity (1-10) |
+
+---
+
+#### **Implementation**
+
+| Aspect | Details |
+|--------|---------|
+| **Local Ollama API** | Powered by `gemma3:4b` |
+| **JSON-structured Output** | No markdown, strict schema |
+| **Performance** | ~30-40s inference overhead, but worth it for quality |
+| **Data Flow** | Caption goes directly to ACE-Step, metadata goes to frontend UI |
+
+---
+
+#### **Example Workflow**
+
+**Before:**
+```
+User types: "trap romanesc dark"
+ACE-Step gets: "trap romanesc dark"
+```
+
+**After:**
+```
+User types: "trap romanesc dark"
+Gemma extracts → ACE-Step gets: "trap, romanian trap, dark, aggressive, 808 bass,
+rapid hi-hats, atmospheric synth, crisp snare, Ian style, Deliric style, high quality production"
+```
+
+**Result:** Significantly better generations with culturally-aware artist references and production-ready captions.
+
+---
+
+#### **Requirements**
+
+- Ollama installed ([Download](https://ollama.com) or `winget install Ollama.Ollama`)
+- Gemma 3 4B model (`ollama pull gemma3:4b`)
+- Ollama server running (`ollama serve`)
+- ~3-4GB RAM for Gemma (runs on CPU by default)
+
+**Setup (3 steps):**
+```bash
+# 1. Install Ollama
+winget install Ollama.Ollama
+
+# 2. Pull Gemma 3 4B model
+ollama pull gemma3:4b
+
+# 3. Start Ollama server (keep running in background)
+ollama serve
+```
+
+---
 
 ### ACE-Step v1.5 — Music Generation
 
