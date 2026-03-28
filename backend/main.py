@@ -3047,17 +3047,22 @@ Now extract for: "{prompt}"
                                         print(f"[ACE {job_id[:8]}] ⚠️ JSON parse failed: {je}")
 
                             if music_params:
-                                # BPM — handle ranges
+                                # BPM — handle integer, string ranges, OR object {"min": x, "max": y}
                                 raw_bpm = music_params.get("bpm")
                                 if raw_bpm:
-                                    parsed_bpm = parse_bpm(raw_bpm)
+                                    if isinstance(raw_bpm, dict):  # {"min": 140, "max": 160}
+                                        parsed_bpm = int((raw_bpm.get("min", 140) + raw_bpm.get("max", 160)) / 2)
+                                    else:
+                                        parsed_bpm = parse_bpm(raw_bpm)
                                     if 60 <= parsed_bpm <= 220:
                                         task_payload["bpm"] = parsed_bpm
                                         print(f"[ACE {job_id[:8]}] 🎵 BPM: {raw_bpm} → {parsed_bpm}")
 
-                                # Key — validated
+                                # Key — handle string OR array ["C", "D", "Am"]
                                 raw_key = music_params.get("key", "")
                                 if raw_key:
+                                    if isinstance(raw_key, list):  # ["C", "G", "D", "A"]
+                                        raw_key = raw_key[0]  # Take first element
                                     validated_key = validate_key(raw_key)
                                     task_payload["key_scale"] = validated_key
                                     print(f"[ACE {job_id[:8]}] 🎼 Key: {raw_key} → {validated_key}")
@@ -3073,8 +3078,21 @@ Now extract for: "{prompt}"
                                 # Build enhanced prompt in correct ACE-Step order:
                                 # genre → mood → instruments → original_prompt
                                 style = music_params.get("style", "")
-                                mood = music_params.get("mood", "")
-                                subgenre = music_params.get("subgenre", "")
+                                
+                                # Mood — handle string OR array ["Energetic", "Dark"]
+                                raw_mood = music_params.get("mood", "")
+                                if isinstance(raw_mood, list):
+                                    mood = ", ".join(raw_mood[:3])  # Take first 3 moods
+                                else:
+                                    mood = raw_mood
+                                
+                                # Subgenre — handle string OR array ["UK Trap", "Dancehall"]
+                                raw_subgenre = music_params.get("subgenre", "")
+                                if isinstance(raw_subgenre, list):
+                                    subgenre = ", ".join(raw_subgenre[:2])  # Take first 2 subgenres
+                                else:
+                                    subgenre = raw_subgenre
+                                
                                 instruments = music_params.get("instruments", [])
                                 enhanced_prompt = build_ace_tags(style, mood, subgenre, instruments, prompt)
                                 task_payload["prompt"] = enhanced_prompt + ", clean studio quality, noise-free"
