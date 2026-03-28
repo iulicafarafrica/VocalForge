@@ -1282,9 +1282,43 @@ async def detect_bpm_key(file: UploadFile = File(...)):
         y, sr = librosa.load(tmp_path, sr=None, duration=30, mono=True)
         os.unlink(tmp_path)
 
-        # ========== BPM Detection ==========
-        tempo, beats = librosa.beat.beat_track(y=y, sr=sr)
-        bpm = round(float(tempo), 1)
+        # ========== BPM Detection (Multi-method for electronic music) ==========
+        # Method 1: Standard librosa beat tracking
+        tempo1, beats = librosa.beat.beat_track(y=y, sr=sr)
+        
+        # Method 2: Double tempo if detected BPM is low (common for electronic music)
+        # Afro house, tech house, techno often detected as half-time
+        if tempo1 < 90:
+            tempo2 = tempo1 * 2
+        else:
+            tempo2 = tempo1
+        
+        # Method 3: Onset strength-based tempo estimation
+        onset_env = librosa.onset.onset_strength(y=y, sr=sr)
+        tempo3 = librosa.feature.tempo(onset_envelope=onset_env, sr=sr)
+        if isinstance(tempo3, np.ndarray):
+            tempo3 = tempo3[0]
+        
+        # Choose the most appropriate BPM
+        # For electronic music (house, techno, trance), prefer 120-140 range
+        tempos = [tempo1, tempo2, tempo3]
+        
+        # If any method detects 120-140 BPM (typical house/techno), use that
+        electronic_tempo = None
+        for t in tempos:
+            if 115 <= t <= 145:
+                electronic_tempo = t
+                break
+        
+        if electronic_tempo:
+            bpm = round(float(electronic_tempo), 1)
+        else:
+            # Use the highest tempo for dance music (avoid half-time)
+            bpm = round(float(max(tempos)), 1)
+        
+        # Additional check: if BPM is still in "dubstep/trap" range (70-75), double it
+        if 65 <= bpm <= 75:
+            bpm = round(bpm * 2, 1)
 
         # ========== Key Detection ==========
         major_profile = np.array([6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88])
