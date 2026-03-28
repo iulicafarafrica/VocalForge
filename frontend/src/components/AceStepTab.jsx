@@ -897,6 +897,7 @@ export default function AceStepTab({
   const [batchSize, setBatchSize] = useState(1);
   const [thinking, setThinking] = useState(true);  // Default: ON (5Hz LM for CoT)
   const [useExternalLLM, setUseExternalLLM] = useState(true); // External LLM for prompt expansion (Gemma 3 4B) - AUTO-ENABLED
+  const [generateLyrics, setGenerateLyrics] = useState(false); // Generate lyrics with AI if none provided
   const [externalLLMLanguage, setExternalLLMLanguage] = useState("auto"); // "auto", "ro", "en", "es"
   const [analyzeReferenceAudio, setAnalyzeReferenceAudio] = useState(false); // Analyze uploaded audio
   const [enableQualityScoring, setEnableQualityScoring] = useState(false); // Get AI quality rating
@@ -1811,6 +1812,7 @@ export default function AceStepTab({
     fd.append("use_cot_caption", effectiveUseCotCaption);  // Disable for custom/text2music
     fd.append("use_cot_language", effectiveUseCotLanguage);  // Disable for custom/text2music
     fd.append("use_external_llm", useExternalLLM);  // External LLM for prompt expansion (Gemma 3 4B)
+    fd.append("generate_lyrics", generateLyrics);    // AI-generated lyrics if none provided
     fd.append("external_llm_language", externalLLMLanguage);  // "auto", "ro", "en", "es"
     fd.append("analyze_reference_audio", analyzeReferenceAudio);  // Analyze uploaded audio for style
     fd.append("enable_quality_scoring", enableQualityScoring);  // Get AI quality rating
@@ -3251,10 +3253,103 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   {result.metadata?.quality_score && (
                     <span style={{ background: "#ffd16622", color: "#ffd166", border: "1px solid #ffd16644", borderRadius: 6, padding: "3px 10px", fontSize: 12, fontFamily: "monospace" }}>
                       ⭐ {result.metadata.quality_score}/10
+                      {result.metadata.quality_notes && <span style={{ color: "#888", marginLeft: 4 }}>— {result.metadata.quality_notes}</span>}
+                    </span>
+                  )}
+                  {result.metadata?.detected_key && !resultKey && (
+                    <span style={{ background: "#06d6a022", color: "#06d6a0", border: "1px solid #06d6a044", borderRadius: 6, padding: "3px 10px", fontSize: 12, fontFamily: "monospace" }}>
+                      🎼 {result.metadata.detected_key}
+                    </span>
+                  )}
+                  {result.metadata?.detected_bpm > 0 && !resultBpm && (
+                    <span style={{ background: "#06d6a022", color: "#06d6a0", border: "1px solid #06d6a044", borderRadius: 6, padding: "3px 10px", fontSize: 12, fontFamily: "monospace" }}>
+                      ♩ {result.metadata.detected_bpm} BPM
                     </span>
                   )}
                 </div>
               )}
+              {/* Music Theory, Mixing Guide, Genre Fusion */}
+              {result.metadata && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 8 }}>
+                  
+                  {/* Music Theory */}
+                  {result.metadata.theory && (
+                    <div style={{ background: "#1a1a3a", borderRadius: 8, padding: "10px", border: "1px solid #06d6a022" }}>
+                      <div style={{ color: "#06d6a0", fontSize: 11, fontWeight: 700, marginBottom: 4 }}>
+                        🎼 Music Theory
+                      </div>
+                      {result.metadata.theory.chord_progression && (
+                        <div style={{ fontSize: 11, color: "#aaaacc" }}>
+                          <strong>Chords:</strong> {result.metadata.theory.chord_progression}
+                        </div>
+                      )}
+                      {result.metadata.theory.scale && (
+                        <div style={{ fontSize: 11, color: "#aaaacc" }}>
+                          <strong>Scale:</strong> {result.metadata.theory.scale}
+                        </div>
+                      )}
+                      {result.metadata.theory.theory_notes && (
+                        <div style={{ fontSize: 10, color: "#666688", marginTop: 4, fontStyle: "italic" }}>
+                          {result.metadata.theory.theory_notes}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Mixing Guide */}
+                  {result.metadata.mix_guide && (
+                    <div style={{ background: "#1a1a3a", borderRadius: 8, padding: "10px", border: "1px solid #ffd16622" }}>
+                      <div style={{ color: "#ffd166", fontSize: 11, fontWeight: 700, marginBottom: 4 }}>
+                        🎚️ Mixing Guide
+                      </div>
+                      {result.metadata.mix_guide.mix_target_lufs && (
+                        <div style={{ fontSize: 11, color: "#aaaacc" }}>
+                          <strong>Target LUFS:</strong> {result.metadata.mix_guide.mix_target_lufs}
+                        </div>
+                      )}
+                      {result.metadata.mix_guide.mix_low_end && (
+                        <div style={{ fontSize: 11, color: "#aaaacc" }}>
+                          <strong>Low End:</strong> {result.metadata.mix_guide.mix_low_end}
+                        </div>
+                      )}
+                      {result.metadata.mix_guide.mix_vocal_chain && (
+                        <div style={{ fontSize: 11, color: "#aaaacc" }}>
+                          <strong>Vocals:</strong> {result.metadata.mix_guide.mix_vocal_chain}
+                        </div>
+                      )}
+                      {result.metadata.mix_guide.mix_master_tip && (
+                        <div style={{ fontSize: 10, color: "#666688", marginTop: 4, fontStyle: "italic" }}>
+                          💡 {result.metadata.mix_guide.mix_master_tip}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Genre Fusion */}
+                  {result.metadata.fusion && (
+                    <div style={{ background: "#1a1a3a", borderRadius: 8, padding: "10px", border: "1px solid #c77dff22" }}>
+                      <div style={{ color: "#c77dff", fontSize: 11, fontWeight: 700, marginBottom: 4 }}>
+                        🎪 Genre Fusion
+                      </div>
+                      <div style={{ fontSize: 11, color: "#aaaacc", marginBottom: 4 }}>
+                        <strong>{result.metadata.fusion.genre_a}</strong> + <strong>{result.metadata.fusion.genre_b}</strong>
+                      </div>
+                      {result.metadata.fusion.compatible_elements && (
+                        <div style={{ fontSize: 11, color: "#aaaacc" }}>
+                          <strong>Compatible:</strong> {result.metadata.fusion.compatible_elements.join(", ")}
+                        </div>
+                      )}
+                      {result.metadata.fusion.fusion_tip && (
+                        <div style={{ fontSize: 10, color: "#666688", marginTop: 4, fontStyle: "italic" }}>
+                          💡 {result.metadata.fusion.fusion_tip}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                </div>
+              )}
+
               {!resultBpm && result && (
                 <div style={{ color: "#333355", fontSize: 10, marginBottom: 6, fontFamily: "monospace" }}>🔍 Detecting BPM & Key...</div>
               )}
@@ -3968,6 +4063,23 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                     <option value="en">🇬🇧 English</option>
                     <option value="es">🇪🇸 Spanish</option>
                   </select>
+                </div>
+              )}
+
+              {/* Generate Lyrics toggle */}
+              {useExternalLLM && (
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 8, paddingLeft: 36, marginBottom: 8 }}>
+                  <div onClick={() => setGenerateLyrics(v => !v)} style={{ width: 28, height: 16, borderRadius: 999, flexShrink: 0, marginTop: 2, background: generateLyrics ? "#9b2de0" : "#1a1a3a", position: "relative", cursor: "pointer", transition: "background 0.2s" }}>
+                    <div style={{ position: "absolute", top: 2, left: generateLyrics ? 14 : 2, width: 12, height: 12, borderRadius: "50%", background: generateLyrics ? "#fff" : "#444466", transition: "left 0.2s" }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <span style={{ fontSize: 13 }}>📝</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: generateLyrics ? "#9b2de0" : "#444466" }}>Generate Lyrics with AI</span>
+                      <span style={{ fontSize: 11, padding: "1px 4px", borderRadius: 999, fontWeight: 700, background: generateLyrics ? "#9b2de022" : "#12122a", color: generateLyrics ? "#9b2de0" : "#333355", border: `1px solid ${generateLyrics ? "#9b2de044" : "#1a1a3a"}` }}>{generateLyrics ? "ON" : "OFF"}</span>
+                    </div>
+                    <div style={{ fontSize: 11, color: "#333355", marginTop: 2 }}>Auto-generates [verse]/[chorus] lyrics if no lyrics provided</div>
+                  </div>
                 </div>
               )}
 

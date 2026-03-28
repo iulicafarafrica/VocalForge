@@ -14,7 +14,7 @@ Endpoints:
   GET  /vram_usage          - current VRAM usage
   GET  /clear_cache         - clear GPU VRAM cache
   GET  /health              - health check
-  
+
   GPU Memory Management (NEW in v1.9):
   GET  /gpu/info             - get GPU VRAM information
   GET  /gpu/cleanup          - manual GPU VRAM cleanup
@@ -29,6 +29,7 @@ import sys
 import uuid
 import json
 import random
+import json as _json  # alias to avoid httpx kwarg shadowing
 import shutil
 import asyncio
 import tempfile
@@ -337,9 +338,7 @@ async def serve_track(filename: str, request: Request):
 # Include ACE-Step Advanced router
 app.include_router(acestep_advanced_router)
 
-# Include RVC Voice Conversion router
-from endpoints.rvc_conversion import router as rvc_conversion_router
-app.include_router(rvc_conversion_router)
+# RVC Voice Conversion removed
 
 # Include GPU Memory Management router
 from endpoints.gpu_info import router as gpu_router
@@ -1089,21 +1088,52 @@ def separate_stems_demucs(audio_path: str, out_dir: str, model: str = "htdemucs_
     Returns dict: {stem_name: absolute_path}
     """
     import subprocess
+    
+    print(f"[Demucs] Starting separation: model={model}, input={audio_path}, out_dir={out_dir}")
+    
+    # Use smaller segment size for lower memory usage
+    # htdemucs_6s needs more memory, so use 10s segments
+    segment_size = "10" if "6s" in model else "default"
+    
+    cmd = [sys.executable, "-m", "demucs", "-n", model, "-o", out_dir, audio_path]
+    
+    # Add segment size for memory-constrained systems
+    if segment_size != "default":
+        cmd.extend(["--segment", segment_size])
+    
+    print(f"[Demucs] Command: {' '.join(cmd)}")
+    
     result = subprocess.run(
-        [sys.executable, "-m", "demucs", "-n", model, "-o", out_dir, audio_path],
-        capture_output=True, text=True,
+        cmd,
+        capture_output=True, text=True, timeout=600,
     )
+    
+    print(f"[Demucs] Return code: {result.returncode}")
+    if result.stdout:
+        print(f"[Demucs] STDOUT: {result.stdout[:500]}")
+    if result.stderr:
+        print(f"[Demucs] STDERR: {result.stderr[:500]}")
+    
     if result.returncode != 0:
         raise RuntimeError(f"Demucs failed:\n{result.stderr[-2000:]}")
 
     base_name = os.path.splitext(os.path.basename(audio_path))[0]
     model_out_dir = os.path.join(out_dir, model, base_name)
+    
+    print(f"[Demucs] Looking for stems in: {model_out_dir}")
 
     stems = {}
     for stem in DEMUCS_STEM_MAP.get(model, ["vocals", "drums", "bass", "other"]):
         p = os.path.join(model_out_dir, f"{stem}.wav")
         if os.path.exists(p):
             stems[stem] = p
+            print(f"[Demucs] Found stem: {stem}")
+        else:
+            print(f"[Demucs] Missing stem: {stem}")
+    
+    if not stems:
+        raise RuntimeError(f"Demucs produced no output files. Check: {model_out_dir}")
+        
     return stems
 
 
@@ -1129,8 +1159,11 @@ async def demucs_separate(
     mode=vocals_only: returns only vocals
     mode=instrumental_only: returns no_vocals mix (drums+bass+other)
     """
+    print(f"[DEMUCS] Received request: filename={file.filename}, model={model}, mode={mode}")
+    
     # Validate uploaded audio file
     validate_upload(file, ALLOWED_AUDIO_EXTENSIONS, MAX_AUDIO_SIZE)
+    print(f"[DEMUCS] Validation passed")
     
     job_id = uuid.uuid4().hex
     job_dir = os.path.join(TEMP_DIR, job_id)
@@ -2493,11 +2526,23 @@ async def ace_generate(
     use_adg: bool = Form(False),
     cfg_interval_start: float = Form(0.0),
     cfg_interval_end: float = Form(1.0),
-    use_cot_metas: bool = Form(False),   # False = respect user BPM/key/prompt
+    use_cot_metas: bool = Form(False),   # User controlled via frontend
     use_cot_caption: bool = Form(False),  # False = don't overwrite style prompt
     use_cot_language: bool = Form(False), # False = use vocal_language param directly
     allow_lm_batch: bool = Form(True),
     get_lrc: bool = Form(False),
+    # External LLM (Gemma 3 4B for prompt expansion) - AUTO-ENABLED by default
+    use_external_llm: bool = Form(True),
+    # Generate Lyrics (AI-generated lyrics if no lyrics provided)
+    generate_lyrics: bool = Form(False),
+    # Multi-language support for External LLM prompts
+    external_llm_language: str = Form("auto"),  # "auto", "ro", "en", "es", etc.
+    # Reference Audio Analysis (analyze uploaded audio for style transfer)
+    analyze_reference_audio: bool = Form(False),
+    # Quality Scoring (get AI quality rating for generated music)
+    enable_quality_scoring: bool = Form(False),
+    # Preset Suggestions (auto-suggest genre presets based on prompt)
+    enable_preset_suggestions: bool = Form(False),
     # Vocal options
     vocal_language: str = Form("en"),
     instrumental: bool = Form(False),
@@ -2509,6 +2554,9 @@ async def ace_generate(
     # Audio Enhancement (post-processing)
     audio_enhance: str = Form("true"),        # "true" or "false"
     enhance_strength: str = Form("light"),    # light/medium/aggressive
+    # Custom EQ (post-processing)
+    custom_eq_enabled: str = Form("false"),   # "true" or "false"
+    eq_bands: str = Form('{"subBass":{"freq":40,"gain":4,"q":1.0},"bass":{"freq":90,"gain":3,"q":1.2},"lowMids":{"freq":300,"gain":-3,"q":1.8},"mids":{"freq":1000,"gain":2,"q":2.8},"highs":{"freq":4000,"gain":-1,"q":1.5}}'),
     # Custom mode extra fields (ignored by backend, accepted to avoid 422)
     mode: str = Form(""),
     ref_audio_strength: float = Form(0.5),
@@ -2593,7 +2641,7 @@ async def ace_generate(
                         f"{ACE_STEP_API}/v1/init",
                         json={
                             "model": dit_model,
-                            "init_llm": False,  # Keep LLM disabled by default (user can enable manually)
+                            "init_llm": True,  # LLM ENABLED for better prompt understanding
                             "lm_backend": "pt",  # PyTorch backend (more stable than vllm on Windows)
                             "enforce_eager": True,  # Disable CUDA graphs (fixes captures_underway.empty())
                             "gpu_memory_utilization": 0.3,  # Conservative for 8GB VRAM
@@ -2603,7 +2651,7 @@ async def ace_generate(
                     if init_response.status_code == 200:
                         init_data = init_response.json()
                         loaded_model = init_data.get("data", {}).get("loaded_model", dit_model)
-                        print(f"[ACE {job_id[:8]}] ✅ Model loaded: {loaded_model} (LLM disabled, use pt backend if enabling)")
+                        print(f"[ACE {job_id[:8]}] ✅ Model loaded: {loaded_model} (LLM ENABLED for better prompt understanding)")
                         await asyncio.sleep(2)
                     else:
                         print(f"[ACE {job_id[:8]}] ⚠️ Model init returned status {init_response.status_code}")
@@ -2628,6 +2676,31 @@ async def ace_generate(
                 effective_prompt = effective_prompt + AUDIO_QUALITY_PROMPT
                 print(f"[ACE {job_id[:8]}] 🎵 Prompt enhanced: '{effective_prompt[:100]}...'")
 
+            # CoT status logging
+            print(f"[ACE {job_id[:8]}] 🧠 CoT Caption: {'ON' if use_cot_caption else 'OFF'} | CoT Language: {'ON' if use_cot_language else 'OFF'} | Thinking: {'ON' if thinking else 'OFF'}")
+
+            # ── Optimizări pentru External LLM vs CoT ──────────────────────────
+            # When External LLM (Gemma 3) is ON:
+            #   - Keep thinking=True for audio codes generation (ESSENTIAL for ACE-Step DiT)
+            #   - Disable CoT metadata (use_cot_metas/caption/language) because Gemma does it better
+            # When External LLM is OFF:
+            #   - Use CoT for everything (metadata + audio codes)
+            if use_external_llm:
+                # External LLM handles metadata, caption, language → disable CoT for these
+                effective_use_cot_metas = False
+                effective_use_cot_caption = False
+                effective_use_cot_language = False
+                # But KEEP thinking=True for audio codes generation (CoT internal LM does this)
+                effective_thinking = True  # Audio codes are ESSENTIAL for ACE-Step DiT
+                print(f"[ACE {job_id[:8]}] 🧠 External LLM ON: Using Gemma for metadata, CoT for audio codes")
+            else:
+                # No External LLM → Use CoT for everything
+                effective_use_cot_metas = use_cot_metas
+                effective_use_cot_caption = use_cot_caption
+                effective_use_cot_language = use_cot_language
+                effective_thinking = thinking
+                print(f"[ACE {job_id[:8]}] 🧠 External LLM OFF: Using CoT for everything")
+
             # ── Optimizări pentru audio cover ──────────────────────────────────
             effective_duration = duration  # folosim durata exactă setată de utilizator
             # Asigură-te că durata este pozitivă, altfel -1 pentru auto
@@ -2639,11 +2712,27 @@ async def ace_generate(
             # Based on ACE-Step v1.5 official API documentation
             # https://github.com/ace-step/ACE-Step-1.5
             # GenerateMusicRequest model from acestep/api/http/release_task_models.py
+
+            # Auto-disable CoT when External LLM is enabled (Gemma 3 does everything)
+            effective_use_cot_metas = use_cot_metas and not use_external_llm
+            effective_use_cot_caption = use_cot_caption and not use_external_llm
+            effective_use_cot_language = use_cot_language and not use_external_llm
             
-            # For Text-to-Music: disable CoT to respect user BPM/key/prompt
-            effective_use_cot_caption = False if task_type == "text2music" else use_cot_caption
-            effective_use_cot_language = False if task_type == "text2music" else use_cot_language
-            
+            if use_external_llm:
+                print(f"[ACE {job_id[:8]}] 🌟 External LLM ON (AUTO-ENABLED) → Auto-disabling CoT (Gemma 3 handles everything)")
+                print(f"[ACE {job_id[:8]}]   - CoT Metas: {use_cot_metas} → {effective_use_cot_metas}")
+                print(f"[ACE {job_id[:8]}]   - CoT Caption: {use_cot_caption} → {effective_use_cot_caption}")
+                print(f"[ACE {job_id[:8]}]   - CoT Language: {use_cot_language} → {effective_use_cot_language}")
+                print(f"[ACE {job_id[:8]}]   - Language: {external_llm_language}")
+                print(f"[ACE {job_id[:8]}]   - Generate Lyrics: {generate_lyrics}")
+                print(f"[ACE {job_id[:8]}]   - Quality Scoring: {enable_quality_scoring}")
+                print(f"[ACE {job_id[:8]}]   - Preset Suggestions: {enable_preset_suggestions}")
+            else:
+                print(f"[ACE {job_id[:8]}] 🧠 External LLM OFF → Using CoT (internal LM)")
+                print(f"[ACE {job_id[:8]}]   - CoT Metas: {effective_use_cot_metas}")
+                print(f"[ACE {job_id[:8]}]   - CoT Caption: {effective_use_cot_caption}")
+                print(f"[ACE {job_id[:8]}]   - CoT Language: {effective_use_cot_language}")
+
             task_payload = {
                 # Core parameters (ACE-Step official - GenerateMusicRequest)
                 "prompt": effective_prompt,  # Enhanced with audio quality for text2music
@@ -2688,25 +2777,27 @@ async def ace_generate(
                 # VRAM & performance
                 "batch_size": batch_size,
                 "use_tiled_decode": use_tiled_decode,
-                
-                # LLM parameters - ALL DISABLED (no LM loading)
-                "lm_model_path": None,
-                "lm_backend": "pt",
-                "lm_temperature": 0.85,
-                "lm_cfg_scale": 2.5,
-                "lm_top_k": 0,
-                "lm_top_p": 0.9,
-                "lm_repetition_penalty": 1.0,
-                "lm_negative_prompt": neg,  # User negative prompt (passed to LLM if enabled)
 
-                # Chain-of-Thought - ALL DISABLED
+                # LLM parameters - enable when thinking mode is ON or duration > 15s
+                # For 8GB VRAM: use acestep-5Hz-lm-0.6B (recommended)
+                "lm_model_path": lm_model if (thinking or duration > 15) else None,
+                "lm_backend": lm_backend,
+                "lm_temperature": lm_temperature,
+                "lm_cfg_scale": lm_cfg_scale,
+                "lm_top_k": lm_top_k,
+                "lm_top_p": lm_top_p,
+                "lm_repetition_penalty": 1.0,
+                "lm_negative_prompt": lm_negative_prompt,
+
+                # Chain-of-Thought — controlled by user via frontend (auto-disabled when External LLM is ON)
                 "constrained_decoding": False,
                 "constrained_decoding_debug": False,
-                "use_cot_caption": False,
-                "use_cot_language": False,
+                "use_cot_metas": effective_use_cot_metas,  # Auto-disabled when External LLM ON
+                "use_cot_caption": effective_use_cot_caption,  # Auto-disabled when External LLM ON
+                "use_cot_language": effective_use_cot_language,  # Auto-disabled when External LLM ON
                 "is_format_caption": False,
-                "allow_lm_batch": False,
-                "thinking": False,
+                "allow_lm_batch": effective_use_cot_caption,  # enable batch when CoT active
+                "thinking": effective_thinking,  # Always TRUE when External LLM ON (for audio codes)
                 
                 # User negative prompt (passed even if DiT may ignore it)
                 "negative_prompt": neg,
@@ -2787,6 +2878,355 @@ async def ace_generate(
                     task_payload["src_audio_path"] = src_path
                     print(f"[ACE {job_id[:8]}] Audio2audio: source={source_audio.filename}")
 
+            # ── Key validator ─────────────────────────────────────────────────
+            VALID_KEYS = {
+                "C major", "C minor", "C# major", "C# minor", "Db major", "Db minor",
+                "D major", "D minor", "D# major", "D# minor", "Eb major", "Eb minor",
+                "E major", "E minor", "F major", "F minor",
+                "F# major", "F# minor", "Gb major", "Gb minor",
+                "G major", "G minor", "G# major", "G# minor", "Ab major", "Ab minor",
+                "A major", "A minor", "A# major", "A# minor", "Bb major", "Bb minor",
+                "B major", "B minor",
+            }
+            KEY_NORMALIZE = {
+                "Am": "A minor", "Cm": "C minor", "Dm": "D minor", "Em": "E minor",
+                "Fm": "F minor", "Gm": "G minor", "Bm": "B minor",
+                "C#m": "C# minor", "D#m": "D# minor", "F#m": "F# minor", "G#m": "G# minor", "A#m": "A# minor",
+                "Dbm": "Db minor", "Ebm": "Eb minor", "Gbm": "Gb minor", "Abm": "Ab minor", "Bbm": "Bb minor",
+            }
+            def validate_key(raw_key: str) -> str:
+                if not raw_key:
+                    return ""
+                k = raw_key.strip()
+                # Normalize shorthand (Am → A minor)
+                if k in KEY_NORMALIZE:
+                    return KEY_NORMALIZE[k]
+                # Handle "4/4" time signature accidentally in key field
+                if "/" in k:
+                    return "C minor"
+                # Single letter → major
+                if len(k) == 1:
+                    return f"{k.upper()} major"
+                if k in VALID_KEYS:
+                    return k
+                # Try case-insensitive match
+                for valid in VALID_KEYS:
+                    if valid.lower() == k.lower():
+                        return valid
+                print(f"[KEY] Invalid key '{k}' → defaulting to C minor")
+                return "C minor"
+
+            def parse_bpm(raw_bpm) -> int:
+                """Handle bpm ranges like '140-160' → 150, floats, strings."""
+                if raw_bpm is None:
+                    return 0
+                s = str(raw_bpm).strip()
+                if "-" in s:
+                    parts = s.split("-")
+                    try:
+                        return int((float(parts[0]) + float(parts[1])) / 2)
+                    except Exception:
+                        pass
+                try:
+                    return int(float(s))
+                except Exception:
+                    return 0
+
+            def build_ace_tags(style: str, mood: str, subgenre: str, instruments: list, original_prompt: str) -> str:
+                """Build ACE-Step tags in optimal order: genre → mood → instruments → original."""
+                parts = []
+                if style:
+                    parts.append(style.strip())
+                if mood:
+                    parts.append(mood.strip())
+                if subgenre:
+                    parts.append(subgenre.strip())
+                if instruments:
+                    parts.extend([i.strip() for i in instruments[:4]])  # max 4 instruments
+                if original_prompt:
+                    parts.append(original_prompt.strip())
+                return ", ".join(filter(None, parts))
+
+            def format_lyrics_for_acestep(raw_lyrics: str) -> str:
+                """Convert 'verse-chorus-verse' format or plain text to ACE-Step [verse]/[chorus] format."""
+                if not raw_lyrics:
+                    return ""
+                # Already has [verse] or [chorus] tags
+                if "[verse]" in raw_lyrics.lower() or "[chorus]" in raw_lyrics.lower():
+                    return raw_lyrics
+                # Has structure keywords separated by newlines
+                lines = raw_lyrics.strip().split("\n")
+                result = []
+                current_section = None
+                for line in lines:
+                    line_lower = line.lower().strip()
+                    if line_lower in ("verse", "[verse]", "verse:", "verse 1", "verse 2"):
+                        current_section = "[verse]"
+                        result.append(current_section)
+                    elif line_lower in ("chorus", "[chorus]", "chorus:", "refren", "refren:"):
+                        current_section = "[chorus]"
+                        result.append(current_section)
+                    elif line_lower in ("bridge", "[bridge]", "bridge:"):
+                        current_section = "[bridge]"
+                        result.append(current_section)
+                    elif line.strip():
+                        if current_section is None:
+                            result.append("[verse]")
+                            current_section = "[verse]"
+                        result.append(line)
+                return "\n".join(result)
+
+            # External LLM (Gemma 3 4B) — ONLY for metadata (BPM, Key, Style, Instruments, Mood)
+            # Gemma is UNRELIABLE for lyrics generation (hallucinates, wrong language, extra text)
+            # User must write lyrics manually in the Lyrics box (or leave empty for instrumental)
+            if use_external_llm:
+                print(f"[ACE {job_id[:8]}] 🌟 External LLM enabled: gemma3:4b (metadata only, NO lyrics)")
+
+                # ALWAYS null for lyrics - Gemma is unreliable for lyrics
+                lyrics_instruction = """
+  "lyrics": null,"""
+
+                llm_prompt = f"""You are an expert music AI assistant. Extract ALL music parameters from this description in ONE response.
+
+User description: "{prompt}"
+Language requested: {external_llm_language}
+
+Return ONLY valid JSON (no extra text, no markdown):
+{{
+  "bpm": <integer 60-200>,
+  "key": "<e.g. C major, D minor, Am, Cm>",
+  "style": "<main genre>",
+  "subgenre": "<subgenre if applicable>",
+  "instruments": ["3-5 instruments"],
+  "mood": "<mood>",
+  "time_signature": "<4/4|3/4|6/8>",
+  "lyrics": null,
+  "quality_score": <1-10>,
+  "quality_notes": "<brief note>"
+}}
+
+Examples:
+- "manele de petrecere" → {{"bpm": 110, "key": "A minor", "style": "manele", "subgenre": "manele moderne", "instruments": ["accordion", "oriental synth", "drums", "bass"], "mood": "party", "time_signature": "4/4", "lyrics": null, "quality_score": 7, "quality_notes": "clear genre"}}
+- "trap american dark" → {{"bpm": 140, "key": "C minor", "style": "trap", "subgenre": "dark trap", "instruments": ["808 bass", "hi-hats", "synth pads", "snare"], "mood": "dark", "time_signature": "4/4", "lyrics": null, "quality_score": 8, "quality_notes": "good clarity"}}
+- "jamaican trap" → {{"bpm": 130, "key": "D minor", "style": "trap", "subgenre": "jamaican trap", "instruments": ["808 bass", "dancehall drums", "synth lead", "piano"], "mood": "energetic, tropical", "time_signature": "4/4", "lyrics": null, "quality_score": 8, "quality_notes": "good fusion"}}
+
+Now extract for: "{prompt}"
+"""
+
+                try:
+                    async with httpx.AsyncClient(timeout=40.0) as ollama_client:
+                        print(f"[ACE {job_id[:8]}] 📤 Sending unified prompt to Gemma 3...")
+                        ollama_response = await ollama_client.post(
+                            "http://localhost:11434/api/generate",
+                            json={
+                                "model": "gemma3:4b",
+                                "prompt": llm_prompt,
+                                "stream": False,
+                                "format": "json",
+                                "options": {"temperature": 0.3}  # Low temp for structured output
+                            }
+                        )
+
+                        if ollama_response.status_code == 200:
+                            response_data = ollama_response.json()
+                            response_text = response_data.get("response", "")
+                            print(f"[ACE {job_id[:8]}] 📥 Gemma 3 response ({len(response_text)} chars)")
+
+                            # Parse JSON — try direct first, then regex fallback
+                            music_params = None
+                            try:
+                                music_params = json.loads(response_text)
+                                print(f"[ACE {job_id[:8]}] ✅ JSON parsed (direct)")
+                            except Exception:
+                                json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
+                                if json_match:
+                                    try:
+                                        music_params = json.loads(json_match.group(0))
+                                        print(f"[ACE {job_id[:8]}] ✅ JSON parsed (regex fallback)")
+                                    except Exception as je:
+                                        print(f"[ACE {job_id[:8]}] ⚠️ JSON parse failed: {je}")
+
+                            if music_params:
+                                # BPM — handle integer, string ranges, OR object {"min": x, "max": y}
+                                raw_bpm = music_params.get("bpm")
+                                if raw_bpm:
+                                    if isinstance(raw_bpm, dict):  # {"min": 140, "max": 160}
+                                        parsed_bpm = int((raw_bpm.get("min", 140) + raw_bpm.get("max", 160)) / 2)
+                                    else:
+                                        parsed_bpm = parse_bpm(raw_bpm)
+                                    if 60 <= parsed_bpm <= 220:
+                                        task_payload["bpm"] = parsed_bpm
+                                        print(f"[ACE {job_id[:8]}] 🎵 BPM: {raw_bpm} → {parsed_bpm}")
+
+                                # Key — handle string OR array ["C", "D", "Am"]
+                                raw_key = music_params.get("key", "")
+                                if raw_key:
+                                    if isinstance(raw_key, list):  # ["C", "G", "D", "A"]
+                                        raw_key = raw_key[0]  # Take first element
+                                    validated_key = validate_key(raw_key)
+                                    task_payload["key_scale"] = validated_key
+                                    print(f"[ACE {job_id[:8]}] 🎼 Key: {raw_key} → {validated_key}")
+
+                                # Time signature
+                                raw_ts = music_params.get("time_signature", "")
+                                if raw_ts:
+                                    # Clean: "4/4" → "4", keep as-is if already clean
+                                    ts_clean = raw_ts.split("/")[0].strip() if "/" in raw_ts else raw_ts.strip()
+                                    task_payload["time_signature"] = ts_clean
+                                    print(f"[ACE {job_id[:8]}] 🎶 Time Sig: {raw_ts} → {ts_clean}")
+
+                                # Build enhanced prompt in correct ACE-Step order:
+                                # genre → mood → instruments → original_prompt
+                                style = music_params.get("style", "")
+                                
+                                # Mood — handle string OR array ["Energetic", "Dark"]
+                                raw_mood = music_params.get("mood", "")
+                                if isinstance(raw_mood, list):
+                                    mood = ", ".join(raw_mood[:3])  # Take first 3 moods
+                                else:
+                                    mood = raw_mood
+                                
+                                # Subgenre — handle string OR array ["UK Trap", "Dancehall"]
+                                raw_subgenre = music_params.get("subgenre", "")
+                                if isinstance(raw_subgenre, list):
+                                    subgenre = ", ".join(raw_subgenre[:2])  # Take first 2 subgenres
+                                else:
+                                    subgenre = raw_subgenre
+                                
+                                instruments = music_params.get("instruments", [])
+                                enhanced_prompt = build_ace_tags(style, mood, subgenre, instruments, prompt)
+                                task_payload["prompt"] = enhanced_prompt + ", clean studio quality, noise-free"
+                                print(f"[ACE {job_id[:8]}] 🎭 Style: {style} | Mood: {mood}")
+                                print(f"[ACE {job_id[:8]}] 🎸 Instruments: {', '.join(instruments)}")
+                                print(f"[ACE {job_id[:8]}] ✨ Enhanced prompt: {task_payload['prompt'][:120]}...")
+
+                                # Quality scoring (from LLM, not audio analysis)
+                                if enable_quality_scoring:
+                                    q_score = music_params.get("quality_score", 0)
+                                    q_notes = music_params.get("quality_notes", "")
+                                    print(f"[ACE {job_id[:8]}] ⭐ Prompt quality: {q_score}/10 — {q_notes}")
+
+                                # Lyrics — only if generate_lyrics is ON and no lyrics provided
+                                if generate_lyrics and not (lyrics and lyrics.strip()):
+                                    raw_lyrics = music_params.get("lyrics", "")
+                                    if raw_lyrics:
+                                        formatted_lyrics = format_lyrics_for_acestep(raw_lyrics)
+                                        task_payload["lyrics"] = formatted_lyrics
+                                        print(f"[ACE {job_id[:8]}] 📝 Lyrics generated ({len(formatted_lyrics)} chars)")
+                        else:
+                            print(f"[ACE {job_id[:8]}] ❌ Ollama HTTP error: {ollama_response.status_code}")
+
+                    # VRAM safety: unload Ollama BEFORE ACE-Step generation
+                    print(f"[ACE {job_id[:8]}] 🧹 Unloading Ollama from VRAM (keep_alive=0)...")
+                    try:
+                        async with httpx.AsyncClient(timeout=10.0) as unload_client:
+                            await unload_client.post(
+                                "http://localhost:11434/api/generate",
+                                json={"model": "gemma3:4b", "keep_alive": 0}
+                            )
+                        await asyncio.sleep(1)  # Wait for unload
+                        print(f"[ACE {job_id[:8]}] ✅ Ollama unloaded — VRAM free for ACE-Step")
+                    except Exception as unload_err:
+                        print(f"[ACE {job_id[:8]}] ⚠️ Ollama unload failed (non-critical): {unload_err}")
+
+                except Exception as ext_llm_err:
+                    print(f"[ACE {job_id[:8]}] ❌ External LLM error: {ext_llm_err}")
+                    import traceback
+                    traceback.print_exc()
+            else:
+                task_payload["use_external_llm"] = False
+
+            # ── Preset Suggestions (genre-based optimization) ─────────────────────
+            # Only apply if enable_preset_suggestions is True (user enabled it)
+            if enable_preset_suggestions:
+                # Load genre presets from shared JSON file (synced with frontend)
+                import json
+                import os
+                
+                # Try to load from shared_genre_presets.json
+                preset_file = os.path.join(os.path.dirname(__file__), "..", "shared_genre_presets.json")
+                genre_bpm_map = {}
+                
+                if os.path.exists(preset_file):
+                    try:
+                        with open(preset_file, "r", encoding="utf-8") as f:
+                            data = json.load(f)
+                            for genre in data.get("genres", []):
+                                label = genre.get("label", "").lower()
+                                bpm = genre.get("bpm", 0)
+                                if bpm:
+                                    genre_bpm_map[label] = bpm
+                        print(f"[ACE {job_id[:8]}] 📚 Loaded {len(genre_bpm_map)} genre presets from shared_genre_presets.json")
+                    except Exception as e:
+                        print(f"[ACE {job_id[:8]}] ⚠️ Failed to load genre presets: {e}")
+                
+                # Default preset for ALL genres (fallback)
+                DEFAULT_PRESET = {
+                    "infer_steps": 8 if "turbo" in dit_model.lower() else 50,
+                    "guidance_scale": 1.0 if "turbo" in dit_model.lower() else 7.5,
+                    "shift": 3.0 if "turbo" in dit_model.lower() else 3.0,
+                }
+                
+                # Detect genre from prompt/style
+                style_lower = (task_payload.get("prompt") or "").lower()
+                detected_genre = None
+                detected_bpm = None
+                
+                # Try to match genre from shared presets
+                for genre_label, bpm in genre_bpm_map.items():
+                    if genre_label in style_lower:
+                        detected_genre = genre_label
+                        detected_bpm = bpm
+                        break
+                
+                # Apply DEFAULT preset + genre-specific BPM (if detected)
+                final_preset = DEFAULT_PRESET.copy()
+                
+                if detected_genre:
+                    print(f"[ACE {job_id[:8]}] 💡 Preset detected: {detected_genre} (BPM: {detected_bpm})")
+                    final_preset["bpm"] = detected_bpm
+                else:
+                    print(f"[ACE {job_id[:8]}] 💡 Preset: Using DEFAULT (no specific genre detected)")
+                    print(f"[ACE {job_id[:8]}]   → Model: {dit_model}")
+                    print(f"[ACE {job_id[:8]}]   → Steps: {final_preset['infer_steps']}, CFG: {final_preset['guidance_scale']}, Shift: {final_preset['shift']}")
+                
+                # Apply infer_steps if not already set by user
+                if infer_steps == 50 and DEFAULT_PRESET["infer_steps"] != 50:  # User didn't override
+                    task_payload["inference_steps"] = final_preset["infer_steps"]
+                    print(f"[ACE {job_id[:8]}]   → infer_steps: {infer_steps} → {final_preset['infer_steps']}")
+                
+                # Apply guidance_scale if turbo model (default 7.0 too high for turbo)
+                if "turbo" in dit_model.lower() and guidance_scale >= 7.0:
+                    task_payload["guidance_scale"] = final_preset["guidance_scale"]
+                    print(f"[ACE {job_id[:8]}]   → guidance_scale: {guidance_scale} → {final_preset['guidance_scale']} (turbo optimized)")
+                
+                # Apply shift for turbo models
+                if "turbo" in dit_model.lower():
+                    task_payload["shift"] = final_preset["shift"]
+                    print(f"[ACE {job_id[:8]}]   → shift: 1.0 → {final_preset['shift']} (turbo default)")
+                
+                # Suggest BPM if not set (from genre preset or default range)
+                if not task_payload.get("bpm"):
+                    if detected_bpm:
+                        task_payload["bpm"] = detected_bpm
+                        print(f"[ACE {job_id[:8]}]   → BPM: None → {detected_bpm} ({detected_genre})")
+                    else:
+                        # Default BPM ranges by genre category
+                        default_bpm_ranges = {
+                            "trap": [135, 155], "hip hop": [85, 105], "rap": [85, 105],
+                            "manele": [105, 125], "pop": [100, 130], "house": [120, 130],
+                            "techno": [125, 140], "rock": [110, 140], "metal": [120, 180],
+                            "jazz": [80, 120], "classical": [60, 120], "electronic": [120, 140],
+                        }
+                        for keyword, bpm_range in default_bpm_ranges.items():
+                            if keyword in style_lower:
+                                import random
+                                task_payload["bpm"] = random.randint(*bpm_range)
+                                print(f"[ACE {job_id[:8]}]   → BPM: None → {task_payload['bpm']} ({keyword} default)")
+                                break
+            else:
+                print(f"[ACE {job_id[:8]}] 💡 Preset Suggestions: DISABLED by user")
+
             print(f"[ACE {job_id[:8]}] Submitting task to /release_task...")
             r = await client.post(f"{ACE_STEP_API}/release_task", json=task_payload)
             if r.status_code != 200:
@@ -2846,7 +3286,7 @@ async def ace_generate(
                     # Failed — parse error from result JSON
                     result_str = item.get("result", "[]")
                     try:
-                        result_arr = json.loads(result_str) if isinstance(result_str, str) else result_str
+                        result_arr = _json.loads(result_str) if isinstance(result_str, str) else result_str
                         err = (result_arr[0].get("error") if result_arr else None) or "Unknown error"
                     except Exception:
                         err = result_str[:200]
@@ -2857,21 +3297,46 @@ async def ace_generate(
                     # Succeeded — get audio file path
                     result_str = item.get("result", "[]")
                     print(f"[ACE {job_id[:8]}] Raw result: {str(result_str)[:500]}")
-                    try:
-                        result_arr = json.loads(result_str) if isinstance(result_str, str) else result_str
-                    except Exception:
-                        result_arr = []
+                    print(f"[ACE {job_id[:8]}] result_str type: {type(result_str)}")
+                    
+                    # Parse result - handle both string and already-parsed cases
+                    result_arr = []
+                    if isinstance(result_str, str):
+                        try:
+                            result_arr = _json.loads(result_str)
+                        except Exception as parse_err:
+                            print(f"[ACE {job_id[:8]}] JSON parse error: {parse_err}")
+                            # Fallback: try to extract file path from string directly
+                            import re
+                            file_match = re.search(r'"file":\s*"([^"]+)"', result_str)
+                            if file_match:
+                                audio_file_path = file_match.group(1)
+                                print(f"[ACE {job_id[:8]}] Extracted file from string regex: {audio_file_path[:100]}...")
+                    elif isinstance(result_str, list):
+                        result_arr = result_str
+                    else:
+                        print(f"[ACE {job_id[:8]}] Unexpected result_str type: {type(result_str)}")
+                    
+                    if isinstance(result_arr, list):
+                        print(f"[ACE {job_id[:8]}] Parsed result_arr type: list, len: {len(result_arr)}")
+                    else:
+                        print(f"[ACE {job_id[:8]}] Parsed result_arr type: {type(result_arr)}")
 
                     # ACE-Step returnează lista de fișiere în result_arr
                     # Fiecare element are "file" = URL /v1/audio?path=... sau cale disk
                     audio_file_path = None
                     if result_arr and isinstance(result_arr, list):
+                        print(f"[ACE {job_id[:8]}] result_arr is a list with {len(result_arr)} items")
                         # Caută primul element cu "file" non-gol
-                        for item_r in result_arr:
+                        for idx, item_r in enumerate(result_arr):
+                            print(f"[ACE {job_id[:8]}] Item {idx} keys: {item_r.keys() if isinstance(item_r, dict) else type(item_r)}")
                             f = item_r.get("file", "")
                             if f:
                                 audio_file_path = f
+                                print(f"[ACE {job_id[:8]}] Found file at index {idx}: {f[:100]}...")
                                 break
+                    else:
+                        print(f"[ACE {job_id[:8]}] result_arr is NOT a list or is empty: {type(result_arr)}")
 
                     print(f"[ACE {job_id[:8]}] audio_file_path: {audio_file_path}")
 
@@ -2955,11 +3420,68 @@ async def ace_generate(
 
                     print(f"[ACE {job_id[:8]}] Done in {t_sec}s — {duration_sec}s audio ({out_size_mb}MB)")
 
-                    # ========== AUDIO ENHANCEMENT (Post-processing) ==========
-                    # Apply hiss removal + loudness normalization if enabled
-                    # Convert string to bool: "true" -> True, "false" -> False
-                    enhance_enabled = audio_enhance.lower() == "true"
+                    # ========== CUSTOM EQ (Post-processing) ==========
+                    # Apply genre-specific EQ FIRST (before Noise Hiss)
+                    eq_enabled = custom_eq_enabled.lower() == "true"
                     
+                    # Define enhance_enabled early (needed for loudnorm conditional)
+                    enhance_enabled = audio_enhance.lower() == "true"
+
+                    if eq_enabled:
+                        try:
+                            eq_data = _json.loads(eq_bands)
+                            print(f"[ACE {job_id[:8]}] 🎚️ Applying Custom EQ...")
+                            eq_start = time.time()
+
+                            # Build FFmpeg EQ filter chain
+                            eq_filters = []
+                            for band_key, band in eq_data.items():
+                                eq_filters.append(f"equalizer=f={band['freq']}:t=q:w={band['q']}:g={band['gain']}")
+
+                            # Add loudnorm ONLY if Noise Hiss Remover is OFF
+                            # (Noise Hiss will apply loudnorm at the end)
+                            if enhance_enabled:
+                                print(f"[ACE {job_id[:8]}] 📊 Custom EQ: loudnorm SKIPPED (Noise Hiss will apply)")
+                            else:
+                                eq_filters.append("loudnorm=I=-14:TP=-1:LRA=7")
+                                print(f"[ACE {job_id[:8]}] 📊 Custom EQ: loudnorm APPLIED")
+
+                            eq_chain = ",".join(eq_filters)
+                            print(f"[ACE {job_id[:8]}] EQ chain: {eq_chain}")
+                            
+                            # Create temp file for output
+                            import tempfile
+                            temp_eq_path = tempfile.mktemp(suffix="_eq.wav")
+
+                            # Run FFmpeg
+                            cmd = [
+                                "ffmpeg", "-y",
+                                "-i", out_path,
+                                "-af", eq_chain,
+                                "-ar", "44100",
+                                "-acodec", "pcm_s24le",
+                                temp_eq_path
+                            ]
+
+                            result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+
+                            if result.returncode == 0 and os.path.exists(temp_eq_path):
+                                # Replace original with EQ'd version
+                                shutil.move(temp_eq_path, out_path)
+                                eq_time = round(time.time() - eq_start, 1)
+                                print(f"[ACE {job_id[:8]}] ✅ Custom EQ complete (+{eq_time}s)")
+                            else:
+                                print(f"[ACE {job_id[:8]}] ⚠️ EQ failed: {result.stderr[:300]}")
+                                if os.path.exists(temp_eq_path):
+                                    os.remove(temp_eq_path)
+                        except Exception as eq_err:
+                            print(f"[ACE {job_id[:8]}] ⚠️ Custom EQ failed: {eq_err}")
+                    # ===========================================================
+
+                    # ========== AUDIO ENHANCEMENT (Post-processing) ==========
+                    # Apply hiss removal + loudness normalization SECOND (after Custom EQ)
+                    # enhance_enabled already defined above for Custom EQ loudnorm conditional
+
                     if enhance_enabled:
                         try:
                             from endpoints.audio_enhancer import enhance_audio_file

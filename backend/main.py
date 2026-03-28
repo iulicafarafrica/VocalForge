@@ -2491,6 +2491,52 @@ async def acestep_stats():
     }
 
 
+# ── ACE-Step Preset Suggestions ───────────────────────────────────────────────
+_PRESET_DB = {
+    "trap":        {"dit_model": "acestep-v15-turbo", "infer_steps": 8,  "guidance_scale": 3.5, "shift": 1.0, "bpm_range": [135, 155], "keys": ["C minor", "D minor", "F minor"]},
+    "dark trap":   {"dit_model": "acestep-v15-turbo", "infer_steps": 8,  "guidance_scale": 3.5, "shift": 1.0, "bpm_range": [138, 148], "keys": ["C minor", "D minor", "G minor"]},
+    "drill":       {"dit_model": "acestep-v15-turbo", "infer_steps": 8,  "guidance_scale": 3.5, "shift": 1.0, "bpm_range": [140, 145], "keys": ["C minor", "D minor", "Eb minor"]},
+    "uk drill":    {"dit_model": "acestep-v15-turbo", "infer_steps": 8,  "guidance_scale": 3.5, "shift": 1.0, "bpm_range": [140, 145], "keys": ["C minor", "Eb minor", "G minor"]},
+    "manele":      {"dit_model": "acestep-v15-turbo", "infer_steps": 8,  "guidance_scale": 3.5, "shift": 1.0, "bpm_range": [105, 125], "keys": ["A minor", "D minor", "G minor"]},
+    "afro house":  {"dit_model": "acestep-v15-sft",   "infer_steps": 40, "guidance_scale": 7.0, "shift": 3.0, "bpm_range": [120, 125], "keys": ["G minor", "A minor", "D minor"]},
+    "deep house":  {"dit_model": "acestep-v15-sft",   "infer_steps": 40, "guidance_scale": 7.0, "shift": 3.0, "bpm_range": [120, 124], "keys": ["G minor", "C minor", "F major"]},
+    "tech house":  {"dit_model": "acestep-v15-turbo", "infer_steps": 8,  "guidance_scale": 3.5, "shift": 1.0, "bpm_range": [124, 128], "keys": ["A minor", "D minor", "G minor"]},
+    "melodic house": {"dit_model": "acestep-v15-sft", "infer_steps": 40, "guidance_scale": 7.0, "shift": 3.0, "bpm_range": [120, 124], "keys": ["G minor", "A minor", "D minor"]},
+    "pop":         {"dit_model": "acestep-v15-sft",   "infer_steps": 40, "guidance_scale": 7.0, "shift": 3.0, "bpm_range": [100, 130], "keys": ["C major", "G major", "A minor"]},
+    "r&b":         {"dit_model": "acestep-v15-sft",   "infer_steps": 40, "guidance_scale": 7.0, "shift": 3.0, "bpm_range": [85, 100],  "keys": ["Db major", "Ab major", "F minor"]},
+    "hip hop":     {"dit_model": "acestep-v15-turbo", "infer_steps": 8,  "guidance_scale": 3.5, "shift": 1.0, "bpm_range": [85, 100],  "keys": ["C minor", "D minor", "G minor"]},
+    "reggaeton":   {"dit_model": "acestep-v15-turbo", "infer_steps": 8,  "guidance_scale": 3.5, "shift": 1.0, "bpm_range": [90, 100],  "keys": ["A minor", "D minor", "E minor"]},
+    "phonk":       {"dit_model": "acestep-v15-turbo", "infer_steps": 8,  "guidance_scale": 3.5, "shift": 1.0, "bpm_range": [125, 140], "keys": ["C minor", "D minor", "G minor"]},
+    "lo-fi":       {"dit_model": "acestep-v15-sft",   "infer_steps": 40, "guidance_scale": 7.0, "shift": 3.0, "bpm_range": [70, 85],   "keys": ["F major", "C major", "G major"]},
+    "jazz":        {"dit_model": "acestep-v15-sft",   "infer_steps": 40, "guidance_scale": 7.0, "shift": 3.0, "bpm_range": [80, 140],  "keys": ["Bb major", "Eb major", "F major"]},
+    "rock":        {"dit_model": "acestep-v15-sft",   "infer_steps": 40, "guidance_scale": 7.0, "shift": 3.0, "bpm_range": [110, 140], "keys": ["E minor", "A minor", "D major"]},
+    "metal":       {"dit_model": "acestep-v15-sft",   "infer_steps": 40, "guidance_scale": 7.5, "shift": 3.0, "bpm_range": [140, 200], "keys": ["E minor", "D minor", "B minor"]},
+    "classical":   {"dit_model": "acestep-v15-sft",   "infer_steps": 60, "guidance_scale": 7.5, "shift": 3.0, "bpm_range": [60, 120],  "keys": ["C major", "G major", "D major"]},
+    "ambient":     {"dit_model": "acestep-v15-sft",   "infer_steps": 60, "guidance_scale": 7.5, "shift": 3.0, "bpm_range": [60, 80],   "keys": ["C major", "G major", "A minor"]},
+    "dembow":      {"dit_model": "acestep-v15-turbo", "infer_steps": 8,  "guidance_scale": 3.5, "shift": 1.0, "bpm_range": [105, 115], "keys": ["A minor", "D minor", "G minor"]},
+    "amapiano":    {"dit_model": "acestep-v15-sft",   "infer_steps": 40, "guidance_scale": 7.0, "shift": 3.0, "bpm_range": [110, 115], "keys": ["G minor", "C minor", "F major"]},
+    "boom bap":    {"dit_model": "acestep-v15-turbo", "infer_steps": 8,  "guidance_scale": 3.5, "shift": 1.0, "bpm_range": [85, 100],  "keys": ["C minor", "D minor", "G minor"]},
+}
+
+@app.get("/acestep/preset_suggestions")
+async def acestep_preset_suggestions(style: str = ""):
+    """Return ACE-Step generation preset for a given style/genre."""
+    sl = style.lower().strip()
+    if sl in _PRESET_DB:
+        return {"status": "ok", "style": sl, "matched": True, "preset": _PRESET_DB[sl]}
+    # Partial match
+    for key, preset in _PRESET_DB.items():
+        if key in sl or sl in key:
+            return {"status": "ok", "style": key, "matched": True, "partial": True, "preset": preset}
+    # Default turbo
+    return {
+        "status": "ok", "style": sl or "unknown", "matched": False,
+        "preset": {"dit_model": "acestep-v15-turbo", "infer_steps": 8, "guidance_scale": 3.5,
+                   "shift": 1.0, "bpm_range": [100, 140], "keys": ["C minor", "G minor", "A minor"]},
+        "available": sorted(_PRESET_DB.keys()),
+    }
+
+
 @app.post("/ace_generate")
 async def ace_generate(
     prompt: str = Form(...),                    # music style/genre description
@@ -2569,6 +2615,9 @@ async def ace_generate(
     """
     import httpx
     import urllib.parse
+    import random   # explicit — prevent UnboundLocalError if shadowed inside
+    import json     # explicit — prevent UnboundLocalError if shadowed inside
+    import re       # explicit — prevent UnboundLocalError if shadowed inside
 
     logger.info(f"[ACE] Received generation request: duration={duration}s, model={dit_model}, prompt='{prompt[:50]}...'")
     job_id = uuid.uuid4().hex
@@ -2595,6 +2644,12 @@ async def ace_generate(
 
     t_start = time.time()
     use_random = seed < 0
+    # Quality score vars (populated by External LLM if enable_quality_scoring=True)
+    _llm_quality_score = None
+    _llm_quality_notes = None
+    _llm_theory = {}      # chord_progression, scale, theory_notes
+    _llm_mix = {}         # mix_target_lufs, mix_low_end, mix_vocal_chain, mix_master_tip
+    _llm_fusion = None    # fusion_elements (only for genre fusion prompts)
     actual_seed = seed if seed >= 0 else random.randint(0, 2**31)
     print(f"[ACE {job_id[:8]}] Generating: prompt='{prompt[:60]}' | duration={duration}s | steps={infer_steps} | model={dit_model}")
 
@@ -2924,11 +2979,13 @@ async def ace_generate(
                 if "-" in s:
                     parts = s.split("-")
                     try:
-                        return int((float(parts[0]) + float(parts[1])) / 2)
+                        v = int((float(parts[0]) + float(parts[1])) / 2)
+                        return v if 40 <= v <= 250 else 0
                     except Exception:
                         pass
                 try:
-                    return int(float(s))
+                    v = int(float(s))
+                    return v if 40 <= v <= 250 else 0
                 except Exception:
                     return 0
 
@@ -2936,13 +2993,16 @@ async def ace_generate(
                 """Build ACE-Step tags in optimal order: genre → mood → instruments → original."""
                 parts = []
                 if style:
-                    parts.append(style.strip())
+                    parts.append(style.strip().lower())
                 if mood:
-                    parts.append(mood.strip())
+                    # Handle "Dark, Energetic, Aggressive" → take first 2 moods max
+                    mood_parts = [m.strip().lower() for m in mood.split(",")][:2]
+                    parts.extend(mood_parts)
                 if subgenre:
-                    parts.append(subgenre.strip())
+                    parts.append(subgenre.strip().lower())
                 if instruments:
-                    parts.extend([i.strip() for i in instruments[:4]])  # max 4 instruments
+                    # Max 5 instruments — enough context without overloading prompt
+                    parts.extend([i.strip().lower() for i in instruments[:5]])
                 if original_prompt:
                     parts.append(original_prompt.strip())
                 return ", ".join(filter(None, parts))
@@ -2986,29 +3046,42 @@ async def ace_generate(
                 lyrics_instruction = """
   "lyrics": null,"""
 
-                llm_prompt = f"""You are an expert music AI assistant. Extract ALL music parameters from this description in ONE response.
+                llm_prompt = f"""You are an expert music AI, music theory expert, and mixing engineer. Extract ALL parameters from this description in ONE JSON response.
 
 User description: "{prompt}"
-Language requested: {external_llm_language}
+Language: {external_llm_language}
 
 Return ONLY valid JSON (no extra text, no markdown):
 {{
-  "bpm": <integer 60-200>,
-  "key": "<e.g. C major, D minor, Am, Cm>",
+  "bpm": <integer 60-220>,
+  "key": "<e.g. C major, D minor, G minor>",
   "style": "<main genre>",
-  "subgenre": "<subgenre if applicable>",
-  "instruments": ["3-5 instruments"],
-  "mood": "<mood>",
-  "time_signature": "<4/4|3/4|6/8>",
-  "lyrics": null,
+  "subgenre": "<subgenre or empty string>",
+  "instruments": ["3-5 characteristic instruments"],
+  "mood": "<primary mood only: energetic|dark|romantic|sad|party|chill|aggressive|uplifting>",
+  "time_signature": "<4/4|3/4|6/8>",{lyrics_field}
   "quality_score": <1-10>,
-  "quality_notes": "<brief note>"
+  "quality_notes": "<brief note on prompt clarity>",
+
+  "chord_progression": "<e.g. Am-F-C-G or i-VI-III-VII>",
+  "scale": "<e.g. A natural minor, C major, D dorian>",
+  "theory_notes": "<1 sentence about why this key/chord combo works for the genre>",
+
+  "mix_target_lufs": "<e.g. -8 LUFS (trap standard) or -14 LUFS (streaming)>",
+  "mix_low_end": "<bass/kick frequency advice, 1 sentence>",
+  "mix_vocal_chain": "<key vocal processing steps, comma separated>",
+  "mix_master_tip": "<single most important mastering tip for this genre>",
+
+  "fusion_elements": null
 }}
 
+If the prompt contains TWO genres (e.g. 'manele trap', 'afro house drill'), set fusion_elements to:
+{{"genre_a": "...", "genre_b": "...", "compatible_elements": ["element1","element2","element3"], "fusion_tip": "..."}}
+Otherwise keep fusion_elements as null.
+
 Examples:
-- "manele de petrecere" → {{"bpm": 110, "key": "A minor", "style": "manele", "subgenre": "manele moderne", "instruments": ["accordion", "oriental synth", "drums", "bass"], "mood": "party", "time_signature": "4/4", "lyrics": null, "quality_score": 7, "quality_notes": "clear genre"}}
-- "trap american dark" → {{"bpm": 140, "key": "C minor", "style": "trap", "subgenre": "dark trap", "instruments": ["808 bass", "hi-hats", "synth pads", "snare"], "mood": "dark", "time_signature": "4/4", "lyrics": null, "quality_score": 8, "quality_notes": "good clarity"}}
-- "jamaican trap" → {{"bpm": 130, "key": "D minor", "style": "trap", "subgenre": "jamaican trap", "instruments": ["808 bass", "dancehall drums", "synth lead", "piano"], "mood": "energetic, tropical", "time_signature": "4/4", "lyrics": null, "quality_score": 8, "quality_notes": "good fusion"}}
+- "trap romanesc dark" → {{"bpm":140,"key":"C minor","style":"trap","subgenre":"romanian trap","instruments":["808 bass","hi-hats","synth","snare"],"mood":"dark","time_signature":"4/4","lyrics":null,"quality_score":8,"quality_notes":"good","chord_progression":"i-VII-VI-VII","scale":"C natural minor","theory_notes":"Minor scale with VII chord creates tension typical of dark trap","mix_target_lufs":"-8 LUFS","mix_low_end":"808 sub at 50-60Hz, side-chain kick to bass","mix_vocal_chain":"HPF 80Hz, comp 4:1 -16dB, de-esser 6kHz, reverb 15% wet","mix_master_tip":"Limit to -0.3dBTP, keep sub below -6dBFS","fusion_elements":null}}
+- "manele trap fusion" → {{"bpm":135,"key":"A minor","style":"manele","subgenre":"manele trap fusion","instruments":["accordion","808 bass","hi-hats","darbuka"],"mood":"party","time_signature":"4/4","lyrics":null,"quality_score":9,"quality_notes":"excellent fusion","chord_progression":"i-VII-VI-V","scale":"A phrygian dominant","theory_notes":"Phrygian dominant gives oriental flavor, trap rhythm underneath creates unique fusion","mix_target_lufs":"-8 LUFS","mix_low_end":"808 at 50Hz, accordion mid-high clarity at 2-4kHz","mix_vocal_chain":"HPF 100Hz, comp 3:1, bright EQ +3dB 10kHz, room reverb","mix_master_tip":"Keep accordion and 808 separated in frequency: EQ dip at 200Hz on 808","fusion_elements":{{"genre_a":"manele","genre_b":"trap","compatible_elements":["accordion melody + 808 bass","phrygian scale + trap hi-hats","darbuka + snare layering"],"fusion_tip":"Use manele chord progression at trap BPM, keep accordion as lead melody"}}}}
 
 Now extract for: "{prompt}"
 """
@@ -3102,9 +3175,37 @@ Now extract for: "{prompt}"
 
                                 # Quality scoring (from LLM, not audio analysis)
                                 if enable_quality_scoring:
-                                    q_score = music_params.get("quality_score", 0)
-                                    q_notes = music_params.get("quality_notes", "")
-                                    print(f"[ACE {job_id[:8]}] ⭐ Prompt quality: {q_score}/10 — {q_notes}")
+                                    raw_qs = music_params.get("quality_score", 0)
+                                    try:
+                                        _llm_quality_score = round(float(raw_qs), 1)
+                                    except Exception:
+                                        _llm_quality_score = None
+                                    _llm_quality_notes = str(music_params.get("quality_notes", ""))[:120]
+                                    print(f"[ACE {job_id[:8]}] ⭐ Prompt quality: {_llm_quality_score}/10 — {_llm_quality_notes}")
+
+                                # Music Theory (#1)
+                                _llm_theory = {
+                                    "chord_progression": music_params.get("chord_progression", ""),
+                                    "scale": music_params.get("scale", ""),
+                                    "theory_notes": music_params.get("theory_notes", ""),
+                                }
+                                if _llm_theory["chord_progression"]:
+                                    print(f"[ACE {job_id[:8]}] 🎼 Chords: {_llm_theory['chord_progression']} | Scale: {_llm_theory['scale']}")
+
+                                # Mixing & Mastering Guide (#6)
+                                _llm_mix = {
+                                    "target_lufs": music_params.get("mix_target_lufs", ""),
+                                    "low_end": music_params.get("mix_low_end", ""),
+                                    "vocal_chain": music_params.get("mix_vocal_chain", ""),
+                                    "master_tip": music_params.get("mix_master_tip", ""),
+                                }
+                                if _llm_mix["target_lufs"]:
+                                    print(f"[ACE {job_id[:8]}] 🎚️ Mix: {_llm_mix['target_lufs']} | {_llm_mix['master_tip'][:60]}")
+
+                                # Genre Fusion (#7)
+                                _llm_fusion = music_params.get("fusion_elements")
+                                if _llm_fusion:
+                                    print(f"[ACE {job_id[:8]}] 🎪 Fusion: {_llm_fusion.get('genre_a')} + {_llm_fusion.get('genre_b')}")
 
                                 # Lyrics — only if generate_lyrics is ON and no lyrics provided
                                 if generate_lyrics and not (lyrics and lyrics.strip()):
@@ -3140,9 +3241,6 @@ Now extract for: "{prompt}"
             # Only apply if enable_preset_suggestions is True (user enabled it)
             if enable_preset_suggestions:
                 # Load genre presets from shared JSON file (synced with frontend)
-                import json
-                import os
-                
                 # Try to load from shared_genre_presets.json
                 preset_file = os.path.join(os.path.dirname(__file__), "..", "shared_genre_presets.json")
                 genre_bpm_map = {}
@@ -3220,7 +3318,6 @@ Now extract for: "{prompt}"
                         }
                         for keyword, bpm_range in default_bpm_ranges.items():
                             if keyword in style_lower:
-                                import random
                                 task_payload["bpm"] = random.randint(*bpm_range)
                                 print(f"[ACE {job_id[:8]}]   → BPM: None → {task_payload['bpm']} ({keyword} default)")
                                 break
@@ -3307,7 +3404,6 @@ Now extract for: "{prompt}"
                         except Exception as parse_err:
                             print(f"[ACE {job_id[:8]}] JSON parse error: {parse_err}")
                             # Fallback: try to extract file path from string directly
-                            import re
                             file_match = re.search(r'"file":\s*"([^"]+)"', result_str)
                             if file_match:
                                 audio_file_path = file_match.group(1)
@@ -3523,6 +3619,19 @@ Now extract for: "{prompt}"
                             "seed": actual_seed,
                             "output_size_mb": out_size_mb,
                             "created_at": datetime.now().isoformat(),
+                            # LLM quality scoring (populated if enable_quality_scoring=True)
+                            "quality_score": _llm_quality_score if enable_quality_scoring else None,
+                            "quality_notes": _llm_quality_notes if enable_quality_scoring else None,
+                            # Enhanced prompt info
+                            "enhanced_prompt": task_payload.get("prompt", prompt),
+                            "detected_key": task_payload.get("key_scale", ""),
+                            "detected_bpm": task_payload.get("bpm", 0),
+                            # Music Theory (#1)
+                            "theory": _llm_theory if _llm_theory.get("chord_progression") else None,
+                            # Mixing & Mastering Guide (#6)
+                            "mix_guide": _llm_mix if _llm_mix.get("target_lufs") else None,
+                            # Genre Fusion (#7)
+                            "fusion": _llm_fusion,
                         }
                     }
 
