@@ -3074,7 +3074,11 @@ Language: {external_llm_language}
 
 IMPORTANT: 
 - EXTRACT the essence from the user's prompt, do NOT copy it verbatim
-- SIMPLIFY long prompts into concise tags (e.g., "Metro Boomin style" → "trap, aggressive")
+- SIMPLIFY long prompts into concise tags (e.g., "Metro Boomin style" → "trap, aggressive, dark")
+- If user mentions an ARTIST/PRODUCER (e.g., "Metro Boomin", "Drake", "Migos"), translate their signature style into musical characteristics:
+  * Metro Boomin → "dark trap, cinematic, heavy 808, orchestral hits"
+  * Drake → "melodic rap, moody, atmospheric, emotional"
+  * Migos → "triplet flow, ad-libs, catchy hooks"
 - ACE-Step understands short, clear tags better than long descriptions
 - Return ONLY valid JSON (no extra text, no markdown)
 
