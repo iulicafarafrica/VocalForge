@@ -2990,39 +2990,38 @@ async def ace_generate(
                     lyrics_instruction = """
   "lyrics": null,"""
 
-                llm_prompt = f"""You are an expert music AI assistant and professional songwriter. Extract ALL music parameters from this description in ONE response.
+                llm_prompt = f"""You are a JSON-only music API. Return ONLY valid JSON. NO text before or after JSON. NO markdown. NO explanations. NO production notes. NO song titles. NO offers to help.
 
 User description: "{prompt}"
 Language requested: {external_llm_language}
 
-Return ONLY valid JSON (no extra text, no markdown, no explanations after lyrics):
+Return ONLY this JSON structure:
 {{
   "bpm": <integer 60-200>,
-  "key": "<e.g. C major, D minor, A# major, G minor, Am, Cm>",
+  "key": "<e.g. C major, D minor, Am, Cm>",
   "style": "<main genre>",
-  "subgenre": "<subgenre if applicable, else empty string>",
-  "instruments": ["3-5 characteristic instruments"],
-  "mood": "<energetic|dark|romantic|sad|party|chill|aggressive|uplifting|melancholic>",
+  "subgenre": "<subgenre if applicable>",
+  "instruments": ["3-5 instruments"],
+  "mood": "<mood>",
   "time_signature": "<4/4|3/4|6/8>",{lyrics_instruction}
-  "quality_score": <1-10 based on prompt clarity>,
-  "quality_notes": "<brief note on prompt quality>"
+  "quality_score": <1-10>,
+  "quality_notes": "<brief note>"
 }}
 
-IMPORTANT FOR LYRICS:
-- Write ONLY the lyrics, NO explanations, NO notes, NO production tips
-- Use ACE-Step format: [verse], [chorus], [bridge], [intro], [outro]
-- Each section should have 4-8 lines
-- Typical structure: [verse] → [chorus] → [verse] → [chorus] → [bridge] → [chorus]
-- Write in the language requested by the user
-- Make lyrics rhythmic and suitable for singing/rap
+RULES:
+1. Return ONLY JSON - NO text before or after
+2. NO markdown (no ```json ... ```)
+3. NO song titles
+4. NO production notes
+5. NO "Here's your song" or "Would you like..."
+6. For lyrics: Write ONLY lyrics with [verse], [chorus], [bridge] tags - NO explanations
 
 Examples:
-- "manele de petrecere" → {{"bpm": 110, "key": "A minor", "style": "manele", "subgenre": "manele moderne", "instruments": ["accordion", "oriental synth", "drums", "bass"], "mood": "party", "time_signature": "4/4", "lyrics": null, "quality_score": 7, "quality_notes": "clear genre, add tempo/mood for better results"}}
+- "manele de petrecere" → {{"bpm": 110, "key": "A minor", "style": "manele", "subgenre": "manele moderne", "instruments": ["accordion", "oriental synth", "drums", "bass"], "mood": "party", "time_signature": "4/4", "lyrics": null, "quality_score": 7, "quality_notes": "clear genre"}}
 - "trap american dark" → {{"bpm": 140, "key": "C minor", "style": "trap", "subgenre": "dark trap", "instruments": ["808 bass", "hi-hats", "synth pads", "snare"], "mood": "dark", "time_signature": "4/4", "lyrics": null, "quality_score": 8, "quality_notes": "good clarity"}}
-- "afro house sunset vibes" → {{"bpm": 122, "key": "G minor", "style": "afro house", "subgenre": "organic afro house", "instruments": ["log drums", "djembe", "bass", "pads"], "mood": "uplifting", "time_signature": "4/4", "lyrics": null, "quality_score": 9, "quality_notes": "excellent descriptor"}}
-- "trap romanesc melancolic cu versuri" → {{"bpm": 140, "key": "A minor", "style": "trap romanesc", "subgenre": "melodic trap", "instruments": ["808 bass", "hi-hats", "synth lead", "piano"], "mood": "melancholic", "time_signature": "4/4", "lyrics": "[verse]\\nAm stat noaptea pe balcon, privind orașul adormit,\\nLumini de neon clipesc, dar eu mă simt pierdut și părăsit.\\nFumul se ridică lent, gândurile mă apasă greu,\\nÎn acest trap de viață, caut sensul, dar nu-l găsesc mereu.\\n\\n[chorus]\\nE noapte și mă simt singur, în orașul ăsta mare,\\nLumini de neon mă orbesc, dar nu-mi alină a mea durere.\\nTrap românesc, sufletesc, cânt despre ce trăiesc,\\nDespre vise și speranțe, despre tot ce iubesc.\\n\\n[verse]\\nBanii vin și pleacă, prietenii la fel,\\nDoar muzica rămâne, singurul meu model.\\nAm învățat că viața nu-i mereu cum ne dorim,\\nDar continuăm să mergem, chiar dacă obosim.\\n\\n[chorus]\\nE noapte și mă simt singur, în orașul ăsta mare,\\nLumini de neon mă orbesc, dar nu-mi alină a mea durere.\\nTrap românesc, sufletesc, cânt despre ce trăiesc,\\nDespre vise și speranțe, despre tot ce iubesc.\\n\\n[bridge]\\nPoate mâine va fi mai bine, poate voi găsi răspunsul,\\nPână atunci cânt, și las muzica să-mi fie plânsul.\\n\\n[chorus]\\nE noapte și mă simt singur, în orașul ăsta mare,\\nLumini de neon mă orbesc, dar nu-mi alină a mea durere.\\nTrap românesc, sufletesc, cânt despre ce trăiesc,\\nDespre vise și speranțe, despre tot ce iubesc.", "quality_score": 9, "quality_notes": "excellent fusion of trap and manele elements"}}
+- "trap romanesc cu versuri" → {{"bpm": 140, "key": "A minor", "style": "trap romanesc", "subgenre": "melodic trap", "instruments": ["808 bass", "hi-hats", "synth lead", "piano"], "mood": "melancholic", "time_signature": "4/4", "lyrics": "[verse]\\nAm stat noaptea pe balcon, privind orașul adormit,\\nLumini de neon clipesc, dar eu mă simt pierdut și părăsit.\\n\\n[chorus]\\nE noapte și mă simt singur, în orașul ăsta mare,\\nLumini de neon mă orbesc, dar nu-mi alină a mea durere.\\n\\n[verse]\\nBanii vin și pleacă, prietenii la fel,\\nDoar muzica rămâne, singurul meu model.\\n\\n[chorus]\\nE noapte și mă simt singur, în orașul ăsta mare,\\nLumini de neon mă orbesc, dar nu-mi alină a mea durere.\\n\\n[bridge]\\nPoate mâine va fi mai bine, poate voi găsi răspunsul,\\nPână atunci cânt, și las muzica să-mi fie plânsul.\\n\\n[chorus]\\nE noapte și mă simt singur, în orașul ăsta mare,\\nLumini de neon mă orbesc, dar nu-mi alină a mea durere.", "quality_score": 9, "quality_notes": "excellent"}}
 
-Now extract for: "{prompt}"
+Now return JSON for: "{prompt}"
 """
 
                 try:
