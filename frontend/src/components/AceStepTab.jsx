@@ -897,11 +897,10 @@ export default function AceStepTab({
   const [batchSize, setBatchSize] = useState(1);
   const [thinking, setThinking] = useState(true);  // Default: ON (5Hz LM for CoT)
   const [useExternalLLM, setUseExternalLLM] = useState(true); // External LLM for prompt expansion (Gemma 3 4B) - AUTO-ENABLED
-  const [generateLyrics, setGenerateLyrics] = useState(false); // AI-generated lyrics if none provided
   const [externalLLMLanguage, setExternalLLMLanguage] = useState("auto"); // "auto", "ro", "en", "es"
   const [analyzeReferenceAudio, setAnalyzeReferenceAudio] = useState(false); // Analyze uploaded audio
   const [enableQualityScoring, setEnableQualityScoring] = useState(false); // Get AI quality rating
-  const [enablePresetSuggestions, setEnablePresetSuggestions] = useState(false); // Auto-suggest presets
+  const [enablePresetSuggestions, setEnablePresetSuggestions] = useState(true); // Auto-suggest presets (ON default)
   
   // Auto-disable CoT when External LLM is enabled (they do the same thing)
   useEffect(() => {
@@ -1812,7 +1811,6 @@ export default function AceStepTab({
     fd.append("use_cot_caption", effectiveUseCotCaption);  // Disable for custom/text2music
     fd.append("use_cot_language", effectiveUseCotLanguage);  // Disable for custom/text2music
     fd.append("use_external_llm", useExternalLLM);  // External LLM for prompt expansion (Gemma 3 4B)
-    fd.append("generate_lyrics", generateLyrics);  // AI-generated lyrics if none provided
     fd.append("external_llm_language", externalLLMLanguage);  // "auto", "ro", "en", "es"
     fd.append("analyze_reference_audio", analyzeReferenceAudio);  // Analyze uploaded audio for style
     fd.append("enable_quality_scoring", enableQualityScoring);  // Get AI quality rating
@@ -3947,25 +3945,6 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                   </div>
                 </div>
               </div>
-              
-              {/* Generate Lyrics Toggle */}
-              {useExternalLLM && (
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 8, paddingLeft: 36, marginBottom: 8 }}>
-                  <div onClick={() => setGenerateLyrics(v => !v)} style={{ width: 28, height: 16, borderRadius: 999, flexShrink: 0, marginTop: 2, background: generateLyrics ? "#9b2de0" : "#1a1a3a", position: "relative", cursor: "pointer", transition: "background 0.2s" }}>
-                    <div style={{ position: "absolute", top: 2, left: generateLyrics ? 14 : 2, width: 12, height: 12, borderRadius: "50%", background: generateLyrics ? "#fff" : "#444466", transition: "left 0.2s" }} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2 }}>
-                      <span style={{ fontSize: 13 }}>📝</span>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: generateLyrics ? "#9b2de0" : "#444466" }}>Generate Lyrics with AI</span>
-                      <span style={{ fontSize: 13, padding: "1px 4px", borderRadius: 999, fontWeight: 700, background: generateLyrics ? "#9b2de022" : "#12122a", color: generateLyrics ? "#9b2de0" : "#333355", border: `1px solid ${generateLyrics ? "#9b2de044" : "#1a1a3a"}` }}>{generateLyrics ? "ON" : "OFF"}</span>
-                    </div>
-                    <div style={{ fontSize: 13, color: "#333355", lineHeight: 1.3 }}>
-                      AI will generate original lyrics based on the music style (only if no lyrics provided)
-                    </div>
-                  </div>
-                </div>
-              )}
 
               {/* Language Selector */}
               {useExternalLLM && (
