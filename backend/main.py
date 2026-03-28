@@ -3053,19 +3053,18 @@ Now extract for: "{prompt}"
                                         scale_info = music_params.get("scale", "")
                                         mix_info = music_params.get("mix_master_tip", "")
                                         
-                                        # Build enhanced prompt
+                                        # Build enhanced prompt (chords/scale NOT included per ACE-Step official docs)
+                                        # They are sent via dedicated metadata parameters (bpm, keyscale)
                                         enhanced_prompt = build_ace_tags(style, mood, subgenre, instruments, "",
-                                                                         chord_progression=chord_prog,
-                                                                         scale=scale_info,
                                                                          mix_notes=mix_info)
                                         task_payload["prompt"] = enhanced_prompt + ", clean studio quality, noise-free"
-                                        
+
                                         print(f"[ACE {job_id[:8]}] 🎭 Style: {style} | Mood: {mood}")
                                         print(f"[ACE {job_id[:8]}] 🎸 Instruments: {', '.join(instruments)}")
                                         if chord_prog:
-                                            print(f"[ACE {job_id[:8]}] 🎼 Chords: {chord_prog} → SENT TO ACE-STEP")
+                                            print(f"[ACE {job_id[:8]}] 🎼 Chords: {chord_prog} (metadata only, not in caption)")
                                         if scale_info:
-                                            print(f"[ACE {job_id[:8]}] 🎼 Scale: {scale_info} → SENT TO ACE-STEP")
+                                            print(f"[ACE {job_id[:8]}] 🎼 Scale: {scale_info} (metadata only, not in caption)")
                                         if mix_info:
                                             print(f"[ACE {job_id[:8]}] 🎚️ Mix tip: {mix_info[:50]}... → SENT TO ACE-STEP")
                                         print(f"[ACE {job_id[:8]}] ✨ Enhanced prompt: {task_payload['prompt'][:140]}...")
@@ -3154,7 +3153,11 @@ Now extract for: "{prompt}"
 
             def build_ace_tags(style: str, mood: str, subgenre: str, instruments: list, original_prompt: str,
                                chord_progression: str = "", scale: str = "", mix_notes: str = "") -> str:
-                """Build ACE-Step tags in optimal order: genre → mood → instruments → theory → mix → original (if short)."""
+                """Build ACE-Step tags in optimal order: genre → mood → instruments → mix → original (if short).
+                
+                Note: Chords and scale are NOT included in caption per ACE-Step official docs.
+                They should be sent via dedicated metadata parameters (bpm, keyscale).
+                """
                 parts = []
                 if style:
                     parts.append(style.strip().lower())
@@ -3167,19 +3170,13 @@ Now extract for: "{prompt}"
                 if instruments:
                     # Max 5 instruments — enough context without overloading prompt
                     parts.extend([i.strip().lower() for i in instruments[:5]])
-                
-                # Add Music Theory info (chords, scale)
-                if chord_progression:
-                    parts.append(f"chords: {chord_progression.strip()}")
-                if scale:
-                    parts.append(f"scale: {scale.strip()}")
-                
-                # Add Mixing info (brief)
+
+                # Add Mixing info (brief) - ACE-Step supports timbre/production style in caption
                 if mix_notes:
                     # Truncate to 50 chars to avoid overloading prompt
                     mix_short = mix_notes.strip()[:50]
-                    parts.append(f"mix: {mix_short}")
-                
+                    parts.append(f"{mix_short}")
+
                 # Only add original prompt if it's short (<50 chars) and adds value
                 if original_prompt and len(original_prompt.strip()) < 50:
                     # Skip if original prompt is just genre names we already extracted
@@ -3188,7 +3185,7 @@ Now extract for: "{prompt}"
                         pass  # Skip long or redundant prompts
                     else:
                         parts.append(original_prompt.strip())
-                
+
                 return ", ".join(filter(None, parts))
 
             def format_lyrics_for_acestep(raw_lyrics: str) -> str:
@@ -3367,18 +3364,17 @@ Now extract for: "{prompt}"
                                 scale_info = music_params.get("scale", "")
                                 mix_info = music_params.get("mix_master_tip", "")
                                 
-                                # Build enhanced prompt with theory/mix info
+                                # Build enhanced prompt (chords/scale NOT included per ACE-Step official docs)
+                                # They are sent via dedicated metadata parameters (bpm, keyscale)
                                 enhanced_prompt = build_ace_tags(style, mood, subgenre, instruments, prompt,
-                                                                 chord_progression=chord_prog,
-                                                                 scale=scale_info,
                                                                  mix_notes=mix_info)
                                 task_payload["prompt"] = enhanced_prompt + ", clean studio quality, noise-free"
                                 print(f"[ACE {job_id[:8]}] 🎭 Style: {style} | Mood: {mood}")
                                 print(f"[ACE {job_id[:8]}] 🎸 Instruments: {', '.join(instruments)}")
                                 if chord_prog:
-                                    print(f"[ACE {job_id[:8]}] 🎼 Chords: {chord_prog} → SENT TO ACE-STEP")
+                                    print(f"[ACE {job_id[:8]}] 🎼 Chords: {chord_prog} (metadata only, not in caption)")
                                 if scale_info:
-                                    print(f"[ACE {job_id[:8]}] 🎼 Scale: {scale_info} → SENT TO ACE-STEP")
+                                    print(f"[ACE {job_id[:8]}] 🎼 Scale: {scale_info} (metadata only, not in caption)")
                                 if mix_info:
                                     print(f"[ACE {job_id[:8]}] 🎚️ Mix tip: {mix_info[:50]}... → SENT TO ACE-STEP")
                                 print(f"[ACE {job_id[:8]}] ✨ Enhanced prompt: {task_payload['prompt'][:140]}...")
