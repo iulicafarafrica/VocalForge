@@ -2139,16 +2139,6 @@ export default function AceStepTab({
                   <div style={{ color: "#444466", fontSize: 11, marginTop: 4 }}>
                     ℹ️ 0.5 = balanced cover · 0.8 = close to original · 0.3 = creative reinterpretation
                   </div>
-                  {useExternalLLM && sourceStrength <= 0.45 && (
-                    <div style={{ marginTop: 6, padding: "4px 8px", borderRadius: 6, background: "#06d6a011", border: "1px solid #06d6a033", fontSize: 11, color: "#06d6a0" }}>
-                      🌟 External LLM activ — Gemma3 va sugera stil nou pentru acest cover
-                    </div>
-                  )}
-                  {useExternalLLM && sourceStrength > 0.45 && (
-                    <div style={{ marginTop: 6, padding: "4px 8px", borderRadius: 6, background: "#1a1a3a", border: "1px solid #2a2a4a", fontSize: 11, color: "#444466" }}>
-                      💡 Coboară sub 0.45 pentru a activa External LLM pe cover
-                    </div>
-                  )}
                 </div>
               </div>
             )}

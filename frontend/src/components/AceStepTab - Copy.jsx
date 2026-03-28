@@ -897,27 +897,39 @@ export default function AceStepTab({
   const [batchSize, setBatchSize] = useState(1);
   const [thinking, setThinking] = useState(true);  // Default: ON (5Hz LM for CoT)
   const [useExternalLLM, setUseExternalLLM] = useState(true); // External LLM for prompt expansion (Gemma 3 4B) - AUTO-ENABLED
-  const [generateLyrics, setGenerateLyrics] = useState(false); // Generate lyrics with AI if none provided
   const [externalLLMLanguage, setExternalLLMLanguage] = useState("auto"); // "auto", "ro", "en", "es"
   const [analyzeReferenceAudio, setAnalyzeReferenceAudio] = useState(false); // Analyze uploaded audio
-  const [enableQualityScoring, setEnableQualityScoring] = useState(false); // Get AI quality rating
-  const [enablePresetSuggestions, setEnablePresetSuggestions] = useState(true); // Auto-suggest presets (ON default)
-  
+  const [enableQualityScoring, setEnableQualityScoring] = useState(true); // Get AI quality rating - ALWAYS ON
+  const [ollamaOnline, setOllamaOnline] = useState(null); // null=checking, true=online, false=offline
+
   // Auto-disable CoT when External LLM is enabled (they do the same thing)
   useEffect(() => {
     if (useExternalLLM) {
-      // External LLM ON → Auto-disable CoT (Gemma 3 does everything better)
       setUseCotMetas(false);
       setUseCotCaption(false);
       setUseCotLanguage(false);
     } else {
-      // External LLM OFF → Auto-enable CoT (use internal LM)
       setUseCotMetas(true);
       setUseCotCaption(true);
       setUseCotLanguage(true);
     }
   }, [useExternalLLM]);
-  
+
+  // Ollama health check — runs once on mount and every 30s
+  useEffect(() => {
+    const checkOllama = async () => {
+      try {
+        const r = await fetch("http://localhost:11434/api/tags", { signal: AbortSignal.timeout(3000) });
+        setOllamaOnline(r.ok);
+      } catch {
+        setOllamaOnline(false);
+      }
+    };
+    checkOllama();
+    const interval = setInterval(checkOllama, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const [useCotMetas, setUseCotMetas] = useState(false);      // OFF = User provides BPM/Key (consistent with backend default)
   const [useCotCaption, setUseCotCaption] = useState(false);   // OFF = User provides prompt (consistent with backend default)
   const [useCotLanguage, setUseCotLanguage] = useState(false); // OFF = User provides language (consistent with backend default)
@@ -1149,8 +1161,18 @@ export default function AceStepTab({
     { code: "en", name: "English", native: "English" },
     { code: "es", name: "Spanish", native: "Español" },
     { code: "ar", name: "Arabic", native: "العربية" },
-    { code: "el", name: "Greek", native: "Ελληνικά" },
     { code: "tr", name: "Turkish", native: "Türkçe" },
+    { code: "el", name: "Greek", native: "Ελληνικά" },
+    { code: "fr", name: "French", native: "Français" },
+    { code: "de", name: "German", native: "Deutsch" },
+    { code: "it", name: "Italian", native: "Italiano" },
+    { code: "pt", name: "Portuguese", native: "Português" },
+    { code: "hu", name: "Hungarian", native: "Magyar" },
+    { code: "ru", name: "Russian", native: "Русский" },
+    { code: "zh", name: "Chinese", native: "中文" },
+    { code: "ja", name: "Japanese", native: "日本語" },
+    { code: "ko", name: "Korean", native: "한국어" },
+    { code: "hi", name: "Hindi", native: "हिन्दी" },
   ];
 
   // ── Prompt Helper ──────────────────────────────────────────────────────────
@@ -1812,11 +1834,9 @@ export default function AceStepTab({
     fd.append("use_cot_caption", effectiveUseCotCaption);  // Disable for custom/text2music
     fd.append("use_cot_language", effectiveUseCotLanguage);  // Disable for custom/text2music
     fd.append("use_external_llm", useExternalLLM);  // External LLM for prompt expansion (Gemma 3 4B)
-    fd.append("generate_lyrics", generateLyrics);    // AI-generated lyrics if none provided
     fd.append("external_llm_language", externalLLMLanguage);  // "auto", "ro", "en", "es"
     fd.append("analyze_reference_audio", analyzeReferenceAudio);  // Analyze uploaded audio for style
     fd.append("enable_quality_scoring", enableQualityScoring);  // Get AI quality rating
-    fd.append("enable_preset_suggestions", enablePresetSuggestions);  // Auto-suggest genre presets
     fd.append("constrained_decoding", true);  // ACE-Step default
     fd.append("allow_lm_batch", true);
     fd.append("get_lrc", false);
@@ -2119,6 +2139,16 @@ export default function AceStepTab({
                   <div style={{ color: "#444466", fontSize: 11, marginTop: 4 }}>
                     ℹ️ 0.5 = balanced cover · 0.8 = close to original · 0.3 = creative reinterpretation
                   </div>
+                  {useExternalLLM && sourceStrength <= 0.45 && (
+                    <div style={{ marginTop: 6, padding: "4px 8px", borderRadius: 6, background: "#06d6a011", border: "1px solid #06d6a033", fontSize: 11, color: "#06d6a0" }}>
+                      🌟 External LLM activ — Gemma3 va sugera stil nou pentru acest cover
+                    </div>
+                  )}
+                  {useExternalLLM && sourceStrength > 0.45 && (
+                    <div style={{ marginTop: 6, padding: "4px 8px", borderRadius: 6, background: "#1a1a3a", border: "1px solid #2a2a4a", fontSize: 11, color: "#444466" }}>
+                      💡 Coboară sub 0.45 pentru a activa External LLM pe cover
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -4022,8 +4052,16 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
 
             {/* External LLM (Gemma 3 4B) */}
             <div style={{ marginBottom: 12, padding: "8px 10px", borderRadius: 6, background: "#07071a", border: "1px solid #06d6a022" }}>
-              <div style={{ fontSize: 13, color: "#06d6a0", fontWeight: 700, marginBottom: 6, letterSpacing: 1, textTransform: "uppercase" }}>
+              <div style={{ fontSize: 13, color: "#06d6a0", fontWeight: 700, marginBottom: 6, letterSpacing: 1, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 8 }}>
                 🌟 External LLM (Gemma 3 4B)
+                <span style={{
+                  fontSize: 10, padding: "2px 6px", borderRadius: 999, fontWeight: 600,
+                  background: ollamaOnline === null ? "#1a1a3a" : ollamaOnline ? "#06d6a011" : "#ff000011",
+                  color: ollamaOnline === null ? "#444466" : ollamaOnline ? "#06d6a0" : "#ff4444",
+                  border: `1px solid ${ollamaOnline === null ? "#2a2a4a" : ollamaOnline ? "#06d6a033" : "#ff444433"}`,
+                }}>
+                  {ollamaOnline === null ? "⏳ checking" : ollamaOnline ? "● online · CPU" : "● offline"}
+                </span>
               </div>
               <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 8 }}>
                 <div onClick={() => setUseExternalLLM(v => !v)} style={{ width: 28, height: 16, borderRadius: 999, flexShrink: 0, marginTop: 2, background: useExternalLLM ? "#06d6a0" : "#1a1a3a", position: "relative", cursor: "pointer", transition: "background 0.2s" }}>
@@ -4031,11 +4069,10 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2 }}>
-                    <span style={{ fontSize: 13 }}>🧠</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: useExternalLLM ? "#06d6a0" : "#444466" }}>Extract Music Parameters (BPM, Key, Style)</span>
-                    <span style={{ fontSize: 13, padding: "1px 4px", borderRadius: 999, fontWeight: 700, background: useExternalLLM ? "#06d6a022" : "#12122a", color: useExternalLLM ? "#06d6a0" : "#333355", border: `1px solid ${useExternalLLM ? "#06d6a044" : "#1a1a3a"}` }}>{useExternalLLM ? "ON" : "OFF"}</span>
+                    <span style={{ fontSize: 11 }}>🧠</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: useExternalLLM ? "#06d6a0" : "#444466" }}>Extract Music Parameters (BPM, Key, Style)</span>
                   </div>
-                  <div style={{ fontSize: 13, color: "#333355", lineHeight: 1.3 }}>
+                  <div style={{ fontSize: 11, color: "#333355", lineHeight: 1.3 }}>
                     Auto-detects BPM, Key, instruments, and style from your prompt
                   </div>
                 </div>
@@ -4062,44 +4099,26 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                     <option value="ro">🇷🇴 Romanian</option>
                     <option value="en">🇬🇧 English</option>
                     <option value="es">🇪🇸 Spanish</option>
+                    <option value="ar">🇸🇦 Arabic</option>
+                    <option value="tr">🇹🇷 Turkish</option>
+                    <option value="el">🇬🇷 Greek</option>
+                    <option value="fr">🇫🇷 French</option>
+                    <option value="de">🇩🇪 German</option>
+                    <option value="it">🇮🇹 Italian</option>
+                    <option value="pt">🇵🇹 Portuguese</option>
+                    <option value="hu">🇭🇺 Hungarian</option>
+                    <option value="ru">🇷🇺 Russian</option>
+                    <option value="zh">🇨🇳 Chinese</option>
+                    <option value="ja">🇯🇵 Japanese</option>
+                    <option value="ko">🇰🇷 Korean</option>
+                    <option value="hi">🇮🇳 Hindi</option>
                   </select>
                 </div>
               )}
 
-              {/* Generate Lyrics toggle */}
-              {useExternalLLM && (
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 8, paddingLeft: 36, marginBottom: 8 }}>
-                  <div onClick={() => setGenerateLyrics(v => !v)} style={{ width: 28, height: 16, borderRadius: 999, flexShrink: 0, marginTop: 2, background: generateLyrics ? "#9b2de0" : "#1a1a3a", position: "relative", cursor: "pointer", transition: "background 0.2s" }}>
-                    <div style={{ position: "absolute", top: 2, left: generateLyrics ? 14 : 2, width: 12, height: 12, borderRadius: "50%", background: generateLyrics ? "#fff" : "#444466", transition: "left 0.2s" }} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <span style={{ fontSize: 13 }}>📝</span>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: generateLyrics ? "#9b2de0" : "#444466" }}>Generate Lyrics with AI</span>
-                      <span style={{ fontSize: 11, padding: "1px 4px", borderRadius: 999, fontWeight: 700, background: generateLyrics ? "#9b2de022" : "#12122a", color: generateLyrics ? "#9b2de0" : "#333355", border: `1px solid ${generateLyrics ? "#9b2de044" : "#1a1a3a"}` }}>{generateLyrics ? "ON" : "OFF"}</span>
-                    </div>
-                    <div style={{ fontSize: 11, color: "#333355", marginTop: 2 }}>Auto-generates [verse]/[chorus] lyrics if no lyrics provided</div>
-                  </div>
-                </div>
-              )}
+              {/* Quality Score - ALWAYS ON, no toggle needed */}
 
-              {/* Quality Scoring & Preset Suggestions */}
-              {useExternalLLM && (
-                <div style={{ display: "flex", gap: 16, paddingLeft: 36 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div onClick={() => setEnableQualityScoring(v => !v)} style={{ width: 24, height: 14, borderRadius: 999, flexShrink: 0, background: enableQualityScoring ? "#ffd166" : "#1a1a3a", position: "relative", cursor: "pointer" }}>
-                      <div style={{ position: "absolute", top: 2, left: enableQualityScoring ? 10 : 2, width: 10, height: 10, borderRadius: "50%", background: enableQualityScoring ? "#fff" : "#444", transition: "left 0.2s" }} />
-                    </div>
-                    <span style={{ fontSize: 12, color: enableQualityScoring ? "#ffd166" : "#8888aa" }}>⭐ Quality Score</span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div onClick={() => setEnablePresetSuggestions(v => !v)} style={{ width: 24, height: 14, borderRadius: 999, flexShrink: 0, background: enablePresetSuggestions ? "#00e5ff" : "#1a1a3a", position: "relative", cursor: "pointer" }}>
-                      <div style={{ position: "absolute", top: 2, left: enablePresetSuggestions ? 10 : 2, width: 10, height: 10, borderRadius: "50%", background: enablePresetSuggestions ? "#fff" : "#444", transition: "left 0.2s" }} />
-                    </div>
-                    <span style={{ fontSize: 12, color: enablePresetSuggestions ? "#00e5ff" : "#8888aa" }}>💡 Presets</span>
-                  </div>
-                </div>
-              )}
+              {/* Suggested Preset Banner — REMOVED (Gemma handles everything now) */}
             </div>
 
             {/* Thinking Mode */}
