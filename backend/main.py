@@ -3072,13 +3072,19 @@ async def ace_generate(
 User description: "{prompt}"
 Language: {external_llm_language}
 
-Return ONLY valid JSON (no extra text, no markdown):
+IMPORTANT: 
+- EXTRACT the essence from the user's prompt, do NOT copy it verbatim
+- SIMPLIFY long prompts into concise tags (e.g., "Metro Boomin style" → "trap, aggressive")
+- ACE-Step understands short, clear tags better than long descriptions
+- Return ONLY valid JSON (no extra text, no markdown)
+
+Return ONLY this JSON structure:
 {{
   "bpm": <integer 60-220>,
   "key": "<e.g. C major, D minor, G minor>",
-  "style": "<main genre>",
+  "style": "<main genre - extract from prompt, e.g. trap, manele, drill>",
   "subgenre": "<subgenre or empty string>",
-  "instruments": ["3-5 characteristic instruments"],
+  "instruments": ["3-5 characteristic instruments - extract key instruments only"],
   "mood": "<primary mood only: energetic|dark|romantic|sad|party|chill|aggressive|uplifting>",
   "time_signature": "<4/4|3/4|6/8>",{lyrics_field}
   "quality_score": <1-10>,
