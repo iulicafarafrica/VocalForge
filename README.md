@@ -149,9 +149,22 @@ Compatible: 808 + drill snare, dark synth + sampled vocal chop
 3. **Frontend** displays theory/mix/fusion cards in result card
 
 **Requirements:**
-- Ollama running locally (`ollama serve`)
+- Ollama installed ([Download](https://ollama.com) or `winget install Ollama.Ollama`)
 - Gemma 3 4B model (`ollama pull gemma3:4b`)
-- ~3-4GB VRAM for Gemma (runs on CPU by default)
+- Ollama server running (`ollama serve`)
+- ~3-4GB RAM for Gemma (runs on CPU by default)
+
+**Setup (3 steps):**
+```bash
+# 1. Install Ollama
+winget install Ollama.Ollama
+
+# 2. Pull Gemma 3 4B model
+ollama pull gemma3:4b
+
+# 3. Start Ollama server (keep running in background)
+ollama serve
+```
 
 ---
 
@@ -282,6 +295,35 @@ Access the studio at **[http://localhost:3000](http://localhost:3000)**
 | Git LFS | Latest | ⚠ Recommended | Large model files |
 | NVIDIA GPU | 4GB+ VRAM | ⚠ Optional | CUDA required for GPU |
 | CUDA | 11.8 / 12.1 | ⚠ Optional | PyTorch includes bundled CUDA |
+| **Ollama** | Latest | ⚠ For External LLM | Required for Music Theory & Mixing Guide |
+
+### External LLM Setup (Ollama + Gemma 3 4B)
+
+**Required for:** Music Theory, Mixing Guide, Genre Fusion, Quality Scoring
+
+```bash
+# 1. Install Ollama
+# Download from: https://ollama.com/download
+# Or via winget (Windows):
+winget install Ollama.Ollama
+
+# 2. Start Ollama server
+ollama serve
+
+# 3. Pull Gemma 3 4B model
+ollama pull gemma3:4b
+
+# 4. Verify installation
+ollama run gemma3:4b "Hello, what is music theory?"
+```
+
+**Notes:**
+- Ollama runs on CPU by default (~3-4GB RAM usage)
+- Can be GPU-accelerated with CUDA (faster responses)
+- Gemma 3 4B is ~2.5GB download
+- Response time: ~3-6 seconds per query
+
+---
 
 ### One-Click Install
 
