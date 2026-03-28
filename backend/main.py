@@ -2736,8 +2736,8 @@ async def ace_generate(
 
             # ── Optimizări pentru External LLM vs CoT ──────────────────────────
             # When External LLM (Gemma 3) is ON:
-            #   - Keep thinking=True for audio codes generation (ESSENTIAL for ACE-Step DiT)
             #   - Disable CoT metadata (use_cot_metas/caption/language) because Gemma does it better
+            #   - Thinking mode is controlled by user toggle (NOT forced ON)
             # When External LLM is OFF:
             #   - Use CoT for everything (metadata + audio codes)
             if use_external_llm:
@@ -2745,16 +2745,16 @@ async def ace_generate(
                 effective_use_cot_metas = False
                 effective_use_cot_caption = False
                 effective_use_cot_language = False
-                # But KEEP thinking=True for audio codes generation (CoT internal LM does this)
-                effective_thinking = True  # Audio codes are ESSENTIAL for ACE-Step DiT
-                print(f"[ACE {job_id[:8]}] 🧠 External LLM ON: Using Gemma for metadata, CoT for audio codes")
+                # Thinking mode respects user toggle (NOT forced ON)
+                effective_thinking = thinking  # User controls this via UI
+                print(f"[ACE {job_id[:8]}] 🧠 External LLM ON: Using Gemma for metadata, thinking={thinking}")
             else:
                 # No External LLM → Use CoT for everything
                 effective_use_cot_metas = use_cot_metas
                 effective_use_cot_caption = use_cot_caption
                 effective_use_cot_language = use_cot_language
                 effective_thinking = thinking
-                print(f"[ACE {job_id[:8]}] 🧠 External LLM OFF: Using CoT for everything")
+                print(f"[ACE {job_id[:8]}] 🧠 External LLM OFF: Using CoT for everything, thinking={thinking}")
 
             # ── Optimizări pentru audio cover ──────────────────────────────────
             effective_duration = duration  # folosim durata exactă setată de utilizator
@@ -2929,11 +2929,12 @@ async def ace_generate(
                 if task_type == "cover":
                     task_payload["reference_audio_path"] = src_path  # Preserve vocal
                     print(f"[ACE {job_id[:8]}] Audio cover: reference={source_audio.filename}")
-                    
-                    # ── External LLM for Audio Cover (when strength ≤ 0.45 + prompt provided) ──────────────
-                    # When user wants to significantly change the cover (strength ≤ 0.45) AND provides a prompt,
-                    # use Gemma 3 to extract NEW style metadata (BPM, Key, Instruments, etc.)
-                    if use_external_llm and prompt and prompt.strip() and source_audio_strength <= 0.45:
+
+                    # ── External LLM for Audio Cover - DISABLED ──────────────
+                    # LLM is now DISABLED for Audio Cover to reduce latency (~6s overhead)
+                    # LLM remains available only for Text-to-Music generation
+                    # If you want to re-enable: change 'if False and' to 'if use_external_llm and'
+                    if False and use_external_llm and prompt and prompt.strip() and source_audio_strength <= 0.45:
                         print(f"[ACE {job_id[:8]}] 🎵 Audio Cover + External LLM: strength={source_audio_strength}, prompt='{prompt[:50]}...'")
                         print(f"[ACE {job_id[:8]}] 🌟 Gemma 3 will suggest NEW style for this cover transformation...")
                         
@@ -3078,10 +3079,10 @@ Now extract for: "{prompt}"
                                             "theory_notes": music_params.get("theory_notes", ""),
                                         }
                                         _llm_mix = {
-                                            "target_lufs": music_params.get("mix_target_lufs", ""),
-                                            "low_end": music_params.get("mix_low_end", ""),
-                                            "vocal_chain": music_params.get("mix_vocal_chain", ""),
-                                            "master_tip": mix_info,
+                                            "mix_target_lufs": music_params.get("mix_target_lufs", ""),
+                                            "mix_low_end": music_params.get("mix_low_end", ""),
+                                            "mix_vocal_chain": music_params.get("mix_vocal_chain", ""),
+                                            "mix_master_tip": mix_info,
                                         }
                                         _llm_fusion = music_params.get("fusion_elements")
                                         
@@ -3089,6 +3090,18 @@ Now extract for: "{prompt}"
                                     print(f"[ACE {job_id[:8]}] ❌ Ollama HTTP error: {ollama_response.status_code}")
                         except Exception as llm_err:
                             print(f"[ACE {job_id[:8]}] ⚠️ External LLM failed for cover: {llm_err}")
+                        
+                        # Unload Ollama din VRAM după cover LLM call
+                        try:
+                            async with httpx.AsyncClient(timeout=8.0) as uc:
+                                await uc.post(
+                                    "http://localhost:11434/api/generate",
+                                    json={"model": "gemma3:4b", "keep_alive": 0}
+                                )
+                            await asyncio.sleep(1)
+                            print(f"[ACE {job_id[:8]}] ✅ Ollama unloaded (cover) — VRAM liber")
+                        except Exception as ue:
+                            print(f"[ACE {job_id[:8]}] ⚠️ Ollama unload skipped: {ue}")
                         # ─────────────────────────────────────────────────────────────────────────────────────
                     
                 else:
@@ -3400,13 +3413,13 @@ Now extract for: "{prompt}"
 
                                 # Mixing & Mastering Guide (#6)
                                 _llm_mix = {
-                                    "target_lufs": music_params.get("mix_target_lufs", ""),
-                                    "low_end": music_params.get("mix_low_end", ""),
-                                    "vocal_chain": music_params.get("mix_vocal_chain", ""),
-                                    "master_tip": music_params.get("mix_master_tip", ""),
+                                    "mix_target_lufs": music_params.get("mix_target_lufs", ""),
+                                    "mix_low_end": music_params.get("mix_low_end", ""),
+                                    "mix_vocal_chain": music_params.get("mix_vocal_chain", ""),
+                                    "mix_master_tip": music_params.get("mix_master_tip", ""),
                                 }
-                                if _llm_mix["target_lufs"]:
-                                    print(f"[ACE {job_id[:8]}] 🎚️ Mix: {_llm_mix['target_lufs']} | {_llm_mix['master_tip'][:60]}")
+                                if _llm_mix["mix_target_lufs"]:
+                                    print(f"[ACE {job_id[:8]}] 🎚️ Mix: {_llm_mix['mix_target_lufs']} | {_llm_mix['mix_master_tip'][:60]}")
 
                                 # Genre Fusion (#7)
                                 _llm_fusion = music_params.get("fusion_elements")
@@ -3835,7 +3848,7 @@ Now extract for: "{prompt}"
                             # Music Theory (#1)
                             "theory": _llm_theory if _llm_theory.get("chord_progression") else None,
                             # Mixing & Mastering Guide (#6)
-                            "mix_guide": _llm_mix if _llm_mix.get("master_tip") else None,  # Check master_tip instead of target_lufs
+                            "mix_guide": _llm_mix if _llm_mix.get("mix_target_lufs") else None,
                             # Genre Fusion (#7)
                             "fusion": _llm_fusion,
                         }
