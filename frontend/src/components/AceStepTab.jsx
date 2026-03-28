@@ -1161,8 +1161,18 @@ export default function AceStepTab({
     { code: "en", name: "English", native: "English" },
     { code: "es", name: "Spanish", native: "Español" },
     { code: "ar", name: "Arabic", native: "العربية" },
-    { code: "el", name: "Greek", native: "Ελληνικά" },
     { code: "tr", name: "Turkish", native: "Türkçe" },
+    { code: "el", name: "Greek", native: "Ελληνικά" },
+    { code: "fr", name: "French", native: "Français" },
+    { code: "de", name: "German", native: "Deutsch" },
+    { code: "it", name: "Italian", native: "Italiano" },
+    { code: "pt", name: "Portuguese", native: "Português" },
+    { code: "hu", name: "Hungarian", native: "Magyar" },
+    { code: "ru", name: "Russian", native: "Русский" },
+    { code: "zh", name: "Chinese", native: "中文" },
+    { code: "ja", name: "Japanese", native: "日本語" },
+    { code: "ko", name: "Korean", native: "한국어" },
+    { code: "hi", name: "Hindi", native: "हिन्दी" },
   ];
 
   // ── Prompt Helper ──────────────────────────────────────────────────────────
