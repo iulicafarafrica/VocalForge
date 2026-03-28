@@ -2991,7 +2991,7 @@ async def ace_generate(
 
             def build_ace_tags(style: str, mood: str, subgenre: str, instruments: list, original_prompt: str,
                                chord_progression: str = "", scale: str = "", mix_notes: str = "") -> str:
-                """Build ACE-Step tags in optimal order: genre → mood → instruments → theory → mix → original."""
+                """Build ACE-Step tags in optimal order: genre → mood → instruments → theory → mix → original (if short)."""
                 parts = []
                 if style:
                     parts.append(style.strip().lower())
@@ -3017,8 +3017,15 @@ async def ace_generate(
                     mix_short = mix_notes.strip()[:50]
                     parts.append(f"mix: {mix_short}")
                 
-                if original_prompt:
-                    parts.append(original_prompt.strip())
+                # Only add original prompt if it's short (<50 chars) and adds value
+                if original_prompt and len(original_prompt.strip()) < 50:
+                    # Skip if original prompt is just genre names we already extracted
+                    original_lower = original_prompt.lower()
+                    if style.lower() not in original_lower or len(original_lower) > 80:
+                        pass  # Skip long or redundant prompts
+                    else:
+                        parts.append(original_prompt.strip())
+                
                 return ", ".join(filter(None, parts))
 
             def format_lyrics_for_acestep(raw_lyrics: str) -> str:
