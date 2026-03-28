@@ -3043,7 +3043,7 @@ async def ace_generate(
                 print(f"[ACE {job_id[:8]}] 🌟 External LLM enabled: gemma3:4b (metadata only, NO lyrics)")
 
                 # ALWAYS null for lyrics - Gemma is unreliable for lyrics
-                lyrics_instruction = """
+                lyrics_field = """
   "lyrics": null,"""
 
                 llm_prompt = f"""You are an expert music AI, music theory expert, and mixing engineer. Extract ALL parameters from this description in ONE JSON response.
