@@ -2629,6 +2629,7 @@ async def ace_generate(
     t_start = time.time()
     use_random = seed < 0
     # Quality score vars (populated by External LLM if enable_quality_scoring=True)
+    _llm_analysis = {}    # style, subgenre, instruments, mood
     _llm_quality_score = None
     _llm_quality_notes = None
     _llm_theory = {}      # chord_progression, scale, theory_notes
@@ -2719,12 +2720,18 @@ async def ace_generate(
             print(f"[ACE {job_id[:8]}] 🧠 CoT Caption: {'ON' if use_cot_caption else 'OFF'} | CoT Language: {'ON' if use_cot_language else 'OFF'} | Thinking: {'ON' if thinking else 'OFF'}")
 
             # ── Optimizări pentru External LLM vs CoT ──────────────────────────
+            # DISABLE External LLM for audio cover (saves ~6s latency, no benefit)
+            effective_use_external_llm = use_external_llm
+            if task_type in ("audio2audio", "cover"):
+                effective_use_external_llm = False
+                print(f"[ACE {job_id[:8]}] 🎵 Audio cover: External LLM disabled (saves ~6s, no benefit)")
+            
             # When External LLM (Gemma 3) is ON:
             #   - Keep thinking=True for audio codes generation (ESSENTIAL for ACE-Step DiT)
             #   - Disable CoT metadata (use_cot_metas/caption/language) because Gemma does it better
             # When External LLM is OFF:
             #   - Use CoT for everything (metadata + audio codes)
-            if use_external_llm:
+            if effective_use_external_llm:
                 # External LLM handles metadata, caption, language → disable CoT for these
                 effective_use_cot_metas = False
                 effective_use_cot_caption = False
@@ -2745,6 +2752,7 @@ async def ace_generate(
             # Asigură-te că durata este pozitivă, altfel -1 pentru auto
             if effective_duration <= 0:
                 effective_duration = -1
+            
             print(f"[ACE {job_id[:8]}] Duration: {effective_duration}s | task_type={task_type} | vocal_language={vocal_language}")
 
             # ── ACE-STEP OFFICIAL API PAYLOAD (Text-to-Music) ─────────────────
@@ -2753,11 +2761,11 @@ async def ace_generate(
             # GenerateMusicRequest model from acestep/api/http/release_task_models.py
 
             # Auto-disable CoT when External LLM is enabled (Gemma 3 does everything)
-            effective_use_cot_metas = use_cot_metas and not use_external_llm
-            effective_use_cot_caption = use_cot_caption and not use_external_llm
-            effective_use_cot_language = use_cot_language and not use_external_llm
-            
-            if use_external_llm:
+            effective_use_cot_metas = use_cot_metas and not effective_use_external_llm
+            effective_use_cot_caption = use_cot_caption and not effective_use_external_llm
+            effective_use_cot_language = use_cot_language and not effective_use_external_llm
+
+            if effective_use_external_llm:
                 print(f"[ACE {job_id[:8]}] 🌟 External LLM ON (AUTO-ENABLED) → Auto-disabling CoT (Gemma 3 handles everything)")
                 print(f"[ACE {job_id[:8]}]   - CoT Metas: {use_cot_metas} → {effective_use_cot_metas}")
                 print(f"[ACE {job_id[:8]}]   - CoT Caption: {use_cot_caption} → {effective_use_cot_caption}")
@@ -3042,7 +3050,7 @@ async def ace_generate(
             # External LLM (Gemma 3 4B) — ONLY for metadata (BPM, Key, Style, Instruments, Mood)
             # Gemma is UNRELIABLE for lyrics generation (hallucinates, wrong language, extra text)
             # User must write lyrics manually in the Lyrics box (or leave empty for instrumental)
-            if use_external_llm:
+            if effective_use_external_llm:
                 print(f"[ACE {job_id[:8]}] 🌟 External LLM enabled: gemma3:4b (metadata only, NO lyrics)")
 
                 # ALWAYS null for lyrics - Gemma is unreliable for lyrics
@@ -3292,7 +3300,7 @@ Now extract for: "{prompt}". Remember: RAW JSON ONLY, NO MARKDOWN, NO CODE BLOCK
                     import traceback
                     traceback.print_exc()
             else:
-                task_payload["use_external_llm"] = False
+                task_payload["use_external_llm"] = effective_use_external_llm
 
             print(f"[ACE {job_id[:8]}] Submitting task to /release_task...")
             r = await client.post(f"{ACE_STEP_API}/release_task", json=task_payload)
@@ -3573,37 +3581,54 @@ Now extract for: "{prompt}". Remember: RAW JSON ONLY, NO MARKDOWN, NO CODE BLOCK
                     # With ACESTEP_INIT_LLM=false, RAM usage should stay at ~2-4GB per generation
                     # If RAM still grows, restart ACE-Step API after 3-4 generations
 
+                    # Convert NumPy types to Python native types for JSON serialization
+                    def to_python_type(val):
+                        """Convert NumPy types to Python native types."""
+                        if val is None:
+                            return None
+                        if isinstance(val, (np.integer, np.int64, np.int32)):
+                            return int(val)
+                        if isinstance(val, (np.floating, np.float64, np.float32)):
+                            return float(val)
+                        if isinstance(val, np.ndarray):
+                            return val.tolist()
+                        if isinstance(val, dict):
+                            return {k: to_python_type(v) for k, v in val.items()}
+                        if isinstance(val, list):
+                            return [to_python_type(v) for v in val]
+                        return val
+
                     return {
                         "status": "ok",
                         "job_id": job_id,
                         "filename": out_filename,
                         "url": f"/tracks/{out_filename}",
-                        "duration_sec": duration_sec,
-                        "processing_time_sec": t_sec,
+                        "duration_sec": float(duration_sec),
+                        "processing_time_sec": float(t_sec),
                         "metadata": {
-                            "prompt": prompt,
-                            "lyrics": lyrics[:200] if lyrics else "",
-                            "duration_requested": duration,
-                            "infer_steps": infer_steps,
-                            "guidance_scale": guidance_scale,
-                            "seed": actual_seed,
-                            "output_size_mb": out_size_mb,
+                            "prompt": str(prompt),
+                            "lyrics": str(lyrics[:200]) if lyrics else "",
+                            "duration_requested": float(duration),
+                            "infer_steps": int(infer_steps),
+                            "guidance_scale": float(guidance_scale),
+                            "seed": int(actual_seed),
+                            "output_size_mb": float(out_size_mb),
                             "created_at": datetime.now().isoformat(),
                             # LLM Analysis (#0) - style, subgenre, instruments, mood
-                            "llm_analysis": _llm_analysis if _llm_analysis.get("style") else None,
+                            "llm_analysis": to_python_type(_llm_analysis) if _llm_analysis.get("style") else None,
                             # LLM quality scoring (populated if enable_quality_scoring=True)
-                            "quality_score": _llm_quality_score if enable_quality_scoring else None,
-                            "quality_notes": _llm_quality_notes if enable_quality_scoring else None,
+                            "quality_score": to_python_type(_llm_quality_score) if enable_quality_scoring else None,
+                            "quality_notes": str(_llm_quality_notes) if enable_quality_scoring else None,
                             # Enhanced prompt info
-                            "enhanced_prompt": task_payload.get("prompt", prompt),
-                            "detected_key": task_payload.get("key_scale", ""),
-                            "detected_bpm": task_payload.get("bpm", 0),
+                            "enhanced_prompt": str(task_payload.get("prompt", prompt)),
+                            "detected_key": str(task_payload.get("key_scale", "")),
+                            "detected_bpm": to_python_type(task_payload.get("bpm", 0)),
                             # Music Theory (#1)
-                            "theory": _llm_theory if _llm_theory.get("chord_progression") else None,
+                            "theory": to_python_type(_llm_theory) if _llm_theory.get("chord_progression") else None,
                             # Mixing & Mastering Guide (#6)
-                            "mix_guide": _llm_mix if _llm_mix.get("mix_target_lufs") else None,
+                            "mix_guide": to_python_type(_llm_mix) if _llm_mix.get("mix_target_lufs") else None,
                             # Genre Fusion (#7)
-                            "fusion": _llm_fusion,
+                            "fusion": to_python_type(_llm_fusion),
                         }
                     }
 
