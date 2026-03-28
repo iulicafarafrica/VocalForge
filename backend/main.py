@@ -2679,6 +2679,28 @@ async def ace_generate(
             # CoT status logging
             print(f"[ACE {job_id[:8]}] 🧠 CoT Caption: {'ON' if use_cot_caption else 'OFF'} | CoT Language: {'ON' if use_cot_language else 'OFF'} | Thinking: {'ON' if thinking else 'OFF'}")
 
+            # ── Optimizări pentru External LLM vs CoT ──────────────────────────
+            # When External LLM (Gemma 3) is ON:
+            #   - Keep thinking=True for audio codes generation (ESSENTIAL for ACE-Step DiT)
+            #   - Disable CoT metadata (use_cot_metas/caption/language) because Gemma does it better
+            # When External LLM is OFF:
+            #   - Use CoT for everything (metadata + audio codes)
+            if use_external_llm:
+                # External LLM handles metadata, caption, language → disable CoT for these
+                effective_use_cot_metas = False
+                effective_use_cot_caption = False
+                effective_use_cot_language = False
+                # But KEEP thinking=True for audio codes generation (CoT internal LM does this)
+                effective_thinking = True  # Audio codes are ESSENTIAL for ACE-Step DiT
+                print(f"[ACE {job_id[:8]}] 🧠 External LLM ON: Using Gemma for metadata, CoT for audio codes")
+            else:
+                # No External LLM → Use CoT for everything
+                effective_use_cot_metas = use_cot_metas
+                effective_use_cot_caption = use_cot_caption
+                effective_use_cot_language = use_cot_language
+                effective_thinking = thinking
+                print(f"[ACE {job_id[:8]}] 🧠 External LLM OFF: Using CoT for everything")
+
             # ── Optimizări pentru audio cover ──────────────────────────────────
             effective_duration = duration  # folosim durata exactă setată de utilizator
             # Asigură-te că durata este pozitivă, altfel -1 pentru auto
@@ -2775,7 +2797,7 @@ async def ace_generate(
                 "use_cot_language": effective_use_cot_language,  # Auto-disabled when External LLM ON
                 "is_format_caption": False,
                 "allow_lm_batch": effective_use_cot_caption,  # enable batch when CoT active
-                "thinking": thinking,
+                "thinking": effective_thinking,  # Always TRUE when External LLM ON (for audio codes)
                 
                 # User negative prompt (passed even if DiT may ignore it)
                 "negative_prompt": neg,
