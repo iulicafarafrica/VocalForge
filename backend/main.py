@@ -3102,6 +3102,27 @@ Now extract for: "{prompt}"
             # ── Preset Suggestions (genre-based optimization) ─────────────────────
             # Only apply if enable_preset_suggestions is True (user enabled it)
             if enable_preset_suggestions:
+                # Load genre presets from shared JSON file (synced with frontend)
+                import json
+                import os
+                
+                # Try to load from shared_genre_presets.json
+                preset_file = os.path.join(os.path.dirname(__file__), "..", "shared_genre_presets.json")
+                genre_bpm_map = {}
+                
+                if os.path.exists(preset_file):
+                    try:
+                        with open(preset_file, "r", encoding="utf-8") as f:
+                            data = json.load(f)
+                            for genre in data.get("genres", []):
+                                label = genre.get("label", "").lower()
+                                bpm = genre.get("bpm", 0)
+                                if bpm:
+                                    genre_bpm_map[label] = bpm
+                        print(f"[ACE {job_id[:8]}] 📚 Loaded {len(genre_bpm_map)} genre presets from shared_genre_presets.json")
+                    except Exception as e:
+                        print(f"[ACE {job_id[:8]}] ⚠️ Failed to load genre presets: {e}")
+                
                 # Default preset for ALL genres (fallback)
                 DEFAULT_PRESET = {
                     "infer_steps": 8 if "turbo" in dit_model.lower() else 50,
@@ -3109,48 +3130,24 @@ Now extract for: "{prompt}"
                     "shift": 3.0 if "turbo" in dit_model.lower() else 3.0,
                 }
                 
-                # Genre-specific presets (override defaults for known genres)
-                PRESET_SUGGESTIONS = {
-                    "trap": {"bpm_range": [135, 155], "keys": ["C minor", "D minor", "F minor"]},
-                    "manele": {"bpm_range": [105, 125], "keys": ["A minor", "D minor", "G minor"]},
-                    "pop": {"bpm_range": [100, 130], "keys": ["C major", "G major", "A minor"]},
-                    "afro house": {"bpm_range": [118, 128], "keys": ["D minor", "F minor", "A minor"]},
-                    "rock": {"bpm_range": [110, 140], "keys": ["E minor", "A minor", "D major"]},
-                    "hip hop": {"bpm_range": [85, 105], "keys": ["C minor", "F minor", "G minor"]},
-                    "dembow": {"bpm_range": [110, 120], "keys": ["A minor", "C minor", "E minor"]},
-                    "reggaeton": {"bpm_range": [90, 100], "keys": ["A minor", "B minor", "C# minor"]},
-                    "house": {"bpm_range": [120, 130], "keys": ["F major", "G major", "A minor"]},
-                    "techno": {"bpm_range": [125, 140], "keys": ["A minor", "F minor", "C minor"]},
-                    "jazz": {"bpm_range": [80, 120], "keys": ["C major", "F major", "Bb major"]},
-                    "classical": {"bpm_range": [60, 120], "keys": ["C major", "D major", "G major"]},
-                    "electronic": {"bpm_range": [120, 140], "keys": ["A minor", "C minor", "F minor"]},
-                    "r&b": {"bpm_range": [70, 100], "keys": ["C minor", "Eb major", "Ab major"]},
-                    "country": {"bpm_range": [90, 130], "keys": ["G major", "D major", "A major"]},
-                    "metal": {"bpm_range": [120, 180], "keys": ["E minor", "D minor", "A minor"]},
-                    "folk": {"bpm_range": [80, 120], "keys": ["G major", "D major", "Emajor"]},
-                    "soul": {"bpm_range": [70, 100], "keys": ["C major", "F major", "D minor"]},
-                    "funk": {"bpm_range": [90, 120], "keys": ["F major", "Bb major", "G minor"]},
-                    "disco": {"bpm_range": [110, 130], "keys": ["F major", "G major", "A minor"]},
-                }
-                
                 # Detect genre from prompt/style
                 style_lower = (task_payload.get("prompt") or "").lower()
-                detected_preset = None
                 detected_genre = None
+                detected_bpm = None
                 
-                for genre_name, preset in PRESET_SUGGESTIONS.items():
-                    if genre_name in style_lower:
-                        detected_preset = preset
-                        detected_genre = genre_name
+                # Try to match genre from shared presets
+                for genre_label, bpm in genre_bpm_map.items():
+                    if genre_label in style_lower:
+                        detected_genre = genre_label
+                        detected_bpm = bpm
                         break
                 
-                # Apply DEFAULT preset + genre-specific BPM/Key (if detected)
+                # Apply DEFAULT preset + genre-specific BPM (if detected)
                 final_preset = DEFAULT_PRESET.copy()
-                if detected_preset:
-                    final_preset.update(detected_preset)
                 
                 if detected_genre:
-                    print(f"[ACE {job_id[:8]}] 💡 Preset detected: {detected_genre} (user enabled)")
+                    print(f"[ACE {job_id[:8]}] 💡 Preset detected: {detected_genre} (BPM: {detected_bpm})")
+                    final_preset["bpm"] = detected_bpm
                 else:
                     print(f"[ACE {job_id[:8]}] 💡 Preset: Using DEFAULT (no specific genre detected)")
                     print(f"[ACE {job_id[:8]}]   → Model: {dit_model}")
@@ -3171,19 +3168,25 @@ Now extract for: "{prompt}"
                     task_payload["shift"] = final_preset["shift"]
                     print(f"[ACE {job_id[:8]}]   → shift: 1.0 → {final_preset['shift']} (turbo default)")
                 
-                # Suggest BPM if not set
-                if not task_payload.get("bpm") and "bpm_range" in final_preset:
-                    import random
-                    suggested_bpm = random.randint(*final_preset["bpm_range"])
-                    task_payload["bpm"] = suggested_bpm
-                    print(f"[ACE {job_id[:8]}]   → BPM: None → {suggested_bpm} ({detected_genre or 'default'} typical range)")
-                
-                # Suggest key if not set
-                if not task_payload.get("key_scale") and "keys" in final_preset:
-                    import random
-                    suggested_key = random.choice(final_preset["keys"])
-                    task_payload["key_scale"] = suggested_key
-                    print(f"[ACE {job_id[:8]}]   → Key: None → {suggested_key} ({detected_genre or 'default'} common key)")
+                # Suggest BPM if not set (from genre preset or default range)
+                if not task_payload.get("bpm"):
+                    if detected_bpm:
+                        task_payload["bpm"] = detected_bpm
+                        print(f"[ACE {job_id[:8]}]   → BPM: None → {detected_bpm} ({detected_genre})")
+                    else:
+                        # Default BPM ranges by genre category
+                        default_bpm_ranges = {
+                            "trap": [135, 155], "hip hop": [85, 105], "rap": [85, 105],
+                            "manele": [105, 125], "pop": [100, 130], "house": [120, 130],
+                            "techno": [125, 140], "rock": [110, 140], "metal": [120, 180],
+                            "jazz": [80, 120], "classical": [60, 120], "electronic": [120, 140],
+                        }
+                        for keyword, bpm_range in default_bpm_ranges.items():
+                            if keyword in style_lower:
+                                import random
+                                task_payload["bpm"] = random.randint(*bpm_range)
+                                print(f"[ACE {job_id[:8]}]   → BPM: None → {task_payload['bpm']} ({keyword} default)")
+                                break
             else:
                 print(f"[ACE {job_id[:8]}] 💡 Preset Suggestions: DISABLED by user")
 
