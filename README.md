@@ -45,7 +45,7 @@
 **Key capabilities:**
 - Generate complete songs from text prompts via ACE-Step v1.5
 - Separate vocals from any song with BS-RoFormer (SDR 12.97)
-- 164 genre presets including 30 Romanian subgenres
+- 164 genre presets
 - Professional audio enhancement tools
 
 </td>
