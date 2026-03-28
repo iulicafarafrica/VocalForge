@@ -3100,48 +3100,52 @@ Now extract for: "{prompt}"
                 task_payload["use_external_llm"] = False
 
             # ── Preset Suggestions (genre-based optimization) ─────────────────────
-            PRESET_SUGGESTIONS = {
-                "trap": {"infer_steps": 12, "guidance_scale": 4.0, "bpm_range": [135, 155], "keys": ["C minor", "D minor", "F minor"]},
-                "manele": {"infer_steps": 12, "guidance_scale": 4.5, "bpm_range": [105, 125], "keys": ["A minor", "D minor", "G minor"]},
-                "pop": {"infer_steps": 40, "guidance_scale": 7.0, "bpm_range": [100, 130], "keys": ["C major", "G major", "A minor"]},
-                "afro house": {"infer_steps": 15, "guidance_scale": 5.0, "bpm_range": [118, 128], "keys": ["D minor", "F minor", "A minor"]},
-                "rock": {"infer_steps": 35, "guidance_scale": 7.5, "bpm_range": [110, 140], "keys": ["E minor", "A minor", "D major"]},
-                "hip hop": {"infer_steps": 15, "guidance_scale": 4.5, "bpm_range": [85, 105], "keys": ["C minor", "F minor", "G minor"]},
-                "dembow": {"infer_steps": 12, "guidance_scale": 4.0, "bpm_range": [110, 120], "keys": ["A minor", "C minor", "E minor"]},
-                "reggaeton": {"infer_steps": 15, "guidance_scale": 5.0, "bpm_range": [90, 100], "keys": ["A minor", "B minor", "C# minor"]},
-            }
-            
-            # Detect genre from prompt/style and apply preset
-            style_lower = (task_payload.get("prompt") or "").lower()
-            for genre_name, preset in PRESET_SUGGESTIONS.items():
-                if genre_name in style_lower:
-                    print(f"[ACE {job_id[:8]}] 💡 Preset detected: {genre_name}")
-                    
-                    # Apply infer_steps if not already set by user
-                    if infer_steps == 50:  # Default value
-                        task_payload["inference_steps"] = preset["infer_steps"]
-                        print(f"[ACE {job_id[:8]}]   → infer_steps: {infer_steps} → {preset['infer_steps']}")
-                    
-                    # Apply guidance_scale if turbo model (default 7.0 too high for turbo)
-                    if "turbo" in dit_model.lower() and guidance_scale >= 7.0:
-                        task_payload["guidance_scale"] = preset["guidance_scale"]
-                        print(f"[ACE {job_id[:8]}]   → guidance_scale: {guidance_scale} → {preset['guidance_scale']} (turbo optimized)")
-                    
-                    # Suggest BPM if not set
-                    if not task_payload.get("bpm"):
-                        import random
-                        suggested_bpm = random.randint(*preset["bpm_range"])
-                        task_payload["bpm"] = suggested_bpm
-                        print(f"[ACE {job_id[:8]}]   → BPM: None → {suggested_bpm} ({genre_name} typical range)")
-                    
-                    # Suggest key if not set
-                    if not task_payload.get("key_scale"):
-                        import random
-                        suggested_key = random.choice(preset["keys"])
-                        task_payload["key_scale"] = suggested_key
-                        print(f"[ACE {job_id[:8]}]   → Key: None → {suggested_key} ({genre_name} common key)")
-                    
-                    break  # Only apply first matching preset
+            # Only apply if enable_preset_suggestions is True (user enabled it)
+            if enable_preset_suggestions:
+                PRESET_SUGGESTIONS = {
+                    "trap": {"infer_steps": 12, "guidance_scale": 4.0, "bpm_range": [135, 155], "keys": ["C minor", "D minor", "F minor"]},
+                    "manele": {"infer_steps": 12, "guidance_scale": 4.5, "bpm_range": [105, 125], "keys": ["A minor", "D minor", "G minor"]},
+                    "pop": {"infer_steps": 40, "guidance_scale": 7.0, "bpm_range": [100, 130], "keys": ["C major", "G major", "A minor"]},
+                    "afro house": {"infer_steps": 15, "guidance_scale": 5.0, "bpm_range": [118, 128], "keys": ["D minor", "F minor", "A minor"]},
+                    "rock": {"infer_steps": 35, "guidance_scale": 7.5, "bpm_range": [110, 140], "keys": ["E minor", "A minor", "D major"]},
+                    "hip hop": {"infer_steps": 15, "guidance_scale": 4.5, "bpm_range": [85, 105], "keys": ["C minor", "F minor", "G minor"]},
+                    "dembow": {"infer_steps": 12, "guidance_scale": 4.0, "bpm_range": [110, 120], "keys": ["A minor", "C minor", "E minor"]},
+                    "reggaeton": {"infer_steps": 15, "guidance_scale": 5.0, "bpm_range": [90, 100], "keys": ["A minor", "B minor", "C# minor"]},
+                }
+                
+                # Detect genre from prompt/style and apply preset
+                style_lower = (task_payload.get("prompt") or "").lower()
+                for genre_name, preset in PRESET_SUGGESTIONS.items():
+                    if genre_name in style_lower:
+                        print(f"[ACE {job_id[:8]}] 💡 Preset detected: {genre_name} (user enabled)")
+                        
+                        # Apply infer_steps if not already set by user
+                        if infer_steps == 50:  # Default value
+                            task_payload["inference_steps"] = preset["infer_steps"]
+                            print(f"[ACE {job_id[:8]}]   → infer_steps: {infer_steps} → {preset['infer_steps']}")
+                        
+                        # Apply guidance_scale if turbo model (default 7.0 too high for turbo)
+                        if "turbo" in dit_model.lower() and guidance_scale >= 7.0:
+                            task_payload["guidance_scale"] = preset["guidance_scale"]
+                            print(f"[ACE {job_id[:8]}]   → guidance_scale: {guidance_scale} → {preset['guidance_scale']} (turbo optimized)")
+                        
+                        # Suggest BPM if not set
+                        if not task_payload.get("bpm"):
+                            import random
+                            suggested_bpm = random.randint(*preset["bpm_range"])
+                            task_payload["bpm"] = suggested_bpm
+                            print(f"[ACE {job_id[:8]}]   → BPM: None → {suggested_bpm} ({genre_name} typical range)")
+                        
+                        # Suggest key if not set
+                        if not task_payload.get("key_scale"):
+                            import random
+                            suggested_key = random.choice(preset["keys"])
+                            task_payload["key_scale"] = suggested_key
+                            print(f"[ACE {job_id[:8]}]   → Key: None → {suggested_key} ({genre_name} common key)")
+                        
+                        break  # Only apply first matching preset
+            else:
+                print(f"[ACE {job_id[:8]}] 💡 Preset Suggestions: DISABLED by user")
 
             print(f"[ACE {job_id[:8]}] Submitting task to /release_task...")
             r = await client.post(f"{ACE_STEP_API}/release_task", json=task_payload)
