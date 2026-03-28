@@ -164,14 +164,13 @@ export default function RepaintLegoComplete() {
     formData.append('time_signature', timeSignature || '');
     formData.append('vocal_language', vocalLanguage);
     formData.append('instrumental', 'false');
-    formData.append('thinking', 'true');
-    // Repaint-specific parameters
+    formData.append('thinking', 'false');  // Repaint: DiT direct, no LM codes needed
+    // Repaint-specific parameters (ACE-Step official)
     formData.append('task_type', 'repaint');
-    formData.append('source_audio', file);
-    formData.append('source_audio_strength', audioCoverStrength.toString());
+    formData.append('source_audio', file);  // src_audio for repaint
     formData.append('repainting_start', startTime.toString());
     formData.append('repainting_end', endTime.toString());
-    // External LLM disabled for repaint (faster)
+    // External LLM disabled for repaint (faster, no benefit)
     formData.append('use_external_llm', 'false');
     formData.append('enable_quality_scoring', 'false');
     formData.append('audio_enhance', 'true');
