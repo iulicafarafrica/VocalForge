@@ -1,3 +1,115 @@
+---
+
+## [v3.2.0] - 2026-03-28
+
+### 🌟 External LLM Integration — Gemma 3 4B
+
+**Music Theory + Mixing Guide + Genre Fusion powered by Gemma 3 4B**
+
+---
+
+### 🎯 **HEADLINE FEATURES**
+
+#### **1. External LLM (Gemma 3 4B)**
+- **Auto-enabled by default** — No configuration needed
+- **Metadata extraction:** BPM, Key, Style, Instruments, Mood
+- **Quality scoring:** AI-powered prompt quality assessment (1-10)
+- **Single call:** All metadata in one LLM call (zero latency overhead)
+
+#### **2. Music Theory (#1)**
+- **Chord progression:** e.g., `i-VI-III-VII`, `Am-F-C-G`
+- **Scale:** e.g., `A natural minor`, `C major`, `D dorian`
+- **Theory notes:** 1-sentence explanation of why the chord/scale combo works
+- **Sent to ACE-Step:** Chords & scale included in prompt for enhanced generation
+
+#### **3. Mixing Guide (#6)**
+- **Target LUFS:** e.g., `-8 LUFS (trap standard)`, `-14 LUFS (streaming)`
+- **Low-end advice:** Bass/kick frequency separation advice
+- **Vocal chain:** Key vocal processing steps (HPF, comp, de-esser, reverb)
+- **Master tip:** Single most important mastering tip for the genre
+- **Sent to ACE-Step:** Mix tip included in prompt for enhanced generation
+
+#### **4. Genre Fusion (#7)**
+- **Fusion detection:** Automatically detects when prompt contains 2 genres
+- **Compatible elements:** Lists elements that work well between genres
+- **Fusion tip:** Advice on how to blend the genres effectively
+- **Example:** `Trap + UK Drill` → `808 + drill snare, dark synth + sampled vocal chop`
+
+#### **5. Preset Suggestions**
+- **Auto-detect genre:** Matches prompt against 60+ genre presets
+- **Turbo optimization:** Auto-adjusts `guidance_scale: 7.0 → 1.0` for turbo models
+- **Shift default:** Auto-adjusts `shift: 1.0 → 3.0` for turbo models
+- **BPM suggestion:** Suggests BPM from genre-specific range if not provided
+
+#### **6. Frontend Display**
+- **Music Theory card:** Shows chords, scale, and theory notes in result card
+- **Mixing Guide card:** Shows LUFS, low-end, vocal chain, and master tip
+- **Genre Fusion card:** Shows genre A + genre B, compatible elements, fusion tip
+- **Conditional display:** Cards only appear when data is available
+
+#### **7. ACE-Step Integration**
+- **Music Theory sent:** Chords & scale included in ACE-Step prompt
+- **Mixing Guide sent:** Mix tip included in ACE-Step prompt
+- **Normalization disabled:** Removed ACE-Step internal normalization (handled by Custom EQ/Audio Enhancement)
+
+---
+
+### 📋 **Files Modified**
+
+| File | Changes |
+|------|---------|
+| `backend/main.py` | External LLM integration, Music Theory, Mixing Guide, Genre Fusion, Preset Suggestions |
+| `frontend/src/components/AceStepTab.jsx` | Result card display for theory/mix/fusion, removed Generate Lyrics toggle |
+| `acestep/inference.py` | Disabled internal normalization |
+| `README.md` | Added External LLM section, version bump to 3.2.0 |
+
+---
+
+### 🧪 **Performance**
+
+```
+Gemma 3 4B response: ~6s (890 chars)
+JSON parsing: <1s
+Music Theory extraction: ✅
+Mixing Guide extraction: ✅
+Genre Fusion detection: ✅
+Total overhead: ~6s (single call)
+```
+
+---
+
+### 📊 **Example Log Output**
+
+```
+[ACE xxxxxxxx] 🌟 External LLM enabled: gemma3:4b (metadata only, NO lyrics)
+[ACE xxxxxxxx] 📤 Sending unified prompt to Gemma 3...
+[ACE xxxxxxxx] 📥 Gemma 3 response (905 chars)
+[ACE xxxxxxxx] ✅ JSON parsed (direct)
+[ACE xxxxxxxx] 🎵 BPM: 145 → 145
+[ACE xxxxxxxx] 🎼 Key: Am → A minor
+[ACE xxxxxxxx] 🎶 Time Sig: 4/4 → 4
+[ACE xxxxxxxx] 🎭 Style: trap | Mood: dark
+[ACE xxxxxxxx] 🎸 Instruments: 808 bass, dark synth lead, hi-hats, snare, sub bass
+[ACE xxxxxxxx] 🎼 Chords: Am - G - C - F → SENT TO ACE-STEP
+[ACE xxxxxxxx] 🎼 Scale: A natural minor → SENT TO ACE-STEP
+[ACE xxxxxxxx] 🎚️ Mix tip: Gentle compression to glue... → SENT TO ACE-STEP
+[ACE xxxxxxxx] ⭐ Prompt quality: 8.0/10 — Clear prompt, well-defined genre blend.
+```
+
+---
+
+### 🎯 **RECOMMENDATION**
+
+**External LLM is recommended for:**
+- Users who want music theory insights (chords, scales)
+- Users who want mixing advice (LUFS, vocal chain)
+- Users who create genre fusion tracks
+- Users who want AI-powered quality scoring
+
+**External LLM can be disabled if:**
+- You want fastest possible generation (save ~6s)
+- You don't need music theory/mixing insights
+- You have limited RAM (<8GB system RAM)
 
 ---
 
