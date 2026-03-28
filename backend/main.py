@@ -3015,9 +3015,12 @@ async def ace_generate(
                 lyrics_field = """
   "lyrics": null,"""
 
+                # Include user's BPM setting if provided
+                bpm_context = f" | User BPM setting: {bpm}" if bpm and bpm > 0 else ""
+                
                 llm_prompt = f"""You are an expert music AI, music theory expert, and mixing engineer. Extract ALL parameters from this description in ONE JSON response.
 
-User description: "{prompt}"
+User description: "{prompt}"{bpm_context}
 Language: {external_llm_language}
 
 CRITICAL RULES:
