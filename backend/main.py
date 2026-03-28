@@ -2976,18 +2976,14 @@ async def ace_generate(
                         result.append(line)
                 return "\n".join(result)
 
-            # External LLM (Gemma 3 4B) — SINGLE CALL pentru tot
+            # External LLM (Gemma 3 4B) — ONLY for metadata (BPM, Key, Style, Instruments, Mood)
+            # Gemma is UNRELIABLE for lyrics generation (hallucinates, wrong language, extra text)
+            # User must write lyrics manually in the Lyrics box (or leave empty for instrumental)
             if use_external_llm:
-                print(f"[ACE {job_id[:8]}] 🌟 External LLM enabled: gemma3:4b (single call)")
+                print(f"[ACE {job_id[:8]}] 🌟 External LLM enabled: gemma3:4b (metadata only, NO lyrics)")
 
-                # Build single unified prompt
-                lyrics_instruction = ""
-                if generate_lyrics and not (lyrics and lyrics.strip()):
-                    lyrics_instruction = f"""
-  "lyrics": "<complete lyrics in ACE-Step format with [verse], [chorus], [bridge] tags. Write ONLY the lyrics, NO explanations or notes. Structure: [verse] (4-8 lines), [chorus] (4-8 lines), [verse] (4-8 lines), [chorus] (4-8 lines), [bridge] (4-6 lines), [chorus] (4-8 lines). Language: {vocal_language if vocal_language != 'unknown' else 'ro'}>",
-  "instrumental": false,"""
-                else:
-                    lyrics_instruction = """
+                # ALWAYS null for lyrics - Gemma is unreliable for lyrics
+                lyrics_instruction = """
   "lyrics": null,"""
 
                 llm_prompt = f"""You are a JSON-only music API. Return ONLY valid JSON. NO text before or after JSON. NO markdown. NO explanations. NO production notes. NO song titles. NO offers to help.
@@ -3003,7 +2999,8 @@ Return ONLY this JSON structure:
   "subgenre": "<subgenre if applicable>",
   "instruments": ["3-5 instruments"],
   "mood": "<mood>",
-  "time_signature": "<4/4|3/4|6/8>",{lyrics_instruction}
+  "time_signature": "<4/4|3/4|6/8>",
+  "lyrics": null,
   "quality_score": <1-10>,
   "quality_notes": "<brief note>"
 }}
@@ -3014,12 +3011,12 @@ RULES:
 3. NO song titles
 4. NO production notes
 5. NO "Here's your song" or "Would you like..."
-6. For lyrics: Write ONLY lyrics with [verse], [chorus], [bridge] tags - NO explanations
+6. lyrics is ALWAYS null (user provides lyrics manually in the Lyrics box)
 
 Examples:
 - "manele de petrecere" → {{"bpm": 110, "key": "A minor", "style": "manele", "subgenre": "manele moderne", "instruments": ["accordion", "oriental synth", "drums", "bass"], "mood": "party", "time_signature": "4/4", "lyrics": null, "quality_score": 7, "quality_notes": "clear genre"}}
 - "trap american dark" → {{"bpm": 140, "key": "C minor", "style": "trap", "subgenre": "dark trap", "instruments": ["808 bass", "hi-hats", "synth pads", "snare"], "mood": "dark", "time_signature": "4/4", "lyrics": null, "quality_score": 8, "quality_notes": "good clarity"}}
-- "trap romanesc cu versuri" → {{"bpm": 140, "key": "A minor", "style": "trap romanesc", "subgenre": "melodic trap", "instruments": ["808 bass", "hi-hats", "synth lead", "piano"], "mood": "melancholic", "time_signature": "4/4", "lyrics": "[verse]\\nAm stat noaptea pe balcon, privind orașul adormit,\\nLumini de neon clipesc, dar eu mă simt pierdut și părăsit.\\n\\n[chorus]\\nE noapte și mă simt singur, în orașul ăsta mare,\\nLumini de neon mă orbesc, dar nu-mi alină a mea durere.\\n\\n[verse]\\nBanii vin și pleacă, prietenii la fel,\\nDoar muzica rămâne, singurul meu model.\\n\\n[chorus]\\nE noapte și mă simt singur, în orașul ăsta mare,\\nLumini de neon mă orbesc, dar nu-mi alină a mea durere.\\n\\n[bridge]\\nPoate mâine va fi mai bine, poate voi găsi răspunsul,\\nPână atunci cânt, și las muzica să-mi fie plânsul.\\n\\n[chorus]\\nE noapte și mă simt singur, în orașul ăsta mare,\\nLumini de neon mă orbesc, dar nu-mi alină a mea durere.", "quality_score": 9, "quality_notes": "excellent"}}
+- "jamaican trap" → {{"bpm": 130, "key": "D minor", "style": "trap", "subgenre": "jamaican trap", "instruments": ["808 bass", "dancehall drums", "synth lead", "piano"], "mood": "energetic, tropical", "time_signature": "4/4", "lyrics": null, "quality_score": 8, "quality_notes": "good fusion"}}
 
 Now return JSON for: "{prompt}"
 """
