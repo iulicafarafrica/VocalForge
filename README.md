@@ -104,7 +104,7 @@ Just finished integrating **External LLM (Ollama + Gemma 3 4B)** into my VocalFo
 | Feature | Description |
 |---------|-------------|
 | **🎼 Music Parameter Auto-detection** | Extracts **BPM, Key, instruments, style, and mood** from natural language prompts |
-| **🎤 Genre-aware Artist References** | Suggests relevant artists per culture (Romanian trap → Ian/Deliric, UK drill → Central Cee/Digga D, etc.) |
+| **🎤 Genre-aware Artist References** | Suggests relevant artists per culture (e.g., culturally-aware artist references for regional genres) |
 | **🎛️ Production Chain Suggestions** | EQ, compression, vocal chain, and LUFS targets per genre |
 | **🎸 Music Theory** | Chord progressions, scale recommendations, and theory notes |
 | **📊 Quality Scoring** | AI rates prompt clarity (1-10) |
@@ -199,7 +199,7 @@ Just finished integrating **External LLM (Ollama + Gemma 3 4B)** into my VocalFo
 | Feature | Description |
 |---------|-------------|
 | **🎼 Music Parameter Auto-detection** | Extracts **BPM, Key, instruments, style, and mood** from natural language prompts |
-| **🎤 Genre-aware Artist References** | Suggests relevant artists per culture (Romanian trap → Ian/Deliric, UK drill → Central Cee/Digga D, etc.) |
+| **🎤 Genre-aware Artist References** | Suggests relevant artists per culture (e.g., culturally-aware artist references for regional genres) |
 | **🎛️ Production Chain Suggestions** | EQ, compression, vocal chain, and LUFS targets per genre |
 | **🎸 Music Theory** | Chord progressions, scale recommendations, and theory notes |
 | **📊 Quality Scoring** | AI rates prompt clarity (1-10) |
@@ -446,15 +446,12 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 # 3. Core dependencies
 pip install -r requirements.txt
 
-# 4. YouTube download support
-pip install yt-dlp
-
-# 5. Frontend
+# 4. Frontend
 cd frontend
 npm install
 cd ..
 
-# 6. ACE-Step (separate repository)
+# 5. ACE-Step (separate repository)
 cd ace-step
 uv sync
 cd ..
@@ -506,11 +503,8 @@ Full interactive docs at **[localhost:8000/docs](http://localhost:8000/docs)**
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `POST` | `/demucs_separate` | Stem separation (BS-RoFormer, Mel-Band RoFormer) |
-| `POST` | `/pipeline/run` | Complete 4-stage Pipeline v2.3 |
 | `GET` | `/pipeline/status/{job_id}` | Poll async job status |
 | `GET` | `/pipeline/download/{job_id}/{file}` | Download output file |
-| `POST` | `/youtube/download` | Download audio from YouTube |
-| `POST` | `/youtube/cover` | Full YouTube cover pipeline |
 | `POST` | `/ace_generate` | ACE-Step music generation |
 | `GET` | `/ace_health` | ACE-Step health (port 8001) |
 | `GET` | `/hardware` | GPU hardware info |
@@ -522,27 +516,6 @@ Full interactive docs at **[localhost:8000/docs](http://localhost:8000/docs)**
 | `GET` | `/vram_usage` | Current VRAM usage |
 | `GET` | `/health` | Service health check |
 
-### Pipeline v2.3 Response
-
-```json
-{
-  "status": "ok",
-  "job_id": "pipeline_20260320_143022",
-  "files": {
-    "vocals_separated": "/tracks/pipeline_xxx_vocals.wav",
-    "instrumental": "/tracks/pipeline_xxx_instrumental.mp3",
-    "final_mix": "/tracks/pipeline_xxx_final_mix.wav"
-  },
-  "steps": {
-    "separation_sec": 28.4,
-    "post_processing_sec": 4.8,
-    "final_mix_sec": 2.1
-  },
-  "total_sec": 35.3,
-  "post_processing_applied": true
-}
-```
-
 ---
 
 ## Performance Benchmarks
@@ -553,7 +526,6 @@ Full interactive docs at **[localhost:8000/docs](http://localhost:8000/docs)**
 |------|:---:|------|------|
 | BS-RoFormer Separation | SDR 12.97 | ~30s | 4–5GB |
 | Mel-Band RoFormer | SDR 12.6 | ~35s | 4–5GB |
-| Full Pipeline v2.3 | 9/10 | ~80s | 6–8GB |
 | ACE-Step Turbo (30s song) | 8/10 | ~60s | 6–7GB |
 | ACE-Step SFT (3 min song) | 9/10 | ~180s | 7–8GB |
 

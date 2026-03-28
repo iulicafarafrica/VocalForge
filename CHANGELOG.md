@@ -2,9 +2,43 @@
 
 ## [v3.2.1] - 2026-03-28
 
-### 🔧 Thinking Mode Fix + Audio Cover Performance
+### 🌟 External LLM Integration + Bug Fixes
 
-**Critical bug fixes for External LLM integration**
+**AI-Powered Music Parameter Extraction with Gemma 3 4B**
+
+---
+
+### ✨ **NEW FEATURES**
+
+#### **External LLM — AI-Powered Music Parameter Extraction**
+
+Just finished integrating **External LLM (Ollama + Gemma 3 4B)** into my VocalForge setup for intelligent prompt analysis before ACE-Step generation.
+
+**Features:**
+- **🎼 Music Parameter Auto-detection:** Extracts BPM, Key, instruments, style, and mood from natural language prompts
+- **🎤 Genre-aware Artist References:** Suggests relevant artists per culture (e.g., culturally-aware references for regional genres)
+- **🎛️ Production Chain Suggestions:** EQ, compression, vocal chain, and LUFS targets per genre
+- **🎸 Music Theory:** Chord progressions, scale recommendations, and theory notes
+- **📊 Quality Scoring:** AI rates prompt clarity (1-10) - ALWAYS ON in v3.2.1
+
+**Implementation:**
+- **Local Ollama API:** Powered by `gemma3:4b`
+- **JSON-structured Output:** No markdown, strict schema
+- **Performance:** ~30-40s inference overhead, but worth it for quality
+- **Data Flow:** Caption goes directly to ACE-Step, metadata goes to frontend UI
+
+**Example Workflow:**
+```
+Before:
+  User types: "trap romanesc dark"
+  ACE-Step gets: "trap romanesc dark"
+
+After:
+  User types: "trap romanesc dark"
+  Gemma extracts → ACE-Step gets: "trap, romanian trap, dark, 808 bass, Ian style, Deliric style..."
+```
+
+**Result:** Significantly better generations with culturally-aware artist references and production-ready captions.
 
 ---
 
@@ -22,32 +56,11 @@
 - **Fix:** Disabled External LLM for Audio Cover (remains active for Text-to-Music only)
 - **Result:** Audio Cover is now ~6s faster
 
----
-
-### ✨ **NEW FEATURES**
-
-#### **External LLM — AI-Powered Music Parameter Extraction**
-
-Just finished integrating **External LLM (Ollama + Gemma 3 4B)** into my VocalForge setup for intelligent prompt analysis before ACE-Step generation.
-
-**Features:**
-- **🎼 Music Parameter Auto-detection:** Extracts BPM, Key, instruments, style, and mood from natural language prompts
-- **🎤 Genre-aware Artist References:** Suggests relevant artists per culture (Romanian trap → Ian/Deliric, UK drill → Central Cee/Digga D, etc.)
-- **🎛️ Production Chain Suggestions:** EQ, compression, vocal chain, and LUFS targets per genre
-- **🎸 Music Theory:** Chord progressions, scale recommendations, and theory notes
-- **📊 Quality Scoring:** AI rates prompt clarity (1-10)
-
-**Implementation:**
-- **Local Ollama API:** Powered by `gemma3:4b`
-- **JSON-structured Output:** No markdown, strict schema
-- **Performance:** ~30-40s inference overhead, but worth it for quality
-- **Data Flow:** Caption goes directly to ACE-Step, metadata goes to frontend UI
-
-**Example Workflow:**
-```
-Before:
-  User types: "trap romanesc dark"
-  ACE-Step gets: "trap romanesc dark"
+#### **3. UI Cleanup**
+- **Removed:** Preset Suggestions banner (redundant with Gemma)
+- **Removed:** Generate Lyrics toggle (Gemma doesn't generate lyrics)
+- **Fixed:** Quality Score always ON (no toggle needed)
+- **Fixed:** Extract Music Parameters font size reduced to 11px
 
 After:
   User types: "trap romanesc dark"

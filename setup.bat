@@ -1,10 +1,10 @@
 @echo off
-title VocalForge v3.1.2 - Setup
+title VocalForge v3.2.1 - Setup
 color 0B
 echo.
 echo  ============================================
-echo   VocalForge v3.1.2 - Complete Setup
-echo   LLM Enabled + CoT Logging + Custom EQ
+echo   VocalForge v3.2.1 - Complete Setup
+echo   External LLM (Gemma 3 4B) + Quality Score
 echo   RTX 3070 8GB VRAM + 32GB RAM Optimized
 echo  ============================================
 echo.
@@ -114,40 +114,6 @@ echo [4/8] Installing core Python dependencies...
 pip install fastapi uvicorn python-dotenv httpx requests --quiet
 
 :: ============================================
-:: AUDIO PROCESSING
-:: ============================================
-
-echo [5/8] Installing audio processing libraries...
-pip install librosa soundfile pydub scipy numpy --quiet
-
-:: ============================================
-:: STEM SEPARATION
-:: ============================================
-
-echo [6/8] Installing stem separation tools...
-pip install demucs audio-separator --quiet
-
-:: ============================================
-:: AUDIO ANALYSIS
-:: ============================================
-
-echo [7/8] Installing audio analysis tools...
-pip install madmom essentia-tensorflow pystoi pesq --quiet
-
-:: ============================================
-:: FRONTEND
-:: ============================================
-
-echo [8/8] Installing frontend dependencies...
-if exist "frontend\package.json" (
-    cd frontend
-    call npm install --silent
-    cd ..
-) else (
-    echo [WARN] frontend/package.json not found
-)
-
-:: ============================================
 :: ACE-STEP CHECK
 :: ============================================
 
@@ -201,18 +167,22 @@ echo    - start_acestep.bat    (Port 8001 - ACE-Step API)
 echo.
 echo  Then open: http://localhost:3000
 echo.
-echo  Active Features (v3.1.2):
-echo    ✓ LLM Enabled (acestep-5Hz-lm-0.6B)
-echo    ✓ CoT Logging (Caption/Language/Thinking)
+echo  Active Features (v3.2.1):
+echo    ✓ External LLM (Gemma 3 4B via Ollama)
+echo    ✓ Quality Scoring (AI prompt analysis)
+echo    ✓ Music Theory (chords, scales)
+echo    ✓ Mixing Guide (LUFS, EQ, vocal chain)
+echo    ✓ Genre-aware Artist References
 echo    ✓ Custom EQ (13 genre presets)
 echo    ✓ Audio Enhancer (Noise Hiss removal)
 echo    ✓ ACE-Step Music Generation
 echo    ✓ Stem Separation (BS-RoFormer SDR 12.97)
 echo    ✓ GPU Memory Management
 echo.
-echo  Removed (v3.1.1):
-echo    ✗ RVC Voice Conversion (stability issues)
-echo    ✗ Vocal Pipeline (disabled until refactored)
+echo  Requirements for External LLM:
+echo    1. Install Ollama: https://ollama.com
+echo    2. Run: ollama pull gemma3:4b
+echo    3. Run: ollama serve
 echo.
 echo  ============================================
 pause
