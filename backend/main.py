@@ -2519,20 +2519,54 @@ _PRESET_DB = {
 }
 
 @app.get("/acestep/preset_suggestions")
-async def acestep_preset_suggestions(style: str = ""):
-    """Return ACE-Step generation preset for a given style/genre."""
+async def acestep_preset_suggestions(style: str = "", dit_model: str = "acestep-v15-sft"):
+    """Return ACE-Step generation preset for a given style/genre.
+    
+    Args:
+        style: Genre/style description
+        dit_model: Current selected DiT model (acestep-v15-sft, acestep-v15-turbo, acestep-v15-sft-turbo_0.5, acestep-v15-base-sft)
+    """
     sl = style.lower().strip()
+    
+    # Detect model type for parameter optimization
+    is_turbo = "turbo" in dit_model.lower()
+    is_sft = "sft" in dit_model.lower() and not is_turbo
+    is_base = "base" in dit_model.lower()
+    
+    # Default parameters based on model type
+    default_infer_steps = 8 if is_turbo else (50 if is_sft or is_base else 50)
+    default_guidance = 3.5 if is_turbo else 7.0
+    default_shift = 3.0 if is_turbo else 3.0
+    
     if sl in _PRESET_DB:
-        return {"status": "ok", "style": sl, "matched": True, "preset": _PRESET_DB[sl]}
+        preset = _PRESET_DB[sl].copy()
+        # Override with model-specific defaults
+        preset["infer_steps"] = default_infer_steps
+        preset["guidance_scale"] = default_guidance
+        preset["shift"] = default_shift
+        return {"status": "ok", "style": sl, "matched": True, "preset": preset, "model": dit_model}
+    
     # Partial match
     for key, preset in _PRESET_DB.items():
         if key in sl or sl in key:
-            return {"status": "ok", "style": key, "matched": True, "partial": True, "preset": preset}
-    # Default turbo
+            result_preset = preset.copy()
+            # Override with model-specific defaults
+            result_preset["infer_steps"] = default_infer_steps
+            result_preset["guidance_scale"] = default_guidance
+            result_preset["shift"] = default_shift
+            return {"status": "ok", "style": key, "matched": True, "partial": True, "preset": result_preset, "model": dit_model}
+    
+    # Default - return model-specific defaults
     return {
         "status": "ok", "style": sl or "unknown", "matched": False,
-        "preset": {"dit_model": "acestep-v15-turbo", "infer_steps": 8, "guidance_scale": 3.5,
-                   "shift": 1.0, "bpm_range": [100, 140], "keys": ["C minor", "G minor", "A minor"]},
+        "preset": {
+            "infer_steps": default_infer_steps,
+            "guidance_scale": default_guidance,
+            "shift": default_shift,
+            "bpm_range": [100, 140],
+            "keys": ["C minor", "G minor", "A minor"]
+        },
+        "model": dit_model,
         "available": sorted(_PRESET_DB.keys()),
     }
 

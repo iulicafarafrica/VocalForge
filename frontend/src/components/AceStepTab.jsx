@@ -902,21 +902,54 @@ export default function AceStepTab({
   const [analyzeReferenceAudio, setAnalyzeReferenceAudio] = useState(false); // Analyze uploaded audio
   const [enableQualityScoring, setEnableQualityScoring] = useState(false); // Get AI quality rating
   const [enablePresetSuggestions, setEnablePresetSuggestions] = useState(true); // Auto-suggest presets (ON default)
+  const [ollamaOnline, setOllamaOnline] = useState(null); // null=checking, true=online, false=offline
+  const [suggestedPreset, setSuggestedPreset] = useState(null); // preset from /acestep/preset_suggestions
   
   // Auto-disable CoT when External LLM is enabled (they do the same thing)
   useEffect(() => {
     if (useExternalLLM) {
-      // External LLM ON → Auto-disable CoT (Gemma 3 does everything better)
       setUseCotMetas(false);
       setUseCotCaption(false);
       setUseCotLanguage(false);
     } else {
-      // External LLM OFF → Auto-enable CoT (use internal LM)
       setUseCotMetas(true);
       setUseCotCaption(true);
       setUseCotLanguage(true);
     }
   }, [useExternalLLM]);
+
+  // Ollama health check — runs once on mount and every 30s
+  useEffect(() => {
+    const checkOllama = async () => {
+      try {
+        const r = await fetch("http://localhost:11434/api/tags", { signal: AbortSignal.timeout(3000) });
+        setOllamaOnline(r.ok);
+      } catch {
+        setOllamaOnline(false);
+      }
+    };
+    checkOllama();
+    const interval = setInterval(checkOllama, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Fetch preset suggestion when prompt changes (debounced 800ms)
+  useEffect(() => {
+    if (!enablePresetSuggestions || !prompt || prompt.trim().length < 3) {
+      setSuggestedPreset(null);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const r = await fetch(`${API}/acestep/preset_suggestions?style=${encodeURIComponent(prompt.trim().slice(0, 60))}&dit_model=${encodeURIComponent(ditModel)}`);
+        if (r.ok) {
+          const data = await r.json();
+          setSuggestedPreset(data);
+        }
+      } catch {}
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [prompt, enablePresetSuggestions, ditModel]);
   
   const [useCotMetas, setUseCotMetas] = useState(false);      // OFF = User provides BPM/Key (consistent with backend default)
   const [useCotCaption, setUseCotCaption] = useState(false);   // OFF = User provides prompt (consistent with backend default)
@@ -2119,6 +2152,16 @@ export default function AceStepTab({
                   <div style={{ color: "#444466", fontSize: 11, marginTop: 4 }}>
                     ℹ️ 0.5 = balanced cover · 0.8 = close to original · 0.3 = creative reinterpretation
                   </div>
+                  {useExternalLLM && sourceStrength <= 0.45 && (
+                    <div style={{ marginTop: 6, padding: "4px 8px", borderRadius: 6, background: "#06d6a011", border: "1px solid #06d6a033", fontSize: 11, color: "#06d6a0" }}>
+                      🌟 External LLM activ — Gemma3 va sugera stil nou pentru acest cover
+                    </div>
+                  )}
+                  {useExternalLLM && sourceStrength > 0.45 && (
+                    <div style={{ marginTop: 6, padding: "4px 8px", borderRadius: 6, background: "#1a1a3a", border: "1px solid #2a2a4a", fontSize: 11, color: "#444466" }}>
+                      💡 Coboară sub 0.45 pentru a activa External LLM pe cover
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -4022,8 +4065,16 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
 
             {/* External LLM (Gemma 3 4B) */}
             <div style={{ marginBottom: 12, padding: "8px 10px", borderRadius: 6, background: "#07071a", border: "1px solid #06d6a022" }}>
-              <div style={{ fontSize: 13, color: "#06d6a0", fontWeight: 700, marginBottom: 6, letterSpacing: 1, textTransform: "uppercase" }}>
+              <div style={{ fontSize: 13, color: "#06d6a0", fontWeight: 700, marginBottom: 6, letterSpacing: 1, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 8 }}>
                 🌟 External LLM (Gemma 3 4B)
+                <span style={{
+                  fontSize: 10, padding: "2px 6px", borderRadius: 999, fontWeight: 600,
+                  background: ollamaOnline === null ? "#1a1a3a" : ollamaOnline ? "#06d6a011" : "#ff000011",
+                  color: ollamaOnline === null ? "#444466" : ollamaOnline ? "#06d6a0" : "#ff4444",
+                  border: `1px solid ${ollamaOnline === null ? "#2a2a4a" : ollamaOnline ? "#06d6a033" : "#ff444433"}`,
+                }}>
+                  {ollamaOnline === null ? "⏳ checking" : ollamaOnline ? "● online · CPU" : "● offline"}
+                </span>
               </div>
               <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 8 }}>
                 <div onClick={() => setUseExternalLLM(v => !v)} style={{ width: 28, height: 16, borderRadius: 999, flexShrink: 0, marginTop: 2, background: useExternalLLM ? "#06d6a0" : "#1a1a3a", position: "relative", cursor: "pointer", transition: "background 0.2s" }}>
@@ -4097,6 +4148,35 @@ const genreKeys = Object.keys(allGenres).filter(gKey => {
                       <div style={{ position: "absolute", top: 2, left: enablePresetSuggestions ? 10 : 2, width: 10, height: 10, borderRadius: "50%", background: enablePresetSuggestions ? "#fff" : "#444", transition: "left 0.2s" }} />
                     </div>
                     <span style={{ fontSize: 12, color: enablePresetSuggestions ? "#00e5ff" : "#8888aa" }}>💡 Presets</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Suggested Preset Banner — apare când Presets e ON și există o sugestie */}
+              {enablePresetSuggestions && suggestedPreset && suggestedPreset.matched && (
+                <div style={{ marginTop: 8, padding: "8px 10px", borderRadius: 6, background: "#00e5ff0a", border: "1px solid #00e5ff33" }}>
+                  <div style={{ fontSize: 11, color: "#00e5ff", fontWeight: 700, marginBottom: 4 }}>
+                    💡 Preset sugerat: <span style={{ textTransform: "capitalize" }}>{suggestedPreset.style}</span>
+                    {suggestedPreset.partial && <span style={{ color: "#888", fontWeight: 400 }}> (potrivire parțială)</span>}
+                  </div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 10, color: "#888", background: "#1a1a3a", padding: "2px 6px", borderRadius: 4 }}>
+                      model: {suggestedPreset.model?.replace("acestep-", "") || suggestedPreset.preset.dit_model?.replace("acestep-", "")}
+                    </span>
+                    <span style={{ fontSize: 10, color: "#888", background: "#1a1a3a", padding: "2px 6px", borderRadius: 4 }}>
+                      steps: {suggestedPreset.preset.infer_steps}
+                    </span>
+                    <span style={{ fontSize: 10, color: "#888", background: "#1a1a3a", padding: "2px 6px", borderRadius: 4 }}>
+                      CFG: {suggestedPreset.preset.guidance_scale}
+                    </span>
+                    <span style={{ fontSize: 10, color: "#888", background: "#1a1a3a", padding: "2px 6px", borderRadius: 4 }}>
+                      BPM: {suggestedPreset.preset.bpm_range?.[0]}–{suggestedPreset.preset.bpm_range?.[1]}
+                    </span>
+                    {suggestedPreset.preset.keys?.[0] && (
+                      <span style={{ fontSize: 10, color: "#888", background: "#1a1a3a", padding: "2px 6px", borderRadius: 4 }}>
+                        key: {suggestedPreset.preset.keys[0]}
+                      </span>
+                    )}
                   </div>
                 </div>
               )}
