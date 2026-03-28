@@ -14,7 +14,7 @@ Endpoints:
   GET  /vram_usage          - current VRAM usage
   GET  /clear_cache         - clear GPU VRAM cache
   GET  /health              - health check
-  
+
   GPU Memory Management (NEW in v1.9):
   GET  /gpu/info             - get GPU VRAM information
   GET  /gpu/cleanup          - manual GPU VRAM cleanup
@@ -28,8 +28,8 @@ import os
 import sys
 import uuid
 import json
-import json as _json  # alias to avoid httpx kwarg shadowing
 import random
+import json as _json  # alias to avoid httpx kwarg shadowing
 import shutil
 import asyncio
 import tempfile
