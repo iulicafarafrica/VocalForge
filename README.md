@@ -14,7 +14,7 @@
   ╚═══╝   ╚═════╝  ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
 ```
 
-### `AI-Powered Music Production Studio`
+### `AI-Powered Music Production Studio`   
 
 *Generate complete songs · Separate stems · Professional audio tools*
 
