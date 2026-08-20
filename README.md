@@ -30,7 +30,7 @@
 
 <br/>
 
-**[▶ Watch Demo](https://www.youtube.com/watch?v=8XSwCM7bM1A)** &nbsp;·&nbsp; **[Changelog](#-changelog)** &nbsp;·&nbsp; **[Roadmap](#%EF%B8%8F-roadmap)** &nbsp;·&nbsp; **[Security](#-security)** &nbsp;·&nbsp; **[API Docs](http://localhost:8000/docs)**
+**[▶ Watch Demo](https://www.youtube.com/watch?v=8XSwCM7bM1A)** &nbsp;·&nbsp; **[Changelog](#-changelog)** &nbsp;·&nbsp; **[Roadmap](#%EF%B8%8F-roadmap)** &nbsp;·&nbsp; **[Security](#-security)** &nbsp;·&nbsp; **[API Docs](http://localhost:8000/docs)**  
 
 </div>
 
