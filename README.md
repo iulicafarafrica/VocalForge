@@ -28,13 +28,13 @@
 [![ACE-Step](https://img.shields.io/badge/ACE--Step-v1.5-a855f7?style=for-the-badge&labelColor=0d0d14)](https://github.com/ace-step/ACE-Step-1.5)
 [![External LLM](https://img.shields.io/badge/External%20LLM-Gemma%203%204B-ff6b6b?style=for-the-badge&labelColor=0d0d14)](https://ollama.com/library/gemma3)
 
-<br/>
+<br/> 
 
-**[▶ Watch Demo](https://www.youtube.com/watch?v=8XSwCM7bM1A)** &nbsp;·&nbsp; **[Changelog](#-changelog)** &nbsp;·&nbsp; **[Roadmap](#%EF%B8%8F-roadmap)** &nbsp;·&nbsp; **[Security](#-security)** &nbsp;·&nbsp; **[API Docs](http://localhost:8000/docs)**
+**[▶ Watch Demo](https://www.youtube.com/watch?v=8XSwCM7bM1A)** &nbsp;·&nbsp; **[Changelog](#-changelog)** &nbsp;·&nbsp; **[Roadmap](#%EF%B8%8F-roadmap)** &nbsp;·&nbsp; **[Security](#-security)** &nbsp;·&nbsp; **[API Docs](http://localhost:8000/docs)**  
 
 </div>
 
-## Overview
+## Overview w w w  ww  ww w  wwww  ww  w ww w 
 
 <table>
 <tr>
